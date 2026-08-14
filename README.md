@@ -16,7 +16,7 @@ nix run .#default -- --version
 - `bundles.core.base`
 - `bundles.official.{headless,web-app}`
 - `bundles.optional.tui`
-- `presets.{official,headless,tui}`
+- `presets.{official,headless,web,tui}`
 
 ## NixOS
 
