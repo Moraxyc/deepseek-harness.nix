@@ -1,3 +1,4 @@
+{ dsh-src }:
 final: _prev:
 let
   packages = final.lib.packagesFromDirectoryRecursive {
@@ -7,6 +8,8 @@ let
   };
 in
 {
+  inherit dsh-src;
+
   inherit (packages)
     dsh
     dsh-kernel

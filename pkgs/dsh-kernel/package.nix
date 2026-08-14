@@ -1,11 +1,10 @@
 {
   lib,
   buildNpmPackage,
-  fetchFromGitHub,
+  dsh-src,
   fetchPnpmDeps,
   jq,
   makeWrapper,
-  nix-update-script,
   nodejs-slim,
   pnpmConfigHook,
   pnpm_11,
@@ -25,14 +24,9 @@ let
 in
 buildNpmPackage (finalAttrs: {
   pname = "dsh-kernel";
-  version = "0.1.0-rc.5";
+  version = (lib.importJSON "${dsh-src}/package.json").version;
 
-  src = fetchFromGitHub {
-    owner = "deepseek-ai";
-    repo = "deepseek-harness";
-    rev = "47f943859bef60e4160492346772ded9b24f765a";
-    hash = "sha256-ZPGCNoPXVjP76Tm/tFPDX2X95cd83M4iHLmVP5dR+Ps=";
-  };
+  src = dsh-src;
 
   postPatch = ''
     workspaceDeps="$TMPDIR/dsh-workspace-dependencies.json"
@@ -131,7 +125,6 @@ buildNpmPackage (finalAttrs: {
 
   passthru = {
     dshBundles = [ ];
-    updateScript = nix-update-script { };
   };
 
   meta = {
