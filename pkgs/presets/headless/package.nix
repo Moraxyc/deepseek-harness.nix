@@ -5,6 +5,7 @@
 }:
 dsh.override {
   inherit extraPlugins;
+  defaultProfile = "nix-headless";
   profiles = {
     headless.bundles = [ bundles.official.headless ];
   };

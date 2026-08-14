@@ -43,16 +43,27 @@
         }
       '';
       description = ''
-        dsh profiles copied to `$DSH_HOME/profiles/<name>` (default
-        `~/.dsh/profiles`) on first use. Existing profile files are not
-        overwritten.
+        Nix-managed dsh profiles. A profile named `tui` is materialized as
+        `$DSH_HOME/profiles/nix-tui` (default `~/.dsh/profiles/nix-tui`).
+        Unmanaged profile directories are never taken over.
+      '';
+    };
+
+    defaultProfile = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = ''
+        Profile passed by default when the command does not receive an
+        explicit `--profile`; use the materialized name, such as `nix-tui`.
       '';
     };
   };
 
   config = lib.mkIf config.programs.dsh.enable {
     environment.systemPackages = [
-      (config.programs.dsh.package.withProfiles config.programs.dsh.profiles)
+      ((config.programs.dsh.package.withProfiles config.programs.dsh.profiles).override {
+        defaultProfile = config.programs.dsh.defaultProfile;
+      })
     ];
   };
 

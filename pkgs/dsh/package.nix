@@ -1,7 +1,8 @@
 {
   lib,
-  formats,
   coreutils,
+  diffutils,
+  gnugrep,
   jq,
   stdenvNoCC,
   linkFarm,
@@ -9,6 +10,7 @@
   nodejs,
   nodejs-slim,
   symlinkJoin,
+  util-linux,
   versionCheckHook,
   writeShellApplication,
   writeText,
@@ -20,8 +22,10 @@
 
   # Additional bundles included in the composed application.
   extraPlugins ? [ ],
-  # Profiles copied on first use; see passthru.withProfiles.
+  # Profiles materialized under $DSH_HOME/profiles/nix-<name>.
   profiles ? { },
+  # Optional profile used when the caller does not pass --profile.
+  defaultProfile ? null,
 }:
 
 let
@@ -29,9 +33,12 @@ let
   profileFiles = import ./profiles.nix {
     inherit
       baseBundle
-      formats
+      coreutils
+      diffutils
+      gnugrep
       lib
       linkFarm
+      util-linux
       writeShellApplication
       writeText
       ;
@@ -39,7 +46,9 @@ let
 
   baseBundle = bundles.core.base;
   defaultBundles = composition.packagesFromScope bundles.official;
+  managedProfileNames = map profileFiles.profileName (lib.attrNames profiles);
 in
+assert defaultProfile == null || lib.elem defaultProfile managedProfileNames;
 
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "dsh";
@@ -84,7 +93,43 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
     ${lib.optionalString (profiles != { }) ''
       wrapProgram $out/bin/dsh \
-        --run ${lib.escapeShellArg (lib.getExe finalAttrs.passthru.seedProfiles)}
+        --run ${lib.escapeShellArg ''
+          requested_profile=
+          has_profile=0
+          wants_profile_value=0
+          for arg in "$@"; do
+            if [ "$wants_profile_value" -eq 1 ]; then
+              requested_profile=$arg
+              wants_profile_value=0
+              continue
+            fi
+
+            case "$arg" in
+              --) break ;;
+              --profile)
+                wants_profile_value=1
+                has_profile=1
+                ;;
+              --profile=*)
+                requested_profile=''${arg#--profile=}
+                has_profile=1
+                ;;
+            esac
+          done
+
+          if [ "$has_profile" -eq 1 ]; then
+            ${lib.escapeShellArg (lib.getExe finalAttrs.passthru.seedProfiles)} "$requested_profile"
+          ${lib.optionalString (defaultProfile != null) ''
+            else
+              ${lib.escapeShellArg (lib.getExe finalAttrs.passthru.seedProfiles)} ${lib.escapeShellArg defaultProfile}
+              set -- --profile ${lib.escapeShellArg defaultProfile} "$@"
+          ''}
+          ${lib.optionalString (defaultProfile == null) ''
+            else
+              ${lib.escapeShellArg (lib.getExe finalAttrs.passthru.seedProfiles)}
+          ''}
+          fi
+        ''}
     ''}
 
     runHook postInstall
@@ -105,7 +150,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     };
 
     seedProfiles = profileFiles.makeProfileSeeder {
-      inherit coreutils;
+      inherit profiles;
       profileTemplates = finalAttrs.passthru.profileTemplates;
     };
 
@@ -124,10 +169,12 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     dshBundles = composition.dshBundles dsh-kernel finalAttrs.passthru.composedBundles;
 
     # pkgs.dsh.withProfiles { tui.bundles = [ pkgs.bundles.optional.tui ]; }
+    # materializes the profile as nix-tui.
     withProfiles =
       configuredProfiles:
       dsh.override {
         inherit extraPlugins;
+        defaultProfile = null;
         profiles = configuredProfiles;
       };
   };
