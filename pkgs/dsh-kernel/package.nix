@@ -9,7 +9,7 @@
   dsh-workspace,
 
   # Optional external Claude Code executable exposed through PATH.
-  claude-code ? null,
+  claudeCodePackage ? null,
 }:
 
 stdenvNoCC.mkDerivation (finalAttrs: {
@@ -57,7 +57,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   passthru = {
     dshBundles = [ ];
-    runtimeDeps = [ claude-code ];
+    runtimeDeps = [ claudeCodePackage ];
   };
 
   meta = {

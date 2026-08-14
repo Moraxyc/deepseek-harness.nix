@@ -169,7 +169,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
     bundleDeps = composition.bundleDeps finalAttrs.passthru.composedBundles;
 
-    runtimeDeps = composition.runtimeDeps finalAttrs.passthru.composedBundles;
+    runtimeDeps = lib.unique (
+      dsh-kernel.passthru.runtimeDeps ++ composition.runtimeDeps finalAttrs.passthru.composedBundles
+    );
 
     dshBundles = composition.dshBundles dsh-kernel finalAttrs.passthru.composedBundles;
 
