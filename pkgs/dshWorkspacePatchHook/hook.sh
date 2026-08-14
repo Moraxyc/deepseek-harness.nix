@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 dshWorkspaceDie() {
   printf 'dsh-workspace: %s\n' "$1" >&2
   return 1
@@ -31,17 +33,17 @@ dshWorkspacePatchDependencies() {
   workspace_lock_deps="$TMPDIR/dsh-workspace-lock-dependencies.json"
 
   yq ea -o=json -I=0 \
-    '(select(.name | test("^@deepseek-ai/")) | {
-      (.name): "workspace:^"
-    }) as $item ireduce ({}; . * $item)' \
+    "(select(.name | test(\"^@deepseek-ai/\")) | {
+      (.name): \"workspace:^\"
+    }) as \$item ireduce ({}; . * \$item)" \
     vendor/group/package.json packages/*/*/package.json > "$workspace_deps"
   yq ea -o=json -I=0 \
-    '(select(.name | test("^@deepseek-ai/")) | {
+    "(select(.name | test(\"^@deepseek-ai/\")) | {
       (.name): {
-        "specifier": "workspace:^",
-        "version": "link:" + (filename | sub("/package.json$"; "") | sub("^"; "../../"))
+        \"specifier\": \"workspace:^\",
+        \"version\": \"link:\" + (filename | sub(\"/package.json\$\"; \"\") | sub(\"^\"; \"../../\"))
       }
-    }) as $item ireduce ({}; . * $item)' \
+    }) as \$item ireduce ({}; . * \$item)" \
     vendor/group/package.json packages/*/*/package.json > "$workspace_lock_deps"
   DEPS_FILE="$workspace_deps" yq -i \
     '.dependencies *= load(strenv(DEPS_FILE))' apps/cli/package.json
