@@ -109,7 +109,7 @@ buildNpmPackage (finalAttrs: {
     }
     mkdir -p "$workspaceDir/frontends/web"
     cp apps/web/package.json "$workspaceDir/frontends/web/package.json"
-    cp -r apps/web/dist "$workspaceDir/frontends/dist"
+    cp -r apps/web/dist "$workspaceDir/frontends/web/dist"
 
     runHook postInstall
   '';

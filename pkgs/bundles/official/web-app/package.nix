@@ -20,7 +20,6 @@ buildDshBundle.fromWorkspace (finalAttrs: {
   ];
   dshBundles = [
     "@deepseek-ai/dsh-web-app"
-    "@deepseek-ai/dsh-web-frontend"
   ];
   meta = {
     description = "dsh web bundle over dsh-base";
