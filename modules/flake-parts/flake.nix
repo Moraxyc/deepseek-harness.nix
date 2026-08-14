@@ -4,12 +4,8 @@
 }:
 {
   flake = {
-    overlays.default = import ../../overlays/default.nix {
-      inherit (inputs) dsh-src;
-    };
-    nixosModules.default = import ../../modules/nixos.nix {
-      inherit (inputs) dsh-src;
-    };
+    overlays.default = import ../../overlays/default.nix;
+    nixosModules.default = import ../../modules/nixos.nix;
     lib = import ../../lib { inherit inputs; };
   };
 }

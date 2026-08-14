@@ -7,10 +7,6 @@
       url = "github:hercules-ci/flake-parts";
       inputs.nixpkgs-lib.follows = "nixpkgs";
     };
-    dsh-src = {
-      url = "github:deepseek-ai/deepseek-harness";
-      flake = false;
-    };
     systems.url = "github:nix-systems/triplet";
   };
 
