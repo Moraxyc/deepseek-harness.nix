@@ -5,7 +5,7 @@
 ```sh
 nix build .#dsh
 nix build .#presets.tui
-nix build .#bundles.optional.tui
+nix build .#bundles.tui
 nix run .#default -- --version
 ```
 
@@ -14,9 +14,8 @@ nix run .#default -- --version
 - `dsh`
 - `dsh-kernel`
 - `dsh-workspace`
-- `bundles.core.base`
-- `bundles.official.{headless,web-app}`
-- `bundles.optional.tui`
+- `bundles.base`
+- `bundles.{headless,web-app,tui}`
 - `presets.{official,headless,web,tui}`
 
 ## NixOS
@@ -27,7 +26,7 @@ nix run .#default -- --version
 
   programs.dsh = {
     enable = true;
-    profiles.tui.bundles = [ pkgs.bundles.optional.tui ];
+    profiles.tui.bundles = [ pkgs.dsh.bundles.tui ];
     defaultProfile = "nix-tui";
   };
 }
@@ -42,7 +41,7 @@ profile 由 Nix 同步；已有但没有 Nix 标记的同名目录不会被接�
 ## 覆盖
 
 ```nix
-pkgs.presets.tui.override {
+pkgs.dsh.presets.tui.override {
   extraPlugins = [ myBundle ];
 }
 ```
@@ -55,6 +54,10 @@ pkgs.presets.tui.override {
 ```nix
 {
   nixpkgs.overlays = [ inputs.deepseek-harness.overlays.default ];
-  environment.systemPackages = [ pkgs.dsh ];
+  environment.systemPackages = [ pkgs.dsh.dsh ];
 }
 ```
+
+Overlay 包位于 `pkgs.dsh` scope 中，例如 `pkgs.dsh.bundles.tui`；
+flake 的 `packages` 会展开该 scope，因此仍可直接使用
+`nix build .#bundles.tui` 和 `nix run .#presets.web`。

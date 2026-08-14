@@ -2,23 +2,28 @@
 {
   perSystem =
     { pkgs, ... }:
+    let
+      dsh = pkgs.dsh;
+    in
     {
       packages = {
-        default = pkgs.dsh;
-        inherit (pkgs)
-          dsh
+        default = dsh.dsh;
+        inherit (dsh)
           dsh-kernel
           dsh-workspace
+          ;
+        inherit (dsh)
+          dsh
           ;
       };
 
       legacyPackages = {
-        inherit (pkgs) bundles presets;
+        inherit (dsh) bundles presets;
       };
 
       apps.default = {
         type = "app";
-        program = "${pkgs.dsh}/bin/dsh";
+        program = "${dsh.dsh}/bin/dsh";
       };
     };
 }

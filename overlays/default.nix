@@ -9,21 +9,19 @@ let
       stdenvNoCC
       ;
   };
-  packages = final.lib.packagesFromDirectoryRecursive {
-    callPackage = final.callPackage;
-    newScope = final.newScope;
-    directory = ../pkgs;
-  };
+  dsh = final.lib.makeScope final.newScope (
+    self:
+    {
+      inherit buildDshBundle;
+      mkDshBundle = buildDshBundle;
+    }
+    // final.lib.packagesFromDirectoryRecursive {
+      callPackage = self.callPackage;
+      newScope = self.newScope;
+      directory = ../pkgs;
+    }
+  );
 in
 {
-  inherit buildDshBundle;
-  mkDshBundle = buildDshBundle;
-
-  inherit (packages)
-    dsh
-    dsh-kernel
-    dsh-workspace
-    bundles
-    presets
-    ;
+  inherit dsh;
 }

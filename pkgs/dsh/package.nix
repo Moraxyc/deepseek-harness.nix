@@ -44,8 +44,8 @@ let
       ;
   };
 
-  baseBundle = bundles.core.base;
-  defaultBundles = with bundles.official; [
+  baseBundle = bundles.base;
+  defaultBundles = with bundles; [
     headless
     web-app
   ];
@@ -171,7 +171,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
     dshBundles = composition.dshBundles dsh-kernel finalAttrs.passthru.composedBundles;
 
-    # pkgs.dsh.withProfiles { tui.bundles = [ pkgs.bundles.optional.tui ]; }
+    # pkgs.dsh.dsh.withProfiles { tui.bundles = [ pkgs.dsh.bundles.tui ]; }
     # materializes the profile as nix-tui.
     withProfiles =
       configuredProfiles:

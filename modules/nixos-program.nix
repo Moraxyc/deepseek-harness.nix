@@ -9,7 +9,7 @@
   options.programs.dsh = {
     enable = lib.mkEnableOption "the DeepSeek Harness dsh CLI with declarative profiles";
 
-    package = lib.mkPackageOption pkgs "dsh" { };
+    package = lib.mkPackageOption pkgs.dsh "dsh" { };
 
     profiles = lib.mkOption {
       type = lib.types.attrsOf (
@@ -19,7 +19,7 @@
               type = lib.types.listOf lib.types.package;
               default = [ ];
               description = ''
-                dsh bundle packages for this profile, e.g. `pkgs.bundles.optional.tui`.
+                dsh bundle packages for this profile, e.g. `pkgs.dsh.bundles.tui`.
                 Their `passthru.dshBundles` are added to the shared
                 `@deepseek-ai/dsh-base` layer and the installed package.
               '';
@@ -39,7 +39,7 @@
       default = { };
       example = lib.literalExpression ''
         {
-          tui.bundles = [ pkgs.bundles.optional.tui ];
+          tui.bundles = [ pkgs.dsh.bundles.tui ];
         }
       '';
       description = ''
