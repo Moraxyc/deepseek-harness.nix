@@ -13,12 +13,16 @@
   yq-go,
 }:
 
-let
-  source = import ./source.nix { inherit fetchFromGitHub; };
-in
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
-  inherit (source) src version;
+  version = "0.1.0-rc.5";
+
+  src = fetchFromGitHub {
+    owner = "deepseek-ai";
+    repo = "deepseek-harness";
+    rev = "47f943859bef60e4160492346772ded9b24f765a";
+    hash = "sha256-ZPGCNoPXVjP76Tm/tFPDX2X95cd83M4iHLmVP5dR+Ps=";
+  };
 
   nodejs = nodejs-slim;
   disallowedReferences = [ nodejs ];
@@ -36,7 +40,7 @@ buildNpmPackage (finalAttrs: {
     nativeBuildInputs = [ dshWorkspacePatchHook ];
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = source.pnpmDepsHash;
+    hash = "sha256-+dkclQcDhAmHmB6dM8bffc3pMrivJR1T1wi/56IgQro=";
   };
 
   nativeBuildInputs = [
