@@ -45,7 +45,10 @@ let
   };
 
   baseBundle = bundles.core.base;
-  defaultBundles = composition.packagesFromScope bundles.official;
+  defaultBundles = with bundles.official; [
+    headless
+    web-app
+  ];
   managedProfileNames = map profileFiles.profileName (lib.attrNames profiles);
 in
 assert defaultProfile == null || lib.elem defaultProfile managedProfileNames;

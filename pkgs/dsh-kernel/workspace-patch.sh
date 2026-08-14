@@ -50,9 +50,19 @@ patch_workspace_dependencies() {
 }
 
 prepare_composition() {
-  local bundle_name
+  local bundle_name package_json
+  local -a bundle_names=("$@")
 
   require_workspace
+  if [ "${#bundle_names[@]}" -eq 0 ]; then
+    for package_json in packages/bundle/*/package.json; do
+      [ -f "$package_json" ] || continue
+      bundle_name=$(yq -r '.name' "$package_json")
+      [ -n "$bundle_name" ] || die "bundle package '$package_json' has no name"
+      bundle_names+=("$bundle_name")
+    done
+  fi
+
   mkdir -p apps/nix-composition
   cp apps/cli/package.json apps/nix-composition/package.json
 
@@ -65,7 +75,7 @@ prepare_composition() {
       .importers."apps/cli".dependencies
   ' pnpm-lock.yaml
 
-  for bundle_name in "$@"; do
+  for bundle_name in "${bundle_names[@]}"; do
     [ -n "$bundle_name" ] || die "composition bundle name cannot be empty"
     DSH_BUNDLE_NAME="$bundle_name" yq -i \
       'del(.dependencies[strenv(DSH_BUNDLE_NAME)])' \

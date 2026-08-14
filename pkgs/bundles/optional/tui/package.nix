@@ -3,11 +3,11 @@
   buildNpmPackage,
   fetchFromGitHub,
   fetchPnpmDeps,
+  buildDshBundle,
   pnpmConfigHook,
   pnpm_11,
 }:
-
-buildNpmPackage (finalAttrs: {
+buildDshBundle (finalAttrs: {
   pname = "dsh-tui";
   version = "0.4.0";
 
@@ -46,10 +46,7 @@ buildNpmPackage (finalAttrs: {
     runHook postInstall
   '';
 
-  passthru = {
-    dshBundles = [ "dsh-cc-tui" ];
-  };
-
+  dshBundles = [ "dsh-cc-tui" ];
   meta = {
     description = "Interactive TUI for DeepSeek Harness agents";
     homepage = "https://github.com/ccch1mneyyy/dsh-TUI";

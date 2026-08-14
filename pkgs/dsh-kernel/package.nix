@@ -10,88 +10,60 @@
   pnpmConfigHook,
   pnpm_11,
   python3,
+  stdenvNoCC,
   versionCheckHook,
   yq-go,
+
+  # Optional external Claude Code executable exposed through PATH.
+  claude-code ? null,
 }:
 
 let
-  source = import ./source.nix { inherit fetchFromGitHub; };
-  workspacePatch = mode: ''
-    bash ${./workspace-patch.sh} ${mode}
-  '';
-  compositionBundleNames = [
-    "@deepseek-ai/dsh-base"
-    "@deepseek-ai/dsh-headless"
-    "@deepseek-ai/dsh-web-app"
-  ];
-in
-buildNpmPackage (finalAttrs: {
-  pname = "dsh-kernel";
-  inherit (source) src version;
-
-  nodejs = nodejs-slim;
-  disallowedReferences = [ nodejs ];
-
-  postPatch = workspacePatch "dependencies";
-
-  preConfigure = ''
-    bash ${./workspace-patch.sh} composition ${lib.concatMapStringsSep " " lib.escapeShellArg compositionBundleNames}
-  '';
-
-  # The patch uses mikefarah yq's `ea`, not the Python jq wrapper default.
-  pnpmDeps = (fetchPnpmDeps.override { yq = yq-go; }) {
-    inherit (finalAttrs)
-      pname
-      version
-      src
-      postPatch
+  workspace = import ./workspace.nix {
+    inherit
+      buildNpmPackage
+      fetchFromGitHub
+      fetchPnpmDeps
+      jq
+      lib
+      nodejs
+      nodejs-slim
+      pnpmConfigHook
+      pnpm_11
+      python3
+      yq-go
       ;
-    pnpm = pnpm_11;
-    fetcherVersion = 4;
-    hash = source.pnpmDepsHash;
   };
+in
+stdenvNoCC.mkDerivation (finalAttrs: {
+  pname = "dsh-kernel";
+  inherit (workspace) version;
+
+  src = null;
+  disallowedReferences = [ nodejs ];
+  dontUnpack = true;
+  dontConfigure = true;
+  dontBuild = true;
 
   nativeBuildInputs = [
     jq
     makeWrapper
-    nodejs-slim.npm
-    pnpm_11
-    python3
-    yq-go
   ];
 
-  npmDeps = null;
-  npmConfigHook = pnpmConfigHook;
-  npmBuildScript = "build";
-
-  # node-pty's postinstall can't run before deploy assembles the composition
-  preInstall = ''
-    pnpm config set --location=project inject-workspace-packages true
-    yq -i 'del(.scripts.postinstall)' packages/subprocess/subprocess-local/package.json
-  '';
-
   installPhase = ''
-    runHook preInstall
-
+    workspaceApp="${workspace}/lib/dsh-workspace/kernel"
     appDir="$out/lib/deepseek-harness"
 
-    cp -r apps/cli/lib apps/nix-composition/lib
-    cp -r apps/cli/config apps/nix-composition/config
-    pnpm --filter @deepseek-ai/dsh-nix-composition deploy \
-      --prod \
-      --config.node-linker=hoisted \
-      --config.link-workspace-packages=true \
-      "$appDir"
-    yq -i '.name = "@deepseek-ai/dsh"' "$appDir/package.json"
+    mkdir -p "$appDir"
+    cp -r "$workspaceApp/lib" "$appDir/lib"
+    cp -r "$workspaceApp/config" "$appDir/config"
+    cp "$workspaceApp/package.json" "$appDir/package.json"
+    ln -s "$workspaceApp/node_modules" "$appDir/node_modules"
+    jq '.name = "@deepseek-ai/dsh"' "$appDir/package.json" > "$appDir/package.json.tmp"
+    mv "$appDir/package.json.tmp" "$appDir/package.json"
 
-    # Prune
-    rm -f "$appDir/node_modules/node-pty/build/"{{binding.,}Makefile,config.gypi,pty.target.mk}
-    sed -i '1{/^#!/d;}' "$appDir/lib/bin.js"
-
-    ${lib.getExe nodejs-slim} "$appDir/node_modules/@deepseek-ai/dsh-subprocess-local/scripts/ensure-spawn-helper.mjs"
-
-    mkdir -p $out/bin
-    makeWrapper ${lib.getExe nodejs-slim} $out/bin/dsh \
+    mkdir -p "$out/bin"
+    makeWrapper ${lib.getExe nodejs-slim} "$out/bin/dsh" \
       --add-flags "--expose-internals" \
       --add-flags "$appDir/lib/bin.js"
 
@@ -102,7 +74,9 @@ buildNpmPackage (finalAttrs: {
   nativeInstallCheckInputs = [ versionCheckHook ];
 
   passthru = {
+    inherit workspace;
     dshBundles = [ ];
+    runtimeDeps = [ claude-code ];
   };
 
   meta = {
