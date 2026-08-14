@@ -81,7 +81,7 @@ buildNpmPackage (finalAttrs: {
       ;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-hyElnENhnz8ZwM5ajN6So9UF15TuYvoriuXrZLEHnnY=";
+    hash = "sha256-tlxGBb/Mp8dFRMYM9Hhk2fHsj/5EA8AoWBBXNnRl0CE=";
   };
 
   nativeBuildInputs = [

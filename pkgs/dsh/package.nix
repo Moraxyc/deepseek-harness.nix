@@ -99,7 +99,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     };
 
     profileTemplates = profileFiles.makeProfileTemplates {
-      inherit baseBundle profiles;
+      inherit profiles;
     };
 
     seedProfiles = profileFiles.makeProfileSeeder {
