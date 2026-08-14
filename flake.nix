@@ -16,10 +16,21 @@
       systems = import inputs.systems;
 
       imports = [
+        inputs.flake-parts.flakeModules.partitions
         ./modules/flake-parts/flake.nix
         ./modules/flake-parts/nixpkgs.nix
         ./modules/flake-parts/packages.nix
-        ./modules/flake-parts/shell.nix
       ];
+
+      partitions.dev = {
+        module = ./modules/flake-parts/dev/flake-module.nix;
+        extraInputsFlake = ./modules/flake-parts/dev;
+      };
+
+      partitionedAttrs = {
+        checks = "dev";
+        devShells = "dev";
+        formatter = "dev";
+      };
     };
 }

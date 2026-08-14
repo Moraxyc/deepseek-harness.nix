@@ -1,9 +1,11 @@
 { ... }:
 {
   perSystem =
-    { pkgs, ... }:
+    { config, pkgs, ... }:
     {
       devShells.default = pkgs.mkShellNoCC {
+        inherit (config.pre-commit.settings) shellHook;
+        nativeBuildInputs = config.pre-commit.settings.enabledPackages;
         packages = with pkgs; [
           jq
           nix-update
@@ -11,7 +13,5 @@
           yq-go
         ];
       };
-
-      formatter = pkgs.nixfmt-rfc-style;
     };
 }
