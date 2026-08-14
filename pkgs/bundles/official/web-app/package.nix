@@ -2,9 +2,10 @@
   lib,
   buildDshBundle,
   dsh-kernel,
+  dsh-workspace,
 }:
 buildDshBundle.fromWorkspace (finalAttrs: {
-  inherit dsh-kernel;
+  inherit dsh-kernel dsh-workspace;
   pname = "dsh-web-app";
   artifacts = [
     {

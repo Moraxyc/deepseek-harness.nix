@@ -3,11 +3,12 @@
   bubblewrap,
   buildDshBundle,
   dsh-kernel,
+  dsh-workspace,
   ripgrep,
   stdenvNoCC,
 }:
 buildDshBundle.fromWorkspace (finalAttrs: {
-  inherit dsh-kernel;
+  inherit dsh-kernel dsh-workspace;
   pname = "dsh-base";
   artifacts = [
     {

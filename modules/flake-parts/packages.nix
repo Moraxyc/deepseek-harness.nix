@@ -8,6 +8,7 @@
         inherit (pkgs)
           dsh
           dsh-kernel
+          dsh-workspace
           ;
       };
 

@@ -13,6 +13,7 @@ nix run .#default -- --version
 
 - `dsh`
 - `dsh-kernel`
+- `dsh-workspace`
 - `bundles.core.base`
 - `bundles.official.{headless,web-app}`
 - `bundles.optional.tui`

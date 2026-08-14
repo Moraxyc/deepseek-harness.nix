@@ -1,46 +1,27 @@
 {
   lib,
-  buildNpmPackage,
-  fetchFromGitHub,
-  fetchPnpmDeps,
   jq,
   makeWrapper,
   nodejs,
   nodejs-slim,
-  pnpmConfigHook,
-  pnpm_11,
-  python3,
   stdenvNoCC,
   versionCheckHook,
-  yq-go,
+  dsh-workspace,
 
   # Optional external Claude Code executable exposed through PATH.
   claude-code ? null,
 }:
 
-let
-  workspace = import ./workspace.nix {
-    inherit
-      buildNpmPackage
-      fetchFromGitHub
-      fetchPnpmDeps
-      jq
-      lib
-      nodejs
-      nodejs-slim
-      pnpmConfigHook
-      pnpm_11
-      python3
-      yq-go
-      ;
-  };
-in
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "dsh-kernel";
-  inherit (workspace) version;
+  inherit (dsh-workspace) version;
 
   src = null;
-  disallowedReferences = [ nodejs ];
+  # The workspace is a build input, not part of the kernel runtime closure.
+  disallowedReferences = [
+    nodejs
+    dsh-workspace
+  ];
   dontUnpack = true;
   dontConfigure = true;
   dontBuild = true;
@@ -51,14 +32,15 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   ];
 
   installPhase = ''
-    workspaceApp="${workspace}/lib/dsh-workspace/kernel"
+    workspaceApp="${dsh-workspace}/lib/dsh-workspace/kernel"
     appDir="$out/lib/deepseek-harness"
 
     mkdir -p "$appDir"
     cp -r "$workspaceApp/lib" "$appDir/lib"
     cp -r "$workspaceApp/config" "$appDir/config"
     cp "$workspaceApp/package.json" "$appDir/package.json"
-    ln -s "$workspaceApp/node_modules" "$appDir/node_modules"
+    # Keep the public kernel self-contained; do not symlink back into the workspace.
+    cp -r "$workspaceApp/node_modules" "$appDir/node_modules"
     jq '.name = "@deepseek-ai/dsh"' "$appDir/package.json" > "$appDir/package.json.tmp"
     mv "$appDir/package.json.tmp" "$appDir/package.json"
 
@@ -74,7 +56,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   nativeInstallCheckInputs = [ versionCheckHook ];
 
   passthru = {
-    inherit workspace;
     dshBundles = [ ];
     runtimeDeps = [ claude-code ];
   };

@@ -3,6 +3,7 @@
   buildNpmPackage,
   fetchFromGitHub,
   fetchPnpmDeps,
+  dshWorkspacePatchHook,
   jq,
   nodejs,
   nodejs-slim,
@@ -14,9 +15,6 @@
 
 let
   source = import ./source.nix { inherit fetchFromGitHub; };
-  workspacePatch = mode: ''
-    bash ${./workspace-patch.sh} ${mode}
-  '';
 in
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
@@ -25,8 +23,8 @@ buildNpmPackage (finalAttrs: {
   nodejs = nodejs-slim;
   disallowedReferences = [ nodejs ];
 
-  postPatch = workspacePatch "dependencies";
-  preConfigure = workspacePatch "composition";
+  postPatch = "patchDshWorkspace dependencies";
+  preConfigure = "patchDshWorkspace composition";
 
   pnpmDeps = (fetchPnpmDeps.override { yq = yq-go; }) {
     inherit (finalAttrs)
@@ -35,6 +33,7 @@ buildNpmPackage (finalAttrs: {
       src
       postPatch
       ;
+    nativeBuildInputs = [ dshWorkspacePatchHook ];
     pnpm = pnpm_11;
     fetcherVersion = 4;
     hash = source.pnpmDepsHash;
@@ -45,6 +44,7 @@ buildNpmPackage (finalAttrs: {
     nodejs-slim.npm
     pnpm_11
     python3
+    dshWorkspacePatchHook
     yq-go
   ];
 
@@ -113,10 +113,6 @@ buildNpmPackage (finalAttrs: {
 
     runHook postInstall
   '';
-
-  passthru = {
-    dshBundles = [ ];
-  };
 
   meta = {
     description = "Built DeepSeek Harness workspace artifacts";

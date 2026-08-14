@@ -1,15 +1,9 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-phase=${1:-}
-shift || true
-
-die() {
-  printf 'dsh-kernel: %s\n' "$1" >&2
-  exit 1
+dshWorkspaceDie() {
+  printf 'dsh-workspace: %s\n' "$1" >&2
+  return 1
 }
 
-require_workspace() {
+dshWorkspaceRequire() {
   local path
 
   for path in \
@@ -17,16 +11,22 @@ require_workspace() {
     pnpm-lock.yaml \
     vendor/group/package.json
   do
-    [ -f "$path" ] || die "workspace patch expected file '$path'"
+    if [ ! -f "$path" ]; then
+      dshWorkspaceDie "workspace patch expected file '$path'"
+      return 1
+    fi
   done
 
-  [ -d packages/bundle ] || die "workspace patch expected directory 'packages/bundle'"
+  if [ ! -d packages/bundle ]; then
+    dshWorkspaceDie "workspace patch expected directory 'packages/bundle'"
+    return 1
+  fi
 }
 
-patch_workspace_dependencies() {
+dshWorkspacePatchDependencies() {
   local workspace_deps workspace_lock_deps
 
-  require_workspace
+  dshWorkspaceRequire || return
   workspace_deps="$TMPDIR/dsh-workspace-dependencies.json"
   workspace_lock_deps="$TMPDIR/dsh-workspace-lock-dependencies.json"
 
@@ -49,16 +49,19 @@ patch_workspace_dependencies() {
     '.importers."apps/cli".dependencies *= load(strenv(DEPS_FILE))' pnpm-lock.yaml
 }
 
-prepare_composition() {
+dshWorkspacePrepareComposition() {
   local bundle_name package_json
   local -a bundle_names=("$@")
 
-  require_workspace
+  dshWorkspaceRequire || return
   if [ "${#bundle_names[@]}" -eq 0 ]; then
     for package_json in packages/bundle/*/package.json; do
       [ -f "$package_json" ] || continue
       bundle_name=$(yq -r '.name' "$package_json")
-      [ -n "$bundle_name" ] || die "bundle package '$package_json' has no name"
+      [ -n "$bundle_name" ] || {
+        dshWorkspaceDie "bundle package '$package_json' has no name"
+        return 1
+      }
       bundle_names+=("$bundle_name")
     done
   fi
@@ -76,7 +79,10 @@ prepare_composition() {
   ' pnpm-lock.yaml
 
   for bundle_name in "${bundle_names[@]}"; do
-    [ -n "$bundle_name" ] || die "composition bundle name cannot be empty"
+    [ -n "$bundle_name" ] || {
+      dshWorkspaceDie "composition bundle name cannot be empty"
+      return 1
+    }
     DSH_BUNDLE_NAME="$bundle_name" yq -i \
       'del(.dependencies[strenv(DSH_BUNDLE_NAME)])' \
       apps/nix-composition/package.json
@@ -86,14 +92,19 @@ prepare_composition() {
   done
 }
 
-case "$phase" in
-  dependencies)
-    patch_workspace_dependencies
-    ;;
-  composition)
-    prepare_composition "$@"
-    ;;
-  *)
-    die "unknown workspace patch phase '$phase'"
-    ;;
-esac
+patchDshWorkspace() {
+  local phase=${1:-}
+  shift || true
+
+  case "$phase" in
+    dependencies)
+      dshWorkspacePatchDependencies
+      ;;
+    composition)
+      dshWorkspacePrepareComposition "$@"
+      ;;
+    *)
+      dshWorkspaceDie "unknown workspace patch phase '$phase'"
+      ;;
+  esac
+}

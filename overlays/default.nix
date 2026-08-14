@@ -22,6 +22,7 @@ in
   inherit (packages)
     dsh
     dsh-kernel
+    dsh-workspace
     bundles
     presets
     ;

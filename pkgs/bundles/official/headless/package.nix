@@ -2,10 +2,11 @@
   lib,
   buildDshBundle,
   dsh-kernel,
+  dsh-workspace,
   stdenvNoCC,
 }:
 buildDshBundle.fromWorkspace (finalAttrs: {
-  inherit dsh-kernel;
+  inherit dsh-kernel dsh-workspace;
   pname = "dsh-headless";
   artifacts = [
     {

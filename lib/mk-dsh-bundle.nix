@@ -71,6 +71,7 @@ let
     excludeDrvArgNames = [
       "artifacts"
       "dsh-kernel"
+      "dsh-workspace"
       "dshBundles"
       "runtimeDeps"
     ];
@@ -79,9 +80,11 @@ let
       {
         artifacts,
         dsh-kernel,
+        dsh-workspace,
         dshBundles,
+        disallowedReferences ? [ ],
         runtimeDeps ? [ ],
-        version ? dsh-kernel.version,
+        version ? dsh-workspace.version,
         installPhase ? null,
         meta ? { },
         passthru ? { },
@@ -98,7 +101,7 @@ let
               linkNodeModules = artifact.linkNodeModules or false;
             in
             ''
-              source="${dsh-kernel.workspace}/lib/dsh-workspace/${artifact.source}"
+              source="${dsh-workspace}/lib/dsh-workspace/${artifact.source}"
               destination="$out/${artifact.target}"
               [ -d "$source" ] || {
                 printf 'buildDshBundle: workspace artifact is missing: %s\n' "$source" >&2
@@ -117,7 +120,10 @@ let
       in
       {
         inherit version;
-        src = dsh-kernel.workspace;
+        src = dsh-workspace;
+        # The workspace is only the build source. Runtime dependencies come
+        # from the independently consumable kernel package.
+        disallowedReferences = lib.unique (disallowedReferences ++ [ dsh-workspace ]);
         dontUnpack = true;
         dontConfigure = true;
         dontBuild = true;
