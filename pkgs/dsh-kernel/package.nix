@@ -29,6 +29,7 @@ buildNpmPackage (finalAttrs: {
 
   src = dsh-src;
 
+  nodejs = nodejs-slim;
   disallowedReferences = [ nodejs ];
 
   postPatch = ''
@@ -84,6 +85,7 @@ buildNpmPackage (finalAttrs: {
   nativeBuildInputs = [
     jq
     makeWrapper
+    nodejs-slim.npm
     pnpm_11
     python3
     yq-go
@@ -116,12 +118,6 @@ buildNpmPackage (finalAttrs: {
     # Prune
     rm -f "$appDir/node_modules/node-pty/build/"{{binding.,}Makefile,config.gypi,pty.target.mk}
     sed -i '1{/^#!/d;}' "$appDir/lib/bin.js"
-    if [ -f "$appDir/node_modules/@anthropic-ai/sdk/bin/cli" ]; then
-      sed -i '1c\#!${lib.getExe nodejs-slim}' "$appDir/node_modules/@anthropic-ai/sdk/bin/cli"
-    fi
-    if [ -f "$appDir/node_modules/@babel/parser/bin/babel-parser.js" ]; then
-      sed -i '1c\#!${lib.getExe nodejs-slim}' "$appDir/node_modules/@babel/parser/bin/babel-parser.js"
-    fi
 
     ${lib.getExe nodejs-slim} "$appDir/node_modules/@deepseek-ai/dsh-subprocess-local/scripts/ensure-spawn-helper.mjs"
 
