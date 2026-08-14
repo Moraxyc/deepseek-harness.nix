@@ -6,6 +6,7 @@
   stdenvNoCC,
   linkFarm,
   makeWrapper,
+  nodejs,
   nodejs-slim,
   symlinkJoin,
   versionCheckHook,
@@ -45,6 +46,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   inherit (dsh-kernel) version;
 
   src = null;
+  disallowedReferences = [ nodejs ];
   dontUnpack = true;
   dontConfigure = true;
   dontBuild = true;

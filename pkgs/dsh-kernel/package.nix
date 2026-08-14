@@ -5,6 +5,7 @@
   fetchPnpmDeps,
   jq,
   makeWrapper,
+  nodejs,
   nodejs-slim,
   pnpmConfigHook,
   pnpm_11,
@@ -27,6 +28,8 @@ buildNpmPackage (finalAttrs: {
   version = (lib.importJSON "${dsh-src}/package.json").version;
 
   src = dsh-src;
+
+  disallowedReferences = [ nodejs ];
 
   postPatch = ''
     workspaceDeps="$TMPDIR/dsh-workspace-dependencies.json"
@@ -109,6 +112,16 @@ buildNpmPackage (finalAttrs: {
       --config.link-workspace-packages=true \
       "$appDir"
     yq -i '.name = "@deepseek-ai/dsh"' "$appDir/package.json"
+
+    # Prune
+    rm -f "$appDir/node_modules/node-pty/build/"{{binding.,}Makefile,config.gypi,pty.target.mk}
+    sed -i '1{/^#!/d;}' "$appDir/lib/bin.js"
+    if [ -f "$appDir/node_modules/@anthropic-ai/sdk/bin/cli" ]; then
+      sed -i '1c\#!${lib.getExe nodejs-slim}' "$appDir/node_modules/@anthropic-ai/sdk/bin/cli"
+    fi
+    if [ -f "$appDir/node_modules/@babel/parser/bin/babel-parser.js" ]; then
+      sed -i '1c\#!${lib.getExe nodejs-slim}' "$appDir/node_modules/@babel/parser/bin/babel-parser.js"
+    fi
 
     ${lib.getExe nodejs-slim} "$appDir/node_modules/@deepseek-ai/dsh-subprocess-local/scripts/ensure-spawn-helper.mjs"
 
