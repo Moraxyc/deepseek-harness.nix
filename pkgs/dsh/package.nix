@@ -20,6 +20,12 @@
 
   bundles,
 
+  # Bundles included in every composed application.
+  defaultBundles ? with bundles; [
+    headless
+    web-app
+  ],
+
   # Additional bundles included in the composed application.
   extraPlugins ? [ ],
   # Profiles materialized under $DSH_HOME/profiles/nix-<name>.
@@ -45,10 +51,6 @@ let
   };
 
   baseBundle = bundles.base;
-  defaultBundles = with bundles; [
-    headless
-    web-app
-  ];
   managedProfileNames = map profileFiles.profileName (lib.attrNames profiles);
 in
 assert defaultProfile == null || lib.elem defaultProfile managedProfileNames;
@@ -176,7 +178,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     withProfiles =
       configuredProfiles:
       dsh.override {
-        inherit extraPlugins;
+        inherit defaultBundles extraPlugins;
         defaultProfile = null;
         profiles = configuredProfiles;
       };
