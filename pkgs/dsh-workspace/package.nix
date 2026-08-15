@@ -16,7 +16,7 @@
 
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
-  version = "0.1.0-rc.5";
+  version = "0-unstable-2026-08-13";
 
   src = fetchFromGitHub {
     owner = "deepseek-ai";
@@ -45,7 +45,7 @@ buildNpmPackage (finalAttrs: {
     nativeBuildInputs = [ dshWorkspacePatchHook ];
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-+dkclQcDhAmHmB6dM8bffc3pMrivJR1T1wi/56IgQro=";
+    hash = "sha256-aySHq0ywTMM5q7YuGHZrV3yQE3bwppgGfWH3wRnHCXk=";
   };
 
   nativeBuildInputs = [
