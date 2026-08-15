@@ -50,6 +50,22 @@ pkgs.dsh.dsh.withProfiles {
 }
 ```
 
+## 自定义 Bundle 组合
+
+用 `withBundles` 追加 bundle。它的参数是一个接收 bundle scope 的函数，因而
+可以直接使用短名称：
+
+```nix
+pkgs.dsh.dsh.withBundles (b: with b; [
+  tui
+  web-app
+])
+```
+
+函数返回的 bundle 会追加到当前组合；已有的默认 bundle、profile 和
+`extraPlugins` 会保留。所有 bundle 按列表顺序应用，后面的 bundle 会覆盖
+前面 bundle 的 Cordis 配置；基础层固定在最前面。
+
 ## 覆盖
 
 preset 通过 `override` 设置包输入：

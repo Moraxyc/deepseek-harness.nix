@@ -26,6 +26,8 @@ let
     name: profile:
     let
       targetName = profileName name;
+      # The manifest argument order is the Cordis patch order. Keep the base
+      # layer first, then apply profile bundles in their declared order.
       bundleManifests = map (bundle: "${bundle}/nix-support/dsh-bundles.json") (
         lib.unique ([ baseBundle ] ++ profile.bundles)
       );

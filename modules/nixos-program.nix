@@ -20,8 +20,9 @@
               default = [ ];
               description = ''
                 dsh bundle packages for this profile, e.g. `pkgs.dsh.bundles.tui`.
-                Their package manifests are resolved during the build and added
-                to the shared `@deepseek-ai/dsh-base` layer and installed package.
+                Their package manifests are resolved during the build in list
+                order and applied after the shared `@deepseek-ai/dsh-base`
+                layer; later bundles override earlier Cordis configuration.
               '';
             };
 

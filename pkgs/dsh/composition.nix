@@ -45,5 +45,7 @@ in
 
   runtimeDeps =
     bundles:
+    # Preserve each bundle's declared runtime dependency order; callers control
+    # bundle precedence before flattening this list.
     lib.unique (lib.concatLists (map (bundle: bundle.passthru.runtimeDeps) (validateBundles bundles)));
 }

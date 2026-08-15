@@ -62,7 +62,8 @@ Or add it manually to your Nix configuration:
 ## Bundles and Presets
 
 Bundles are plugin-style extensions that can be combined into a `dsh` runtime;
-presets are ready-to-use combinations. See
+presets are ready-to-use combinations. Bundles apply in list order, with later
+bundles overriding earlier Cordis configuration. See
 [Bundles and Presets](docs/bundles-presets.md) for the full catalog.
 
 ## NixOS
@@ -84,7 +85,7 @@ Managed profiles are synchronized by Nix; existing unmanaged directories with
 the same name are never taken over or overwritten.
 
 See [Advanced Usage](docs/advanced-usage.md) for module options, custom
-profiles, `override` / `withProfiles`, and the overlay.
+profiles, `override` / `withProfiles` / `withBundles`, and the overlay.
 
 ## Advanced Usage
 

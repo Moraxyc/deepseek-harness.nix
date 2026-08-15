@@ -64,7 +64,8 @@ cachix use deepseek-harness-nix
 
 ## Bundles 和预设
 
-Bundle 是插件式扩展；preset 是开箱即用的组合。
+Bundle 是插件式扩展；preset 是开箱即用的组合。Bundle 按组合列表顺序应用，
+后面的 bundle 会覆盖前面的 Cordis 配置。
 完整目录见 [Bundles 和预设](docs/bundles-presets.zh-CN.md)。
 
 ## NixOS
@@ -84,7 +85,7 @@ Bundle 是插件式扩展；preset 是开箱即用的组合。
 Nix 配置中的 `profiles.tui` 会生成到 `~/.dsh/profiles/nix-tui`。预置
 profile 由 Nix 同步；已有但没有 Nix 标记的同名目录不会被接管或覆盖。
 
-更多模块选项、自定义 profile、`override` / `withProfiles` 和 Overlay 见
+更多模块选项、自定义 profile、`override` / `withProfiles` / `withBundles` 和 Overlay 见
 [高级用法](docs/advanced-usage.zh-CN.md)。
 
 ## 高级用法

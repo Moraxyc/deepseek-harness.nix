@@ -181,11 +181,16 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       paths = [
         "${dsh-kernel}/lib/deepseek-harness/node_modules"
       ]
-      ++ (map (bundle: "${bundle}/lib/node_modules") finalAttrs.passthru.composedBundles);
+      # symlinkJoin keeps the first file on collisions. Reverse the bundle
+      # paths so a later Cordis layer also wins for overlapping runtime files.
+      ++ (map (bundle: "${bundle}/lib/node_modules") (
+        lib.reverseList finalAttrs.passthru.composedBundles
+      ));
     };
 
     runtimeDeps = lib.unique (
-      dsh-kernel.passthru.runtimeDeps ++ composition.runtimeDeps finalAttrs.passthru.composedBundles
+      dsh-kernel.passthru.runtimeDeps
+      ++ composition.runtimeDeps (lib.reverseList finalAttrs.passthru.composedBundles)
     );
 
     # pkgs.dsh.dsh.withProfiles { tui.bundles = [ pkgs.dsh.bundles.tui ]; }
@@ -196,6 +201,19 @@ stdenvNoCC.mkDerivation (finalAttrs: {
         inherit defaultBundles extraPlugins;
         defaultProfile = null;
         profiles = configuredProfiles;
+      };
+
+    # pkgs.dsh.dsh.withBundles (b: with b; [ tui web-app ])
+    # adds selected bundles to the current composition.
+    withBundles =
+      bundleSelector:
+      let
+        selectedBundles = bundleSelector bundles;
+      in
+      assert lib.isList selectedBundles;
+      dsh.override {
+        inherit defaultBundles profiles defaultProfile;
+        extraPlugins = extraPlugins ++ selectedBundles;
       };
   };
 

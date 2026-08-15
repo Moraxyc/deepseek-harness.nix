@@ -13,8 +13,8 @@ dsh.override {
   };
   profiles = {
     ads.bundles = with bundles; [
-      ads
       web-app
+      ads
     ];
   };
 }

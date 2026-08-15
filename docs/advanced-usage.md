@@ -53,6 +53,23 @@ the default, override the result:
 }
 ```
 
+## Custom Bundle Compositions
+
+Use `withBundles` to add bundles. Its argument receives the bundle scope, so
+plugins can be referred to by their short names:
+
+```nix
+pkgs.dsh.dsh.withBundles (b: with b; [
+  tui
+  web-app
+])
+```
+
+The bundles returned by the function are added to the current composition;
+existing default bundles, profiles, and `extraPlugins` are preserved. Bundles
+are applied in list order, so a later bundle overrides an earlier bundle's
+Cordis configuration; the base layer is always first.
+
 ## Overrides
 
 Presets expose `override` for package inputs:
