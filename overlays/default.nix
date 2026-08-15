@@ -3,9 +3,11 @@ let
   buildDshBundle = import ../lib/mk-dsh-bundle.nix {
     inherit (final)
       buildNpmPackage
+      jq
       lib
       nodejs
       nodejs-slim
+      pnpm_11
       stdenvNoCC
       writeShellApplication
       ;

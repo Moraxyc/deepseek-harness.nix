@@ -25,7 +25,11 @@ buildNpmPackage (finalAttrs: {
   };
 
   nodejs = nodejs-slim;
-  disallowedReferences = [ nodejs ];
+  disallowedReferences = [
+    nodejs
+    pnpm_11
+    python3
+  ];
 
   postPatch = "patchDshWorkspace dependencies";
   preConfigure = "patchDshWorkspace composition";

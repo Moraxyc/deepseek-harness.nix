@@ -1,8 +1,10 @@
 {
   lib,
   buildNpmPackage,
+  jq,
   nodejs,
   nodejs-slim,
+  pnpm_11,
   stdenvNoCC,
   writeShellApplication,
 }:
@@ -49,6 +51,56 @@ let
       "$bundleRoot"
   '';
 
+  suppressChildBundlePatches = ''
+    suppress_patch() {
+      [ -f "$1/cordis.patch.yml" ] || return 0
+      [ "$1" = "$deployPackagePath" ] && return 0
+      printf '[]\n' > "$1/cordis.patch.yml"
+    }
+    for entry in "$out"/lib/node_modules/*; do
+      [ -d "$entry" ] || continue
+      case "$(basename "$entry")" in
+        .*)
+          continue
+          ;;
+        @*)
+          for pkg in "$entry"/*; do
+            [ -d "$pkg" ] || continue
+            suppress_patch "$pkg"
+          done
+          ;;
+        *)
+          suppress_patch "$entry"
+          ;;
+      esac
+    done
+  '';
+
+  linkKernelNodeModulesScript = kernel: ''
+    kernelNodeModules="${kernel}/lib/deepseek-harness/node_modules"
+    for entry in "$out"/lib/node_modules/*; do
+      [ -d "$entry" ] || continue
+      case "$(basename "$entry")" in
+        .*)
+          continue
+          ;;
+        @*)
+          for pkg in "$entry"/*; do
+            [ -d "$pkg" ] || continue
+            if [ ! -e "$pkg/node_modules" ] && [ ! -L "$pkg/node_modules" ]; then
+              ln -s "$kernelNodeModules" "$pkg/node_modules"
+            fi
+          done
+          ;;
+        *)
+          if [ ! -e "$entry/node_modules" ] && [ ! -L "$entry/node_modules" ]; then
+            ln -s "$kernelNodeModules" "$entry/node_modules"
+          fi
+          ;;
+      esac
+    done
+  '';
+
   # Build a bundle from its own npm source. Use this for external bundles that
   # are not produced by the upstream workspace build.
   buildDshBundle = lib.extendMkDerivation {
@@ -79,6 +131,95 @@ let
         ]
         ++ nativeBuildInputs;
         passthru = passthru // bundleProtocol;
+        postInstall = postInstall + validateInstalledBundle;
+        meta = meta // {
+          description =
+            meta.description or (throw "buildDshBundle: ${finalAttrs.pname} requires meta.description");
+        };
+      };
+  };
+
+  # Build a bundle from an external pnpm workspace by deploying one package
+  # directly into the standard bundle output layout.
+  fromPnpmWorkspace = lib.extendMkDerivation {
+    constructDrv = buildNpmPackage;
+    excludeDrvArgNames = [
+      "deployPackage"
+      "disableChildBundlePatches"
+      "linkKernelNodeModules"
+      "pnpm"
+      "postDeploy"
+      "preDeploy"
+      "runtimeDeps"
+      "stripPrepareScripts"
+    ];
+    extendDrvArgs =
+      finalAttrs:
+      {
+        deployPackage,
+        runtimeDeps ? [ ],
+        preDeploy ? "",
+        postDeploy ? "",
+        stripPrepareScripts ? false,
+        disableChildBundlePatches ? false,
+        linkKernelNodeModules ? null,
+        pnpm ? pnpm_11,
+        nativeBuildInputs ? [ ],
+        disallowedReferences ? [ ],
+        meta ? { },
+        passthru ? { },
+        postInstall ? "",
+        ...
+      }:
+      let
+        bundleProtocol = validateProtocol { inherit runtimeDeps; };
+        defaultInstallPhase = ''
+          runHook preInstall
+
+          ${lib.optionalString stripPrepareScripts ''
+            find packages -name package.json -print0 \
+              | xargs -0 -n1 sh -c '
+                  jq "del(.scripts.prepare)" "$0" > "$0.tmp"
+                  mv "$0.tmp" "$0"
+                '
+          ''}
+          ${preDeploy}
+
+          pnpm config set --location=project inject-workspace-packages true
+          pnpm --filter ${lib.escapeShellArg deployPackage} deploy \
+            --prod \
+            --config.node-linker=hoisted \
+            --config.link-workspace-packages=true \
+            "$out/lib"
+
+          deployPackagePath="$out/lib/node_modules/${lib.escapeShellArg deployPackage}"
+          ${lib.optionalString disableChildBundlePatches suppressChildBundlePatches}
+          ${postDeploy}
+          ${lib.optionalString (linkKernelNodeModules != null) (
+            linkKernelNodeModulesScript linkKernelNodeModules
+          )}
+
+          runHook postInstall
+        '';
+      in
+      {
+        nodejs = nodejs-slim;
+        disallowedReferences = lib.unique (
+          disallowedReferences
+          ++ [
+            nodejs
+            pnpm
+          ]
+        );
+        nativeBuildInputs = [
+          nodejs-slim
+          nodejs-slim.npm
+          pnpm
+        ]
+        ++ lib.optionals stripPrepareScripts [ jq ]
+        ++ nativeBuildInputs;
+        passthru = passthru // bundleProtocol;
+        installPhase = defaultInstallPhase;
         postInstall = postInstall + validateInstalledBundle;
         meta = meta // {
           description =
@@ -163,5 +304,5 @@ let
 in
 buildDshBundle
 // {
-  inherit dshBundleResolver fromWorkspace;
+  inherit dshBundleResolver fromPnpmWorkspace fromWorkspace;
 }

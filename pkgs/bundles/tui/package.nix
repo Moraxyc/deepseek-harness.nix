@@ -1,6 +1,5 @@
 {
   lib,
-  buildNpmPackage,
   fetchFromGitHub,
   fetchPnpmDeps,
   buildDshBundle,
@@ -26,6 +25,7 @@ buildDshBundle (finalAttrs: {
   };
 
   nativeBuildInputs = [ pnpm_11 ];
+  disallowedReferences = [ pnpm_11 ];
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
