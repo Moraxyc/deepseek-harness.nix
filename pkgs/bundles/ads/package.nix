@@ -46,7 +46,10 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   '';
 
   passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
+    extraArgs = [
+      "--flake"
+      "--version=branch"
+    ];
   };
 
   meta = {
