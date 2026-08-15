@@ -80,3 +80,16 @@ pkgs.dsh.presets.tui.override {
 Overlay 包位于 `pkgs.dsh` scope 中，例如 `pkgs.dsh.bundles.tui`；
 flake 的 `packages` 会展开该 scope，因此仍可直接使用
 `nix build .#bundles.tui` 和 `nix run .#presets.web`。
+
+## License
+
+本仓库自身的代码与文档以 MIT 许可证授权，完整条款见
+[LICENSE](LICENSE)。
+
+MIT 授权范围仅覆盖本仓库自身的代码与文档，不覆盖上游 `deepseek-harness`、
+DeepSeek / `@deepseek-ai` 的材料、名称或商标，也不覆盖任何第三方组件；
+这些内容分别适用各自权利人的许可和条款。
+
+本项目是独立社区项目，与 DeepSeek、`@deepseek-ai`、`deepseek-harness`
+及 `deepseek harness` 名称或商标没有关联，也不代表上述任何一方的认可
+或支持。
