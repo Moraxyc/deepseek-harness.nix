@@ -58,7 +58,7 @@ jobs:
                   {
                     name: "flake-locks",
                     title: "chore: update flake locks",
-                    command: "nix flake update\nnix flake update --flake modules/flake-parts/dev",
+                    command: "nix flake update\nnix flake update --flake ./modules/flake-parts/dev",
                     attr: ""
                   }
                 ] + [ $updatable[] | { name: .name, title: ("chore: update " + .name), attr: .attr, command: "" } ])
@@ -131,6 +131,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          NIX_PATH="nixpkgs=$(nix flake metadata --json --inputs-from . nixpkgs | jq -r .path)"
+          export NIX_PATH
           nix shell nixpkgs#nix-update --inputs-from . -c nix-update --flake --use-update-script "$ATTR"
 
       - name: Check for changes
