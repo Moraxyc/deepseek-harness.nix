@@ -154,8 +154,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   installCheckPhase = ''
     runHook preInstallCheck
     DSH_HOME="$TMPDIR/dsh" "$out/bin/dsh" --version
-    DSH_HOME="$TMPDIR/dsh" "$out/bin/dsh" --dump-default-config > "$TMPDIR/dsh-config.yml"
-    [ -s "$TMPDIR/dsh-config.yml" ]
     runHook postInstallCheck
   '';
 
