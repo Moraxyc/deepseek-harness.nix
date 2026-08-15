@@ -20,14 +20,14 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     owner = "zhu1090093659";
     repo = "dsh-web-ui";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-WqI/tyYPv+h/7fQbkDF7nYcnEMGzA9gF8iedEr2K/C8=";
+    hash = "sha256-vH+KKpYH/nhAHKlFKge52yKFcBOxh+mlSyloLwp/R7U=";
   };
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-j3F57Jl+AC6ZCxeFik08vsztOZOXJoDrBD5mno1LNqY=";
+    hash = "sha256-doMIXC61fYS5rnTtnKtfUetTQK5vwG/57sphmflIoHQ=";
   };
 
   npmDeps = null;
