@@ -17,6 +17,7 @@ See the [README](../README.en.md) for details.
 | `bundles.better-sidebar` | `dsh-better-sidebar` | 0.12.1                | VSCode-like right sidebar for the DSH web UI · [homepage](https://github.com/omdsh-dev/DSH-better-sidebar)                                             |
 | `bundles.headless`       | `dsh-headless`       | 0-unstable-2026-08-13 | Run dsh without a graphical interface · [homepage](https://github.com/deepseek-ai/deepseek-harness)                                                    |
 | `bundles.modlens`        | `dsh-modlens`        | 3.16.6                | Plug-in vision for text-only LLMs · [homepage](https://github.com/liustack/modlens)                                                                    |
+| `bundles.tianshu-tui`    | `dsh-tianshu-tui`    | 0.1.2-rc.6            | Interactive TUI layer for dsh with rendering, panels, and terminal controls · [homepage](https://github.com/huiliyi37/dsh-tianshu-tui)                 |
 | `bundles.tui`            | `dsh-tui`            | 0.5.2                 | Interactive terminal interface for dsh · [homepage](https://github.com/ccch1mneyyy/dsh-TUI)                                                            |
 | `bundles.vision-toolkit` | `dsh-vision-toolkit` | 0.1.7                 | DeepSeek Harness-native vision toolkit with OCR, grounding, pixel diff, and UI restoration · [homepage](https://github.com/Anionex/dsh-vision-toolkit) |
 | `bundles.web-app`        | `dsh-web-app`        | 0-unstable-2026-08-13 | Web interface for dsh · [homepage](https://github.com/deepseek-ai/deepseek-harness)                                                                    |
@@ -26,6 +27,7 @@ See the [README](../README.en.md) for details.
 
 | Flake output       | Default profile | Bundles                                              | Description                                                                                                        |
 | ------------------ | --------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `presets.ads`      | `nix-ads`       | `dsh-base`, `dsh-web-app`, `dsh-ads`                 | DSH setup with local portal ads and scam-ad parodies · [homepage](https://github.com/deepseek-ai/deepseek-harness) |
 | `presets.headless` | `nix-headless`  | `dsh-base`, `dsh-headless`                           | Simple setup for running dsh from the terminal · [homepage](https://github.com/deepseek-ai/deepseek-harness)       |
 | `presets.official` | -               | `dsh-base`, `dsh-headless`, `dsh-web-app`            | Balanced default setup with both CLI and web options · [homepage](https://github.com/deepseek-ai/deepseek-harness) |
 | `presets.tui`      | `nix-tui`       | `dsh-base`, `dsh-headless`, `dsh-web-app`, `dsh-tui` | Terminal-focused setup with an interactive interface · [homepage](https://github.com/deepseek-ai/deepseek-harness) |
