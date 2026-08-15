@@ -163,8 +163,12 @@ jobs:
         run: |
           set -euo pipefail
 
-          git add -A
-          git commit -m "$TITLE"
+          if [ -n "$(git status --porcelain --untracked-files=all)" ]; then
+            git add -A
+            git commit -m "$TITLE"
+          else
+            echo "No new update changes; reusing rebased branch"
+          fi
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git push --force origin "HEAD:$BRANCH"
 
