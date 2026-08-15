@@ -12,6 +12,7 @@ bundles (plugins), presets, a NixOS module, and an overlay.
 - [Cachix](#cachix)
 - [Bundles and Presets](#bundles-and-presets)
 - [NixOS](#nixos)
+- [Home Manager](#home-manager)
 - [Advanced Usage](#advanced-usage)
 - [License](#license)
 
@@ -86,6 +87,42 @@ the same name are never taken over or overwritten.
 
 See [Advanced Usage](docs/advanced-usage.md) for module options, custom
 profiles, `override` / `withProfiles` / `withBundles`, and the overlay.
+
+## Home Manager
+
+Import `homeModules.default` and enable `programs.dsh`:
+
+```nix
+{
+  imports = [ inputs.deepseek-harness.homeModules.default ];
+
+  home.packages = [ pkgs.dsh.dsh ]; # optional: add dsh to PATH
+
+  programs.dsh = {
+    enable = true;
+    profiles.tui = {
+      bundles = [ pkgs.dsh.bundles.tui ];
+      mode = "managed";
+    };
+    defaultProfile = "nix-tui";
+  };
+}
+```
+
+`homeModules.default` shares the same `programs.dsh` options as the
+NixOS module. The profile `mode` controls how Nix treats a materialized
+profile:
+
+- `managed` (default): every activation re-synchronizes the profile to the
+  configuration, restoring local edits to `package.json` / `cordis.patch.yml`.
+- `mutable`: Nix only seeds the profile when its directory does not exist yet;
+  afterwards the user manages it with `dsh plugin` and Nix leaves it alone.
+
+Neither mode takes over an existing unmarked directory with the same name. To
+use this module, inject the overlay into Home Manager's `pkgs` (for example
+pass `pkgs = import nixpkgs { overlays = [ inputs.deepseek-harness.overlays.default ]; }`
+to `homeManagerConfiguration`, or use NixOS's `home-manager.useGlobalPkgs`),
+or set `programs.dsh.package` explicitly.
 
 ## Advanced Usage
 

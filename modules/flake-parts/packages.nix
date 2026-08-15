@@ -25,11 +25,13 @@
       apps.default = {
         type = "app";
         program = "${dsh.dsh}/bin/dsh";
+        meta.description = dsh.dsh.meta.description;
       };
 
       apps.dsh-desktop = {
         type = "app";
         program = "${dsh.dsh-desktop}/bin/dsh-desktop";
+        meta.description = dsh.dsh-desktop.meta.description;
       };
 
       apps.generate-docs = {
@@ -48,6 +50,7 @@
             text = builtins.readFile ../../scripts/generate-docs.sh;
           }
         }/bin/generate-docs";
+        meta.description = "Generate bundle and preset catalog documentation";
       };
     };
 }

@@ -9,7 +9,7 @@
         packages = with pkgs; [
           jq
           nix-update
-          nixfmt-rfc-style
+          nixfmt
           pre-commit
           yq-go
         ];

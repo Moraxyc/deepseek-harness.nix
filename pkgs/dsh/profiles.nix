@@ -22,10 +22,18 @@ let
 
   profileName = name: "${profilePrefix}${name}";
 
+  validateMode =
+    mode:
+    if mode == "managed" || mode == "mutable" then
+      mode
+    else
+      throw "dsh profile: invalid mode '${mode}', expected 'managed' or 'mutable'";
+
   profileSpec =
     name: profile:
     let
       targetName = profileName name;
+      mode = validateMode (profile.mode or "managed");
       # The manifest argument order is the Cordis patch order. Keep the base
       # layer first, then apply profile bundles in their declared order.
       bundleManifests = map (bundle: "${bundle}/nix-support/dsh-bundles.json") (
@@ -47,6 +55,7 @@ let
         builtins.toJSON {
           inherit
             bundleManifests
+            mode
             patch
             targetName
             ;
@@ -97,6 +106,16 @@ in
       profileTemplates,
       profiles,
     }:
+    let
+      seedInvocation =
+        name: profile:
+        let
+          targetName = profileName name;
+          mode = validateMode (profile.mode or "managed");
+          seeder = if mode == "managed" then "sync_managed_profile" else "seed_mutable_profile";
+        in
+        "${seeder} ${lib.escapeShellArg targetName} ${lib.escapeShellArg "${profileTemplates}/${targetName}"} \"$home/profiles/${targetName}\"";
+    in
     writeShellApplication {
       name = "dsh-sync-profiles";
       runtimeInputs = [
@@ -145,12 +164,10 @@ in
           mv -f "$temporary" "$destination"
         }
 
-        sync_profile() {
+        validate_profile_dir() {
           local profile=$1
-          local source=$2
-          local destination=$3
+          local destination=$2
 
-          [ -d "$source" ] || die "managed profile source is missing: $source"
           [ ! -L "$destination" ] || die "refusing to follow profile symlink: $destination"
 
           if [ -e "$destination" ]; then
@@ -163,6 +180,15 @@ in
           else
             mkdir "$destination"
           fi
+        }
+
+        sync_managed_profile() {
+          local profile=$1
+          local source=$2
+          local destination=$3
+
+          [ -d "$source" ] || die "managed profile source is missing: $source"
+          validate_profile_dir "$profile" "$destination"
 
           ${lib.concatStringsSep "\n" (
             map (file: "  validate_owned_file \"$destination/${file}\"") managedFiles
@@ -175,26 +201,34 @@ in
           copy_owned_file "$source/.nix-managed" "$destination/.nix-managed"
         }
 
+        seed_mutable_profile() {
+          local profile=$1
+          local source=$2
+          local destination=$3
+
+          [ -d "$source" ] || die "managed profile source is missing: $source"
+
+          if [ -e "$destination" ]; then
+            validate_profile_dir "$profile" "$destination"
+            return 0
+          fi
+
+          mkdir "$destination"
+
+          ${lib.concatStringsSep "\n" (
+            map (file: "  copy_owned_file \"$source/${file}\" \"$destination/${file}\"") managedFiles
+          )}
+          copy_owned_file "$source/.nix-managed" "$destination/.nix-managed"
+        }
+
         requested_profile=''${1:-}
         case "$requested_profile" in
           "")
-            ${lib.concatStringsSep "\n" (
-              lib.mapAttrsToList (
-                name: _profile:
-                let
-                  targetName = profileName name;
-                in
-                "sync_profile ${lib.escapeShellArg targetName} ${lib.escapeShellArg "${profileTemplates}/${targetName}"} \"$home/profiles/${targetName}\""
-              ) profiles
-            )}
+            ${lib.concatStringsSep "\n" (lib.mapAttrsToList seedInvocation profiles)}
             ;;
           ${lib.concatStringsSep "\n" (
             lib.mapAttrsToList (
-              name: _profile:
-              let
-                targetName = profileName name;
-              in
-              "${lib.escapeShellArg targetName}) sync_profile ${lib.escapeShellArg targetName} ${lib.escapeShellArg "${profileTemplates}/${targetName}"} \"$home/profiles/${targetName}\" ;;"
+              name: profile: "${lib.escapeShellArg (profileName name)}) ${seedInvocation name profile} ;;"
             ) profiles
           )}
           *)

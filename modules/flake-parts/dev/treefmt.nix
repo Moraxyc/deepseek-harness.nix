@@ -2,9 +2,10 @@
 {
   imports = [ inputs.treefmt-nix.flakeModule ];
 
-  perSystem = {
+  perSystem = { ... }: {
     treefmt = {
       projectRootFile = "flake.nix";
+
       programs = {
         nixfmt.enable = true;
         shellcheck.enable = true;

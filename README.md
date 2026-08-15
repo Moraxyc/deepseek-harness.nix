@@ -13,6 +13,7 @@ overlay。
 - [Cachix](#cachix)
 - [Bundles 和预设](#bundles-和预设)
 - [NixOS](#nixos)
+- [Home Manager](#home-manager)
 - [高级用法](#高级用法)
 - [许可证](#许可证)
 
@@ -87,6 +88,41 @@ profile 由 Nix 同步；已有但没有 Nix 标记的同名目录不会被接�
 
 更多模块选项、自定义 profile、`override` / `withProfiles` / `withBundles` 和 Overlay 见
 [高级用法](docs/advanced-usage.zh-CN.md)。
+
+## Home Manager
+
+导入 `homeModules.default` 并启用 `programs.dsh`：
+
+```nix
+{
+  imports = [ inputs.deepseek-harness.homeModules.default ];
+
+  home.packages = [ pkgs.dsh.dsh ]; # 可选，按需把 dsh 加入 PATH
+
+  programs.dsh = {
+    enable = true;
+    profiles.tui = {
+      bundles = [ pkgs.dsh.bundles.tui ];
+      mode = "managed";
+    };
+    defaultProfile = "nix-tui";
+  };
+}
+```
+
+`homeModules.default` 与 NixOS 模块共享同一组 `programs.dsh`
+选项。profile 的 `mode` 决定 Nix 对已生成目录的态度：
+
+- `managed`（默认）：每次激活都会把 profile 同步为配置内容，本地对
+  `package.json` / `cordis.patch.yml` 的修改会被还原。
+- `mutable`：仅在目录不存在时初始化一次，之后 profile 由 `dsh plugin`
+  管理，Nix 不再改动其中的文件。
+
+两种模式都不会接管没有 Nix 标记的已有同名目录。使用该模块时，需要把
+overlay 注入 Home Manager 的 `pkgs`（例如 `homeManagerConfiguration`
+传入 `pkgs = import nixpkgs { overlays = [ inputs.deepseek-harness.overlays.default ]; }`
+或使用 NixOS 的 `home-manager.useGlobalPkgs`），或者显式设置
+`programs.dsh.package`。
 
 ## 高级用法
 
