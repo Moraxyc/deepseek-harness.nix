@@ -1,5 +1,16 @@
 # deepseek-harness-nix
 
+> [English](README.en.md) | **简体中文**
+
+## 快速开始
+
+尝试 TUI 预设：
+
+```sh
+nix run github:moraxyc/deepseek-harness.nix#presets.tui \
+  --option extra-trusted-substituters "https://deepseek-harness-nix.cachix.org"
+```
+
 ## 使用
 
 ```sh
@@ -34,8 +45,8 @@ cachix use deepseek-harness-nix
 - `dsh-kernel`
 - `dsh-workspace`
 - `bundles.base`
-- `bundles.{headless,web-app,tui}`
-- `presets.{official,headless,web,tui}`
+- `bundles.{headless,web-app,tui,web-ui}`
+- `presets.{official,headless,web,tui,web-ui}`
 
 ## NixOS
 
