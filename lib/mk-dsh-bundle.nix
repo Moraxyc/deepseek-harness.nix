@@ -78,6 +78,61 @@ let
 
   linkKernelNodeModulesScript = kernel: ''
     kernelNodeModules="${kernel}/lib/deepseek-harness/node_modules"
+    [ -d "$kernelNodeModules" ] || {
+      printf 'buildDshBundle: kernel node_modules is missing: %s\n' "$kernelNodeModules" >&2
+      exit 1
+    }
+
+    reservedList="$TMPDIR/dsh-kernel-reserved.txt"
+    : > "$reservedList"
+    for entry in "$kernelNodeModules"/*; do
+      [ -d "$entry" ] || continue
+      case "$(basename "$entry")" in
+        @*)
+          for package in "$entry"/*; do
+            [ -d "$package" ] || continue
+            printf '%s\n' "@$(basename "$entry")/$(basename "$package")" >> "$reservedList"
+          done
+          ;;
+        *)
+          printf '%s\n' "$(basename "$entry")" >> "$reservedList"
+          ;;
+      esac
+    done
+
+    bundleNodeModules="$out/lib/node_modules"
+    [ -d "$bundleNodeModules" ] || {
+      printf 'buildDshBundle: bundle node_modules is missing: %s\n' "$bundleNodeModules" >&2
+      exit 1
+    }
+
+    # The kernel owns every package present in its node_modules. Bundle-local
+    # copies of those names must not survive into the final composition,
+    # otherwise the same runtime package can resolve twice.
+    while IFS= read -r reserved; do
+      [ -n "$reserved" ] || continue
+      rm -rf "$bundleNodeModules/$reserved"
+      find "$bundleNodeModules" \
+        -depth \
+        \( -type d -o -type l \) \
+        -path "*/node_modules/$reserved" \
+      -exec rm -rf {} + 2>/dev/null || true
+    done < "$reservedList"
+
+    # Removing package directories can leave dangling .bin links behind.
+    # noBrokenSymlinks rejects those, so delete any symlink whose target no
+    # longer exists before the kernel link is installed.
+    find "$bundleNodeModules" -depth -type l ! -exec test -e {} \; -delete 2>/dev/null || true
+
+    find "$bundleNodeModules" -depth -type d \( -name "@" -o -name "@deepseek-ai" \) -empty -delete 2>/dev/null || true
+
+    while IFS= read -r reserved; do
+      if [ -e "$bundleNodeModules/$reserved" ]; then
+        printf 'buildDshBundle: kernel runtime package was not pruned: %s\n' "$reserved" >&2
+        exit 1
+      fi
+    done < "$reservedList"
+
     for entry in "$out"/lib/node_modules/*; do
       [ -d "$entry" ] || continue
       case "$(basename "$entry")" in
@@ -106,12 +161,14 @@ let
   buildDshBundle = lib.extendMkDerivation {
     constructDrv = buildNpmPackage;
     excludeDrvArgNames = [
+      "linkKernelNodeModules"
       "runtimeDeps"
     ];
     extendDrvArgs =
       finalAttrs:
       {
         runtimeDeps ? [ ],
+        linkKernelNodeModules ? null,
         nativeBuildInputs ? [ ],
         disallowedReferences ? [ ],
         meta ? { },
@@ -131,7 +188,12 @@ let
         ]
         ++ nativeBuildInputs;
         passthru = passthru // bundleProtocol;
-        postInstall = postInstall + validateInstalledBundle;
+        postInstall =
+          postInstall
+          + lib.optionalString (linkKernelNodeModules != null) (
+            linkKernelNodeModulesScript linkKernelNodeModules
+          )
+          + validateInstalledBundle;
         meta = meta // {
           description =
             meta.description or (throw "buildDshBundle: ${finalAttrs.pname} requires meta.description");
@@ -200,9 +262,6 @@ let
           deployPackagePath="$out/lib/node_modules/${lib.escapeShellArg deployPackage}"
           ${lib.optionalString disableChildBundlePatches suppressChildBundlePatches}
           ${postDeploy}
-          ${lib.optionalString (linkKernelNodeModules != null) (
-            linkKernelNodeModulesScript linkKernelNodeModules
-          )}
 
           runHook postInstall
         '';
@@ -225,7 +284,12 @@ let
         ++ nativeBuildInputs;
         passthru = passthru // bundleProtocol;
         installPhase = defaultInstallPhase;
-        postInstall = postInstall + validateInstalledBundle;
+        postInstall =
+          postInstall
+          + lib.optionalString (linkKernelNodeModules != null) (
+            linkKernelNodeModulesScript linkKernelNodeModules
+          )
+          + validateInstalledBundle;
         meta = meta // {
           description =
             meta.description or (throw "buildDshBundle: ${finalAttrs.pname} requires meta.description");

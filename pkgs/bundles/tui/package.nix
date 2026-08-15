@@ -3,6 +3,7 @@
   fetchFromGitHub,
   fetchPnpmDeps,
   buildDshBundle,
+  dsh-kernel,
   pnpmConfigHook,
   pnpm_11,
   nix-update-script,
@@ -27,6 +28,7 @@ buildDshBundle (finalAttrs: {
 
   nativeBuildInputs = [ pnpm_11 ];
   disallowedReferences = [ pnpm_11 ];
+  linkKernelNodeModules = dsh-kernel;
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
@@ -39,10 +41,6 @@ buildDshBundle (finalAttrs: {
     mkdir -p "$appDir"
 
     cp -r package.json cordis.patch.yml cordis.yml skills lib "$appDir/"
-
-    # Keep the frozen install in the bundle. cordis and dsh peers resolve from
-    # the kernel app.
-    cp -r node_modules "$appDir/node_modules"
 
     runHook postInstall
   '';

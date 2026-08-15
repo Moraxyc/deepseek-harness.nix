@@ -112,8 +112,12 @@ the source tree.
 For aggregator bundles, set `disableChildBundlePatches = true` so child
 `cordis.patch.yml` files are blanked and only `deployPackage` registers loader
 entries. If packages need kernel peers such as `@deepseek-ai/dsh-settings`,
-pass `linkKernelNodeModules = dsh-kernel`; the helper links the kernel
-`node_modules` tree into every package under `$out/lib/node_modules`.
+pass `linkKernelNodeModules = dsh-kernel`. The helper first removes kernel-owned
+packages, including the `@deepseek-ai/*` packages provided by the kernel, from
+the bundle output, cleans up dangling `.bin` links, then links the kernel
+`node_modules` tree into every package under `$out/lib/node_modules`. This keeps
+the kernel as the only runtime provider instead of allowing bundle-local copies
+to shadow it.
 
 `postDeploy` can use `$deployPackagePath`, which points at the deployed package
 inside `$out/lib/node_modules`. A common aggregator layout fix is:
@@ -141,8 +145,8 @@ build, add it to `disallowedReferences` in the bundle expression.
 
 Use `buildDshBundle` when the source is not a pnpm workspace deploy target.
 The derivation must populate `$out/lib/node_modules` itself. Copy the package
-manifest, patch file, runtime code, and any required dependencies into the
-package root:
+manifest, patch file, runtime code, and bundle-specific dependencies into the
+package root. Kernel-owned packages are provided by `linkKernelNodeModules`:
 
 ```nix
 {
@@ -150,12 +154,14 @@ package root:
   fetchFromGitHub,
   fetchPnpmDeps,
   buildDshBundle,
+  dsh-kernel,
   pnpmConfigHook,
   pnpm_11,
 }:
 buildDshBundle (finalAttrs: {
   pname = "example-bundle";
   version = "0.1.0";
+  linkKernelNodeModules = dsh-kernel;
 
   src = fetchFromGitHub {
     owner = "example";
@@ -184,7 +190,6 @@ buildDshBundle (finalAttrs: {
     appDir="$out/lib/node_modules/example-bundle"
     mkdir -p "$appDir"
     cp -r package.json cordis.patch.yml lib "$appDir/"
-    cp -r node_modules "$appDir/node_modules"
 
     runHook postInstall
   '';
