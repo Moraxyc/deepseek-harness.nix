@@ -15,7 +15,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   linkKernelNodeModules = dsh-kernel;
 
   src = fetchFromGitHub {
-    owner = "omdsh-dev";
+    owner = "Nagi-ovo";
     repo = "dsh-ads";
     rev = "401819c43f12189c1ab94159011d61a484426370";
     hash = "sha256-m8qStLJ+gWpI8/2ukJHLwBPz9+bQ68DDjdzKf2v7p/Y=";
@@ -55,7 +55,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   meta = {
     description = "DSH ad-infestation plugin with local portal ads and scam-ad parodies";
     descriptions.zh-CN = "DSH 广告插件，包含本地门户广告与诈骗广告仿制内容";
-    homepage = "https://github.com/omdsh-dev/dsh-ads";
+    homepage = "https://github.com/Nagi-ovo/dsh-ads";
     license = lib.licenses.bsd3;
     platforms = lib.platforms.unix;
   };

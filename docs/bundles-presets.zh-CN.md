@@ -12,7 +12,7 @@ Bundle 是可以自由组合的积木：挑几个需要的 bundle 拼在一起�
 
 | Flake 输出               | 包                   | 版本                  | 说明                                                                                                                        |
 | ------------------------ | -------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `bundles.ads`            | `dsh-ads`            | 0.1.0                 | DSH 广告插件，包含本地门户广告与诈骗广告仿制内容 · [主页](https://github.com/omdsh-dev/dsh-ads)                             |
+| `bundles.ads`            | `dsh-ads`            | 0.1.0                 | DSH 广告插件，包含本地门户广告与诈骗广告仿制内容 · [主页](https://github.com/Nagi-ovo/dsh-ads)                              |
 | `bundles.base`           | `dsh-base`           | 0-unstable-2026-08-13 | 所有 dsh profile 共用的基础层 · [主页](https://github.com/deepseek-ai/deepseek-harness)                                     |
 | `bundles.better-sidebar` | `dsh-better-sidebar` | 0.12.1                | 为 DSH Web 界面提供 VSCode 风格右侧侧边栏 · [主页](https://github.com/omdsh-dev/DSH-better-sidebar)                         |
 | `bundles.headless`       | `dsh-headless`       | 0-unstable-2026-08-13 | 无需图形界面即可运行 dsh · [主页](https://github.com/deepseek-ai/deepseek-harness)                                          |

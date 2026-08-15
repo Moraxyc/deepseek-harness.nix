@@ -12,7 +12,7 @@ See the [README](../README.en.md) for details.
 
 | Flake output             | Package              | Version               | Description                                                                                                                                            |
 | ------------------------ | -------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `bundles.ads`            | `dsh-ads`            | 0.1.0                 | DSH ad-infestation plugin with local portal ads and scam-ad parodies · [homepage](https://github.com/omdsh-dev/dsh-ads)                                |
+| `bundles.ads`            | `dsh-ads`            | 0.1.0                 | DSH ad-infestation plugin with local portal ads and scam-ad parodies · [homepage](https://github.com/Nagi-ovo/dsh-ads)                                 |
 | `bundles.base`           | `dsh-base`           | 0-unstable-2026-08-13 | Foundation shared by all dsh profiles · [homepage](https://github.com/deepseek-ai/deepseek-harness)                                                    |
 | `bundles.better-sidebar` | `dsh-better-sidebar` | 0.12.1                | VSCode-like right sidebar for the DSH web UI · [homepage](https://github.com/omdsh-dev/DSH-better-sidebar)                                             |
 | `bundles.headless`       | `dsh-headless`       | 0-unstable-2026-08-13 | Run dsh without a graphical interface · [homepage](https://github.com/deepseek-ai/deepseek-harness)                                                    |
