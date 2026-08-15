@@ -42,6 +42,7 @@ cachix use deepseek-harness-nix
 ## 输出
 
 - `dsh`
+- `dsh-desktop`
 - `dsh-kernel`
 - `dsh-workspace`
 - [Bundles 和预设](docs/bundles-presets.zh-CN.md)

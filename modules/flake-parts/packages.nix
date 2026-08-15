@@ -9,6 +9,7 @@
       packages = {
         default = dsh.dsh;
         inherit (dsh)
+          dsh-desktop
           dsh-kernel
           dsh-workspace
           ;
@@ -24,6 +25,11 @@
       apps.default = {
         type = "app";
         program = "${dsh.dsh}/bin/dsh";
+      };
+
+      apps.dsh-desktop = {
+        type = "app";
+        program = "${dsh.dsh-desktop}/bin/dsh-desktop";
       };
 
       apps.generate-docs = {
