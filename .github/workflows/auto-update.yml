@@ -184,16 +184,15 @@ jobs:
               --title "$TITLE" \
               --body "$body"
           else
-            pr_number="$(
+            pr_url="$(
               gh pr create \
                 --repo "$GITHUB_REPOSITORY" \
                 --base main \
                 --head "$BRANCH" \
                 --title "$TITLE" \
-                --body "$body" \
-                --json number \
-                --jq .number
+                --body "$body"
             )"
+            pr_number="$(printf '%s\n' "$pr_url" | sed -n 's#.*/pull/\([0-9][0-9]*\).*#\1#p')"
           fi
 
           gh pr merge "$pr_number" \
