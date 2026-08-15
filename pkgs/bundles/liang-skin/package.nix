@@ -1,0 +1,31 @@
+{
+  lib,
+  fetchFromGitHub,
+  buildDshBundle,
+  dsh-kernel,
+  nix-update-script,
+}:
+buildDshBundle (finalAttrs: {
+  pname = "dsh-client-liang-intensity-skin";
+  version = "0.1.3";
+
+  src = fetchFromGitHub {
+    owner = "kingOfSoySauce";
+    repo = "dsh-liang-skin";
+    tag = "v${finalAttrs.version}";
+    hash = "sha256-K2Zf6Ie6yeLobO+2WJ9qOwUpkFxxvXTqHnwmsvcaMaQ=";
+  };
+
+  npmDepsHash = "sha256-rMcuwckWa4PbPoSbfeea28wi9v+NLGpx0oduiTd6Kt8=";
+  linkKernelNodeModules = dsh-kernel;
+
+  passthru.updateScript = nix-update-script { extraArgs = [ "--flake" ]; };
+
+  meta = {
+    description = "Liang intensity reasoning slider skin for DeepSeek Harness";
+    descriptions.zh-CN = "为 DeepSeek Harness 提供滑动变祖推理等级滑块皮肤";
+    homepage = "https://github.com/kingOfSoySauce/dsh-liang-skin";
+    license = null;
+    platforms = lib.platforms.unix;
+  };
+})
