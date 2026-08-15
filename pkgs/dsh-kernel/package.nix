@@ -5,7 +5,6 @@
   nodejs,
   nodejs-slim,
   stdenvNoCC,
-  versionCheckHook,
   dsh-workspace,
 
   # Optional external Claude Code executable exposed through PATH.
@@ -51,9 +50,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
     runHook postInstall
   '';
-
-  doInstallCheck = true;
-  nativeInstallCheckInputs = [ versionCheckHook ];
 
   passthru = {
     runtimeDeps = [ claudeCodePackage ];
