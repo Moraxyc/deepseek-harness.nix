@@ -19,7 +19,8 @@ buildDshBundle.fromWorkspace (finalAttrs: {
   ];
   runtimeDeps = [ ripgrep ] ++ lib.optionals stdenvNoCC.hostPlatform.isLinux [ bubblewrap ];
   meta = {
-    description = "Shared dsh core; first layer for profiles";
+    description = "Foundation shared by all dsh profiles";
+    descriptions.zh-CN = "所有 dsh profile 共用的基础层";
     homepage = "https://github.com/deepseek-ai/deepseek-harness";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

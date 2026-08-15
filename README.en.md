@@ -47,9 +47,7 @@ Or add it manually to your Nix configuration:
 - `dsh`
 - `dsh-kernel`
 - `dsh-workspace`
-- `bundles.base`
-- `bundles.{headless,web-app,tui,web-ui}`
-- `presets.{official,headless,web,tui,web-ui}`
+- [Bundles and Presets](docs/bundles-presets.md)
 
 ## NixOS
 

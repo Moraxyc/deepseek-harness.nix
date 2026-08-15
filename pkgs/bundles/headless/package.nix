@@ -16,7 +16,8 @@ buildDshBundle.fromWorkspace (finalAttrs: {
     }
   ];
   meta = {
-    description = "dsh bundle with the core Agent/Session runner";
+    description = "Run dsh without a graphical interface";
+    descriptions.zh-CN = "无需图形界面即可运行 dsh";
     homepage = "https://github.com/deepseek-ai/deepseek-harness";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

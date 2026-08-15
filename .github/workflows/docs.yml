@@ -1,0 +1,54 @@
+name: Docs
+
+on:
+  pull_request:
+    paths:
+      - "pkgs/**"
+      - "lib/**"
+      - "scripts/**"
+      - "docs/**"
+      - "README.md"
+      - "README.en.md"
+      - ".github/workflows/docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    name: Regenerate bundle/preset docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Cachix
+        uses: cachix/cachix-action@v17
+        with:
+          name: ${{ vars.CACHIX_CACHE_NAME || 'deepseek-harness-nix' }}
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+          skipPush: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+
+      - name: Regenerate docs
+        run: nix run .#generate-docs
+
+      - name: Fail if docs are stale
+        run: |
+          set -euo pipefail
+          if ! git diff --quiet -- docs; then
+            git diff -- docs
+            echo "::error::bundle/preset docs are stale; run nix run .#generate-docs and commit the changes"
+            exit 1
+          fi

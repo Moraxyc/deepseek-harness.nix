@@ -53,7 +53,8 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   };
 
   meta = {
-    description = "DSH web UI plugin and skin collection";
+    description = "Extra web UI themes and components";
+    descriptions.zh-CN = "额外的 Web UI 主题与组件";
     homepage = "https://github.com/zhu1090093659/dsh-web-ui";
     license = lib.licenses.asl20;
     platforms = lib.platforms.unix;

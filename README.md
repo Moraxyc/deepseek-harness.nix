@@ -44,9 +44,7 @@ cachix use deepseek-harness-nix
 - `dsh`
 - `dsh-kernel`
 - `dsh-workspace`
-- `bundles.base`
-- `bundles.{headless,web-app,tui,web-ui}`
-- `presets.{official,headless,web,tui,web-ui}`
+- [Bundles 和预设](docs/bundles-presets.zh-CN.md)
 
 ## NixOS
 

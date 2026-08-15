@@ -25,5 +25,23 @@
         type = "app";
         program = "${dsh.dsh}/bin/dsh";
       };
+
+      apps.generate-docs = {
+        type = "app";
+        program = "${
+          pkgs.writeShellApplication {
+            name = "generate-docs";
+            runtimeInputs = with pkgs; [
+              coreutils
+              diffutils
+              git
+              jq
+              nix
+              prettier
+            ];
+            text = builtins.readFile ../../scripts/generate-docs.sh;
+          }
+        }/bin/generate-docs";
+      };
     };
 }

@@ -10,6 +10,7 @@
           jq
           nix-update
           nixfmt-rfc-style
+          pre-commit
           yq-go
         ];
       };

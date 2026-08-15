@@ -33,6 +33,7 @@
   profiles ? { },
   # Optional profile used when the caller does not pass --profile.
   defaultProfile ? null,
+  meta ? { },
 }:
 
 let
@@ -158,6 +159,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   '';
 
   passthru = {
+    defaultProfileName = defaultProfile;
+
     composedBundles = composition.composeBundles {
       base = baseBundle;
       defaults = defaultBundles;
@@ -202,5 +205,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     license = lib.licenses.mit;
     mainProgram = "dsh";
     platforms = lib.platforms.unix;
-  };
+  }
+  // meta;
 })

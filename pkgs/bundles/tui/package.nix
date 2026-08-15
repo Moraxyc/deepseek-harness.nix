@@ -52,7 +52,8 @@ buildDshBundle (finalAttrs: {
   };
 
   meta = {
-    description = "Interactive TUI for DeepSeek Harness agents";
+    description = "Interactive terminal interface for dsh";
+    descriptions.zh-CN = "dsh 的交互式终端界面";
     homepage = "https://github.com/ccch1mneyyy/dsh-TUI";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

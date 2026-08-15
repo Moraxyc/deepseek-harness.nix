@@ -19,7 +19,8 @@ buildDshBundle.fromWorkspace (finalAttrs: {
     }
   ];
   meta = {
-    description = "dsh web bundle over dsh-base";
+    description = "Web interface for dsh";
+    descriptions.zh-CN = "dsh 的网页界面";
     homepage = "https://github.com/deepseek-ai/deepseek-harness";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

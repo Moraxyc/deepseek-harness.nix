@@ -135,6 +135,9 @@ jobs:
           export NIX_PATH
           nix shell nixpkgs#nix-update --inputs-from . -c nix-update --flake --use-update-script "$ATTR"
 
+      - name: Regenerate bundle/preset docs
+        run: nix run .#generate-docs
+
       - name: Check for changes
         id: changes
         run: |
