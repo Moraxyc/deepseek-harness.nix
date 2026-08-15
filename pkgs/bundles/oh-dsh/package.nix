@@ -103,20 +103,12 @@ buildDshBundle (finalAttrs: {
     find "$bundleRoot" -depth \( -type d -name pnpm -o -type d -name 'pnpm@*' \) -exec rm -rf {} +
     find "$bundleRoot" -depth \( -type f -name pnpm -o -type f -name pnpm.cjs \) -delete
     find "$bundleRoot" -depth -type l -lname '*pnpm*' -delete
-    find "$bundleRoot/@oh-dsh" -name pnpm-lock.yaml -delete
-    find "$bundleRoot/@oh-dsh" -name pnpm-workspace.yaml -delete
+    rm -f "$bundleRoot"/@oh-dsh/*/{pnpm-lock,pnpm-workspace}.yaml
     find "$bundleRoot" -path '*/node-pty/build/config.gypi' -delete
     find "$bundleRoot" -path '*/node-pty/build/Makefile' -delete
     find "$bundleRoot" -type f -path '*/node-pty/build/*' ! -name '*.node' -delete
     find "$bundleRoot" -depth -type d -path '*/node-pty/build/*' -empty -delete
-    rm -rf \
-      "$bundleRoot/node-pty/deps" \
-      "$bundleRoot/node-pty/node-addon-api" \
-      "$bundleRoot/node-pty/prebuilds" \
-      "$bundleRoot/node-pty/scripts" \
-      "$bundleRoot/node-pty/src" \
-      "$bundleRoot/node-pty/third_party" \
-      "$bundleRoot/node-pty/typings" \
+    rm -rf "$bundleRoot"/node-pty/{deps,node-addon-api,prebuilds,scripts,src,third_party,typings} \
       "$bundleRoot/node-addon-api"
     find "$bundleRoot" -path '*/node-pty/lib/*.test.js' -delete
     find "$bundleRoot" -path '*/node-pty/lib/*.test.js.map' -delete
