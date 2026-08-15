@@ -53,14 +53,25 @@ buildNpmPackage (finalAttrs: {
 
     cp -a ${electron_43.dist}/. "$out/"
     chmod -R u+w "$out"
-    mv "$out/electron" "$out/DeepSeek Harness"
+    if [ -d "$out/Electron.app" ]; then
+      mv "$out/Electron.app" "$out/DeepSeek Harness.app"
+      mv "$out/DeepSeek Harness.app/Contents/MacOS/Electron" "$out/DeepSeek Harness.app/Contents/MacOS/DeepSeek Harness"
+      appResources="$out/DeepSeek Harness.app/Contents/Resources"
 
-    mkdir -p "$out/resources/app"
-    cp apps/desktop/package.json "$out/resources/app/package.json"
-    cp -r apps/desktop/lib "$out/resources/app/lib"
+      substituteInPlace "$out/DeepSeek Harness.app/Contents/Info.plist" \
+        --replace '<string>Electron</string>' '<string>DeepSeek Harness</string>' \
+        --replace '<string>com.github.Electron</string>' '<string>ai.deepseek.harness.desktop</string>'
+    else
+      mv "$out/electron" "$out/DeepSeek Harness"
+      appResources="$out/resources"
+    fi
 
-    mkdir -p "$out/resources/desktop-resources"
-    cp apps/desktop/resources/*.png "$out/resources/desktop-resources/"
+    mkdir -p "$appResources/app"
+    cp apps/desktop/package.json "$appResources/app/package.json"
+    cp -r apps/desktop/lib "$appResources/app/lib"
+
+    mkdir -p "$appResources/desktop-resources"
+    cp apps/desktop/resources/*.png "$appResources/desktop-resources/"
 
     cp apps/desktop/build/icon.png "$out/icon.png"
 
@@ -70,6 +81,6 @@ buildNpmPackage (finalAttrs: {
   meta = {
     description = "DeepSeek Harness Electron shell, uncombined";
     license = lib.licenses.mit;
-    platforms = lib.platforms.linux;
+    platforms = lib.platforms.linux ++ [ "aarch64-darwin" ];
   };
 })
