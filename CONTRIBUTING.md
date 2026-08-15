@@ -34,6 +34,11 @@ Use `buildDshBundle.fromPnpmWorkspace` for external monorepo bundles. It owns
 the supported pnpm deploy protocol and produces the standard `$out/lib`
 layout directly.
 
+Bundle directory names are the flake output names under `bundles.*`, so strip a
+`dsh-` prefix when placing an upstream package under `pkgs/bundles/`. For
+example, `dsh-ads` becomes `pkgs/bundles/ads` and `bundles.ads`; the Nix
+package `pname` can still keep the upstream name.
+
 Minimal template:
 
 ```nix
@@ -86,7 +91,9 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
 `fromPnpmWorkspace` runs these operations in the bundle derivation:
 
 1. If `stripPrepareScripts = true`, remove workspace `prepare` scripts before
-   deploy so pnpm does not rebuild source packages.
+   deploy so pnpm does not rebuild source packages. This supports both pnpm
+   workspaces that use `packages/*` and single-package workspaces that only
+   define `packages: ["."]`.
 2. Run `pnpm config set --location=project inject-workspace-packages true`.
 3. Run:
 

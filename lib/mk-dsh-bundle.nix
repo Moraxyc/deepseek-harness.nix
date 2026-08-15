@@ -177,11 +177,16 @@ let
           runHook preInstall
 
           ${lib.optionalString stripPrepareScripts ''
-            find packages -name package.json -print0 \
-              | xargs -0 -n1 sh -c '
-                  jq "del(.scripts.prepare)" "$0" > "$0.tmp"
-                  mv "$0.tmp" "$0"
-                '
+            if [ -d packages ]; then
+              find packages -name package.json -print0 \
+                | xargs -0 -n1 sh -c '
+                    jq "del(.scripts.prepare)" "$0" > "$0.tmp"
+                    mv "$0.tmp" "$0"
+                  '
+            else
+              jq "del(.scripts.prepare)" package.json > package.json.tmp
+              mv package.json.tmp package.json
+            fi
           ''}
           ${preDeploy}
 

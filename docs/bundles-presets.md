@@ -7,14 +7,15 @@ Use `nix run .#generate-docs -- --check` to verify the checked-in catalog.
 
 ## Bundles
 
-| Flake output          | Package        | Version               | Description                            |
-| --------------------- | -------------- | --------------------- | -------------------------------------- |
-| `bundles.base`        | `dsh-base`     | 0-unstable-2026-08-13 | Foundation shared by all dsh profiles  |
-| `bundles.dsh-modlens` | `dsh-modlens`  | 3.16.6                | Plug-in vision for text-only LLMs      |
-| `bundles.headless`    | `dsh-headless` | 0-unstable-2026-08-13 | Run dsh without a graphical interface  |
-| `bundles.tui`         | `dsh-tui`      | 0.5.2                 | Interactive terminal interface for dsh |
-| `bundles.web-app`     | `dsh-web-app`  | 0-unstable-2026-08-13 | Web interface for dsh                  |
-| `bundles.web-ui`      | `dsh-web-ui`   | 0.1.13                | Extra web UI themes and components     |
+| Flake output             | Package              | Version               | Description                                  |
+| ------------------------ | -------------------- | --------------------- | -------------------------------------------- |
+| `bundles.base`           | `dsh-base`           | 0-unstable-2026-08-13 | Foundation shared by all dsh profiles        |
+| `bundles.better-sidebar` | `dsh-better-sidebar` | 0.12.1                | VSCode-like right sidebar for the DSH web UI |
+| `bundles.headless`       | `dsh-headless`       | 0-unstable-2026-08-13 | Run dsh without a graphical interface        |
+| `bundles.modlens`        | `dsh-modlens`        | 3.16.6                | Plug-in vision for text-only LLMs            |
+| `bundles.tui`            | `dsh-tui`            | 0.5.2                 | Interactive terminal interface for dsh       |
+| `bundles.web-app`        | `dsh-web-app`        | 0-unstable-2026-08-13 | Web interface for dsh                        |
+| `bundles.web-ui`         | `dsh-web-ui`         | 0.1.13                | Extra web UI themes and components           |
 
 ## Presets
 
