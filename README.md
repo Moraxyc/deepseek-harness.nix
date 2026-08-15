@@ -9,6 +9,25 @@ nix build .#bundles.tui
 nix run .#default -- --version
 ```
 
+## Cachix
+
+```sh
+cachix use deepseek-harness-nix
+```
+
+或者手动加入 Nix 配置：
+
+```nix
+{
+  nix.settings = {
+    substituters = [ "https://deepseek-harness-nix.cachix.org" ];
+    trusted-public-keys = [
+      "deepseek-harness-nix.cachix.org-1:5NrkwLN9veNMhiINtU5ZeV4isXFhFsOwn6Ms7J1M+TA="
+    ];
+  };
+}
+```
+
 ## 输出
 
 - `dsh`

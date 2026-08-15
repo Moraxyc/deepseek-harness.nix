@@ -6,6 +6,7 @@
   dsh-kernel,
   pnpmConfigHook,
   pnpm_11,
+  nix-update-script,
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-web-ui";
@@ -46,6 +47,10 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     find "$out/lib/node_modules" -type f -path '*/build/*' ! -name '*.node' -delete
     find "$out/lib/node_modules" -depth -type d -empty -delete
   '';
+
+  passthru.updateScript = nix-update-script {
+    extraArgs = [ "--flake" ];
+  };
 
   meta = {
     description = "DSH web UI plugin and skin collection";

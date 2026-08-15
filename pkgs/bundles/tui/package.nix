@@ -5,6 +5,7 @@
   buildDshBundle,
   pnpmConfigHook,
   pnpm_11,
+  nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-tui";
@@ -45,6 +46,10 @@ buildDshBundle (finalAttrs: {
 
     runHook postInstall
   '';
+
+  passthru.updateScript = nix-update-script {
+    extraArgs = [ "--flake" ];
+  };
 
   meta = {
     description = "Interactive TUI for DeepSeek Harness agents";

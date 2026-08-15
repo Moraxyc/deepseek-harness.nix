@@ -1,0 +1,200 @@
+name: Auto Update
+
+on:
+  schedule:
+    - cron: "10 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: auto-update
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.discover.outputs.matrix }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          ref: main
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build update matrix
+        id: discover
+        run: |
+          set -euo pipefail
+
+          updatable="$(
+            nix eval --impure --json --expr '
+              let
+                f = import ./default.nix;
+                system = builtins.currentSystem;
+                hasUpdateScript = p: (p.passthru or { }).updateScript or null != null;
+                packageSet = builtins.getAttr system f.packages;
+                legacyPackages = builtins.getAttr system f.legacyPackages;
+                packages = builtins.filter (name: hasUpdateScript (builtins.getAttr name packageSet)) (builtins.attrNames packageSet);
+                bundles = builtins.filter (name: hasUpdateScript (builtins.getAttr name legacyPackages.bundles)) (builtins.attrNames legacyPackages.bundles);
+                toAttrs = kind: names: map (name: { inherit name; attr = kind + "." + name; }) names;
+              in
+              (toAttrs ("packages." + system) packages)
+              ++ (toAttrs ("legacyPackages." + system + ".bundles") bundles)
+            '
+          )"
+
+          matrix="$(
+            jq -cn \
+              --argjson updatable "$updatable" \
+              '{
+                include: [
+                  {
+                    name: "flake-locks",
+                    title: "chore: update flake locks",
+                    command: "nix flake update\nnix flake update --flake modules/flake-parts/dev"
+                  }
+                ] + [ $updatable[] | { name: .name, title: ("chore: update " + .name), attr: .attr } ]
+              }'
+          )"
+
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  update:
+    needs: discover
+    name: Update ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.discover.outputs.matrix) }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Reuse update branch
+        env:
+          BRANCH: auto-update/${{ matrix.name }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git fetch origin main
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+            echo "Reusing existing branch $BRANCH"
+            git fetch origin "$BRANCH"
+            git switch -C "$BRANCH" "origin/$BRANCH"
+            if ! git rebase origin/main; then
+              echo "::warning::Rebase of $BRANCH failed, recreating from main"
+              git rebase --abort
+              git switch -C "$BRANCH" origin/main
+            fi
+          else
+            git switch -C "$BRANCH" origin/main
+          fi
+          git remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git"
+
+      - name: Update flake locks
+        if: matrix.command != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          ${{ matrix.command }}
+
+      - name: Update package
+        if: matrix.attr != ''
+        env:
+          ATTR: ${{ matrix.attr }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          nix shell nixpkgs#nix-update --inputs-from . -c nix-update --flake --use-update-script "$ATTR"
+
+      - name: Check for changes
+        id: changes
+        run: |
+          set -euo pipefail
+          if git diff --quiet origin/main && [ -z "$(git status --porcelain --untracked-files=all)" ]; then
+            echo "updated=false" >> "$GITHUB_OUTPUT"
+            echo "No changes for ${{ matrix.name }}"
+          else
+            echo "updated=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate GitHub App Token
+        id: app-token
+        if: steps.changes.outputs.updated == 'true'
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Open or update pull request
+        if: steps.changes.outputs.updated == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          BRANCH: auto-update/${{ matrix.name }}
+          TITLE: ${{ matrix.title }}
+        run: |
+          set -euo pipefail
+
+          git add -A
+          git commit -m "$TITLE"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push --force origin "HEAD:$BRANCH"
+
+          body="Automated update. Package CI runs before auto-merge."
+
+          pr_number="$(
+            gh pr list \
+              --repo "$GITHUB_REPOSITORY" \
+              --head "$BRANCH" \
+              --json number \
+              --jq '.[0].number // empty'
+          )"
+
+          if [ -n "$pr_number" ]; then
+            gh pr edit "$pr_number" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "$TITLE" \
+              --body "$body"
+          else
+            pr_number="$(
+              gh pr create \
+                --repo "$GITHUB_REPOSITORY" \
+                --base main \
+                --head "$BRANCH" \
+                --title "$TITLE" \
+                --body "$body" \
+                --json number \
+                --jq .number
+            )"
+          fi
+
+          gh pr merge "$pr_number" \
+            --repo "$GITHUB_REPOSITORY" \
+            --auto \
+            --squash \
+            --delete-branch

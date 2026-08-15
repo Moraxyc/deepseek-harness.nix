@@ -11,6 +11,7 @@
   pnpm_11,
   python3,
   yq-go,
+  nix-update-script,
 }:
 
 buildNpmPackage (finalAttrs: {
@@ -121,6 +122,13 @@ buildNpmPackage (finalAttrs: {
 
     runHook postInstall
   '';
+
+  passthru.updateScript = nix-update-script {
+    extraArgs = [
+      "--flake"
+      "--version=branch"
+    ];
+  };
 
   meta = {
     description = "Built DeepSeek Harness workspace artifacts";

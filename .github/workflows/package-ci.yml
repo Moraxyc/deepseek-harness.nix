@@ -1,0 +1,64 @@
+name: Package CI
+
+on:
+  pull_request:
+    paths:
+      - "pkgs/**"
+      - "flake.lock"
+      - "modules/flake-parts/**"
+      - ".github/workflows/package-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: package-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build package set
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Cachix
+        uses: cachix/cachix-action@v17
+        with:
+          name: ${{ vars.CACHIX_CACHE_NAME || 'deepseek-harness-nix' }}
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+          skipPush: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+
+      - name: Build packages
+        run: |
+          set -euo pipefail
+
+          attrs="$(
+            nix eval --impure --json --expr '
+              let
+                f = import ./default.nix;
+                isDerivation = p: builtins.isAttrs p && (p.type or null) == "derivation";
+                names = set: builtins.filter (name: isDerivation (builtins.getAttr name set)) (builtins.attrNames set);
+                packages = builtins.filter (name: name != "default") (names f.packages.x86_64-linux);
+                bundles = names f.legacyPackages.x86_64-linux.bundles;
+                presets = names f.legacyPackages.x86_64-linux.presets;
+              in
+              (map (name: ".#" + name) packages)
+              ++ (map (name: ".#bundles." + name) bundles)
+              ++ (map (name: ".#presets." + name) presets)
+            ' \
+              | jq -r '.[]' \
+              | paste -sd ' ' -
+          )"
+
+          read -r -a build_attrs <<< "$attrs"
+          nix build --no-link --print-build-logs "${build_attrs[@]}"
