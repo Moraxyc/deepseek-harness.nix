@@ -2,8 +2,18 @@
 
 > **English** | [简体中文](README.md)
 
-Nix packaging for DeepSeek Harness (`dsh`), including the kernel, workspace
-bundles, presets, a NixOS module, and an overlay.
+Nix packaging for DeepSeek Harness (`dsh`): CLI, desktop app, kernel, workspace
+bundles (plugins), presets, a NixOS module, and an overlay.
+
+## Table of Contents
+
+- [Quickstart](#quickstart)
+- [Usage](#usage)
+- [Cachix](#cachix)
+- [Bundles and Presets](#bundles-and-presets)
+- [NixOS](#nixos)
+- [Advanced Usage](#advanced-usage)
+- [License](#license)
 
 ## Quickstart
 
@@ -22,6 +32,13 @@ nix build .#presets.tui
 nix build .#bundles.tui
 nix run .#default -- --version
 ```
+
+Main outputs:
+
+- `dsh`
+- `dsh-desktop`
+- `dsh-kernel`
+- `dsh-workspace`
 
 ## Cachix
 
@@ -42,12 +59,11 @@ Or add it manually to your Nix configuration:
 }
 ```
 
-## Outputs
+## Bundles and Presets
 
-- `dsh`
-- `dsh-kernel`
-- `dsh-workspace`
-- [Bundles and Presets](docs/bundles-presets.md)
+Bundles are plugin-style extensions that can be combined into a `dsh` runtime;
+presets are ready-to-use combinations. See
+[Bundles and Presets](docs/bundles-presets.md) for the full catalog.
 
 ## NixOS
 
@@ -67,33 +83,13 @@ The `profiles.tui` option is materialized as `~/.dsh/profiles/nix-tui`.
 Managed profiles are synchronized by Nix; existing unmanaged directories with
 the same name are never taken over or overwritten.
 
-Each preset uses its own Nix profile by default. For example, `presets.tui` is
-equivalent to `dsh --profile nix-tui`. Passing `--profile` explicitly still
-lets you select your own profile.
+See [Advanced Usage](docs/advanced-usage.md) for module options, custom
+profiles, `override` / `withProfiles`, and the overlay.
 
-## Overrides
+## Advanced Usage
 
-```nix
-pkgs.dsh.presets.tui.override {
-  extraPlugins = [ myBundle ];
-}
-```
-
-`override` sets package inputs. `withProfiles` only replaces `profiles`, keeps
-the current `extraPlugins`, and clears the preset's default profile.
-
-## Overlay
-
-```nix
-{
-  nixpkgs.overlays = [ inputs.deepseek-harness.overlays.default ];
-  environment.systemPackages = [ pkgs.dsh.dsh ];
-}
-```
-
-Overlay packages live under the `pkgs.dsh` scope, for example
-`pkgs.dsh.bundles.tui`. Flake `packages` expand that scope, so
-`nix build .#bundles.tui` and `nix run .#presets.web` continue to work.
+Detailed integration instructions live in
+[Advanced Usage](docs/advanced-usage.md).
 
 ## License
 

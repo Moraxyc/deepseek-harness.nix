@@ -2,8 +2,8 @@
 
 本目录由 flake 自动生成，仅作参考。请勿手工编辑。
 
-Bundle 是可以自由组合的积木：挑几个需要的 bundle 拼在一起，就能得到自己的
-组合。例如给已有 preset 追加 bundle：
+Bundle 即插件式扩展。挑几个需要的 bundle 拼在一起，就能得到自己的组合。
+例如给已有 preset 追加 bundle：
 `pkgs.dsh.presets.web-ui.override { extraPlugins = [ pkgs.dsh.bundles.tui ]; }`；
 或在 NixOS 中自定义 profile：`programs.dsh.profiles.mine.bundles = [ ... ]`。
 详见 [README](../README.md)。

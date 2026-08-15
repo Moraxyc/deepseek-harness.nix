@@ -2,6 +2,20 @@
 
 > [English](README.en.md) | **简体中文**
 
+DeepSeek Harness（`dsh`）的 Nix 打包：提供 `dsh`、`dsh-desktop`、
+`dsh-kernel`、`dsh-workspace`，以及 bundle（插件）、preset、NixOS 模块和
+overlay。
+
+## 目录
+
+- [快速开始](#快速开始)
+- [使用](#使用)
+- [Cachix](#cachix)
+- [Bundles 和预设](#bundles-和预设)
+- [NixOS](#nixos)
+- [高级用法](#高级用法)
+- [许可证](#许可证)
+
 ## 快速开始
 
 尝试 TUI 预设：
@@ -20,13 +34,22 @@ nix build .#bundles.tui
 nix run .#default -- --version
 ```
 
+主要输出：
+
+- `dsh`
+- `dsh-desktop`
+- `dsh-kernel`
+- `dsh-workspace`
+
 ## Cachix
+
+使用 Cachix 时先执行：
 
 ```sh
 cachix use deepseek-harness-nix
 ```
 
-或者手动加入 Nix 配置：
+也可以手动加入 Nix 配置：
 
 ```nix
 {
@@ -39,13 +62,10 @@ cachix use deepseek-harness-nix
 }
 ```
 
-## 输出
+## Bundles 和预设
 
-- `dsh`
-- `dsh-desktop`
-- `dsh-kernel`
-- `dsh-workspace`
-- [Bundles 和预设](docs/bundles-presets.zh-CN.md)
+Bundle 是插件式扩展；preset 是开箱即用的组合。
+完整目录见 [Bundles 和预设](docs/bundles-presets.zh-CN.md)。
 
 ## NixOS
 
@@ -64,34 +84,15 @@ cachix use deepseek-harness-nix
 Nix 配置中的 `profiles.tui` 会生成到 `~/.dsh/profiles/nix-tui`。预置
 profile 由 Nix 同步；已有但没有 Nix 标记的同名目录不会被接管或覆盖。
 
-各 preset 会自动使用自己的 Nix profile。例如 `presets.tui` 默认等价于
-`dsh --profile nix-tui`；显式传入 `--profile` 时仍可选择用户自己的 profile。
+更多模块选项、自定义 profile、`override` / `withProfiles` 和 Overlay 见
+[高级用法](docs/advanced-usage.zh-CN.md)。
 
-## 覆盖
+## 高级用法
 
-```nix
-pkgs.dsh.presets.tui.override {
-  extraPlugins = [ myBundle ];
-}
-```
+NixOS 参数、自定义 profile、覆盖方式和 Overlay 的详细说明见
+[高级用法](docs/advanced-usage.zh-CN.md)。
 
-`override` 设置包输入；`withProfiles` 只替换 `profiles`，保留当前
-`extraPlugins`，并清除 preset 的默认 profile。
-
-## Overlay
-
-```nix
-{
-  nixpkgs.overlays = [ inputs.deepseek-harness.overlays.default ];
-  environment.systemPackages = [ pkgs.dsh.dsh ];
-}
-```
-
-Overlay 包位于 `pkgs.dsh` scope 中，例如 `pkgs.dsh.bundles.tui`；
-flake 的 `packages` 会展开该 scope，因此仍可直接使用
-`nix build .#bundles.tui` 和 `nix run .#presets.web`。
-
-## License
+## 许可证
 
 本仓库自身的代码与文档以 MIT 许可证授权，完整条款见
 [LICENSE](LICENSE)。
