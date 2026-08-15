@@ -54,13 +54,14 @@ jobs:
             jq -cn \
               --argjson updatable "$updatable" \
               '{
-                include: [
+                include: ([
                   {
                     name: "flake-locks",
                     title: "chore: update flake locks",
-                    command: "nix flake update\nnix flake update --flake modules/flake-parts/dev"
+                    command: "nix flake update\nnix flake update --flake modules/flake-parts/dev",
+                    attr: ""
                   }
-                ] + [ $updatable[] | { name: .name, title: ("chore: update " + .name), attr: .attr } ]
+                ] + [ $updatable[] | { name: .name, title: ("chore: update " + .name), attr: .attr, command: "" } ])
               }'
           )"
 
