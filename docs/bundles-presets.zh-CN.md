@@ -4,7 +4,7 @@
 
 Bundle 即插件式扩展。按顺序拼接需要的 bundle，就能得到自己的组合；后面的
 bundle 会覆盖前面的 Cordis 配置。例如给已有 preset 追加 bundle：
-`pkgs.dsh.presets.web-ui.override { extraPlugins = [ pkgs.dsh.bundles.tui ]; }`；
+`pkgs.dsh.presets.web-ui.withBundles [ pkgs.dsh.bundles.tui ]`；
 或在 NixOS 中自定义 profile：`programs.dsh.profiles.mine.bundles = [ ... ]`。
 详见 [README](../README.md)。
 

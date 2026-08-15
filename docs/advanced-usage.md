@@ -55,33 +55,32 @@ the default, override the result:
 
 ## Custom Bundle Compositions
 
-Use `withBundles` to add bundles. Its argument receives the bundle scope, so
-plugins can be referred to by their short names:
+Use `withBundles` to add bundles. It accepts either a list of bundle packages
+or a bundle-scope function for short names:
 
 ```nix
+pkgs.dsh.dsh.withBundles [
+  pkgs.dsh.bundles.tui
+  pkgs.dsh.bundles.web-app
+]
+
 pkgs.dsh.dsh.withBundles (b: with b; [
   tui
   web-app
 ])
 ```
 
-The bundles returned by the function are added to the current composition;
-existing default bundles, profiles, and `extraPlugins` are preserved. Bundles
-are applied in list order, so a later bundle overrides an earlier bundle's
-Cordis configuration; the base layer is always first.
+The selected bundles are added to the current composition and appended to every
+managed profile on the package, so the materialized profile stays synchronized
+with the runnable composition. Bundles are applied in list order, so a later
+bundle overrides an earlier bundle's Cordis configuration; the base layer is
+always first.
 
 ## Overrides
 
-Presets expose `override` for package inputs:
-
-```nix
-pkgs.dsh.presets.tui.override {
-  extraPlugins = [ myBundle ];
-}
-```
-
-`override` replaces package inputs. `withProfiles` replaces only `profiles`,
-keeps the current `extraPlugins`, and clears the preset's default profile.
+Presets expose `override` for package inputs, but use `withBundles` to add
+bundles. `withProfiles` replaces only `profiles` and clears the preset's default
+profile.
 
 ## Overlay
 

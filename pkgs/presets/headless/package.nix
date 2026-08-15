@@ -1,11 +1,9 @@
 {
   bundles,
   dsh,
-  extraPlugins ? [ ],
 }:
 dsh.override {
   defaultBundles = [ bundles.headless ];
-  inherit extraPlugins;
   defaultProfile = "nix-headless";
   meta = {
     description = "Simple setup for running dsh from the terminal";

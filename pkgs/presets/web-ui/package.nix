@@ -1,11 +1,9 @@
 {
   bundles,
   dsh,
-  extraPlugins ? [ ],
 }:
 dsh.override {
   defaultBundles = [ bundles.web-app ];
-  inherit extraPlugins;
   defaultProfile = "nix-web-ui";
   meta = {
     description = "Web-first setup with extra UI themes and components";

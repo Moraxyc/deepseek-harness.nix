@@ -52,32 +52,29 @@ pkgs.dsh.dsh.withProfiles {
 
 ## 自定义 Bundle 组合
 
-用 `withBundles` 追加 bundle。它的参数是一个接收 bundle scope 的函数，因而
-可以直接使用短名称：
+用 `withBundles` 追加 bundle。它既接受 bundle 包列表，也接受一个接收 bundle
+scope 的函数，方便直接使用短名称：
 
 ```nix
+pkgs.dsh.dsh.withBundles [
+  pkgs.dsh.bundles.tui
+  pkgs.dsh.bundles.web-app
+]
+
 pkgs.dsh.dsh.withBundles (b: with b; [
   tui
   web-app
 ])
 ```
 
-函数返回的 bundle 会追加到当前组合；已有的默认 bundle、profile 和
-`extraPlugins` 会保留。所有 bundle 按列表顺序应用，后面的 bundle 会覆盖
-前面 bundle 的 Cordis 配置；基础层固定在最前面。
+选中的 bundle 会追加到当前组合，也会追加到包里的每个 Nix 管理 profile，
+因此生成的 profile 会随这次组合同步。所有 bundle 按列表顺序应用，后面的
+bundle 会覆盖前面 bundle 的 Cordis 配置；基础层固定在最前面。
 
 ## 覆盖
 
-preset 通过 `override` 设置包输入：
-
-```nix
-pkgs.dsh.presets.tui.override {
-  extraPlugins = [ myBundle ];
-}
-```
-
-`override` 替换包输入；`withProfiles` 只替换 `profiles`，保留当前
-`extraPlugins`，并清除 preset 的默认 profile。
+preset 通过 `override` 设置其他包输入；追加 bundle 请使用 `withBundles`。
+`withProfiles` 只替换 `profiles`，并清除 preset 的默认 profile。
 
 ## Overlay
 

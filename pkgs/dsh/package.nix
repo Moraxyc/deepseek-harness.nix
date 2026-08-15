@@ -27,8 +27,6 @@
     web-app
   ],
 
-  # Additional bundles included in the composed application.
-  extraPlugins ? [ ],
   # Profiles materialized under $DSH_HOME/profiles/nix-<name>.
   profiles ? { },
   # Optional profile used when the caller does not pass --profile.
@@ -164,7 +162,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     composedBundles = composition.composeBundles {
       base = baseBundle;
       defaults = defaultBundles;
-      inherit extraPlugins profiles;
+      inherit profiles;
     };
 
     profileTemplates = profileFiles.makeProfileTemplates {
@@ -198,22 +196,38 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     withProfiles =
       configuredProfiles:
       dsh.override {
-        inherit defaultBundles extraPlugins;
+        inherit defaultBundles;
         defaultProfile = null;
         profiles = configuredProfiles;
       };
 
     # pkgs.dsh.dsh.withBundles (b: with b; [ tui web-app ])
-    # adds selected bundles to the current composition.
+    # pkgs.dsh.dsh.withBundles [ pkgs.dsh.bundles.tui pkgs.dsh.bundles.web-app ]
+    # adds selected bundles to the current composition and to every managed
+    # profile so Nix-managed profiles stay in sync with the running package.
     withBundles =
-      bundleSelector:
+      bundlesOrSelector:
       let
-        selectedBundles = bundleSelector bundles;
+        selectedBundles =
+          if lib.isFunction bundlesOrSelector then
+            bundlesOrSelector bundles
+          else if lib.isList bundlesOrSelector then
+            bundlesOrSelector
+          else
+            [ bundlesOrSelector ];
+        profilesWithBundles = lib.mapAttrs (
+          _: profile:
+          profile
+          // {
+            bundles = lib.unique ((profile.bundles or [ ]) ++ selectedBundles);
+          }
+        ) profiles;
       in
       assert lib.isList selectedBundles;
       dsh.override {
-        inherit defaultBundles profiles defaultProfile;
-        extraPlugins = extraPlugins ++ selectedBundles;
+        defaultBundles = lib.unique (defaultBundles ++ selectedBundles);
+        inherit defaultProfile;
+        profiles = profilesWithBundles;
       };
   };
 

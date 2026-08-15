@@ -30,7 +30,6 @@ in
     {
       base,
       defaults,
-      extraPlugins,
       profiles,
     }:
     let
@@ -38,7 +37,6 @@ in
         base
       ]
       ++ defaults
-      ++ extraPlugins
       ++ lib.concatMap (profile: profile.bundles) (lib.attrValues profiles);
     in
     lib.unique (validateBundles bundles);

@@ -1,11 +1,9 @@
 {
   bundles,
   dsh,
-  extraPlugins ? [ ],
 }:
 dsh.override {
   defaultBundles = [ bundles.web-app ];
-  inherit extraPlugins;
   defaultProfile = "nix-ads";
   meta = {
     description = "DSH setup with local portal ads and scam-ad parodies";

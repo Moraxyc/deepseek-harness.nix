@@ -1,10 +1,8 @@
 {
   bundles,
   dsh,
-  extraPlugins ? [ ],
 }:
 dsh.override {
-  inherit extraPlugins;
   defaultProfile = "nix-tui";
   meta = {
     description = "Terminal-focused setup with an interactive interface";
