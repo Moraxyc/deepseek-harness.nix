@@ -23,6 +23,7 @@ let
     version = package.version or null;
     description = package.meta.description or null;
     descriptionZh = package.meta.descriptions.zh-CN or package.meta.description or null;
+    homepage = package.meta.homepage or null;
   };
 
   presetInfo =
@@ -42,6 +43,7 @@ let
       bundles = map (bundle: bundle.pname or bundle.name) (package.passthru.composedBundles or [ ]);
       description = package.meta.description or null;
       descriptionZh = package.meta.descriptions.zh-CN or package.meta.description or null;
+      homepage = package.meta.homepage or null;
     };
 
 in
