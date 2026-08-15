@@ -4,59 +4,82 @@
   nodejs,
   nodejs-slim,
   stdenvNoCC,
+  writeShellApplication,
 }:
 
 let
-  # Shared metadata required by the composition layer for every bundle.
+  resolveDshBundles = ../lib/resolve-dsh-bundles.mjs;
+
+  # Shared protocol required by the composition layer for every bundle.
   protocol =
     {
-      dshBundles,
       runtimeDeps ? [ ],
     }:
     {
       dshBundle = true;
       dshBundleHelper = "buildDshBundle";
-      inherit dshBundles runtimeDeps;
+      inherit runtimeDeps;
     };
 
   # Fail early when a package does not implement the public bundle contract.
   validateProtocol =
     {
-      dshBundles,
       runtimeDeps,
     }:
-    assert lib.isList dshBundles;
-    assert lib.all lib.isString dshBundles;
     assert lib.isList runtimeDeps;
-    protocol { inherit dshBundles runtimeDeps; };
+    protocol { inherit runtimeDeps; };
+
+  dshBundleResolver = writeShellApplication {
+    name = "dsh-resolve-bundles";
+    runtimeInputs = [ nodejs-slim ];
+    text = ''
+      exec ${lib.getExe nodejs-slim} ${resolveDshBundles} "$@"
+    '';
+  };
+
+  validateInstalledBundle = ''
+    bundleRoot="$out/lib/node_modules"
+    [ -d "$bundleRoot" ] || {
+      printf 'buildDshBundle: expected bundle output directory %s\\n' "$bundleRoot" >&2
+      exit 1
+    }
+    mkdir -p "$out/nix-support"
+    ${lib.getExe dshBundleResolver} manifest \
+      "$out/nix-support/dsh-bundles.json" \
+      "$bundleRoot"
+  '';
 
   # Build a bundle from its own npm source. Use this for external bundles that
   # are not produced by the upstream workspace build.
   buildDshBundle = lib.extendMkDerivation {
     constructDrv = buildNpmPackage;
     excludeDrvArgNames = [
-      "dshBundles"
       "runtimeDeps"
     ];
     extendDrvArgs =
       finalAttrs:
       {
-        dshBundles,
         runtimeDeps ? [ ],
         nativeBuildInputs ? [ ],
         disallowedReferences ? [ ],
         meta ? { },
         passthru ? { },
+        postInstall ? "",
         ...
       }:
       let
-        bundleProtocol = validateProtocol { inherit dshBundles runtimeDeps; };
+        bundleProtocol = validateProtocol { inherit runtimeDeps; };
       in
       {
         nodejs = nodejs-slim;
         disallowedReferences = lib.unique (disallowedReferences ++ [ nodejs ]);
-        nativeBuildInputs = [ nodejs-slim.npm ] ++ nativeBuildInputs;
+        nativeBuildInputs = [
+          nodejs-slim
+          nodejs-slim.npm
+        ]
+        ++ nativeBuildInputs;
         passthru = passthru // bundleProtocol;
+        postInstall = postInstall + validateInstalledBundle;
         meta = meta // {
           description =
             meta.description or (throw "buildDshBundle: ${finalAttrs.pname} requires meta.description");
@@ -72,7 +95,6 @@ let
       "artifacts"
       "dsh-kernel"
       "dsh-workspace"
-      "dshBundles"
       "runtimeDeps"
     ];
     extendDrvArgs =
@@ -81,17 +103,18 @@ let
         artifacts,
         dsh-kernel,
         dsh-workspace,
-        dshBundles,
         disallowedReferences ? [ ],
+        nativeBuildInputs ? [ ],
         runtimeDeps ? [ ],
         version ? dsh-workspace.version,
         installPhase ? null,
         meta ? { },
         passthru ? { },
+        postInstall ? "",
         ...
       }:
       let
-        bundleProtocol = validateProtocol { inherit dshBundles runtimeDeps; };
+        bundleProtocol = validateProtocol { inherit runtimeDeps; };
         defaultInstallPhase = ''
           runHook preInstall
 
@@ -128,6 +151,8 @@ let
         dontConfigure = true;
         dontBuild = true;
         installPhase = if installPhase == null then defaultInstallPhase else installPhase;
+        nativeBuildInputs = [ nodejs-slim ] ++ nativeBuildInputs;
+        postInstall = postInstall + validateInstalledBundle;
         passthru = passthru // bundleProtocol;
         meta = meta // {
           description =
@@ -138,5 +163,5 @@ let
 in
 buildDshBundle
 // {
-  inherit fromWorkspace;
+  inherit dshBundleResolver fromWorkspace;
 }

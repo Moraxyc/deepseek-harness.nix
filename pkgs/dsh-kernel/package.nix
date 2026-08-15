@@ -56,7 +56,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   nativeInstallCheckInputs = [ versionCheckHook ];
 
   passthru = {
-    dshBundles = [ ];
     runtimeDeps = [ claudeCodePackage ];
   };
 

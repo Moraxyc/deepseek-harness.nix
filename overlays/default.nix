@@ -7,6 +7,7 @@ let
       nodejs
       nodejs-slim
       stdenvNoCC
+      writeShellApplication
       ;
   };
   dsh = final.lib.makeScope final.newScope (

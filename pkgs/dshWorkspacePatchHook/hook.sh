@@ -52,21 +52,38 @@ dshWorkspacePatchDependencies() {
 }
 
 dshWorkspacePrepareComposition() {
-  local bundle_name package_json
-  local -a bundle_names=("$@")
+  local bundle_name package_json bundle_patch bundle_patch_tag
+  local -a bundle_names=()
 
   dshWorkspaceRequire || return
-  if [ "${#bundle_names[@]}" -eq 0 ]; then
-    for package_json in packages/bundle/*/package.json; do
-      [ -f "$package_json" ] || continue
-      bundle_name=$(yq -r '.name' "$package_json")
-      [ -n "$bundle_name" ] || {
-        dshWorkspaceDie "bundle package '$package_json' has no name"
+  for package_json in packages/bundle/*/package.json; do
+    [ -f "$package_json" ] || continue
+
+    bundle_patch_tag=$(yq -r '.dsh.bundle.patch | tag' "$package_json") || return
+    case "$bundle_patch_tag" in
+      "!!null")
+        continue
+        ;;
+      "!!str")
+        bundle_patch=$(yq -r '.dsh.bundle.patch' "$package_json") || return
+        [ -n "$bundle_patch" ] || {
+          dshWorkspaceDie "bundle package '$package_json' has an empty dsh.bundle.patch"
+          return 1
+        }
+        ;;
+      *)
+        dshWorkspaceDie "bundle package '$package_json' has a non-string dsh.bundle.patch"
         return 1
-      }
-      bundle_names+=("$bundle_name")
-    done
-  fi
+        ;;
+    esac
+
+    bundle_name=$(yq -r '.name // ""' "$package_json") || return
+    [ -n "$bundle_name" ] || {
+      dshWorkspaceDie "bundle package '$package_json' has no name"
+      return 1
+    }
+    bundle_names+=("$bundle_name")
+  done
 
   mkdir -p apps/nix-composition
   cp apps/cli/package.json apps/nix-composition/package.json
@@ -103,7 +120,7 @@ patchDshWorkspace() {
       dshWorkspacePatchDependencies
       ;;
     composition)
-      dshWorkspacePrepareComposition "$@"
+      dshWorkspacePrepareComposition
       ;;
     *)
       dshWorkspaceDie "unknown workspace patch phase '$phase'"

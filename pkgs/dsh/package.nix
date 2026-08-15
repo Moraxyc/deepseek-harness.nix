@@ -9,12 +9,14 @@
   makeWrapper,
   nodejs,
   nodejs-slim,
+  runCommand,
   symlinkJoin,
   util-linux,
   versionCheckHook,
   writeShellApplication,
   writeText,
 
+  buildDshBundle,
   dsh,
   dsh-kernel,
 
@@ -36,14 +38,17 @@
 
 let
   composition = import ./composition.nix { inherit lib; };
+  dshBundleResolver = buildDshBundle.dshBundleResolver;
   profileFiles = import ./profiles.nix {
     inherit
       baseBundle
       coreutils
       diffutils
       gnugrep
+      dshBundleResolver
       lib
       linkFarm
+      runCommand
       util-linux
       writeShellApplication
       writeText
@@ -81,8 +86,14 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     cp "$kernelApp/package.json" "$appDir/package.json"
     ln -s "${finalAttrs.passthru.nodeModules}" "$appDir/node_modules"
 
-    jq --argjson deps '${builtins.toJSON (lib.listToAttrs finalAttrs.passthru.bundleDeps)}' \
-      '.dependencies *= $deps' \
+    mkdir -p "$out/nix-support"
+    ${lib.getExe dshBundleResolver} merge \
+      "$out/nix-support/dsh-bundles.json" \
+      ${lib.concatMapStringsSep " " (
+        bundle: lib.escapeShellArg "${bundle}/nix-support/dsh-bundles.json"
+      ) finalAttrs.passthru.composedBundles}
+    jq --slurpfile bundles "$out/nix-support/dsh-bundles.json" \
+      '.dependencies *= ($bundles[0].bundles | map({key: .name, value: .version}) | from_entries)' \
       "$appDir/package.json" > "$appDir/package.json.tmp"
     mv "$appDir/package.json.tmp" "$appDir/package.json"
 
@@ -167,13 +178,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       ++ (map (bundle: "${bundle}/lib/node_modules") finalAttrs.passthru.composedBundles);
     };
 
-    bundleDeps = composition.bundleDeps finalAttrs.passthru.composedBundles;
-
     runtimeDeps = lib.unique (
       dsh-kernel.passthru.runtimeDeps ++ composition.runtimeDeps finalAttrs.passthru.composedBundles
     );
-
-    dshBundles = composition.dshBundles dsh-kernel finalAttrs.passthru.composedBundles;
 
     # pkgs.dsh.dsh.withProfiles { tui.bundles = [ pkgs.dsh.bundles.tui ]; }
     # materializes the profile as nix-tui.

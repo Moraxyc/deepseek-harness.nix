@@ -20,8 +20,8 @@
               default = [ ];
               description = ''
                 dsh bundle packages for this profile, e.g. `pkgs.dsh.bundles.tui`.
-                Their `passthru.dshBundles` are added to the shared
-                `@deepseek-ai/dsh-base` layer and the installed package.
+                Their package manifests are resolved during the build and added
+                to the shared `@deepseek-ai/dsh-base` layer and installed package.
               '';
             };
 

@@ -18,9 +18,6 @@ buildDshBundle.fromWorkspace (finalAttrs: {
       target = "lib/node_modules/@deepseek-ai/dsh-web-frontend";
     }
   ];
-  dshBundles = [
-    "@deepseek-ai/dsh-web-app"
-  ];
   meta = {
     description = "dsh web bundle over dsh-base";
     homepage = "https://github.com/deepseek-ai/deepseek-harness";

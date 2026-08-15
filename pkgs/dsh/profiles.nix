@@ -3,8 +3,10 @@
   coreutils,
   diffutils,
   gnugrep,
+  dshBundleResolver,
   lib,
   linkFarm,
+  runCommand,
   util-linux,
   writeShellApplication,
   writeText,
@@ -24,22 +26,16 @@ let
     name: profile:
     let
       targetName = profileName name;
-      bundles = lib.unique (
-        baseBundle.passthru.dshBundles
-        ++ lib.concatMap (
-          bundle:
-          bundle.passthru.dshBundles or (throw ''
-            dsh.withProfiles: ${bundle.pname or bundle.name} has no passthru.dshBundles; it is not a dsh bundle package
-          '')
-        ) profile.bundles
+      bundleManifests = map (bundle: "${bundle}/nix-support/dsh-bundles.json") (
+        lib.unique ([ baseBundle ] ++ profile.bundles)
       );
       patch = profile.patch or "[]";
-      packageJson = builtins.toJSON {
-        name = "dsh-profile-${targetName}";
-        private = true;
-        dependencies = { };
-        dsh.profile.bundles = bundles;
-      };
+      packageJson = runCommand "dsh-profile-${targetName}-package.json" { } ''
+        mkdir -p "$out"
+        ${lib.getExe dshBundleResolver} profile "$out/package.json" \
+          ${lib.escapeShellArg targetName} \
+          ${lib.concatStringsSep " " (map lib.escapeShellArg bundleManifests)}
+      '';
       workspace = builtins.toJSON {
         packages = [ "." ];
         nodeLinker = "hoisted";
@@ -48,7 +44,7 @@ let
       fingerprint = builtins.hashString "sha256" (
         builtins.toJSON {
           inherit
-            bundles
+            bundleManifests
             patch
             targetName
             ;
@@ -83,8 +79,7 @@ in
           spec = profileSpec name profile;
         in
         {
-          "${spec.targetName}/package.json" =
-            writeText "${lib.strings.sanitizeDerivationName "dsh-profile-${spec.targetName}-package.json"}" "${spec.packageJson}\n";
+          "${spec.targetName}/package.json" = "${spec.packageJson}/package.json";
           "${spec.targetName}/cordis.patch.yml" =
             writeText "${lib.strings.sanitizeDerivationName "dsh-profile-${spec.targetName}-cordis.patch.yml"}" spec.patch;
           "${spec.targetName}/pnpm-workspace.yaml" =

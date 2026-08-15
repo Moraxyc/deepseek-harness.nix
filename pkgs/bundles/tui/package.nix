@@ -46,7 +46,6 @@ buildDshBundle (finalAttrs: {
     runHook postInstall
   '';
 
-  dshBundles = [ "dsh-cc-tui" ];
   meta = {
     description = "Interactive TUI for DeepSeek Harness agents";
     homepage = "https://github.com/ccch1mneyyy/dsh-TUI";

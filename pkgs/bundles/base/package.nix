@@ -17,7 +17,6 @@ buildDshBundle.fromWorkspace (finalAttrs: {
       linkNodeModules = true;
     }
   ];
-  dshBundles = [ "@deepseek-ai/dsh-base" ];
   runtimeDeps = [ ripgrep ] ++ lib.optionals stdenvNoCC.hostPlatform.isLinux [ bubblewrap ];
   meta = {
     description = "Shared dsh core; first layer for profiles";

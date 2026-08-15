@@ -15,7 +15,6 @@ buildDshBundle.fromWorkspace (finalAttrs: {
       linkNodeModules = true;
     }
   ];
-  dshBundles = [ "@deepseek-ai/dsh-headless" ];
   meta = {
     description = "dsh bundle with the core Agent/Session runner";
     homepage = "https://github.com/deepseek-ai/deepseek-harness";
