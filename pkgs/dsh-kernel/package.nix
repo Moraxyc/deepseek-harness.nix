@@ -1,4 +1,5 @@
 {
+  bashInteractive,
   lib,
   jq,
   makeWrapper,
@@ -52,7 +53,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   '';
 
   passthru = {
-    runtimeDeps = [ claudeCodePackage ];
+    runtimeDeps =
+      lib.optionals stdenvNoCC.hostPlatform.isLinux [ bashInteractive ]
+      ++ lib.optional (claudeCodePackage != null) claudeCodePackage;
   };
 
   meta = {

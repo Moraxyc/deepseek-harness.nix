@@ -1,5 +1,6 @@
 {
   lib,
+  bashInteractive,
   buildNpmPackage,
   fetchFromGitHub,
   fetchPnpmDeps,
@@ -82,6 +83,9 @@ buildNpmPackage (finalAttrs: {
       --config.link-workspace-packages=true \
       "$appDir"
     yq -i '.name = "@deepseek-ai/dsh-nix-composition"' "$appDir/package.json"
+
+    substituteInPlace "$appDir/node_modules/@deepseek-ai/dsh-terminal-bash/lib/index.js" \
+      --replace-fail '"/bin/bash"' '"${lib.getExe bashInteractive}"'
 
     # Keep only the runtime artifacts needed by the kernel and bundle packages.
     rm -rf "$appDir/node_modules/@anthropic-ai/claude-agent-sdk-"*
