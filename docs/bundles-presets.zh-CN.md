@@ -15,7 +15,7 @@ bundle 会覆盖前面的 Cordis 配置。例如给已有 preset 追加 bundle�
 | `bundles.ads`            | `dsh-ads`                         | 0.1.0                 | DSH 广告插件，包含本地门户广告与诈骗广告仿制内容 · [主页](https://github.com/Nagi-ovo/dsh-ads)                              |
 | `bundles.at-file`        | `dsh-at-file`                     | 0.6.0                 | 为 DeepSeek Harness 网页界面提供 Codex 风格 @路径引用 · [主页](https://github.com/omdsh-dev/dsh-at-file)                    |
 | `bundles.base`           | `dsh-base`                        | 0-unstable-2026-08-13 | 所有 dsh profile 共用的基础层 · [主页](https://github.com/deepseek-ai/deepseek-harness)                                     |
-| `bundles.better-sidebar` | `dsh-better-sidebar`              | 0.12.1                | 为 DSH Web 界面提供 VSCode 风格右侧侧边栏 · [主页](https://github.com/omdsh-dev/DSH-better-sidebar)                         |
+| `bundles.better-sidebar` | `dsh-better-sidebar`              | 0.12.2                | 为 DSH Web 界面提供 VSCode 风格右侧侧边栏 · [主页](https://github.com/omdsh-dev/DSH-better-sidebar)                         |
 | `bundles.headless`       | `dsh-headless`                    | 0-unstable-2026-08-13 | 无需图形界面即可运行 dsh · [主页](https://github.com/deepseek-ai/deepseek-harness)                                          |
 | `bundles.liang-skin`     | `dsh-client-liang-intensity-skin` | 0.1.3                 | 为 DeepSeek Harness 提供滑动变祖推理等级滑块皮肤 · [主页](https://github.com/kingOfSoySauce/dsh-liang-skin)                 |
 | `bundles.modlens`        | `dsh-modlens`                     | 3.16.6                | 为纯文本模型提供插件式视觉能力 · [主页](https://github.com/liustack/modlens)                                                |
