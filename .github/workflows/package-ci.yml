@@ -4,9 +4,14 @@ on:
   pull_request:
     paths:
       - "pkgs/**"
+      - "lib/**"
+      - "overlays/**"
       - "flake.lock"
+      - "flake.nix"
+      - "default.nix"
       - "modules/flake-parts/**"
       - ".github/workflows/package-ci.yml"
+      - "scripts/select-package-ci-attrs.sh"
   workflow_dispatch:
 
 permissions:
@@ -18,7 +23,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build package set
+    name: Build changed packages
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -38,27 +43,20 @@ jobs:
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
           skipPush: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
 
-      - name: Build packages
+      - name: Build changed packages
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
         run: |
           set -euo pipefail
 
-          attrs="$(
-            nix eval --impure --json --expr '
-              let
-                f = import ./default.nix;
-                isDerivation = p: builtins.isAttrs p && (p.type or null) == "derivation";
-                names = set: builtins.filter (name: isDerivation (builtins.getAttr name set)) (builtins.attrNames set);
-                packages = builtins.filter (name: name != "default") (names f.packages.x86_64-linux);
-                bundles = names f.legacyPackages.x86_64-linux.bundles;
-                presets = names f.legacyPackages.x86_64-linux.presets;
-              in
-              (map (name: ".#" + name) packages)
-              ++ (map (name: ".#bundles." + name) bundles)
-              ++ (map (name: ".#presets." + name) presets)
-            ' \
-              | jq -r '.[]' \
-              | paste -sd ' ' -
-          )"
+          attrs="$(scripts/select-package-ci-attrs.sh "$BASE_SHA")"
+          if [ -z "$attrs" ]; then
+            echo "No package attrs changed"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "changed=true" >> "$GITHUB_OUTPUT"
 
           read -r -a build_attrs <<< "$attrs"
           nix build --no-link --print-build-logs "${build_attrs[@]}"
