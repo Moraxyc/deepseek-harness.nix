@@ -25,7 +25,7 @@ See the [README](../README.en.md) for details.
 | `bundles.tui`            | `dsh-tui`                         | 0.5.2                 | Interactive terminal interface for dsh · [homepage](https://github.com/ccch1mneyyy/dsh-TUI)                                                            |
 | `bundles.vision-toolkit` | `dsh-vision-toolkit`              | 0.1.7                 | DeepSeek Harness-native vision toolkit with OCR, grounding, pixel diff, and UI restoration · [homepage](https://github.com/Anionex/dsh-vision-toolkit) |
 | `bundles.web-app`        | `dsh-web-app`                     | 0-unstable-2026-08-13 | Web interface for dsh · [homepage](https://github.com/deepseek-ai/deepseek-harness)                                                                    |
-| `bundles.web-ui`         | `dsh-web-ui`                      | 0.1.13                | Extra web UI themes and components · [homepage](https://github.com/zhu1090093659/dsh-web-ui)                                                           |
+| `bundles.web-ui`         | `dsh-web-ui`                      | 0.1.17                | Extra web UI themes and components · [homepage](https://github.com/zhu1090093659/dsh-web-ui)                                                           |
 
 ## Presets
 
