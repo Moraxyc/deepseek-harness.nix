@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: "40 3 * * *"
+    - cron: "0 */12 * * *"
   workflow_dispatch:
 
 permissions:
@@ -47,7 +47,7 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --state open \
             --json number,headRefName \
-            --jq -r '.[] | select(.headRefName | startswith("auto-update/")) | [.number, .headRefName] | @tsv' \
+            --jq '.[] | select(.headRefName | startswith("auto-update/")) | [.number, .headRefName] | @tsv' \
             > "$open_prs"
 
           while IFS=$'\t' read -r pr_number branch; do
