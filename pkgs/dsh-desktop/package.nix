@@ -13,6 +13,11 @@
   copyDesktopItems,
   nix-update,
   writeShellScript,
+  nix,
+  coreutils,
+  gnused,
+  yarn-berry_4,
+  git,
   imagemagick,
   libGL,
 
@@ -123,7 +128,36 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     runtimeDeps = dshHost.passthru.runtimeDeps;
 
     updateScript = writeShellScript "dsh-desktop-update" ''
-      exec ${lib.getExe nix-update} --flake --version=branch "$UPDATE_NIX_ATTR_PATH.shell"
+      PATH=${
+        lib.makeBinPath [
+          coreutils
+          git
+          gnused
+          nix
+          nix-update
+          yarn-berry_4.yarn-berry-fetcher
+        ]
+      }
+      export PATH
+
+      set -euo pipefail
+
+      shell_attr="''${UPDATE_NIX_ATTR_PATH:?}.shell"
+      tmp="$(mktemp -d)"
+      trap 'rm -rf "$tmp"' EXIT
+
+      nix-update --flake --version=branch --src-only "$shell_attr"
+
+      src="$(nix build --no-link --print-out-paths .#dsh-desktop.shell.src)"
+      mkdir -p "$tmp/source"
+      cp -a "$src/." "$tmp/source/"
+      chmod -R u+w "$tmp/source"
+      sed -i 's/^  version: 10$/  version: 9/' "$tmp/source/yarn.lock"
+
+      yarn-berry-fetcher missing-hashes "$tmp/source/yarn.lock" \
+        > "$PWD/pkgs/dsh-desktop/missing-hashes.json"
+
+      nix-update --flake --version=skip --no-src "$shell_attr"
     '';
   };
 
