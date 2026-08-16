@@ -161,7 +161,7 @@ jobs:
         if: steps.changes.outputs.updated == 'true'
         uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ secrets.APP_ID }}
+          client-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
       - name: Open or update pull request
