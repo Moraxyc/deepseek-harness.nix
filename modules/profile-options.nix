@@ -4,8 +4,28 @@
 let
   dshPatchOp = lib.types.attrs;
 
-  profileSubmodule = {
+  profileSubmodule = { name, ... }: {
     options = {
+      rawName = lib.mkOption {
+        type = lib.types.str;
+        readOnly = true;
+        default = name;
+        description = ''
+          Declared profile key without the `nix-` prefix, e.g. `tui`.
+        '';
+      };
+
+      materializedName = lib.mkOption {
+        type = lib.types.str;
+        readOnly = true;
+        default = "nix-${name}";
+        description = ''
+          Profile name as materialized under `$DSH_HOME/profiles`. Use this
+          for `defaultProfile` and service profile options instead of
+          hardcoding the `nix-` prefix.
+        '';
+      };
+
       bundles = lib.mkOption {
         type = lib.types.listOf lib.types.package;
         default = [ ];
@@ -70,6 +90,8 @@ in
       description = ''
         Nix-managed dsh profiles. A profile named `tui` is materialized as
         `$DSH_HOME/profiles/nix-tui` (default `~/.dsh/profiles/nix-tui`).
+        Use `profiles.tui.materializedName` to reference that materialized
+        name.
         Unmanaged profile directories are never taken over.
         ${extraDescription}
       '';

@@ -29,6 +29,11 @@ over or overwritten.
 when `dsh` is invoked without an explicit `--profile`. Passing `--profile`
 explicitly still selects any available profile.
 
+Each declared profile exposes read-only `rawName` (`tui`) and
+`materializedName` (`nix-tui`). In a module, use
+`config.programs.dsh.profiles.tui.materializedName` for `defaultProfile` to
+avoid hardcoding the prefix.
+
 Each profile supports `bundles` and a YAML `patch` layer. `patch` is applied
 after the bundle layers as `cordis.patch.yml`.
 

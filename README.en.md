@@ -8,12 +8,13 @@ bundles (plugins), presets, a NixOS module, and an overlay.
 ## Table of Contents
 
 - [Quickstart](#quickstart)
-- [Usage](#usage)
+- [Flake Usage](#flake-usage)
 - [Cachix](#cachix)
 - [Bundles and Presets](#bundles-and-presets)
 - [NixOS](#nixos)
 - [Home Manager](#home-manager)
 - [Advanced Usage](#advanced-usage)
+- [Development](#development)
 - [License](#license)
 
 ## Quickstart
@@ -25,21 +26,41 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui \
   --option extra-trusted-substituters "https://deepseek-harness-nix.cachix.org"
 ```
 
-## Usage
+## Flake Usage
+
+Use the remote flake directly without cloning:
 
 ```sh
-nix build .#dsh
-nix build .#presets.tui
-nix build .#bundles.tui
-nix run .#default -- --version
+nix run github:moraxyc/deepseek-harness.nix#default -- --version
+nix build github:moraxyc/deepseek-harness.nix#dsh
+nix build github:moraxyc/deepseek-harness.nix#dsh-desktop
+nix build github:moraxyc/deepseek-harness.nix#dsh-kernel
+nix build github:moraxyc/deepseek-harness.nix#dsh-workspace
+nix build github:moraxyc/deepseek-harness.nix#bundles.tui
+nix run github:moraxyc/deepseek-harness.nix#presets.tui
 ```
 
 Main outputs:
 
-- `dsh`
-- `dsh-desktop`
-- `dsh-kernel`
-- `dsh-workspace`
+- `dsh`: CLI
+- `dsh-desktop`: desktop application
+- `dsh-kernel`: kernel without profile bundles
+- `dsh-workspace`: built workspace artifacts
+- `bundles.*` / `presets.*`: bundles and presets; see
+  [Bundles and Presets](docs/bundles-presets.md) for the full catalog
+
+The flake can also be added to another flake's inputs, then use the modules
+and overlay exposed through `inputs.deepseek-harness.*`:
+
+```nix
+{
+  inputs.deepseek-harness.url = "github:moraxyc/deepseek-harness.nix";
+}
+```
+
+Once declared, the examples in [NixOS](#nixos),
+[Home Manager](#home-manager), and [Advanced Usage](#advanced-usage) work
+directly.
 
 ## Cachix
 
@@ -84,6 +105,10 @@ bundles overriding earlier Cordis configuration. See
 The `profiles.tui` option is materialized as `~/.dsh/profiles/nix-tui`.
 Managed profiles are synchronized by Nix; existing unmanaged directories with
 the same name are never taken over or overwritten.
+Each declared profile exposes read-only `rawName` (`tui`) and
+`materializedName` (`nix-tui`); use
+`config.programs.dsh.profiles.tui.materializedName` for `defaultProfile` to
+avoid hardcoding the prefix.
 
 `services.dsh` runs the web profile as a loopback-only systemd service by
 default and reuses `programs.dsh.profiles` directly: the served package is
@@ -137,6 +162,11 @@ unit (`systemctl --user start dsh-web`) on non-NixOS systems. See
 
 Detailed integration instructions live in
 [Advanced Usage](docs/advanced-usage.md).
+
+## Development
+
+For repository-local builds, the dev shell, and checks, see
+[Development](docs/development.md).
 
 ## License
 

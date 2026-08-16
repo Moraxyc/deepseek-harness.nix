@@ -20,6 +20,7 @@ bundle 会覆盖前面的 Cordis 配置。例如给已有 preset 追加 bundle�
 | `bundles.headless`       | `dsh-headless`                    | 0-unstable-2026-08-13 | 无需图形界面即可运行 dsh · [主页](https://github.com/deepseek-ai/deepseek-harness)                                          |
 | `bundles.liang-skin`     | `dsh-client-liang-intensity-skin` | 0.1.3                 | 为 DeepSeek Harness 提供滑动变祖推理等级滑块皮肤 · [主页](https://github.com/kingOfSoySauce/dsh-liang-skin)                 |
 | `bundles.modlens`        | `dsh-modlens`                     | 3.17.0                | 为纯文本模型提供插件式视觉能力 · [主页](https://github.com/liustack/modlens)                                                |
+| `bundles.noema`          | `dsh-noema`                       | 0-unstable-2026-08-16 | DSH 的 Noema 长期记忆插件，提供召回工具与设置页 · [主页](https://github.com/ZSeven-W/dsh-noema)                             |
 | `bundles.oh-dsh`         | `oh-dsh`                          | 0.1.6                 | Oh-DSH Web：带 Oh-DSH 插件能力的 DeepSeek Harness 浏览器运行环境 · [主页](https://github.com/hust-open-atom-club/oh-dsh)    |
 | `bundles.tianshu-tui`    | `dsh-tianshu-tui`                 | 0.1.2-rc.9            | dsh 的交互式 TUI 层，提供渲染、面板与终端控制 · [主页](https://github.com/huiliyi37/dsh-tianshu-tui)                        |
 | `bundles.tui`            | `dsh-tui`                         | 0.7.0                 | dsh 的交互式终端界面 · [主页](https://github.com/ccch1mneyyy/dsh-TUI)                                                       |

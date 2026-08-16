@@ -26,6 +26,10 @@ Nix 标记的同名目录不会被接管或覆盖。
 `defaultProfile` 使用生成后的名称（`nix-tui`，不是 `tui`），在没有显式传入
 `--profile` 时使用。显式传入 `--profile` 时仍可选择任何可用 profile。
 
+每个声明的 profile 都暴露只读的 `rawName`（`tui`）和
+`materializedName`（`nix-tui`）。在模块中，`defaultProfile` 可使用
+`config.programs.dsh.profiles.tui.materializedName`，避免手写前缀。
+
 每个 profile 支持 `bundles` 和一层 YAML `patch`；`patch` 会作为
 `cordis.patch.yml` 在 bundle 层之后应用。
 

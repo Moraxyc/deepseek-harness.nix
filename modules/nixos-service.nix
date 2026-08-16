@@ -70,7 +70,10 @@ in
     profile = lib.mkOption {
       type = lib.types.str;
       default = "nix-web";
-      description = "Materialized profile name served by the unit.";
+      description = ''
+        Materialized profile name served by the unit. For a declared profile,
+        use `services.dsh.profiles.web.materializedName`.
+      '';
     };
 
     listenAddress = lib.mkOption {

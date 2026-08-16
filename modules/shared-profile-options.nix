@@ -20,7 +20,8 @@ in
       default = null;
       description = ''
         Profile passed by default when the command does not receive an
-        explicit `--profile`; use the materialized name, such as `nix-tui`.
+        explicit `--profile`; use the materialized name, such as
+        `config.programs.dsh.profiles.tui.materializedName`.
       '';
     };
   };

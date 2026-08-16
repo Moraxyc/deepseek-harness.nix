@@ -1,4 +1,7 @@
-{ ... }:
+{
+  lib,
+  ...
+}:
 {
   perSystem =
     { pkgs, ... }:
@@ -6,16 +9,8 @@
       dsh = pkgs.dsh;
     in
     {
-      packages = {
+      packages = lib.filterAttrs (_: package: lib.isDerivation package && package ? meta) dsh // {
         default = dsh.dsh;
-        inherit (dsh)
-          dsh-desktop
-          dsh-kernel
-          dsh-workspace
-          ;
-        inherit (dsh)
-          dsh
-          ;
       };
 
       legacyPackages = {
