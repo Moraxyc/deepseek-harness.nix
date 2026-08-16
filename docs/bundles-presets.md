@@ -31,11 +31,11 @@ See the [README](../README.en.md) for details.
 
 ## Presets
 
-| Flake output       | Default profile | Bundles                                              | Description                                                                                                        |
-| ------------------ | --------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `presets.ads`      | `nix-ads`       | `dsh-base`, `dsh-web-app`, `dsh-ads`                 | DSH setup with local portal ads and scam-ad parodies · [homepage](https://github.com/deepseek-ai/deepseek-harness) |
-| `presets.headless` | `nix-headless`  | `dsh-base`, `dsh-headless`                           | Simple setup for running dsh from the terminal · [homepage](https://github.com/deepseek-ai/deepseek-harness)       |
-| `presets.official` | -               | `dsh-base`, `dsh-headless`, `dsh-web-app`            | Balanced default setup with both CLI and web options · [homepage](https://github.com/deepseek-ai/deepseek-harness) |
-| `presets.tui`      | `nix-tui`       | `dsh-base`, `dsh-headless`, `dsh-web-app`, `dsh-tui` | Terminal-focused setup with an interactive interface · [homepage](https://github.com/deepseek-ai/deepseek-harness) |
-| `presets.web`      | `nix-web`       | `dsh-base`, `dsh-web-app`                            | Web-first setup without extra UI components · [homepage](https://github.com/deepseek-ai/deepseek-harness)          |
-| `presets.web-ui`   | `nix-web-ui`    | `dsh-base`, `dsh-web-app`, `dsh-web-ui`              | Web-first setup with extra UI themes and components · [homepage](https://github.com/deepseek-ai/deepseek-harness)  |
+| Flake output       | Default profile | Bundles                                   | Description                                                                                                        |
+| ------------------ | --------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `presets.ads`      | `nix-ads`       | `dsh-base`, `dsh-web-app`, `dsh-ads`      | DSH setup with local portal ads and scam-ad parodies · [homepage](https://github.com/deepseek-ai/deepseek-harness) |
+| `presets.headless` | `nix-headless`  | `dsh-base`, `dsh-headless`                | Simple setup for running dsh from the terminal · [homepage](https://github.com/deepseek-ai/deepseek-harness)       |
+| `presets.official` | -               | `dsh-base`, `dsh-headless`, `dsh-web-app` | Balanced default setup with both CLI and web options · [homepage](https://github.com/deepseek-ai/deepseek-harness) |
+| `presets.tui`      | `nix-tui`       | `dsh-base`, `dsh-headless`, `dsh-tui`     | Terminal-focused setup with an interactive interface · [homepage](https://github.com/deepseek-ai/deepseek-harness) |
+| `presets.web`      | `nix-web`       | `dsh-base`, `dsh-web-app`                 | Web-first setup without extra UI components · [homepage](https://github.com/deepseek-ai/deepseek-harness)          |
+| `presets.web-ui`   | `nix-web-ui`    | `dsh-base`, `dsh-web-app`, `dsh-web-ui`   | Web-first setup with extra UI themes and components · [homepage](https://github.com/deepseek-ai/deepseek-harness)  |

@@ -24,7 +24,7 @@ overlay。
 
 ```sh
 nix run github:moraxyc/deepseek-harness.nix#presets.tui \
-  --option extra-trusted-substituters "https://deepseek-harness-nix.cachix.org"
+  --accept-flake-config
 ```
 
 ## Flake 用法
@@ -60,7 +60,7 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui
 ```
 
 声明 input 后，下面的 [NixOS](#nixos)、[Home Manager](#home-manager) 和
-[高级用法](#高级用法) 示例即可直接使用。
+[高级用法](#高级用法) 指南即可直接使用。
 
 ## Cachix
 
@@ -91,69 +91,21 @@ Bundle 是插件式扩展；preset 是开箱即用的组合。Bundle 按组合�
 
 ## NixOS
 
-```nix
-{
-  imports = [ inputs.deepseek-harness.nixosModules.default ];
+NixOS 集成见 [NixOS 集成指南](docs/nixos.zh-CN.md)。
 
-  programs.dsh = {
-    enable = true;
-    profiles.tui.bundles = [ pkgs.dsh.bundles.tui ];
-    defaultProfile = "nix-tui";
-  };
-}
-```
-
-Nix 配置中的 `profiles.tui` 会生成到 `~/.dsh/profiles/nix-tui`。预置
-profile 由 Nix 同步；已有但没有 Nix 标记的同名目录不会被接管或覆盖。
-每个声明的 profile 都暴露只读的 `rawName`（`tui`）和
-`materializedName`（`nix-tui`）；`defaultProfile` 可使用
-`config.programs.dsh.profiles.tui.materializedName`，避免手写前缀。
-
-`services.dsh` 默认以只监听 loopback 的 systemd 服务运行 web profile，
-并直接复用 `programs.dsh.profiles`：服务包从 `programs.dsh.package` 与声明的
-`web` profile 自动组合。反向代理、密钥注入和启停命令见
-[高级用法](docs/advanced-usage.zh-CN.md)。
-
-更多模块选项、自定义 profile、`override` / `withProfiles` / `withBundles` 和 Overlay 见
-[高级用法](docs/advanced-usage.zh-CN.md)。
+`nixosModules.default` 会自动设置 dsh overlay，提供 `programs.dsh`
+选项，并把组合后的 `dsh` 加入 `environment.systemPackages`。启用
+`services.dsh` 可以以 systemd 服务运行 web profile。
 
 ## Home Manager
 
-导入 `homeModules.default` 并启用 `programs.dsh`。启用后模块会把组合好的
-`dsh` 自动加入 `home.packages`：
+Home Manager 集成见 [Home Manager 集成指南](docs/home-manager.zh-CN.md)。
 
-```nix
-{
-  imports = [ inputs.deepseek-harness.homeModules.default ];
-
-  programs.dsh = {
-    enable = true;
-    profiles.tui = {
-      bundles = [ pkgs.dsh.bundles.tui ];
-      mode = "managed";
-    };
-    defaultProfile = "nix-tui";
-  };
-}
-```
-
-`homeModules.default` 与 NixOS 模块共享同一组 `programs.dsh`
-选项。profile 的 `mode` 决定 Nix 对已生成目录的态度：
-
-- `managed`（默认）：每次激活都会把 profile 同步为配置内容，本地对
-  `package.json` / `cordis.patch.yml` 的修改会被还原。
-- `mutable`：仅在目录不存在时初始化一次，之后 profile 由 `dsh plugin`
-  管理，Nix 不再改动其中的文件。
-
-两种模式都不会接管没有 Nix 标记的已有同名目录。使用该模块时，需要把
-overlay 注入 Home Manager 的 `pkgs`（例如 `homeManagerConfiguration`
-传入 `pkgs = import nixpkgs { overlays = [ inputs.deepseek-harness.overlays.default ]; }`
-或使用 NixOS 的 `home-manager.useGlobalPkgs`），或者显式设置
-`programs.dsh.package`。
-
-`homeModules.default` 还提供 `services.dsh`，可为非 NixOS 用户运行
-per-user systemd 服务（`systemctl --user start dsh-web`），详情见
-[高级用法](docs/advanced-usage.zh-CN.md)。
+`homeModules.default` 会把组合后的 `dsh` 加入 `home.packages`，并在激活时
+生成和同步 managed profiles。使用该模块时，必须让 Home Manager 的 `pkgs`
+包含 dsh overlay；在 NixOS + `home-manager.useGlobalPkgs` 下，就是确保
+NixOS 全局 `pkgs` 已包含 `inputs.deepseek-harness.overlays.default`，否则
+会报 `attribute 'dsh' missing`。
 
 ## 高级用法
 

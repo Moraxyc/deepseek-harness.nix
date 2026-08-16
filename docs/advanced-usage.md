@@ -1,8 +1,8 @@
 # Advanced Usage
 
-This page covers NixOS integration, custom profiles, overrides, and the
-overlay. See the [README](../README.en.md) for the quickstart and common
-commands.
+This page covers custom profiles, overrides, and the overlay. See
+[NixOS Integration](nixos.md) and [Home Manager Integration](home-manager.md)
+for module setup, and the [README](../README.en.md) for quickstart commands.
 
 ## NixOS
 

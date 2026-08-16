@@ -23,7 +23,7 @@ Try the TUI preset:
 
 ```sh
 nix run github:moraxyc/deepseek-harness.nix#presets.tui \
-  --option extra-trusted-substituters "https://deepseek-harness-nix.cachix.org"
+  --accept-flake-config
 ```
 
 ## Flake Usage
@@ -58,9 +58,8 @@ and overlay exposed through `inputs.deepseek-harness.*`:
 }
 ```
 
-Once declared, the examples in [NixOS](#nixos),
-[Home Manager](#home-manager), and [Advanced Usage](#advanced-usage) work
-directly.
+Once declared, the guides in [NixOS](#nixos), [Home Manager](#home-manager),
+and [Advanced Usage](#advanced-usage) work directly.
 
 ## Cachix
 
@@ -90,73 +89,23 @@ bundles overriding earlier Cordis configuration. See
 
 ## NixOS
 
-```nix
-{
-  imports = [ inputs.deepseek-harness.nixosModules.default ];
+See the [NixOS Integration Guide](docs/nixos.md) for the full setup.
 
-  programs.dsh = {
-    enable = true;
-    profiles.tui.bundles = [ pkgs.dsh.bundles.tui ];
-    defaultProfile = "nix-tui";
-  };
-}
-```
-
-The `profiles.tui` option is materialized as `~/.dsh/profiles/nix-tui`.
-Managed profiles are synchronized by Nix; existing unmanaged directories with
-the same name are never taken over or overwritten.
-Each declared profile exposes read-only `rawName` (`tui`) and
-`materializedName` (`nix-tui`); use
-`config.programs.dsh.profiles.tui.materializedName` for `defaultProfile` to
-avoid hardcoding the prefix.
-
-`services.dsh` runs the web profile as a loopback-only systemd service by
-default and reuses `programs.dsh.profiles` directly: the served package is
-composed from `programs.dsh.package` and the declared `web` profile. See
-[Advanced Usage](docs/advanced-usage.md) for reverse proxy, secret injection,
-and start/stop commands.
-
-See [Advanced Usage](docs/advanced-usage.md) for module options, custom
-profiles, `override` / `withProfiles` / `withBundles`, and the overlay.
+`nixosModules.default` adds the dsh overlay automatically, exposes
+`programs.dsh`, and adds a composed `dsh` package to
+`environment.systemPackages`. Enable `services.dsh` to run the web profile
+as a systemd service.
 
 ## Home Manager
 
-Import `homeModules.default` and enable `programs.dsh`. Enabling the module
-adds the composed `dsh` to `home.packages` automatically:
+See the [Home Manager Integration Guide](docs/home-manager.md) for the full
+setup.
 
-```nix
-{
-  imports = [ inputs.deepseek-harness.homeModules.default ];
-
-  programs.dsh = {
-    enable = true;
-    profiles.tui = {
-      bundles = [ pkgs.dsh.bundles.tui ];
-      mode = "managed";
-    };
-    defaultProfile = "nix-tui";
-  };
-}
-```
-
-`homeModules.default` shares the same `programs.dsh` options as the
-NixOS module. The profile `mode` controls how Nix treats a materialized
-profile:
-
-- `managed` (default): every activation re-synchronizes the profile to the
-  configuration, restoring local edits to `package.json` / `cordis.patch.yml`.
-- `mutable`: Nix only seeds the profile when its directory does not exist yet;
-  afterwards the user manages it with `dsh plugin` and Nix leaves it alone.
-
-Neither mode takes over an existing unmarked directory with the same name. To
-use this module, inject the overlay into Home Manager's `pkgs` (for example
-pass `pkgs = import nixpkgs { overlays = [ inputs.deepseek-harness.overlays.default ]; }`
-to `homeManagerConfiguration`, or use NixOS's `home-manager.useGlobalPkgs`),
-or set `programs.dsh.package` explicitly.
-
-`homeModules.default` also provides `services.dsh` for a per-user systemd
-unit (`systemctl --user start dsh-web`) on non-NixOS systems. See
-[Advanced Usage](docs/advanced-usage.md) for details.
+`homeModules.default` adds the composed `dsh` to `home.packages` and seeds
+managed profiles during activation. The Home Manager `pkgs` must include the
+dsh overlay. With NixOS's `home-manager.useGlobalPkgs`, ensure the NixOS
+global `pkgs` already includes `inputs.deepseek-harness.overlays.default`;
+otherwise evaluation fails with `attribute 'dsh' missing`.
 
 ## Advanced Usage
 

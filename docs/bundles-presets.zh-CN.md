@@ -30,11 +30,11 @@ bundle 会覆盖前面的 Cordis 配置。例如给已有 preset 追加 bundle�
 
 ## 预设
 
-| Flake 输出         | 默认 profile   | Bundles                                              | 说明                                                                                                  |
-| ------------------ | -------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `presets.ads`      | `nix-ads`      | `dsh-base`, `dsh-web-app`, `dsh-ads`                 | 带本地门户广告与诈骗广告仿制内容的 DSH 组合 · [主页](https://github.com/deepseek-ai/deepseek-harness) |
-| `presets.headless` | `nix-headless` | `dsh-base`, `dsh-headless`                           | 适合从终端运行 dsh 的简洁组合 · [主页](https://github.com/deepseek-ai/deepseek-harness)               |
-| `presets.official` | -              | `dsh-base`, `dsh-headless`, `dsh-web-app`            | 默认组合，同时包含命令行和网页选项 · [主页](https://github.com/deepseek-ai/deepseek-harness)          |
-| `presets.tui`      | `nix-tui`      | `dsh-base`, `dsh-headless`, `dsh-web-app`, `dsh-tui` | 以交互式终端界面为主的组合 · [主页](https://github.com/deepseek-ai/deepseek-harness)                  |
-| `presets.web`      | `nix-web`      | `dsh-base`, `dsh-web-app`                            | 以网页界面为主，不包含额外 UI 组件 · [主页](https://github.com/deepseek-ai/deepseek-harness)          |
-| `presets.web-ui`   | `nix-web-ui`   | `dsh-base`, `dsh-web-app`, `dsh-web-ui`              | 以网页界面为主，包含额外 UI 主题与组件 · [主页](https://github.com/deepseek-ai/deepseek-harness)      |
+| Flake 输出         | 默认 profile   | Bundles                                   | 说明                                                                                                  |
+| ------------------ | -------------- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `presets.ads`      | `nix-ads`      | `dsh-base`, `dsh-web-app`, `dsh-ads`      | 带本地门户广告与诈骗广告仿制内容的 DSH 组合 · [主页](https://github.com/deepseek-ai/deepseek-harness) |
+| `presets.headless` | `nix-headless` | `dsh-base`, `dsh-headless`                | 适合从终端运行 dsh 的简洁组合 · [主页](https://github.com/deepseek-ai/deepseek-harness)               |
+| `presets.official` | -              | `dsh-base`, `dsh-headless`, `dsh-web-app` | 默认组合，同时包含命令行和网页选项 · [主页](https://github.com/deepseek-ai/deepseek-harness)          |
+| `presets.tui`      | `nix-tui`      | `dsh-base`, `dsh-headless`, `dsh-tui`     | 以交互式终端界面为主的组合 · [主页](https://github.com/deepseek-ai/deepseek-harness)                  |
+| `presets.web`      | `nix-web`      | `dsh-base`, `dsh-web-app`                 | 以网页界面为主，不包含额外 UI 组件 · [主页](https://github.com/deepseek-ai/deepseek-harness)          |
+| `presets.web-ui`   | `nix-web-ui`   | `dsh-base`, `dsh-web-app`, `dsh-web-ui`   | 以网页界面为主，包含额外 UI 主题与组件 · [主页](https://github.com/deepseek-ai/deepseek-harness)      |

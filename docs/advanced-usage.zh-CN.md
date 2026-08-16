@@ -1,6 +1,8 @@
 # 高级用法
 
-本文覆盖 NixOS 集成、自定义 profile、覆盖方式和 Overlay。快速开始与常用命令见
+本文覆盖自定义 profile、覆盖方式和 Overlay。模块接入见
+[NixOS 集成](nixos.zh-CN.md) 和
+[Home Manager 集成](home-manager.zh-CN.md)；快速开始与常用命令见
 [README](../README.md)。
 
 ## NixOS
