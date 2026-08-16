@@ -1,52 +1,55 @@
 {
   lib,
-  buildNpmPackage,
+  stdenv,
   fetchFromGitHub,
-  fetchPnpmDeps,
-  pnpmConfigHook,
-  pnpm_11,
-  nodejs-slim,
+  yarn-berry_4,
+  nodejs_22,
   electron_43,
+  jq,
 }:
 
-buildNpmPackage (finalAttrs: {
+stdenv.mkDerivation (finalAttrs: {
   pname = "dsh-desktop-shell";
-  version = "0-unstable-2026-08-15";
+  version = "2.0.0-unstable-2026-08-15";
 
   src = fetchFromGitHub {
     owner = "anywhere-labs";
     repo = "deepseek-harness-desktop";
-    rev = "f9aa1b1a173e52705aa7e01bb734469a9dd247a8";
-    hash = "sha256-5TXHilYxHVkm7wbDUJzW3ACFEbCsq8LtVKkyFtxlnO8=";
+    rev = "4f68147091e585aaa1d815f99d30a657b3842d7c";
+    hash = "sha256-EOs2HRx1brnoyfVjm5PB5ZdyJcyI5dZ1vSH6FF01fYs=";
   };
 
-  nodejs = nodejs-slim;
-  disallowedReferences = [ pnpm_11 ];
+  postPatch = ''
+    sed -i 's/^  version: 10$/  version: 9/' yarn.lock
+  '';
 
-  pnpmDeps = fetchPnpmDeps {
-    inherit (finalAttrs)
-      pname
-      version
-      src
-      ;
-    pnpm = pnpm_11;
-    fetcherVersion = 4;
-    hash = "sha256-JlGMxJ1OMX9kTTuqCiIH3OFMucjwlb8AVev/jqzMkSs=";
+  missingHashes = ./missing-hashes.json;
+
+  offlineCache = yarn-berry_4.fetchYarnBerryDeps {
+    inherit (finalAttrs) src missingHashes postPatch;
+    hash = "sha256-UEIXBnM6a4ZEhDqvmDFW/hFcrp7rcN69eoDBMRXithc=";
   };
 
   nativeBuildInputs = [
-    nodejs-slim.npm
-    pnpm_11
+    yarn-berry_4
+    yarn-berry_4.yarnBerryConfigHook
+    nodejs_22
+    jq
   ];
-
-  npmDeps = null;
-  npmConfigHook = pnpmConfigHook;
-  npmBuildScript = "build:desktop";
 
   env = {
     ELECTRON_SKIP_BINARY_DOWNLOAD = "1";
+    YARN_ENABLE_SCRIPTS = "0";
     CI = "true";
   };
+
+  buildPhase = ''
+    runHook preBuild
+
+    yarn build
+
+    runHook postBuild
+  '';
 
   installPhase = ''
     runHook preInstall
@@ -66,14 +69,28 @@ buildNpmPackage (finalAttrs: {
       appResources="$out/resources"
     fi
 
-    mkdir -p "$appResources/app"
-    cp apps/desktop/package.json "$appResources/app/package.json"
-    cp -r apps/desktop/lib "$appResources/app/lib"
+    mkdir -p "$appResources/app/node_modules"
+    cp -rL node_modules/. "$appResources/app/node_modules/"
+    chmod -R u+w "$appResources/app/node_modules"
 
-    mkdir -p "$appResources/desktop-resources"
-    cp apps/desktop/resources/*.png "$appResources/desktop-resources/"
+    rm -rf "$appResources/app/node_modules/dsh-plugin-desktop"
+    cp -rL dsh-plugin-desktop "$appResources/app/node_modules/dsh-plugin-desktop"
+    rm -rf "$appResources/app/node_modules/electron/dist"
+    mkdir -p "$appResources/app/node_modules/electron/dist"
+    cp -a ${electron_43.dist}/. "$appResources/app/node_modules/electron/dist/"
+    chmod -R u+w "$appResources/app/node_modules/electron/dist"
+    if [ -d "$appResources/app/node_modules/electron/dist/Electron.app" ]; then
+      printf 'Electron.app/Contents/MacOS/Electron\n' > "$appResources/app/node_modules/electron/path.txt"
+    else
+      printf 'electron\n' > "$appResources/app/node_modules/electron/path.txt"
+    fi
 
-    cp apps/desktop/build/icon.png "$out/icon.png"
+    jq -n \
+      --arg version "${finalAttrs.version}" \
+      '{name:"dsh-desktop", version:$version, type:"module", main:"node_modules/dsh-plugin-desktop/lib/main.js"}' \
+      > "$appResources/app/package.json"
+
+    cp dsh-plugin-desktop/build/app-icon.png "$out/icon.png"
 
     runHook postInstall
   '';
