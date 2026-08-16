@@ -86,8 +86,10 @@ Managed profiles are synchronized by Nix; existing unmanaged directories with
 the same name are never taken over or overwritten.
 
 `services.dsh` runs the web profile as a loopback-only systemd service by
-default. See [Advanced Usage](docs/advanced-usage.md) for reverse proxy,
-secret injection, and start/stop commands.
+default and reuses `programs.dsh.profiles` directly: the served package is
+composed from `programs.dsh.package` and the declared `web` profile. See
+[Advanced Usage](docs/advanced-usage.md) for reverse proxy, secret injection,
+and start/stop commands.
 
 See [Advanced Usage](docs/advanced-usage.md) for module options, custom
 profiles, `override` / `withProfiles` / `withBundles`, and the overlay.
@@ -95,8 +97,7 @@ profiles, `override` / `withProfiles` / `withBundles`, and the overlay.
 ## Home Manager
 
 Import `homeModules.default` and enable `programs.dsh`. Enabling the module
-adds the composed `dsh` to `home.packages` automatically, so do not add it
-again manually:
+adds the composed `dsh` to `home.packages` automatically:
 
 ```nix
 {
@@ -127,6 +128,10 @@ use this module, inject the overlay into Home Manager's `pkgs` (for example
 pass `pkgs = import nixpkgs { overlays = [ inputs.deepseek-harness.overlays.default ]; }`
 to `homeManagerConfiguration`, or use NixOS's `home-manager.useGlobalPkgs`),
 or set `programs.dsh.package` explicitly.
+
+`homeModules.default` also provides `services.dsh` for a per-user systemd
+unit (`systemctl --user start dsh-web`) on non-NixOS systems. See
+[Advanced Usage](docs/advanced-usage.md) for details.
 
 ## Advanced Usage
 

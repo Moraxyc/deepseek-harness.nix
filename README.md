@@ -86,8 +86,9 @@ Bundle 是插件式扩展；preset 是开箱即用的组合。Bundle 按组合�
 Nix 配置中的 `profiles.tui` 会生成到 `~/.dsh/profiles/nix-tui`。预置
 profile 由 Nix 同步；已有但没有 Nix 标记的同名目录不会被接管或覆盖。
 
-`services.dsh` 默认以只监听 loopback 的 systemd 服务运行 web profile。
-反向代理、密钥注入和启停命令见
+`services.dsh` 默认以只监听 loopback 的 systemd 服务运行 web profile，
+并直接复用 `programs.dsh.profiles`：服务包从 `programs.dsh.package` 与声明的
+`web` profile 自动组合。反向代理、密钥注入和启停命令见
 [高级用法](docs/advanced-usage.zh-CN.md)。
 
 更多模块选项、自定义 profile、`override` / `withProfiles` / `withBundles` 和 Overlay 见
@@ -96,7 +97,7 @@ profile 由 Nix 同步；已有但没有 Nix 标记的同名目录不会被接�
 ## Home Manager
 
 导入 `homeModules.default` 并启用 `programs.dsh`。启用后模块会把组合好的
-`dsh` 自动加入 `home.packages`，无需再手动添加：
+`dsh` 自动加入 `home.packages`：
 
 ```nix
 {
@@ -126,6 +127,10 @@ overlay 注入 Home Manager 的 `pkgs`（例如 `homeManagerConfiguration`
 传入 `pkgs = import nixpkgs { overlays = [ inputs.deepseek-harness.overlays.default ]; }`
 或使用 NixOS 的 `home-manager.useGlobalPkgs`），或者显式设置
 `programs.dsh.package`。
+
+`homeModules.default` 还提供 `services.dsh`，可为非 NixOS 用户运行
+per-user systemd 服务（`systemctl --user start dsh-web`），详情见
+[高级用法](docs/advanced-usage.zh-CN.md)。
 
 ## 高级用法
 

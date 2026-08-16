@@ -19,9 +19,6 @@ let
       }
     else
       pkgs.dsh.presets.web;
-  dynamicUser = cfg.user == null && cfg.group == null;
-  serviceUser = if cfg.user != null then cfg.user else "dsh";
-  serviceGroup = if cfg.group != null then cfg.group else serviceUser;
   execArgs = [
     "--profile"
     cfg.profile
@@ -40,7 +37,7 @@ in
   imports = [ ./shared-profile-options.nix ];
 
   options.services.dsh = {
-    enable = lib.mkEnableOption "the DeepSeek Harness web service";
+    enable = lib.mkEnableOption "the DeepSeek Harness user web service";
 
     package = lib.mkOption {
       type = lib.types.package;
@@ -97,34 +94,16 @@ in
       description = "Extra arguments appended to the booted web profile.";
     };
 
-    user = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
-      default = null;
-      description = "User running the service. Leave unset with `group` to use systemd DynamicUser.";
-    };
-
-    group = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
-      default = null;
-      description = "Group running the service. Leave unset with `user` to use systemd DynamicUser.";
-    };
-
     dataDir = lib.mkOption {
       type = lib.types.str;
-      default = "/var/lib/dsh";
-      description = "Parent state directory for fixed-user mode. Dynamic mode uses `/var/lib/dsh`.";
-    };
-
-    homeDirectory = lib.mkOption {
-      type = lib.types.str;
-      default = "${cfg.dataDir}/home";
-      description = "Directory used as `DSH_HOME` in fixed-user mode. Dynamic mode uses `/var/lib/dsh/home`.";
+      default = "${config.home.homeDirectory}/.dsh";
+      description = "Directory used as `DSH_HOME`; defaults to the same location the dsh CLI uses.";
     };
 
     workspace = lib.mkOption {
       type = lib.types.str;
       default = "${cfg.dataDir}/workspace";
-      description = "Working directory for fixed-user mode. Dynamic mode uses `/var/lib/dsh/workspace`.";
+      description = "Working directory used by the unit.";
     };
 
     environment = lib.mkOption {
@@ -145,76 +124,49 @@ in
       description = "systemd LoadCredential entries; each value is a runtime source path.";
     };
 
-    openFirewall = lib.mkOption {
-      type = lib.types.bool;
-      default = false;
-      description = "Open the configured web port in the NixOS firewall. Keep disabled when using loopback plus a reverse proxy.";
-    };
-
     autoStart = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description = "Start the service with `multi-user.target`.";
+      description = "Start the service with `default.target`.";
     };
   };
 
   config = lib.mkIf cfg.enable {
-    users.users.dsh = lib.mkIf (!dynamicUser && serviceUser == "dsh") {
-      isSystemUser = true;
-      group = serviceGroup;
-      home = cfg.dataDir;
-      createHome = true;
-    };
-
-    users.groups.dsh = lib.mkIf (!dynamicUser && serviceGroup == "dsh") { };
-
-    systemd.tmpfiles.rules = lib.mkIf (!dynamicUser) [
-      "d ${cfg.dataDir} 0700 ${serviceUser} ${serviceGroup} -"
-      "d ${cfg.homeDirectory} 0700 ${serviceUser} ${serviceGroup} -"
-      "d ${cfg.workspace} 0700 ${serviceUser} ${serviceGroup} -"
+    systemd.user.tmpfiles.rules = [
+      "d ${cfg.dataDir} 0700 - - -"
+      "d ${cfg.workspace} 0700 - - -"
     ];
 
-    systemd.services.${unitName} = {
-      description = "DeepSeek Harness web service";
-      after = [
-        "network.target"
-        "systemd-tmpfiles-setup.service"
-      ];
-      wantedBy = lib.optionals cfg.autoStart [ "multi-user.target" ];
-      environment = {
-        DSH_HOME = cfg.homeDirectory;
-      }
-      // cfg.environment;
+    systemd.user.services.${unitName} = {
+      Unit = {
+        Description = "DeepSeek Harness web service";
+        After = [ "network.target" ];
+      };
 
-      serviceConfig = {
+      Service = {
         Type = "simple";
-        DynamicUser = lib.mkIf dynamicUser true;
-        User = lib.mkIf (!dynamicUser) serviceUser;
-        Group = lib.mkIf (!dynamicUser) serviceGroup;
-        StateDirectory = lib.mkIf dynamicUser [
-          "dsh/home"
-          "dsh/workspace"
-        ];
-        StateDirectoryMode = lib.mkIf dynamicUser "0700";
         WorkingDirectory = cfg.workspace;
+        Environment = [
+          "DSH_HOME=${cfg.dataDir}"
+        ]
+        ++ lib.mapAttrsToList (name: value: "${name}=${value}") cfg.environment;
         ExecStart = lib.concatStringsSep " " (
           map lib.escapeShellArg ([ (lib.getExe cfg.package) ] ++ execArgs)
         );
-        EnvironmentFile = lib.mkIf (cfg.environmentFile != null) cfg.environmentFile;
-        LoadCredential = lib.mapAttrsToList (name: source: "${name}:${source}") cfg.credentials;
         Restart = "on-failure";
         RestartSec = "2s";
-        NoNewPrivileges = true;
         PrivateTmp = true;
-        ProtectHome = true;
-        ProtectSystem = "strict";
-        ReadWritePaths = [
-          cfg.homeDirectory
-          cfg.workspace
-        ];
+      }
+      // lib.optionalAttrs (cfg.environmentFile != null) {
+        EnvironmentFile = cfg.environmentFile;
+      }
+      // lib.optionalAttrs (cfg.credentials != { }) {
+        LoadCredential = lib.mapAttrsToList (name: source: "${name}:${source}") cfg.credentials;
+      };
+
+      Install = {
+        WantedBy = lib.optionals cfg.autoStart [ "default.target" ];
       };
     };
-
-    networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [ cfg.port ];
   };
 }

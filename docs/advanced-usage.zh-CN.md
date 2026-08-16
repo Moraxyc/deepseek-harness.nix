@@ -56,6 +56,26 @@ loopback，并且不打开防火墙。
 Dynamic 模式把状态放在 `/var/lib/dsh`；固定用户模式会为配置的
 `dataDir`、`homeDirectory` 和 `workspace` 创建对应目录。
 
+### 自定义 profile
+
+`services.dsh` 会从 `programs.dsh`（或 `services.dsh.profiles`）声明的
+profile 组合服务包，自定义 web profile 会直接用于服务：
+
+```nix
+{
+  programs.dsh.profiles.web.patch = ''
+    # 针对 web profile 的 cordis patch 操作
+  '';
+  services.dsh.enable = true;
+}
+```
+
+当 `services.dsh.profile`（默认 `nix-web`）出现在 `programs.dsh.profiles`
+中时，单元会运行由 `programs.dsh.package` 与该组 profile 组合出的包；
+否则回退到 web preset。`services.dsh.profiles` 支持与
+`programs.dsh.profiles` 相同的 `bundles`、`patch`、`mode` 选项；显式赋值会
+替换从 `programs.dsh` 继承的 profile。
+
 ### 密钥注入
 
 不要把密钥写进 Nix 配置，使用运行时密钥来源。
@@ -150,6 +170,35 @@ sudo systemctl restart dsh-web
 systemctl status dsh-web
 journalctl -u dsh-web -f
 ```
+
+## Home Manager Web 服务
+
+`homeModules.default` 还提供 `services.dsh`，为每个用户生成 systemd user
+单元，让非 NixOS 用户获得等价的服务体验：
+
+```nix
+{
+  imports = [ inputs.deepseek-harness.homeModules.default ];
+
+  services.dsh = {
+    enable = true;
+    port = 3080;
+  };
+}
+```
+
+用户管理器中的单元名为 `dsh-web.service`，默认随 `default.target` 启动，
+设置 `services.dsh.autoStart = false` 后需要手动启动。它默认使用 `~/.dsh`
+作为 `DSH_HOME`，与 CLI 共享已生成的 profile：
+
+```sh
+systemctl --user start dsh-web
+systemctl --user status dsh-web
+journalctl --user -u dsh-web -f
+```
+
+选项与 NixOS 服务一致，仅不含 `user`、`group`、`openFirewall`；
+`programs.dsh.profiles` 的复用规则同样适用。
 
 ## 自定义 profile
 

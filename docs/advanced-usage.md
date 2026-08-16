@@ -60,6 +60,28 @@ Unless `user` and `group` are both set, the unit uses systemd `DynamicUser`.
 Dynamic mode keeps its state under `/var/lib/dsh`; fixed-user mode creates the
 configured `dataDir`, `homeDirectory`, and `workspace` for that account.
 
+### Custom Profiles
+
+`services.dsh` composes its package from the profiles declared under
+`programs.dsh` (or `services.dsh.profiles`), so a custom web profile is served
+automatically:
+
+```nix
+{
+  programs.dsh.profiles.web.patch = ''
+    # cordis patch operations for the web profile
+  '';
+  services.dsh.enable = true;
+}
+```
+
+When the profile named by `services.dsh.profile` (default `nix-web`) is
+declared among `programs.dsh.profiles`, the unit runs a package composed from
+`programs.dsh.package` and those profiles. Otherwise it falls back to the web
+preset. `services.dsh.profiles` accepts the same `bundles`, `patch`, and
+`mode` options; assigning it replaces the profiles inherited from
+`programs.dsh`.
+
 ### Secrets
 
 Keep credentials out of the Nix configuration. Use a runtime secret source
@@ -157,6 +179,35 @@ sudo systemctl restart dsh-web
 systemctl status dsh-web
 journalctl -u dsh-web -f
 ```
+
+## Home Manager Web Service
+
+`homeModules.default` also provides `services.dsh` for a per-user unit, giving
+non-NixOS users the same service experience:
+
+```nix
+{
+  imports = [ inputs.deepseek-harness.homeModules.default ];
+
+  services.dsh = {
+    enable = true;
+    port = 3080;
+  };
+}
+```
+
+The unit is `dsh-web.service` in the user manager and starts with
+`default.target` unless `services.dsh.autoStart = false`. It uses `~/.dsh` as
+`DSH_HOME` by default, so it shares the profiles materialized by the CLI:
+
+```sh
+systemctl --user start dsh-web
+systemctl --user status dsh-web
+journalctl --user -u dsh-web -f
+```
+
+The options mirror the NixOS service except `user`, `group`, and
+`openFirewall`; the same `programs.dsh.profiles` reuse rules apply.
 
 ## Custom Profiles
 

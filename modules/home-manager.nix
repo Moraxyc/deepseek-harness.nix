@@ -9,7 +9,10 @@ let
   };
 in
 {
-  imports = [ ./shared-profile-options.nix ];
+  imports = [
+    ./shared-profile-options.nix
+    ./home-manager-service.nix
+  ];
 
   config = lib.mkIf config.programs.dsh.enable {
     home.packages = [ composed ];
