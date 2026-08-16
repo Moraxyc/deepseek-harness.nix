@@ -86,6 +86,10 @@ Bundle 是插件式扩展；preset 是开箱即用的组合。Bundle 按组合�
 Nix 配置中的 `profiles.tui` 会生成到 `~/.dsh/profiles/nix-tui`。预置
 profile 由 Nix 同步；已有但没有 Nix 标记的同名目录不会被接管或覆盖。
 
+`services.dsh` 默认以只监听 loopback 的 systemd 服务运行 web profile。
+反向代理、密钥注入和启停命令见
+[高级用法](docs/advanced-usage.zh-CN.md)。
+
 更多模块选项、自定义 profile、`override` / `withProfiles` / `withBundles` 和 Overlay 见
 [高级用法](docs/advanced-usage.zh-CN.md)。
 

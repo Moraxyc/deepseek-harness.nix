@@ -85,6 +85,10 @@ The `profiles.tui` option is materialized as `~/.dsh/profiles/nix-tui`.
 Managed profiles are synchronized by Nix; existing unmanaged directories with
 the same name are never taken over or overwritten.
 
+`services.dsh` runs the web profile as a loopback-only systemd service by
+default. See [Advanced Usage](docs/advanced-usage.md) for reverse proxy,
+secret injection, and start/stop commands.
+
 See [Advanced Usage](docs/advanced-usage.md) for module options, custom
 profiles, `override` / `withProfiles` / `withBundles`, and the overlay.
 

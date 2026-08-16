@@ -29,6 +29,128 @@ Nix 标记的同名目录不会被接管或覆盖。
 每个 profile 支持 `bundles` 和一层 YAML `patch`；`patch` 会作为
 `cordis.patch.yml` 在 bundle 层之后应用。
 
+## NixOS Web 服务
+
+启用 `services.dsh` 可以把 web preset 作为 systemd 单元运行。默认只监听
+loopback，并且不打开防火墙。
+
+```nix
+{
+  imports = [ inputs.deepseek-harness.nixosModules.default ];
+
+  services.dsh = {
+    enable = true;
+    profile = "nix-web";
+    listenAddress = "127.0.0.1";
+    port = 3080;
+    trustedHosts = [ "dsh.example.com" ];
+  };
+}
+```
+
+服务把 `DSH_HOME` 放在 `/var/lib/dsh/home`，把
+`/var/lib/dsh/workspace` 作为工作目录。如果覆盖 `dataDir`、
+`homeDirectory` 或 `workspace`，请确保服务用户可写这些路径。
+
+除非同时设置 `user` 和 `group`，单元默认使用 systemd `DynamicUser`。
+Dynamic 模式把状态放在 `/var/lib/dsh`；固定用户模式会为配置的
+`dataDir`、`homeDirectory` 和 `workspace` 创建对应目录。
+
+### 密钥注入
+
+不要把密钥写进 Nix 配置，使用运行时密钥来源。
+
+`environmentFile`：
+
+`environmentFile` 由 systemd 直接读取，与 `LoadCredential` 分开加载。
+
+```nix
+services.dsh.environmentFile = "/run/secrets/dsh.env";
+```
+
+文件使用 systemd `EnvironmentFile` 语法：
+
+```sh
+DEEPSEEK_API_KEY=...
+DSH_PERMISSION_MODE=workspace-write
+```
+
+使用 sops-nix 时，把 `environmentFile` 指向渲染后的 secret：
+
+```nix
+imports = [
+  inputs.sops-nix.nixosModules.sops
+  inputs.deepseek-harness.nixosModules.default
+];
+
+sops.secrets."dsh-env" = { };
+services.dsh.environmentFile = "/run/secrets/dsh-env";
+```
+
+使用 systemd credentials 时，用 `credentials.<name>` 指定
+`LoadCredential` 来源。如果 credential 本身是环境文件，命名为 `env`，再把它
+作为 `EnvironmentFile` 加载：
+
+```nix
+services.dsh = {
+  credentials.env = "/run/secrets/dsh.env";
+  environmentFile = "/run/credentials/dsh-web/env";
+};
+```
+
+credential 会暴露在 `/run/credentials/dsh-web/<name>`。
+
+### 反向代理
+
+保持 `listenAddress` 为 loopback，把公网入口交给反向代理。Nginx：
+
+```nix
+services.nginx = {
+  enable = true;
+  virtualHosts."dsh.example.com" = {
+    forceSSL = true;
+    enableACME = true;
+    locations."/" = {
+      proxyPass = "http://127.0.0.1:3080";
+      proxyWebsockets = true;
+      extraConfig = ''
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+      '';
+    };
+  };
+};
+
+services.dsh.trustedHosts = [ "dsh.example.com" ];
+```
+
+Caddy：
+
+```nix
+services.caddy = {
+  enable = true;
+  virtualHosts."dsh.example.com".extraConfig = ''
+    reverse_proxy 127.0.0.1:3080
+  '';
+};
+
+services.dsh.trustedHosts = [ "dsh.example.com" ];
+```
+
+### 启停
+
+服务单元名为 `dsh-web`，默认随 `multi-user.target` 启动。设置
+`services.dsh.autoStart = false` 后需要手动启动：
+
+```sh
+sudo systemctl start dsh-web
+sudo systemctl stop dsh-web
+sudo systemctl restart dsh-web
+systemctl status dsh-web
+journalctl -u dsh-web -f
+```
+
 ## 自定义 profile
 
 在 NixOS 之外，用 `withProfiles` 从包中生成 profile：
