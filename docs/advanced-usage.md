@@ -224,6 +224,17 @@ pkgs.dsh.dsh.withProfiles {
 }
 ```
 
+Each profile's `bundles` accepts either a list or a bundle-scope function for
+short names:
+
+```nix
+pkgs.dsh.dsh.withProfiles {
+  tui.bundles = b: with b; [
+    tui
+  ];
+}
+```
+
 This creates the `nix-tui` profile and clears the default profile. To make it
 the default, override the result:
 

@@ -214,6 +214,17 @@ pkgs.dsh.dsh.withProfiles {
 }
 ```
 
+每个 profile 的 `bundles` 既接受列表，也接受一个接收 bundle scope 的函数，
+方便直接使用短名称：
+
+```nix
+pkgs.dsh.dsh.withProfiles {
+  tui.bundles = b: with b; [
+    tui
+  ];
+}
+```
+
 这会生成 `nix-tui` profile，并清除默认 profile。如果需要让它成为默认，再对
 结果执行 `override`：
 

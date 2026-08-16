@@ -55,6 +55,15 @@ let
 
   baseBundle = bundles.base;
   managedProfileNames = map profileFiles.profileName (lib.attrNames profiles);
+
+  resolveBundles =
+    bundlesOrSelector:
+    if lib.isFunction bundlesOrSelector then
+      bundlesOrSelector bundles
+    else if lib.isList bundlesOrSelector then
+      bundlesOrSelector
+    else
+      [ bundlesOrSelector ];
 in
 assert defaultProfile == null || lib.elem defaultProfile managedProfileNames;
 
@@ -157,6 +166,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   '';
 
   passthru = {
+    inherit bundles defaultBundles;
+
     defaultProfileName = defaultProfile;
 
     composedBundles = composition.composeBundles {
@@ -191,14 +202,20 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       ++ composition.runtimeDeps (lib.reverseList finalAttrs.passthru.composedBundles)
     );
 
-    # pkgs.dsh.dsh.withProfiles { tui.bundles = [ pkgs.dsh.bundles.tui ]; }
+    # pkgs.dsh.dsh.withProfiles { tui.bundles = b: with b; [ tui ]; }
     # materializes the profile as nix-tui.
     withProfiles =
       configuredProfiles:
       dsh.override {
         inherit defaultBundles;
         defaultProfile = null;
-        profiles = configuredProfiles;
+        profiles = lib.mapAttrs (
+          _: profile:
+          profile
+          // {
+            bundles = resolveBundles (profile.bundles or [ ]);
+          }
+        ) configuredProfiles;
       };
 
     # pkgs.dsh.dsh.withBundles (b: with b; [ tui web-app ])
@@ -208,18 +225,12 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     withBundles =
       bundlesOrSelector:
       let
-        selectedBundles =
-          if lib.isFunction bundlesOrSelector then
-            bundlesOrSelector bundles
-          else if lib.isList bundlesOrSelector then
-            bundlesOrSelector
-          else
-            [ bundlesOrSelector ];
+        selectedBundles = resolveBundles bundlesOrSelector;
         profilesWithBundles = lib.mapAttrs (
           _: profile:
           profile
           // {
-            bundles = lib.unique ((profile.bundles or [ ]) ++ selectedBundles);
+            bundles = lib.unique ((resolveBundles (profile.bundles or [ ])) ++ selectedBundles);
           }
         ) profiles;
       in
