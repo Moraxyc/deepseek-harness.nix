@@ -29,6 +29,15 @@ let
     else
       throw "dsh profile: invalid mode '${mode}', expected 'managed' or 'mutable'";
 
+  renderPatch =
+    patch:
+    if lib.isString patch then
+      patch
+    else if lib.isList patch then
+      lib.generators.toYAML { } patch
+    else
+      throw "dsh profile: patch must be a YAML string or a list of patch operations";
+
   profileSpec =
     name: profile:
     let
@@ -39,7 +48,7 @@ let
       bundleManifests = map (bundle: "${bundle}/nix-support/dsh-bundles.json") (
         lib.unique ([ baseBundle ] ++ profile.bundles)
       );
-      patch = profile.patch or "[]";
+      patch = renderPatch (profile.patch or "[]");
       packageJson = runCommand "dsh-profile-${targetName}-package.json" { } ''
         mkdir -p "$out"
         ${lib.getExe dshBundleResolver} profile "$out/package.json" \

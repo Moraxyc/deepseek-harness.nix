@@ -4,6 +4,10 @@
   ...
 }:
 
+let
+  dshPatchOp = lib.types.attrs;
+in
+
 {
   options.programs.dsh = {
     enable = lib.mkEnableOption "the DeepSeek Harness dsh CLI with declarative profiles";
@@ -26,11 +30,15 @@
             };
 
             patch = lib.mkOption {
-              type = lib.types.lines;
-              default = lib.generators.toYAML { } [ ];
+              type = lib.types.oneOf [
+                (lib.types.listOf dshPatchOp)
+                lib.types.lines
+              ];
+              default = [ ];
               description = ''
                 The profile's `cordis.patch.yml` layer, applied after bundle
-                layers.
+                layers. Accepts a list of Cordis patch operations or a raw YAML
+                string for existing configurations.
               '';
             };
 
