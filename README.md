@@ -95,13 +95,12 @@ profile 由 Nix 同步；已有但没有 Nix 标记的同名目录不会被接�
 
 ## Home Manager
 
-导入 `homeModules.default` 并启用 `programs.dsh`：
+导入 `homeModules.default` 并启用 `programs.dsh`。启用后模块会把组合好的
+`dsh` 自动加入 `home.packages`，无需再手动添加：
 
 ```nix
 {
   imports = [ inputs.deepseek-harness.homeModules.default ];
-
-  home.packages = [ pkgs.dsh.dsh ]; # 可选，按需把 dsh 加入 PATH
 
   programs.dsh = {
     enable = true;

@@ -94,13 +94,13 @@ profiles, `override` / `withProfiles` / `withBundles`, and the overlay.
 
 ## Home Manager
 
-Import `homeModules.default` and enable `programs.dsh`:
+Import `homeModules.default` and enable `programs.dsh`. Enabling the module
+adds the composed `dsh` to `home.packages` automatically, so do not add it
+again manually:
 
 ```nix
 {
   imports = [ inputs.deepseek-harness.homeModules.default ];
-
-  home.packages = [ pkgs.dsh.dsh ]; # optional: add dsh to PATH
 
   programs.dsh = {
     enable = true;
