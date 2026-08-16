@@ -1,57 +1,14 @@
 {
   lib,
   fetchFromGitHub,
+  fetchNpmDeps,
   fetchurl,
   buildDshBundle,
   jq,
   nix-update-script,
-  stdenvNoCC,
 }:
 
 let
-  source = stdenvNoCC.mkDerivation {
-    pname = "dsh-tianshu-tui-source";
-    version = "0.1.2-rc.6";
-
-    src = fetchFromGitHub {
-      owner = "huiliyi37";
-      repo = "dsh-tianshu-tui";
-      tag = "v0.1.2-rc.6";
-      hash = "sha256-hlaRYVKXiITXs44vDqfnXbXvEZYnPFEPGPQjZC93RVQ=";
-    };
-
-    nativeBuildInputs = [ jq ];
-
-    installPhase = ''
-      runHook preInstall
-
-      mkdir -p "$out"
-      cp -r . "$out/"
-      chmod -R u+w "$out"
-
-      jq 'del(.scripts, .dependencies, .devDependencies, .peerDependencies)' \
-        "$out/package.json" > "$out/package.json.tmp"
-      mv "$out/package.json.tmp" "$out/package.json"
-
-      cat > "$out/package-lock.json" <<'JSON'
-      {
-        "name": "@huiliyi37/dsh-tianshu-tui",
-        "version": "0.1.2-rc.6",
-        "lockfileVersion": 3,
-        "requires": true,
-        "packages": {
-          "": {
-            "name": "@huiliyi37/dsh-tianshu-tui",
-            "version": "0.1.2-rc.6"
-          }
-        }
-      }
-      JSON
-
-      runHook postInstall
-    '';
-  };
-
   runtimeTarballs = [
     {
       name = "get-east-asian-width";
@@ -85,12 +42,45 @@ let
 in
 buildDshBundle (finalAttrs: {
   pname = "dsh-tianshu-tui";
-  version = "0.1.2-rc.6";
+  version = "0.1.2-rc.8";
 
-  src = source;
+  src = fetchFromGitHub {
+    owner = "huiliyi37";
+    repo = "dsh-tianshu-tui";
+    tag = "v${finalAttrs.version}";
+    hash = "sha256-PQr6tHO9x14oovXGY4AYRE3TSNT3bYIVy6M/TIs5Xmo=";
+  };
 
-  npmDepsHash = "sha256-krf4qTEeAIOo2IXf1yEfn7Vj1tDh51b1r9hnjBHpdFQ=";
-  forceEmptyCache = true;
+  npmDeps = fetchNpmDeps {
+    name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
+    inherit (finalAttrs) src postPatch;
+    hash = "sha256-eawzHxkHbUA/ACFzvv0c2iC8ugpwxQCOmUrLWtIIFIo=";
+    forceEmptyCache = true;
+    nativeBuildInputs = [ jq ];
+  };
+
+  nativeBuildInputs = [ jq ];
+
+  postPatch = ''
+    jq 'del(.scripts, .dependencies, .devDependencies, .peerDependencies)' \
+      package.json > package.json.tmp
+    mv package.json.tmp package.json
+
+    cat > package-lock.json <<'JSON'
+    {
+      "name": "@huiliyi37/dsh-tianshu-tui",
+      "version": "${finalAttrs.version}",
+      "lockfileVersion": 3,
+      "requires": true,
+      "packages": {
+        "": {
+          "name": "@huiliyi37/dsh-tianshu-tui",
+          "version": "${finalAttrs.version}"
+        }
+      }
+    }
+    JSON
+  '';
 
   dontConfigure = true;
   dontBuild = true;
@@ -112,7 +102,10 @@ buildDshBundle (finalAttrs: {
   '';
 
   passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
+    extraArgs = [
+      "--flake"
+      "--version=unstable"
+    ];
   };
 
   meta = {

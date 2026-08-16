@@ -11,7 +11,6 @@
   gtk4,
   makeDesktopItem,
   copyDesktopItems,
-  nix-update-script,
   imagemagick,
   libGL,
 
@@ -120,14 +119,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     shell = callPackage ./shell.nix { };
     runtime = callPackage ./runtime.nix { inherit dshHost; };
     runtimeDeps = dshHost.passthru.runtimeDeps;
-
-    updateScript = nix-update-script {
-      extraArgs = [
-        "--flake"
-        "--version=branch"
-        "--subpackage=shell"
-      ];
-    };
   };
 
   meta = {

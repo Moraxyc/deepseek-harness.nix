@@ -25,7 +25,6 @@ buildDshBundle (finalAttrs: {
     description = "Liang intensity reasoning slider skin for DeepSeek Harness";
     descriptions.zh-CN = "为 DeepSeek Harness 提供滑动变祖推理等级滑块皮肤";
     homepage = "https://github.com/kingOfSoySauce/dsh-liang-skin";
-    license = null;
     platforms = lib.platforms.unix;
   };
 })
