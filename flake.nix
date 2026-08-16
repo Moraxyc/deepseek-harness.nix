@@ -1,6 +1,13 @@
 {
   description = "DeepSeek Harness Nix";
 
+  nixConfig = {
+    extra-substituters = [ "https://deepseek-harness-nix.cachix.org" ];
+    extra-trusted-public-keys = [
+      "deepseek-harness-nix.cachix.org-1:5NrkwLN9veNMhiINtU5ZeV4isXFhFsOwn6Ms7J1M+TA="
+    ];
+  };
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-parts = {
