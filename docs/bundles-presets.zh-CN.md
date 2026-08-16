@@ -24,7 +24,7 @@ bundle 会覆盖前面的 Cordis 配置。例如给已有 preset 追加 bundle�
 | `bundles.tui`            | `dsh-tui`                         | 0.5.2                 | dsh 的交互式终端界面 · [主页](https://github.com/ccch1mneyyy/dsh-TUI)                                                       |
 | `bundles.vision-toolkit` | `dsh-vision-toolkit`              | 0.1.7                 | DeepSeek Harness 原生视觉工具集，支持 OCR、定位、像素差异与 UI 还原 · [主页](https://github.com/Anionex/dsh-vision-toolkit) |
 | `bundles.web-app`        | `dsh-web-app`                     | 0-unstable-2026-08-13 | dsh 的网页界面 · [主页](https://github.com/deepseek-ai/deepseek-harness)                                                    |
-| `bundles.web-ui`         | `dsh-web-ui`                      | 0.1.16                | 额外的 Web UI 主题与组件 · [主页](https://github.com/zhu1090093659/dsh-web-ui)                                              |
+| `bundles.web-ui`         | `dsh-web-ui`                      | 0.1.17                | 额外的 Web UI 主题与组件 · [主页](https://github.com/zhu1090093659/dsh-web-ui)                                              |
 
 ## 预设
 
