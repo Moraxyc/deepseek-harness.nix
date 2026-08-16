@@ -43,10 +43,15 @@ jobs:
                 legacyPackages = builtins.getAttr system f.legacyPackages;
                 packages = builtins.filter (name: hasUpdateScript (builtins.getAttr name packageSet)) (builtins.attrNames packageSet);
                 bundles = builtins.filter (name: hasUpdateScript (builtins.getAttr name legacyPackages.bundles)) (builtins.attrNames legacyPackages.bundles);
-                toAttrs = kind: names: map (name: { inherit name; attr = kind + "." + name; }) names;
+                toAttrs = labelPrefix: attrPrefix: names: pkgSet: map (name: {
+                  inherit name;
+                  attr = attrPrefix + "." + name;
+                  label = if labelPrefix == "" then name else labelPrefix + "." + name;
+                  version = (builtins.getAttr name pkgSet).version or "";
+                }) names;
               in
-              (toAttrs ("packages." + system) packages)
-              ++ (toAttrs ("legacyPackages." + system + ".bundles") bundles)
+              (toAttrs "" ("packages." + system) packages packageSet)
+              ++ (toAttrs "bundles" ("legacyPackages." + system + ".bundles") bundles legacyPackages.bundles)
             '
           )"
 
@@ -59,9 +64,11 @@ jobs:
                     name: "flake-locks",
                     title: "chore: update flake locks",
                     command: "nix flake update\nnix flake update --flake ./modules/flake-parts/dev",
-                    attr: ""
+                    attr: "",
+                    label: "",
+                    version: ""
                   }
-                ] + [ $updatable[] | { name: .name, title: ("chore: update " + .name), attr: .attr, command: "" } ])
+                ] + [ $updatable[] | { name: .name, title: "", attr: .attr, label: .label, version: .version, command: "" } ])
               }'
           )"
 
@@ -165,6 +172,12 @@ jobs:
           TITLE: ${{ matrix.title }}
         run: |
           set -euo pipefail
+
+          if [ -n "${{ matrix.attr }}" ]; then
+            old_version="${{ matrix.version }}"
+            new_version="$(nix eval --raw --impure ".#${{ matrix.attr }}.version")"
+            TITLE="${{ matrix.label }}: ${old_version} -> ${new_version}"
+          fi
 
           if [ -n "$(git status --porcelain --untracked-files=all)" ]; then
             git add -A
