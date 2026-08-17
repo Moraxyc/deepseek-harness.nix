@@ -34,6 +34,18 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
 
+  preConfigure = ''
+    # Ensure build-time bins such as tsc are resolvable from the pinned store.
+    pnpm config set --location=project node-linker hoisted
+  '';
+
+  preBuild = ''
+    for d in packages/*/node_modules; do
+      [ -d "$d" ] || continue
+      patchShebangs "$d"
+    done
+  '';
+
   postDeploy = ''
     rm -rf "$deployPackagePath"
     mkdir -p "$deployPackagePath"
