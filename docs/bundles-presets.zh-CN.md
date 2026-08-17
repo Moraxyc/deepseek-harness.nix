@@ -18,7 +18,7 @@ bundle 会覆盖前面的 Cordis 配置。例如给已有 preset 追加 bundle�
 | `bundles.better-sidebar` | `dsh-better-sidebar`              | 0.12.3                | 为 DSH Web 界面提供 VSCode 风格右侧侧边栏 · [主页](https://github.com/omdsh-dev/DSH-better-sidebar)                         |
 | `bundles.cpa`            | `dsh-cpa`                         | 0.1.3                 | dsh 的 CLI Proxy API（CPA）provider 与运行插件 · [主页](https://github.com/Moraxyc/dsh-cpa)                                 |
 | `bundles.headless`       | `dsh-headless`                    | 0-unstable-2026-08-13 | 无需图形界面即可运行 dsh · [主页](https://github.com/deepseek-ai/deepseek-harness)                                          |
-| `bundles.liang-skin`     | `dsh-client-liang-intensity-skin` | 0.1.3                 | 为 DeepSeek Harness 提供滑动变祖推理等级滑块皮肤 · [主页](https://github.com/kingOfSoySauce/dsh-liang-skin)                 |
+| `bundles.liang-skin`     | `dsh-client-liang-intensity-skin` | 0.1.4                 | 为 DeepSeek Harness 提供滑动变祖推理等级滑块皮肤 · [主页](https://github.com/kingOfSoySauce/dsh-liang-skin)                 |
 | `bundles.modlens`        | `dsh-modlens`                     | 3.18.1                | 为纯文本模型提供插件式视觉能力 · [主页](https://github.com/liustack/modlens)                                                |
 | `bundles.noema`          | `dsh-noema`                       | 0-unstable-2026-08-16 | DSH 的 Noema 长期记忆插件，提供召回工具与设置页 · [主页](https://github.com/ZSeven-W/dsh-noema)                             |
 | `bundles.oh-dsh`         | `oh-dsh`                          | 0.1.6                 | Oh-DSH Web：带 Oh-DSH 插件能力的 DeepSeek Harness 浏览器运行环境 · [主页](https://github.com/hust-open-atom-club/oh-dsh)    |
