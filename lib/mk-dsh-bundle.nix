@@ -91,7 +91,7 @@ let
         @*)
           for package in "$entry"/*; do
             [ -d "$package" ] || continue
-            printf '%s\n' "@$(basename "$entry")/$(basename "$package")" >> "$reservedList"
+            printf '%s\n' "$(basename "$entry")/$(basename "$package")" >> "$reservedList"
           done
           ;;
         *)
@@ -133,6 +133,34 @@ let
       fi
     done < "$reservedList"
 
+    link_kernel_into_package() {
+      local moduleRoot="$1/node_modules"
+
+      if [ ! -e "$moduleRoot" ] && [ ! -L "$moduleRoot" ]; then
+        ln -s "$kernelNodeModules" "$moduleRoot"
+        return
+      fi
+
+      # A bundle-local node_modules keeps its own dependencies (for example
+      # dsh-cc-tui's auto-bind). Kernel-owned peers are linked into it so both
+      # resolve without duplicating the kernel runtime.
+      mkdir -p "$moduleRoot"
+      while IFS= read -r reserved; do
+        [ -n "$reserved" ] || continue
+        if [ ! -e "$moduleRoot/$reserved" ] && [ ! -L "$moduleRoot/$reserved" ]; then
+          case "$reserved" in
+            @*)
+              mkdir -p "$moduleRoot/''${reserved%/*}"
+              ln -s "$kernelNodeModules/$reserved" "$moduleRoot/$reserved"
+              ;;
+            *)
+              ln -s "$kernelNodeModules/$reserved" "$moduleRoot/$reserved"
+              ;;
+          esac
+        fi
+      done < "$reservedList"
+    }
+
     for entry in "$out"/lib/node_modules/*; do
       [ -d "$entry" ] || continue
       case "$(basename "$entry")" in
@@ -142,15 +170,11 @@ let
         @*)
           for pkg in "$entry"/*; do
             [ -d "$pkg" ] || continue
-            if [ ! -e "$pkg/node_modules" ] && [ ! -L "$pkg/node_modules" ]; then
-              ln -s "$kernelNodeModules" "$pkg/node_modules"
-            fi
+            link_kernel_into_package "$pkg"
           done
           ;;
         *)
-          if [ ! -e "$entry/node_modules" ] && [ ! -L "$entry/node_modules" ]; then
-            ln -s "$kernelNodeModules" "$entry/node_modules"
-          fi
+          link_kernel_into_package "$entry"
           ;;
       esac
     done

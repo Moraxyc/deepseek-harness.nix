@@ -41,6 +41,9 @@ buildDshBundle (finalAttrs: {
     mkdir -p "$appDir"
 
     cp -r package.json cordis.patch.yml cordis.yml skills lib "$appDir/"
+    # Bundle-private deps such as auto-bind and dsh-working-activity are not in
+    # the kernel; linkKernelNodeModules merges the kernel peers into this tree.
+    cp -r node_modules "$appDir/node_modules"
 
     runHook postInstall
   '';
