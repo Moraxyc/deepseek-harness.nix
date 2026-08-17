@@ -10,7 +10,7 @@
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-noema";
-  version = "0-unstable-2026-08-16";
+  version = "0.1.0-rc.1-unstable-2026-08-15";
   deployPackage = "@zseven-w/dsh-noema";
   linkKernelNodeModules = dsh-kernel;
 
