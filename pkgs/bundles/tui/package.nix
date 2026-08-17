@@ -53,8 +53,12 @@ buildDshBundle (finalAttrs: {
     runHook postInstall
   '';
 
-  passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
+  passthru = {
+    requiresTty = true;
+
+    updateScript = nix-update-script {
+      extraArgs = [ "--flake" ];
+    };
   };
 
   meta = {

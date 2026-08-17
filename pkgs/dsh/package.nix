@@ -65,6 +65,11 @@ let
       bundlesOrSelector
     else
       [ bundlesOrSelector ];
+
+  profileRequiresTty =
+    profile:
+    (profile.requiresTty or false)
+    || lib.any (bundle: bundle.passthru.requiresTty or false) (profile.bundles or [ ]);
 in
 assert defaultProfile == null || lib.elem defaultProfile managedProfileNames;
 
@@ -171,7 +176,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   dshBundleCheckTtyProfiles = lib.concatStringsSep " " (
     lib.flatten (
       lib.mapAttrsToList (
-        name: profile: lib.optional (profile.requiresTty or false) (profileFiles.profileName name)
+        name: profile: lib.optional (profileRequiresTty profile) (profileFiles.profileName name)
       ) profiles
     )
   );
