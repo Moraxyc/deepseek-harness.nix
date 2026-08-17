@@ -10,10 +10,15 @@ on:
       - "README.md"
       - "README.en.md"
       - ".github/workflows/docs.yml"
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "docs/bundles-presets*.md"
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: docs-${{ github.event.pull_request.number || github.ref }}
@@ -21,6 +26,7 @@ concurrency:
 
 jobs:
   generate:
+    if: ${{ github.event_name != 'pull_request' || !startsWith(github.head_ref, 'auto-update/') }}
     name: Regenerate bundle/preset docs
     runs-on: ubuntu-latest
     steps:
@@ -45,7 +51,25 @@ jobs:
       - name: Regenerate docs
         run: nix run .#generate-docs
 
+      - name: Commit regenerated docs
+        if: startsWith(github.ref, 'refs/heads/main')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- docs; then
+            echo "Docs are current"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/bundles-presets.md docs/bundles-presets.zh-CN.md
+          git commit -m "docs: regenerate bundle/preset catalog"
+          git push origin HEAD:main
+
       - name: Fail if docs are stale
+        if: github.event_name == 'pull_request'
         run: |
           set -euo pipefail
           if ! git diff --quiet -- docs; then
