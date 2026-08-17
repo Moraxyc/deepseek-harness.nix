@@ -10,6 +10,9 @@ dsh.override {
     descriptions.zh-CN = "以交互式终端界面为主的组合";
   };
   profiles = {
-    tui.bundles = [ bundles.tui ];
+    tui = {
+      requiresTty = true;
+      bundles = [ bundles.tui ];
+    };
   };
 }

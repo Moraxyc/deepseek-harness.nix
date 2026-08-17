@@ -117,7 +117,9 @@ packages, including the `@deepseek-ai/*` packages provided by the kernel, from
 the bundle output, cleans up dangling `.bin` links, then links the kernel
 `node_modules` tree into every package under `$out/lib/node_modules`. This keeps
 the kernel as the only runtime provider instead of allowing bundle-local copies
-to shadow it.
+to shadow it. If a bundle depends on its own version of a package that also
+exists in the kernel, list it in `linkKernelNodeModulesKeep` so the helper keeps
+the bundle-local copy.
 
 `postDeploy` can use `$deployPackagePath`, which points at the deployed package
 inside `$out/lib/node_modules`. A common aggregator layout fix is:
@@ -133,9 +135,12 @@ mv \
 ```
 
 Update `src.hash` and `pnpmDeps.hash` with the hashes reported by `nix build`.
-The composed `dsh` package runs `dsh --dump-default-config` during
-`installCheckPhase`; use that to catch duplicate loader entry IDs, invalid
-patches, and missing kernel peer imports before runtime.
+The composed `dsh` package boots every managed profile during `installCheckPhase`
+through `dshBundleCheckHook`; use that to catch duplicate loader entry IDs,
+invalid patches, missing kernel peer imports, and package resolution failures
+before runtime. Profiles that stay in an interactive terminal loop can set
+`requiresTty = true`; the hook runs those under a pseudo-terminal and treats a
+live smoke window as a successful boot.
 
 `buildDshBundle.fromPnpmWorkspace` automatically excludes `nodejs` and pnpm
 from the runtime closure. If a workspace bundle uses `python3` during its

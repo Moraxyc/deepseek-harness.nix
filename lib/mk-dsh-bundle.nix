@@ -76,7 +76,7 @@ let
     done
   '';
 
-  linkKernelNodeModulesScript = kernel: ''
+  linkKernelNodeModulesScript = kernel: keep: ''
     kernelNodeModules="${kernel}/lib/deepseek-harness/node_modules"
     [ -d "$kernelNodeModules" ] || {
       printf 'buildDshBundle: kernel node_modules is missing: %s\n' "$kernelNodeModules" >&2
@@ -100,17 +100,34 @@ let
       esac
     done
 
+    keepList="$TMPDIR/dsh-kernel-keep.txt"
+    : > "$keepList"
+    ${lib.concatMapStringsSep "\n" (
+      package: "printf '%s\\n' ${lib.escapeShellArg package} >> \"$keepList\""
+    ) keep}
+
     bundleNodeModules="$out/lib/node_modules"
     [ -d "$bundleNodeModules" ] || {
       printf 'buildDshBundle: bundle node_modules is missing: %s\n' "$bundleNodeModules" >&2
       exit 1
     }
 
+    is_kernel_peer_kept() {
+      local candidate=$1 item
+      while IFS= read -r item; do
+        [ -n "$item" ] || continue
+        [ "$item" = "$candidate" ] && return 0
+      done < "$keepList"
+      return 1
+    }
+
     # The kernel owns every package present in its node_modules. Bundle-local
     # copies of those names must not survive into the final composition,
-    # otherwise the same runtime package can resolve twice.
+    # otherwise the same runtime package can resolve twice. Callers can keep a
+    # specific local copy through linkKernelNodeModulesKeep.
     while IFS= read -r reserved; do
       [ -n "$reserved" ] || continue
+      is_kernel_peer_kept "$reserved" && continue
       rm -rf "$bundleNodeModules/$reserved"
       find "$bundleNodeModules" \
         -depth \
@@ -127,6 +144,8 @@ let
     find "$bundleNodeModules" -depth -type d \( -name "@" -o -name "@deepseek-ai" \) -empty -delete 2>/dev/null || true
 
     while IFS= read -r reserved; do
+      [ -n "$reserved" ] || continue
+      is_kernel_peer_kept "$reserved" && continue
       if [ -e "$bundleNodeModules/$reserved" ]; then
         printf 'buildDshBundle: kernel runtime package was not pruned: %s\n' "$reserved" >&2
         exit 1
@@ -186,6 +205,7 @@ let
     constructDrv = buildNpmPackage;
     excludeDrvArgNames = [
       "linkKernelNodeModules"
+      "linkKernelNodeModulesKeep"
       "runtimeDeps"
     ];
     extendDrvArgs =
@@ -193,6 +213,7 @@ let
       {
         runtimeDeps ? [ ],
         linkKernelNodeModules ? null,
+        linkKernelNodeModulesKeep ? [ ],
         nativeBuildInputs ? [ ],
         disallowedReferences ? [ ],
         meta ? { },
@@ -215,7 +236,7 @@ let
         postInstall =
           postInstall
           + lib.optionalString (linkKernelNodeModules != null) (
-            linkKernelNodeModulesScript linkKernelNodeModules
+            linkKernelNodeModulesScript linkKernelNodeModules linkKernelNodeModulesKeep
           )
           + validateInstalledBundle;
         meta = meta // {
@@ -233,6 +254,7 @@ let
       "deployPackage"
       "disableChildBundlePatches"
       "linkKernelNodeModules"
+      "linkKernelNodeModulesKeep"
       "pnpm"
       "postDeploy"
       "preDeploy"
@@ -249,6 +271,7 @@ let
         stripPrepareScripts ? false,
         disableChildBundlePatches ? false,
         linkKernelNodeModules ? null,
+        linkKernelNodeModulesKeep ? [ ],
         pnpm ? pnpm_11,
         nativeBuildInputs ? [ ],
         disallowedReferences ? [ ],
@@ -311,7 +334,7 @@ let
         postInstall =
           postInstall
           + lib.optionalString (linkKernelNodeModules != null) (
-            linkKernelNodeModulesScript linkKernelNodeModules
+            linkKernelNodeModulesScript linkKernelNodeModules linkKernelNodeModulesKeep
           )
           + validateInstalledBundle;
         meta = meta // {

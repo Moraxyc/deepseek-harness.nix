@@ -19,7 +19,16 @@
 
             # The service composes its package from the profiles declared
             # under programs.dsh.
-            programs.dsh.profiles.web.patch = "# served by programs.dsh.profiles";
+            # dshBundleCheckHook validates the composed profile at build
+            # time, so this profile must be a real web profile and its patch
+            # must remain a top-level YAML array.
+            programs.dsh.profiles.web = {
+              bundles = [ pkgs.dsh.bundles.web-app ];
+              patch = ''
+                # served by programs.dsh.profiles
+                []
+              '';
+            };
 
             services.dsh = {
               enable = true;

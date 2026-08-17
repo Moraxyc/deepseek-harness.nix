@@ -2,7 +2,7 @@
 
 本文覆盖需要 clone 仓库的本地 flake 用法。远程 flake 用法见
 [README](../README.md)，bundle/preset 的维护规范见
-[CONTRIBUTING](../CONTRIBUTING.md)。
+[CONTRIBUTING](../CONTRIBUTING.zh.md)。
 
 ## 获取仓库
 

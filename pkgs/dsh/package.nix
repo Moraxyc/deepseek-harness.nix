@@ -17,6 +17,7 @@
 
   buildDshBundle,
   dsh,
+  dshBundleCheckHook,
   dsh-kernel,
 
   bundles,
@@ -159,6 +160,21 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   '';
 
   doInstallCheck = true;
+  nativeInstallCheckInputs = [
+    dshBundleCheckHook
+    util-linux
+  ];
+  dshBundleCheckProfiles = lib.concatStringsSep " " managedProfileNames;
+  # Profiles that need a real terminal enter an interactive loop instead of
+  # exiting after --help; dshBundleCheckHook treats a booted, still-running
+  # smoke window as success for these.
+  dshBundleCheckTtyProfiles = lib.concatStringsSep " " (
+    lib.flatten (
+      lib.mapAttrsToList (
+        name: profile: lib.optional (profile.requiresTty or false) (profileFiles.profileName name)
+      ) profiles
+    )
+  );
   installCheckPhase = ''
     runHook preInstallCheck
     DSH_HOME="$TMPDIR/dsh" "$out/bin/dsh" --version

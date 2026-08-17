@@ -29,6 +29,11 @@ buildDshBundle (finalAttrs: {
   nativeBuildInputs = [ pnpm_11 ];
   disallowedReferences = [ pnpm_11 ];
   linkKernelNodeModules = dsh-kernel;
+  # dsh-cc-tui compiles against React 19, while dsh-kernel carries React 18.
+  linkKernelNodeModulesKeep = [
+    "ansi-styles"
+    "react"
+  ];
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;

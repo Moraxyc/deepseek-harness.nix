@@ -50,7 +50,7 @@ while IFS= read -r file; do
   case "$file" in
     lib/catalog.nix)
       ;;
-    .github/workflows/package-ci.yml | default.nix | flake.nix | flake.lock | lib/* | modules/* | overlays/* | scripts/select-package-ci-attrs.sh | pkgs/dsh-kernel/* | pkgs/dsh-workspace/* | pkgs/dshWorkspacePatchHook/*)
+    .github/workflows/package-ci.yml | default.nix | flake.nix | flake.lock | lib/* | modules/* | overlays/* | scripts/select-package-ci-attrs.sh | pkgs/dsh-kernel/* | pkgs/dsh-workspace/* | pkgs/dshBundleCheckHook/* | pkgs/dshWorkspacePatchHook/*)
       global=1
       ;;
     pkgs/dsh/*)
