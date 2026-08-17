@@ -10,7 +10,7 @@
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-at-file";
-  version = "0.6.1";
+  version = "0.6.2";
   deployPackage = "dsh-at-file";
   linkKernelNodeModules = dsh-kernel;
 
@@ -18,7 +18,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     owner = "omdsh-dev";
     repo = "dsh-at-file";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-UiFC+j8/AgeZiHCLfd6flfvD7zd6Ynbo40gCwni4tW4=";
+    hash = "sha256-bj440QEBhMILTIa6SMeoEjPmbQpcGwPj1Ctah6Kv1Gc=";
   };
 
   pnpmDeps = fetchPnpmDeps {
