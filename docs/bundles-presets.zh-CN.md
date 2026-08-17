@@ -24,7 +24,7 @@ bundle 会覆盖前面的 Cordis 配置。例如给已有 preset 追加 bundle�
 | `bundles.oh-dsh`         | `oh-dsh`                          | 0.1.6                 | Oh-DSH Web：带 Oh-DSH 插件能力的 DeepSeek Harness 浏览器运行环境 · [主页](https://github.com/hust-open-atom-club/oh-dsh)    |
 | `bundles.tianshu-tui`    | `dsh-tianshu-tui`                 | 0.1.2-rc.10           | dsh 的交互式 TUI 层，提供渲染、面板与终端控制 · [主页](https://github.com/huiliyi37/dsh-tianshu-tui)                        |
 | `bundles.tui`            | `dsh-tui`                         | 0.8.0                 | dsh 的交互式终端界面 · [主页](https://github.com/ccch1mneyyy/dsh-TUI)                                                       |
-| `bundles.vision-toolkit` | `dsh-vision-toolkit`              | 0.1.19                | DeepSeek Harness 原生视觉工具集，支持 OCR、定位、像素差异与 UI 还原 · [主页](https://github.com/Anionex/dsh-vision-toolkit) |
+| `bundles.vision-toolkit` | `dsh-vision-toolkit`              | 0.1.24                | DeepSeek Harness 原生视觉工具集，支持 OCR、定位、像素差异与 UI 还原 · [主页](https://github.com/Anionex/dsh-vision-toolkit) |
 | `bundles.web-app`        | `dsh-web-app`                     | 0-unstable-2026-08-13 | dsh 的网页界面 · [主页](https://github.com/deepseek-ai/deepseek-harness)                                                    |
 | `bundles.web-ui`         | `dsh-web-ui`                      | 0.1.19                | 额外的 Web UI 主题与组件 · [主页](https://github.com/zhu1090093659/dsh-web-ui)                                              |
 
