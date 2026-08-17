@@ -13,6 +13,7 @@ bundle 会覆盖前面的 Cordis 配置。例如给已有 preset 追加 bundle�
 | Flake 输出               | 包                                | 版本                           | 说明                                                                                                                        |
 | ------------------------ | --------------------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
 | `bundles.ads`            | `dsh-ads`                         | 0-unstable-2026-08-15          | DSH 广告插件，包含本地门户广告与诈骗广告仿制内容 · [主页](https://github.com/Nagi-ovo/dsh-ads)                              |
+| `bundles.approve-for-me` | `dsh-approve-for-me`              | 0-unstable-2026-08-15          | 为 DeepSeek Harness 沙箱提权提供规则分流的自动审批插件 · [主页](https://github.com/timeance/dsh-approve-for-me)             |
 | `bundles.at-file`        | `dsh-at-file`                     | 0.6.2                          | 为 DeepSeek Harness 网页界面提供 Codex 风格 @路径引用 · [主页](https://github.com/omdsh-dev/dsh-at-file)                    |
 | `bundles.base`           | `dsh-base`                        | 0-unstable-2026-08-13          | 所有 dsh profile 共用的基础层 · [主页](https://github.com/deepseek-ai/deepseek-harness)                                     |
 | `bundles.better-sidebar` | `dsh-better-sidebar`              | 0.12.3                         | 为 DSH Web 界面提供 VSCode 风格右侧侧边栏 · [主页](https://github.com/omdsh-dev/DSH-better-sidebar)                         |
