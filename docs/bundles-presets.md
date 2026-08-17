@@ -25,7 +25,7 @@ See the [README](../README.en.md) for details.
 | `bundles.oh-dsh`         | `oh-dsh`                          | 0.1.6                 | Oh-DSH Web: a packaged DeepSeek Harness browser runtime with Oh-DSH plugin capabilities · [homepage](https://github.com/hust-open-atom-club/oh-dsh)    |
 | `bundles.tianshu-tui`    | `dsh-tianshu-tui`                 | 0.1.2-rc.10           | Interactive TUI layer for dsh with rendering, panels, and terminal controls · [homepage](https://github.com/huiliyi37/dsh-tianshu-tui)                 |
 | `bundles.tui`            | `dsh-tui`                         | 0.7.0                 | Interactive terminal interface for dsh · [homepage](https://github.com/ccch1mneyyy/dsh-TUI)                                                            |
-| `bundles.vision-toolkit` | `dsh-vision-toolkit`              | 0.1.7                 | DeepSeek Harness-native vision toolkit with OCR, grounding, pixel diff, and UI restoration · [homepage](https://github.com/Anionex/dsh-vision-toolkit) |
+| `bundles.vision-toolkit` | `dsh-vision-toolkit`              | 0.1.19                | DeepSeek Harness-native vision toolkit with OCR, grounding, pixel diff, and UI restoration · [homepage](https://github.com/Anionex/dsh-vision-toolkit) |
 | `bundles.web-app`        | `dsh-web-app`                     | 0-unstable-2026-08-13 | Web interface for dsh · [homepage](https://github.com/deepseek-ai/deepseek-harness)                                                                    |
 | `bundles.web-ui`         | `dsh-web-ui`                      | 0.1.17                | Extra web UI themes and components · [homepage](https://github.com/zhu1090093659/dsh-web-ui)                                                           |
 
