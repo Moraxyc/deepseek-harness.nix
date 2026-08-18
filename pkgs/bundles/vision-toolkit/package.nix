@@ -12,7 +12,7 @@
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-vision-toolkit";
-  version = "0.1.26";
+  version = "0.1.31";
   deployPackage = "@anionex/dsh-vision-toolkit";
   linkKernelNodeModules = dsh-kernel;
 
@@ -20,14 +20,14 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     owner = "Anionex";
     repo = "dsh-vision-toolkit";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-dl8ecRm3XOAeXnFA6hxyNum8lbC57UBCw9M/JfnxPpM=";
+    hash = "sha256-CP6lZEHRz9vh8J/i/eei4VriPxae3Gli+Liykci752I=";
   };
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-o+DCdZLf9KW2ZcIhSciWYQZMCRM9KmVuvRzwtmQ2fkc=";
+    hash = "sha256-3bgb3vQ2R8XDCW0fywlArahajuFczEgVIca7WyvEqiw=";
   };
 
   npmDeps = null;
