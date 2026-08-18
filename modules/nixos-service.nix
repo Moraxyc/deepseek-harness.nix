@@ -154,6 +154,21 @@ in
       description = "Open the configured web port in the NixOS firewall. Keep disabled when using loopback plus a reverse proxy.";
     };
 
+    reverseProxy = {
+      enable = lib.mkEnableOption "a predefined Nginx reverse proxy in front of the web service";
+
+      domain = lib.mkOption {
+        type = lib.types.str;
+        description = "Domain served through the reverse proxy, for example `dsh.example.local`.";
+      };
+
+      warn = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Print a deployment warning.";
+      };
+    };
+
     autoStart = lib.mkOption {
       type = lib.types.bool;
       default = true;
@@ -205,6 +220,13 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    warnings = lib.mkIf (cfg.reverseProxy.enable && cfg.reverseProxy.warn) [
+      ''
+        dsh 不是为公开使用设计的，请勿将其暴露在公共网络上。请使用 VPN 或 SD-WAN技术保护 dsh web。
+        dsh is not intended for public exposure; protect the web endpoint with a VPN or SD-WAN instead.
+      ''
+    ];
+
     users.users.dsh = lib.mkIf (!dynamicUser && serviceUser == "dsh") {
       isSystemUser = true;
       group = serviceGroup;
@@ -294,5 +316,14 @@ in
     };
 
     networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [ cfg.port ];
+
+    services.nginx = lib.mkIf cfg.reverseProxy.enable {
+      enable = true;
+      virtualHosts.${cfg.reverseProxy.domain}.locations."/" = {
+        proxyPass = "http://${cfg.listenAddress}:${toString cfg.port}";
+        proxyWebsockets = true;
+        recommendedProxySettings = true;
+      };
+    };
   };
 }
