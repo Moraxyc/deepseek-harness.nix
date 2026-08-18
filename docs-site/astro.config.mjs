@@ -7,7 +7,7 @@ export default defineConfig({
   trailingSlash: "always",
   integrations: [
     starlight({
-      title: "Deepseek Harness Nix",
+      title: "DeepSeek Harness Nix",
       defaultLocale: "root",
       locales: {
         root: { label: "English", lang: "en" },
@@ -20,6 +20,11 @@ export default defineConfig({
           translations: { "zh-CN": "文档" },
           items: [
             { label: "Home", slug: "index", translations: { "zh-CN": "首页" } },
+            {
+              label: "Getting Started",
+              slug: "getting-started",
+              translations: { "zh-CN": "快速开始" },
+            },
             {
               label: "Bundles and Presets",
               slug: "catalog",

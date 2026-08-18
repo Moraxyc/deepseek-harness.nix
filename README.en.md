@@ -28,8 +28,6 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui \
 
 ## Flake Usage
 
-Use the remote flake directly without cloning:
-
 ```sh
 nix run github:moraxyc/deepseek-harness.nix#default -- --version
 nix build github:moraxyc/deepseek-harness.nix#dsh
@@ -62,13 +60,7 @@ and overlay exposed through `inputs.deepseek-harness.*`:
 Once declared, the guides in [NixOS](#nixos), [Home Manager](#home-manager),
 and [Advanced Usage](#advanced-usage) work directly.
 
-## Cachix
-
-```sh
-cachix use deepseek-harness-nix
-```
-
-Or add it manually to your Nix configuration:
+## Cache
 
 ```nix
 {

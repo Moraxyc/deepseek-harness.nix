@@ -29,8 +29,6 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui \
 
 ## Flake 用法
 
-不用 clone，可直接引用远程 flake：
-
 ```sh
 nix run github:moraxyc/deepseek-harness.nix#default -- --version
 nix build github:moraxyc/deepseek-harness.nix#dsh
@@ -62,15 +60,7 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui
 声明 input 后，下面的 [NixOS](#nixos)、[Home Manager](#home-manager) 和
 [高级用法](#高级用法) 指南即可直接使用。
 
-## Cachix
-
-使用 Cachix 时先执行：
-
-```sh
-cachix use deepseek-harness-nix
-```
-
-也可以手动加入 Nix 配置：
+## Cache
 
 ```nix
 {
