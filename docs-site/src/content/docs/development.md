@@ -1,8 +1,10 @@
-# Development
+---
+title: Development
+description: Build, test, and maintain the DeepSeek Harness Nix flake.
+---
 
 This page covers local flake usage that requires cloning the repository. For
-remote flake usage, see [README](../README.md). For bundle and preset
-maintenance, see [CONTRIBUTING](../CONTRIBUTING.md).
+remote flake usage, see the [README](https://github.com/moraxyc/deepseek-harness.nix).
 
 ## Cloning
 
@@ -26,7 +28,7 @@ nix run .#dsh-desktop
 `packages` provides `dsh`, `dsh-desktop`, `dsh-kernel`, and `dsh-workspace`.
 `bundles.*` and `presets.*` are exposed through `legacyPackages`, so refs such
 as `.#bundles.tui` and `.#presets.tui` work directly. See
-[Bundles and Presets](bundles-presets.md) for the full catalog.
+[Bundles and Presets](../catalog/) for the full catalog.
 
 ## Dev Shell
 
@@ -42,15 +44,10 @@ The default dev shell includes `jq`, `nix-update`, `nixfmt`, `pre-commit`, and
 ```sh
 nix fmt
 nix flake check
-nix run .#generate-docs -- --check
-```
-
-After changing bundle/preset or catalog sources, regenerate and commit
-`docs/bundles-presets*.md`:
-
-```sh
-nix run .#generate-docs
-nix run .#generate-docs -- --lang zh-CN
+nix build .#docs-site
+cd docs-site
+npm ci
+npm run build
 ```
 
 Update lock files with:
@@ -62,5 +59,5 @@ nix flake update --flake ./modules/flake-parts/dev
 
 ## Documentation
 
-User-facing docs are maintained in English and Chinese. When changing
-`docs/*.md`, keep the matching `*.md` and `*.zh-CN.md` files in sync.
+User-facing docs are maintained in English and Chinese under
+`docs-site/src/content/docs/` and `docs-site/src/content/docs/zh/`.

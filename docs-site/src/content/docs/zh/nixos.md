@@ -1,9 +1,12 @@
-# NixOS 集成
+---
+title: NixOS 集成
+description: 通过 NixOS 模块启用 dsh 及其 web 服务。
+---
 
 本文介绍 `nixosModules.default` 的 NixOS 集成：启用 `dsh` CLI、声明 bundle
 和 profile，以及把 web profile 作为系统服务运行。bundle 和 preset 目录见
-[Bundles 和预设](bundles-presets.zh-CN.md)；包覆盖、密钥注入和反向代理见
-[高级用法](advanced-usage.zh-CN.md)。
+[Bundles 和预设](../catalog/)；包覆盖、密钥注入和反向代理见
+[高级用法](../advanced-usage/)。
 
 ## 添加 Flake Input
 
@@ -132,7 +135,7 @@ journalctl -u dsh-web -f
 
 服务默认使用 systemd `DynamicUser`，状态放在 `/var/lib/dsh`。反向代理、
 密钥文件、credentials、固定用户/组模式和完整服务选项见
-[高级用法](advanced-usage.zh-CN.md)。
+[高级用法](../advanced-usage/)。
 
 ## 排错
 

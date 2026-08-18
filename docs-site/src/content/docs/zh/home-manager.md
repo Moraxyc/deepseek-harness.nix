@@ -1,8 +1,11 @@
-# Home Manager 集成
+---
+title: Home Manager 集成
+description: 在独立或 NixOS 管理的 Home Manager 中使用 DeepSeek Harness。
+---
 
 本文介绍 `homeModules.default` 在独立 Home Manager 和由 NixOS 管理的
 Home Manager 中的用法，重点说明如何让 `pkgs.dsh` 可用，以及 Nix 如何管理
-profile。per-user web 服务见 [高级用法](advanced-usage.zh-CN.md)。
+profile。per-user web 服务见 [高级用法](../advanced-usage/)。
 
 ## 添加 Flake Input
 
@@ -138,7 +141,7 @@ journalctl --user -u dsh-web -f
 ```
 
 选项与 NixOS 服务基本一致，仅不含 `user`、`group`、`openFirewall`。细节见
-[高级用法](advanced-usage.zh-CN.md)。其中 `dataDir` 默认是 `~/.dsh`，
+[高级用法](../advanced-usage/)。其中 `dataDir` 默认是 `~/.dsh`，
 `workspace` 默认是 `~/.dsh/workspace`，`autoStart` 默认是 `true`。
 
 ## 排错

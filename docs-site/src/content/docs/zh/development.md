@@ -1,8 +1,10 @@
-# 开发
+---
+title: 开发
+description: 构建、测试和维护 DeepSeek Harness Nix flake。
+---
 
 本文覆盖需要 clone 仓库的本地 flake 用法。远程 flake 用法见
-[README](../README.md)，bundle/preset 的维护规范见
-[CONTRIBUTING](../CONTRIBUTING.zh.md)。
+[README](https://github.com/moraxyc/deepseek-harness.nix)。
 
 ## 获取仓库
 
@@ -26,7 +28,7 @@ nix run .#dsh-desktop
 `packages` 提供 `dsh`、`dsh-desktop`、`dsh-kernel`、`dsh-workspace`；
 `bundles.*` 和 `presets.*` 通过 `legacyPackages` 暴露，因此
 `nix build .#bundles.tui` 和 `nix run .#presets.tui` 这类引用同样可用。完整
-目录见 [Bundles 和预设](bundles-presets.zh-CN.md)。
+目录见 [Bundles 和预设](../catalog/)。
 
 ## 开发环境
 
@@ -42,15 +44,10 @@ nix develop
 ```sh
 nix fmt
 nix flake check
-nix run .#generate-docs -- --check
-```
-
-修改 bundle/preset 或 catalog 源后，运行 `nix run .#generate-docs` 并提交
-`docs/bundles-presets*.md`：
-
-```sh
-nix run .#generate-docs
-nix run .#generate-docs -- --lang zh-CN
+nix build .#docs-site
+cd docs-site
+npm ci
+npm run build
 ```
 
 更新锁文件：
@@ -62,5 +59,5 @@ nix flake update --flake ./modules/flake-parts/dev
 
 ## 文档
 
-所有用户可见文档保持中英双语。新增或修改 `docs/*.md` 时，同步维护
-`*.md` 与 `*.zh-CN.md`。
+所有用户可见文档保持中英双语，分别位于
+`docs-site/src/content/docs/` 和 `docs-site/src/content/docs/zh/`。

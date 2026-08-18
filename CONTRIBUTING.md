@@ -1,18 +1,5 @@
 # Contributing
 
-## Bundle and preset catalog
-
-The bundle and preset catalogs in `docs/bundles-presets.md` and
-`docs/bundles-presets.zh-CN.md` are generated from package metadata by
-`nix run .#generate-docs`. Run it after adding, removing, or changing
-bundle/preset expressions, and commit the generated files.
-
-Use `nix run .#generate-docs -- --check` to verify the checked-in catalog.
-Use `nix run .#generate-docs -- --lang zh-CN` to regenerate only the Chinese
-catalog.
-The pre-push hook runs this check automatically, and CI regenerates both
-catalogs on PRs that touch bundle, preset, or catalog sources.
-
 ## Choosing a bundle builder
 
 Use the builder that matches where the bundle source comes from:

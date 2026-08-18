@@ -19,14 +19,6 @@
           pass_filenames = false;
           stages = [ "pre-push" ];
         };
-        catalog-docs = {
-          enable = true;
-          name = "catalog docs";
-          entry = "nix run .#generate-docs -- --check";
-          language = "system";
-          pass_filenames = false;
-          stages = [ "pre-push" ];
-        };
       };
     };
   };

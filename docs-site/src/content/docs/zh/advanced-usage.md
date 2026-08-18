@@ -1,9 +1,11 @@
-# 高级用法
+---
+title: 高级用法
+description: 自定义 profile、包覆盖、服务和反向代理配置。
+---
 
 本文覆盖自定义 profile、覆盖方式和 Overlay。模块接入见
-[NixOS 集成](nixos.zh-CN.md) 和
-[Home Manager 集成](home-manager.zh-CN.md)；快速开始与常用命令见
-[README](../README.md)。
+[NixOS 集成](../nixos/) 和 [Home Manager 集成](../home-manager/)；
+快速开始与常用命令见 [README](https://github.com/moraxyc/deepseek-harness.nix)。
 
 ## NixOS
 

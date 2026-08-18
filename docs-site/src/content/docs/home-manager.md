@@ -1,9 +1,12 @@
-# Home Manager Integration
+---
+title: Home Manager Integration
+description: Use DeepSeek Harness with standalone or NixOS-managed Home Manager.
+---
 
 This guide covers `homeModules.default` for standalone Home Manager and for
 Home Manager managed by NixOS. It explains how `pkgs.dsh` must be made
 available and how profiles are managed. For the per-user web service, see
-[Advanced Usage](advanced-usage.md).
+[Advanced Usage](../advanced-usage/).
 
 ## Add the Flake Input
 

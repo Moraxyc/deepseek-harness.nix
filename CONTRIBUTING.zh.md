@@ -1,16 +1,5 @@
 # 贡献指南
 
-## Bundle 与 preset 目录
-
-`docs/bundles-presets.md` 与 `docs/bundles-presets.zh-CN.md` 由
-`nix run .#generate-docs` 从包元数据生成。添加、删除或修改 bundle/preset
-表达式后，运行该命令并提交生成文件。
-
-用 `nix run .#generate-docs -- --check` 校验已提交目录。
-用 `nix run .#generate-docs -- --lang zh-CN` 只重新生成中文目录。
-pre-push 钩子会自动运行此检查；CI 也会在涉及 bundle、preset 或 catalog
-源的 PR 中重新生成两个目录。
-
 ## 选择 bundle builder
 
 按 bundle 来源选择 builder：

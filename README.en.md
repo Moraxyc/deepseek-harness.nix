@@ -47,7 +47,8 @@ Main outputs:
 - `dsh-kernel`: kernel without profile bundles
 - `dsh-workspace`: built workspace artifacts
 - `bundles.*` / `presets.*`: bundles and presets; see
-  [Bundles and Presets](docs/bundles-presets.md) for the full catalog
+  [Bundles and Presets](https://moraxyc.github.io/deepseek-harness.nix/catalog/)
+  for the full catalog
 
 The flake can also be added to another flake's inputs, then use the modules
 and overlay exposed through `inputs.deepseek-harness.*`:
@@ -85,11 +86,13 @@ Or add it manually to your Nix configuration:
 Bundles are plugin-style extensions that can be combined into a `dsh` runtime;
 presets are ready-to-use combinations. Bundles apply in list order, with later
 bundles overriding earlier Cordis configuration. See
-[Bundles and Presets](docs/bundles-presets.md) for the full catalog.
+[Bundles and Presets](https://moraxyc.github.io/deepseek-harness.nix/catalog/)
+for the full catalog.
 
 ## NixOS
 
-See the [NixOS Integration Guide](docs/nixos.md) for the full setup.
+See the [NixOS Integration Guide](https://moraxyc.github.io/deepseek-harness.nix/nixos/)
+for the full setup.
 
 `nixosModules.default` adds the dsh overlay automatically, exposes
 `programs.dsh`, and adds a composed `dsh` package to
@@ -98,8 +101,8 @@ as a systemd service.
 
 ## Home Manager
 
-See the [Home Manager Integration Guide](docs/home-manager.md) for the full
-setup.
+See the [Home Manager Integration Guide](https://moraxyc.github.io/deepseek-harness.nix/home-manager/)
+for the full setup.
 
 `homeModules.default` adds the composed `dsh` to `home.packages` and seeds
 managed profiles during activation. The Home Manager `pkgs` must include the
@@ -110,12 +113,12 @@ otherwise evaluation fails with `attribute 'dsh' missing`.
 ## Advanced Usage
 
 Detailed integration instructions live in
-[Advanced Usage](docs/advanced-usage.md).
+[Advanced Usage](https://moraxyc.github.io/deepseek-harness.nix/advanced-usage/).
 
 ## Development
 
 For repository-local builds, the dev shell, and checks, see
-[Development](docs/development.md).
+[Development](https://moraxyc.github.io/deepseek-harness.nix/development/).
 
 ## License
 

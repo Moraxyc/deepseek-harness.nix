@@ -48,7 +48,7 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui
 - `dsh-kernel`：不带 profile bundle 的 kernel
 - `dsh-workspace`：构建后的 workspace 产物
 - `bundles.*` / `presets.*`：bundle 和 preset，完整目录见
-  [Bundles 和预设](docs/bundles-presets.zh-CN.md)
+  [Bundles 和预设](https://moraxyc.github.io/deepseek-harness.nix/zh/catalog/)
 
 也可以把仓库加入使用方 flake 的 inputs，再使用
 `inputs.deepseek-harness.*` 暴露的模块和 overlay：
@@ -87,11 +87,11 @@ cachix use deepseek-harness-nix
 
 Bundle 是插件式扩展；preset 是开箱即用的组合。Bundle 按组合列表顺序应用，
 后面的 bundle 会覆盖前面的 Cordis 配置。
-完整目录见 [Bundles 和预设](docs/bundles-presets.zh-CN.md)。
+完整目录见 [Bundles 和预设](https://moraxyc.github.io/deepseek-harness.nix/zh/catalog/)。
 
 ## NixOS
 
-NixOS 集成见 [NixOS 集成指南](docs/nixos.zh-CN.md)。
+NixOS 集成见 [NixOS 集成指南](https://moraxyc.github.io/deepseek-harness.nix/zh/nixos/)。
 
 `nixosModules.default` 会自动设置 dsh overlay，提供 `programs.dsh`
 选项，并把组合后的 `dsh` 加入 `environment.systemPackages`。启用
@@ -99,7 +99,7 @@ NixOS 集成见 [NixOS 集成指南](docs/nixos.zh-CN.md)。
 
 ## Home Manager
 
-Home Manager 集成见 [Home Manager 集成指南](docs/home-manager.zh-CN.md)。
+Home Manager 集成见 [Home Manager 集成指南](https://moraxyc.github.io/deepseek-harness.nix/zh/home-manager/)。
 
 `homeModules.default` 会把组合后的 `dsh` 加入 `home.packages`，并在激活时
 生成和同步 managed profiles。使用该模块时，必须让 Home Manager 的 `pkgs`
@@ -110,12 +110,12 @@ NixOS 全局 `pkgs` 已包含 `inputs.deepseek-harness.overlays.default`，否�
 ## 高级用法
 
 NixOS 参数、自定义 profile、覆盖方式和 Overlay 的详细说明见
-[高级用法](docs/advanced-usage.zh-CN.md)。
+[高级用法](https://moraxyc.github.io/deepseek-harness.nix/zh/advanced-usage/)。
 
 ## 开发
 
 需要 clone 仓库、本地构建、进入开发 shell 或运行检查时，见
-[开发文档](docs/development.zh-CN.md)。
+[开发文档](https://moraxyc.github.io/deepseek-harness.nix/zh/development/)。
 
 ## 许可证
 

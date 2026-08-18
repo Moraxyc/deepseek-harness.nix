@@ -4,4 +4,11 @@
 .direnv/
 .pre-commit-config.yaml
 
+docs-site/node_modules/
+docs-site/dist/
+docs-site/.astro/
+docs-site/src/data/catalog.generated.ts
+
 .DS_Store
+/.astro/
+/node_modules/

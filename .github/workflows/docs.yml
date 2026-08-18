@@ -3,37 +3,40 @@ name: Docs
 on:
   pull_request:
     paths:
-      - "pkgs/**"
+      - "docs-site/**"
       - "lib/**"
-      - "scripts/**"
-      - "docs/**"
-      - "README.md"
-      - "README.en.md"
+      - "pkgs/**"
+      - "flake.lock"
+      - "flake.nix"
+      - "default.nix"
       - ".github/workflows/docs.yml"
   push:
     branches:
       - main
-    paths-ignore:
-      - "docs/bundles-presets*.md"
+    paths:
+      - "docs-site/**"
+      - "lib/**"
+      - "pkgs/**"
+      - "flake.lock"
+      - "flake.nix"
+      - "default.nix"
+      - ".github/workflows/docs.yml"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: docs-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  generate:
-    if: ${{ github.event_name != 'pull_request' || !startsWith(github.head_ref, 'auto-update/') }}
-    name: Regenerate bundle/preset docs
+  build:
+    name: Build documentation site
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
 
       - name: Install Nix
         uses: cachix/install-nix-action@v31
@@ -41,39 +44,30 @@ jobs:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           extra_nix_config: accept-flake-config = true
 
-      - name: Configure Cachix
-        uses: cachix/cachix-action@v17
+      - name: Build site with Nix
+        run: |
+          set -euo pipefail
+          nix build .#docs-site --print-build-logs --out-link "$RUNNER_TEMP/docs-site-result"
+          cp -R "$(readlink -f "$RUNNER_TEMP/docs-site-result")"/. "$RUNNER_TEMP/docs-site"
+
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v5
         with:
-          name: ${{ vars.CACHIX_CACHE_NAME || 'deepseek-harness-nix' }}
-          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
-          skipPush: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+          path: ${{ runner.temp }}/docs-site
 
-      - name: Regenerate docs
-        run: nix run .#generate-docs
-
-      - name: Commit regenerated docs
-        if: startsWith(github.ref, 'refs/heads/main')
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          if git diff --quiet -- docs; then
-            echo "Docs are current"
-            exit 0
-          fi
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/bundles-presets.md docs/bundles-presets.zh-CN.md
-          git commit -m "docs: regenerate bundle/preset catalog"
-          git push origin HEAD:main
-
-      - name: Fail if docs are stale
-        if: github.event_name == 'pull_request'
-        run: |
-          set -euo pipefail
-          if ! git diff --quiet -- docs; then
-            git diff -- docs
-            echo "::error::bundle/preset docs are stale; run nix run .#generate-docs and commit the changes"
-            exit 1
-          fi
+  deploy:
+    name: Deploy documentation site
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

@@ -1,11 +1,13 @@
-# NixOS Integration
+---
+title: NixOS Integration
+description: Enable dsh and its web service through NixOS modules.
+---
 
 This guide covers the `nixosModules.default` NixOS module: enabling the `dsh`
 CLI, declaring bundles and profiles, and running the web profile as a system
 service. For bundle and preset details, see
-[Bundles and Presets](bundles-presets.md). For advanced package overrides,
-secret injection, and reverse proxy setup, see
-[Advanced Usage](advanced-usage.md).
+[Bundles and Presets](../catalog/). For advanced package overrides, secret
+injection, and reverse proxy setup, see [Advanced Usage](../advanced-usage/).
 
 ## Add the Flake Input
 

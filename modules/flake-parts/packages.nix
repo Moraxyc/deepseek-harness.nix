@@ -7,10 +7,12 @@
     { pkgs, ... }:
     let
       dsh = pkgs.dsh;
+      docs-site = pkgs.callPackage ../../pkgs/docs-site/package.nix { };
     in
     {
       packages = lib.filterAttrs (_: package: lib.isDerivation package && package ? meta) dsh // {
         default = dsh.dsh;
+        inherit docs-site;
       };
 
       legacyPackages = {
@@ -29,23 +31,5 @@
         meta.description = dsh.dsh-desktop.meta.description;
       };
 
-      apps.generate-docs = {
-        type = "app";
-        program = "${
-          pkgs.writeShellApplication {
-            name = "generate-docs";
-            runtimeInputs = with pkgs; [
-              coreutils
-              diffutils
-              git
-              jq
-              nix
-              prettier
-            ];
-            text = builtins.readFile ../../scripts/generate-docs.sh;
-          }
-        }/bin/generate-docs";
-        meta.description = "Generate bundle and preset catalog documentation";
-      };
     };
 }

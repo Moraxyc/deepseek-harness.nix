@@ -1,8 +1,12 @@
-# Advanced Usage
+---
+title: Advanced Usage
+description: Custom profiles, package overrides, services, and reverse proxies.
+---
 
 This page covers custom profiles, overrides, and the overlay. See
-[NixOS Integration](nixos.md) and [Home Manager Integration](home-manager.md)
-for module setup, and the [README](../README.en.md) for quickstart commands.
+[NixOS Integration](../nixos/) and [Home Manager Integration](../home-manager/)
+for module setup, and the [README](https://github.com/moraxyc/deepseek-harness.nix)
+for quickstart commands.
 
 ## NixOS
 
