@@ -23,4 +23,4 @@ export interface Catalog {
   presets: PresetInfo[];
 }
 
-export { catalog } from './catalog.generated';
+export { catalog } from "./catalog.generated";

@@ -64,6 +64,24 @@ loopback，并且不打开防火墙。
 Dynamic 模式把状态放在 `/var/lib/dsh`；固定用户模式会为配置的
 `dataDir`、`homeDirectory` 和 `workspace` 创建对应目录。
 
+如果需要更严格的 systemd 沙箱，请显式启用隔离模式：
+
+```nix
+services.dsh.isolation = {
+  enable = true;
+  rootDirectory = "/var/lib/dsh/root";
+  readWritePaths = [ "/var/lib/dsh/cache" ];
+  bindPaths = [ "/srv/dsh-assets:/opt/dsh/assets" ];
+  bindReadOnlyPaths = [ "/nix/store:/nix/store" "/etc/resolv.conf:/etc/resolv.conf" ];
+};
+```
+
+隔离模式保留网络能力，并增加设备、内核、命名空间、能力以及 SUID/SGID
+限制。`homeDirectory` 和 `workspace` 仍然可写；如需其他可写路径，请使用
+`readWritePaths`。设置 `rootDirectory` 后，程序运行时依赖必须位于根目录中；
+请使用 `bindReadOnlyPaths` 挂载只读运行时输入。两个 bind 选项都使用 systemd
+的 `source:destination` 格式。
+
 ### 自定义 profile
 
 `services.dsh` 会从 `programs.dsh`（或 `services.dsh.profiles`）声明的

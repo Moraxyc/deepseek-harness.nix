@@ -69,6 +69,25 @@ Unless `user` and `group` are both set, the unit uses systemd `DynamicUser`.
 Dynamic mode keeps its state under `/var/lib/dsh`; fixed-user mode creates the
 configured `dataDir`, `homeDirectory`, and `workspace` for that account.
 
+For a stronger systemd sandbox, enable isolation explicitly:
+
+```nix
+services.dsh.isolation = {
+  enable = true;
+  rootDirectory = "/var/lib/dsh/root";
+  readWritePaths = [ "/var/lib/dsh/cache" ];
+  bindPaths = [ "/srv/dsh-assets:/opt/dsh/assets" ];
+  bindReadOnlyPaths = [ "/nix/store:/nix/store" "/etc/resolv.conf:/etc/resolv.conf" ];
+};
+```
+
+Isolation keeps networking available and adds device, kernel, namespace,
+capability, and SUID/SGID restrictions. `homeDirectory` and `workspace` stay
+writable; use `readWritePaths` for additional writable paths. `rootDirectory`
+requires the executable's runtime to be available below the root; use
+`bindReadOnlyPaths` for read-only runtime inputs. Both bind options use
+systemd's `source:destination` syntax.
+
 ### Custom Profiles
 
 `services.dsh` composes its package from the profiles declared under

@@ -33,6 +33,7 @@
             services.dsh = {
               enable = true;
               environmentFile = "/etc/dsh-test.env";
+              isolation.enable = true;
             };
           };
 

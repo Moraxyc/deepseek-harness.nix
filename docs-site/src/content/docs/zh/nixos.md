@@ -124,6 +124,26 @@ services.dsh = {
 - `openFirewall`：是否打开 `port`，默认 `false`；
 - `autoStart`：是否随 `multi-user.target` 启动，默认 `true`。
 
+如果需要更严格的沙箱，可启用可选的 systemd 隔离模式。该模式保留 web
+服务所需的网络能力，同时增加设备、内核、命名空间、能力以及 SUID/SGID
+限制。额外的可写路径和绑定挂载必须显式声明：
+
+```nix
+services.dsh.isolation = {
+  enable = true;
+  rootDirectory = "/var/lib/dsh/root";
+  readWritePaths = [ "/var/lib/dsh/cache" ];
+  bindPaths = [ "/srv/dsh-assets:/opt/dsh/assets" ];
+  bindReadOnlyPaths = [ "/nix/store:/nix/store" "/etc/resolv.conf:/etc/resolv.conf" ];
+};
+```
+
+`rootDirectory` 是可选项。设置后该目录会作为服务根目录，程序运行时依赖
+必须位于根目录中。请使用 `bindReadOnlyPaths` 显式挂载所需的 Nix store、证书、
+DNS 文件或其他只读输入。两个 bind 选项都使用 systemd 的
+`source:destination` 格式。隔离模式下服务的 `homeDirectory` 和 `workspace`
+仍然可写；`readWritePaths` 用于追加其他可写路径。
+
 服务单元名为 `dsh-web`：
 
 ```sh

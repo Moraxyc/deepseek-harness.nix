@@ -132,6 +132,28 @@ Key service options:
 - `openFirewall`: whether to open `port`, default `false`;
 - `autoStart`: whether to start with `multi-user.target`, default `true`.
 
+Enable the optional systemd isolation profile when the service needs a
+stronger sandbox. It keeps networking available for the web server, while
+adding device, kernel, namespace, capability, and SUID/SGID restrictions.
+Additional writable paths and bind mounts must be declared explicitly:
+
+```nix
+services.dsh.isolation = {
+  enable = true;
+  rootDirectory = "/var/lib/dsh/root";
+  readWritePaths = [ "/var/lib/dsh/cache" ];
+  bindPaths = [ "/srv/dsh-assets:/opt/dsh/assets" ];
+  bindReadOnlyPaths = [ "/nix/store:/nix/store" "/etc/resolv.conf:/etc/resolv.conf" ];
+};
+```
+
+`rootDirectory` is optional. When set, the directory is the service root and
+the executable's runtime must be made available below it. Use
+`bindReadOnlyPaths` for the required Nix store paths, certificates, DNS files,
+or other read-only inputs. Both bind options use systemd's
+`source:destination` syntax. The service's `homeDirectory` and `workspace`
+remain writable in isolation mode; `readWritePaths` adds more paths.
+
 The unit is named `dsh-web`:
 
 ```sh

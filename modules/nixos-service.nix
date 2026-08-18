@@ -159,6 +159,49 @@ in
       default = true;
       description = "Start the service with `multi-user.target`.";
     };
+
+    isolation = {
+      enable = lib.mkEnableOption "additional systemd isolation for the web service";
+
+      rootDirectory = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        description = ''
+          Optional systemd `RootDirectory` for the isolated service. The
+          directory must contain the service runtime; bind the required Nix
+          store paths and other files with `bindReadOnlyPaths`.
+        '';
+      };
+
+      readWritePaths = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        description = ''
+          Additional paths writable by the service in isolation mode. These
+          paths are passed to systemd as `ReadWritePaths`.
+        '';
+      };
+
+      bindPaths = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        description = ''
+          Read-write bind mounts for isolation mode, in systemd's
+          `source:destination` format. These paths are passed to systemd as
+          `BindPaths`.
+        '';
+      };
+
+      bindReadOnlyPaths = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        description = ''
+          Read-only bind mounts for `rootDirectory`, in systemd's
+          `source:destination` format. These paths are passed to systemd as
+          `BindReadOnlyPaths`.
+        '';
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -215,6 +258,38 @@ in
           cfg.homeDirectory
           cfg.workspace
         ];
+      }
+      // lib.optionalAttrs cfg.isolation.enable {
+        PrivateDevices = true;
+        PrivateUsers = true;
+        ProtectKernelTunables = true;
+        ProtectKernelModules = true;
+        ProtectControlGroups = true;
+        ProtectClock = true;
+        ProtectKernelLogs = true;
+        ProtectHostname = true;
+        RestrictSUIDSGID = true;
+        RestrictNamespaces = true;
+        RestrictRealtime = true;
+        LockPersonality = true;
+        SystemCallArchitectures = "native";
+        CapabilityBoundingSet = "";
+        ProtectProc = "invisible";
+        ProcSubset = "pid";
+        RestrictAddressFamilies = [
+          "AF_INET"
+          "AF_INET6"
+          "AF_UNIX"
+        ];
+        UMask = "0077";
+        RootDirectory = lib.mkIf (cfg.isolation.rootDirectory != null) cfg.isolation.rootDirectory;
+        ReadWritePaths = [
+          cfg.homeDirectory
+          cfg.workspace
+        ]
+        ++ cfg.isolation.readWritePaths;
+        BindPaths = cfg.isolation.bindPaths;
+        BindReadOnlyPaths = cfg.isolation.bindReadOnlyPaths;
       };
     };
 
