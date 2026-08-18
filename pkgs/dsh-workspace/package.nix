@@ -17,13 +17,13 @@
 
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
-  version = "0-unstable-2026-08-13";
+  version = "dsh-v0.1.0-rc.7-unstable-2026-08-17";
 
   src = fetchFromGitHub {
     owner = "deepseek-ai";
     repo = "deepseek-harness";
-    rev = "47f943859bef60e4160492346772ded9b24f765a";
-    hash = "sha256-ZPGCNoPXVjP76Tm/tFPDX2X95cd83M4iHLmVP5dR+Ps=";
+    rev = "99f6f02fecdb7dff40c3fbc9470f5907c29f74ca";
+    hash = "sha256-xPP8FB308n8SD5B65whaErLyaDBbFferoQ9g3H6h2es=";
   };
 
   nodejs = nodejs-slim;
@@ -46,7 +46,7 @@ buildNpmPackage (finalAttrs: {
     nativeBuildInputs = [ dshWorkspacePatchHook ];
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-aySHq0ywTMM5q7YuGHZrV3yQE3bwppgGfWH3wRnHCXk=";
+    hash = "sha256-zmlWt5HYvzkCnCDD5X/psgfGPbRAUwO0p4qDtI5+R5M=";
   };
 
   nativeBuildInputs = [
