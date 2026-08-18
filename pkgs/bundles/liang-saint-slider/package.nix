@@ -9,7 +9,7 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-plugin-liang-calibrator";
-  version = "0-unstable-2026-08-17";
+  version = "0-unstable-2026-08-14";
 
   src = fetchFromGitHub {
     owner = "BruzWJ";
@@ -21,7 +21,7 @@ buildDshBundle (finalAttrs: {
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
-    hash = "sha256-ef3jm8lAxI2iH7X5BCplkC9KMFlPHygwd7pKwYRMKU4=";
+    hash = "sha256-3O+aGpR3B4VKfKugsUOdbnevSBdh8cYMhg2bQC1C6CQ=";
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
