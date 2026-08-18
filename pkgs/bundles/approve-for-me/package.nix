@@ -10,15 +10,15 @@
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-approve-for-me";
-  version = "0-unstable-2026-08-15";
+  version = "0-unstable-2026-08-17";
   deployPackage = "dsh-approve-for-me";
   linkKernelNodeModules = dsh-kernel;
 
   src = fetchFromGitHub {
     owner = "timeance";
     repo = "dsh-approve-for-me";
-    rev = "b22695df059185f2591c122473c33822c40a9a4e";
-    hash = "sha256-poznDowiEyK7orAQySFzWBWUN6F/YMwJ/ovszrWm3vY=";
+    rev = "b13c48e970ac72d4fc63e234a80980e3095d01bf";
+    hash = "sha256-EH8aq24917F7MrjaVWJaPtqQALiy/8IjVqMK2IpRVpE=";
   };
 
   pnpmDeps = fetchPnpmDeps {
