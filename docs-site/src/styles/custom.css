@@ -337,6 +337,15 @@ header.header {
   margin: 2.25rem 0 3rem;
 }
 
+@media (min-width: 50.1rem) {
+  .catalog-section {
+    position: relative;
+    left: 50%;
+    width: min(88rem, calc(100% + 20vw));
+    transform: translateX(-50%);
+  }
+}
+
 .catalog-section h2 {
   display: flex;
   align-items: baseline;
@@ -363,7 +372,7 @@ header.header {
 
 .catalog-table {
   width: 100%;
-  min-width: 760px;
+  min-width: 900px;
   border-collapse: collapse;
   font-size: 0.9rem;
 }
@@ -399,12 +408,14 @@ header.header {
 }
 
 .catalog-values {
+  display: grid;
+  gap: 0.15rem;
   margin: 0;
   padding-left: 1.1rem;
 }
 
-.catalog-values li + li {
-  margin-top: 0.25rem;
+.catalog-values li {
+  margin: 0 !important;
 }
 
 @media (max-width: 50rem) {
