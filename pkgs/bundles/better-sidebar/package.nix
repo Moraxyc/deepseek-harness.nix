@@ -10,7 +10,7 @@
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-better-sidebar";
-  version = "0.12.3";
+  version = "0.13.0";
   deployPackage = "dsh-better-sidebar";
   stripPrepareScripts = true;
   linkKernelNodeModules = dsh-kernel;
@@ -19,7 +19,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     owner = "omdsh-dev";
     repo = "DSH-better-sidebar";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-GZVmfDo3s3YwEZaY5mvy47zw41BSmZtYwUNYmTrtZCs=";
+    hash = "sha256-8ppL9KD9wKEWIxqV7xo5o0pCEX1SxnMrZc0w9JFRi4w=";
   };
 
   pnpmDeps = fetchPnpmDeps {
