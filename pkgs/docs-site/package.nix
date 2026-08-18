@@ -24,6 +24,7 @@ buildNpmPackage (finalAttrs: {
       ../../docs-site/astro.config.mjs
       ../../docs-site/package-lock.json
       ../../docs-site/package.json
+      ../../docs-site/public
       ../../docs-site/src
       ../../docs-site/tsconfig.json
     ];
