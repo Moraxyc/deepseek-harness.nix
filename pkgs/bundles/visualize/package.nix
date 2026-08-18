@@ -17,15 +17,15 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   src = fetchFromGitHub {
     owner = "Nagi-ovo";
     repo = "dsh-visualize";
-    rev = "dd41b388db67f146c928772c6242c0acdb5bbeae";
-    hash = "sha256-VFJQYE2YFTL1NuQL7rMByM3AmvSas9AR0sTgOI3tabQ=";
+    rev = "e86f68fe66b980a0ebeed8ef7409522b0b720bed";
+    hash = "sha256-zyyP03tUNlmdhOHbJ3bU174weHH7zkF/CS1cyZSCJfk=";
   };
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-qof8bKOw/YO32svWuSP5RHfqttfWRXQyqCUxLmwQZAw=";
+    hash = "sha256-qJqKd59i5ElQ2csD3Yczg42hvwobMIMAq1ZwcONaEJw=";
   };
 
   npmDeps = null;
