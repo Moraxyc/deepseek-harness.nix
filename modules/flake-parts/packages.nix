@@ -8,6 +8,7 @@
     let
       dsh = pkgs.dsh;
       docs-site = pkgs.callPackage ../../pkgs/docs-site/package.nix { };
+      importPnpmLock = dsh.importPnpmLock;
     in
     {
       packages = lib.filterAttrs (_: package: lib.isDerivation package && package ? meta) dsh // {
@@ -17,6 +18,7 @@
 
       legacyPackages = {
         inherit (dsh) bundles presets;
+        inherit importPnpmLock;
       };
 
       apps.default = {

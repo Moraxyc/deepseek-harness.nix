@@ -2,8 +2,9 @@
   lib,
   bashInteractive,
   buildNpmPackage,
-  fetchFromGitHub,
   fetchPnpmDeps,
+  fetchFromGitHub,
+  importPnpmLock,
   dshWorkspacePatchHook,
   jq,
   nodejs,
@@ -12,7 +13,6 @@
   pnpm_11,
   python3,
   yq-go,
-  nix-update-script,
 }:
 
 buildNpmPackage (finalAttrs: {
@@ -36,17 +36,25 @@ buildNpmPackage (finalAttrs: {
   postPatch = "patchDshWorkspace dependencies";
   preConfigure = "patchDshWorkspace composition";
 
-  pnpmDeps = (fetchPnpmDeps.override { yq = yq-go; }) {
-    inherit (finalAttrs)
-      pname
-      version
-      src
-      postPatch
-      ;
-    nativeBuildInputs = [ dshWorkspacePatchHook ];
-    pnpm = pnpm_11;
-    fetcherVersion = 4;
-    hash = "sha256-zmlWt5HYvzkCnCDD5X/psgfGPbRAUwO0p4qDtI5+R5M=";
+  # pnpmDeps = (fetchPnpmDeps.override { yq = yq-go; }) {
+  #   inherit (finalAttrs)
+  #     pname
+  #     version
+  #     src
+  #     postPatch
+  #     ;
+  #   nativeBuildInputs = [ dshWorkspacePatchHook ];
+  #   pnpm = pnpm_11;
+  #   fetcherVersion = 4;
+  #   hash = "sha256-zmlWt5HYvzkCnCDD5X/psgfGPbRAUwO0p4qDtI5+R5M=";
+  # };
+
+  pnpmDeps = importPnpmLock {
+    inherit (finalAttrs) pname version;
+    lockfileJson = ./pnpm-lock.json;
+    patchedDependencySources = {
+      "node-pty@1.2.0-beta.15" = "${finalAttrs.src}/patches/node-pty@1.2.0-beta.15.patch";
+    };
   };
 
   nativeBuildInputs = [
@@ -127,11 +135,21 @@ buildNpmPackage (finalAttrs: {
     runHook postInstall
   '';
 
-  passthru.updateScript = nix-update-script {
-    extraArgs = [
-      "--flake"
-      "--version=branch"
-    ];
+  passthru = {
+    fetchPnpmDeps = (fetchPnpmDeps.override { yq = yq-go; }) {
+      inherit (finalAttrs)
+        pname
+        version
+        src
+        postPatch
+        ;
+      nativeBuildInputs = [ dshWorkspacePatchHook ];
+      pnpm = pnpm_11;
+      fetcherVersion = 4;
+      hash = "";
+    };
+
+    updateScript = ./update.sh;
   };
 
   meta = {

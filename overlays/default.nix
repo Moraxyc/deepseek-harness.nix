@@ -24,7 +24,8 @@ let
       directory = ../pkgs;
     }
   );
+  importPnpmLock = dsh.importPnpmLock;
 in
 {
-  inherit dsh;
+  inherit dsh importPnpmLock;
 }
