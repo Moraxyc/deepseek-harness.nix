@@ -44,13 +44,17 @@ jobs:
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
           skipPush: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
 
-      - name: Build changed packages
+      - name: Build package set
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
         run: |
           set -euo pipefail
 
-          attrs="$(scripts/select-package-ci-attrs.sh "$BASE_SHA")"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            attrs="$(scripts/select-package-ci-attrs.sh)"
+          else
+            attrs="$(scripts/select-package-ci-attrs.sh "$BASE_SHA")"
+          fi
           if [ -z "$attrs" ]; then
             echo "No package attrs changed"
             echo "changed=false" >> "$GITHUB_OUTPUT"
