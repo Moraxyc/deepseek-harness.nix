@@ -1,6 +1,19 @@
 name: Package CI
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "pkgs/**"
+      - "lib/**"
+      - "overlays/**"
+      - "flake.lock"
+      - "flake.nix"
+      - "default.nix"
+      - "modules/flake-parts/**"
+      - ".github/workflows/package-ci.yml"
+      - "scripts/select-package-ci-attrs.sh"
   pull_request:
     paths:
       - "pkgs/**"
@@ -46,11 +59,13 @@ jobs:
 
       - name: Build package set
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
         run: |
           set -euo pipefail
 
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] ||
+             [ -z "$BASE_SHA" ] ||
+             [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
             attrs="$(scripts/select-package-ci-attrs.sh)"
           else
             attrs="$(scripts/select-package-ci-attrs.sh "$BASE_SHA")"
