@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#!nix-shell -i bash -p coreutils gnused nix-update yq-go
+#!nix-shell -i bash -p coreutils gnused jq nix nix-update yq-go
 # shellcheck shell=bash
 set -euo pipefail
 
@@ -22,6 +22,9 @@ if [ "$old_src" = "$new_src" ]; then
 fi
 
 src="$(nix build --no-link --print-out-paths ".#$attr.src")"
+
+landlock_version="$(jq -er '.version | strings' "$src/native/landlock-run/package.json")"
+nix-update --flake --version="$landlock_version" --no-src dsh-landlock-run
 
 yq -o=json . "$src/pnpm-lock.yaml" > "$tmp_dir/pnpm-lock.json"
 mv "$tmp_dir/pnpm-lock.json" "$repo_root/pkgs/dsh-workspace/pnpm-lock.json"

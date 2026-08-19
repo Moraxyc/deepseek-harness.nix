@@ -12,19 +12,26 @@
   pnpmConfigHook,
   pnpm_11,
   python3,
+  stdenv,
+  dsh-landlock-run ? null,
   yq-go,
 }:
 
+let
+  platformKey = with stdenv.hostPlatform.node; "${platform}-${arch}";
+in
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
   version = "dsh-v0.1.0-rc.7-unstable-2026-08-17";
 
-  src = fetchFromGitHub {
+  workspaceSrc = fetchFromGitHub {
     owner = "deepseek-ai";
     repo = "deepseek-harness";
     rev = "99f6f02fecdb7dff40c3fbc9470f5907c29f74ca";
     hash = "sha256-xPP8FB308n8SD5B65whaErLyaDBbFferoQ9g3H6h2es=";
   };
+
+  src = finalAttrs.workspaceSrc;
 
   nodejs = nodejs-slim;
   disallowedReferences = [
@@ -33,7 +40,29 @@ buildNpmPackage (finalAttrs: {
     python3
   ];
 
-  postPatch = "patchDshWorkspace dependencies";
+  postPatch = ''
+    patchDshWorkspace dependencies
+
+    substituteInPlace packages/terminal/terminal-bash/src/config.ts \
+      --replace-fail \
+      "shellPath: z.string().default('/bin/bash')" \
+      "shellPath: z.string().default('${lib.getExe bashInteractive}')"
+
+    substituteInPlace packages/client/tsdown.client.ts \
+      --replace-fail \
+      "return CSS_VIRTUAL_PREFIX + abs + CSS_VIRTUAL_SUFFIX" \
+      "return CSS_VIRTUAL_PREFIX + relative(process.cwd(), abs) + CSS_VIRTUAL_SUFFIX" \
+      --replace-fail \
+      "const fileId = virtualId.slice(CSS_VIRTUAL_PREFIX.length, -CSS_VIRTUAL_SUFFIX.length)" \
+      "const fileId = resolvePath(process.cwd(), virtualId.slice(CSS_VIRTUAL_PREFIX.length, -CSS_VIRTUAL_SUFFIX.length))" \
+      --replace-fail \
+      "Object.entries(cssExports ?? {})" \
+      "Object.entries(cssExports ?? {}).sort(([a], [b]) => a.localeCompare(b))"
+  ''
+  + lib.optionalString (lib.meta.availableOn stdenv.hostPlatform dsh-landlock-run) ''
+    install -Dm755 ${dsh-landlock-run}/bin/landlock-run native/landlock-run/packages/${platformKey}/bin/landlock-run
+  '';
+
   preConfigure = "patchDshWorkspace composition";
 
   # pnpmDeps = (fetchPnpmDeps.override { yq = yq-go; }) {
@@ -92,9 +121,6 @@ buildNpmPackage (finalAttrs: {
       "$appDir"
     yq -i '.name = "@deepseek-ai/dsh-nix-composition"' "$appDir/package.json"
 
-    substituteInPlace "$appDir/node_modules/@deepseek-ai/dsh-terminal-bash/lib/index.js" \
-      --replace-fail '"/bin/bash"' '"${lib.getExe bashInteractive}"'
-
     # Keep only the runtime artifacts needed by the kernel and bundle packages.
     rm -rf "$appDir/node_modules/@anthropic-ai/claude-agent-sdk-"*
     jq 'del(.optionalDependencies)' \
@@ -120,14 +146,6 @@ buildNpmPackage (finalAttrs: {
       done
     done
 
-    [ -f apps/web/package.json ] || {
-      printf 'dsh-workspace: web frontend package.json is missing\n' >&2
-      exit 1
-    }
-    [ -d apps/web/dist ] || {
-      printf 'dsh-workspace: web frontend dist is missing\n' >&2
-      exit 1
-    }
     mkdir -p "$workspaceDir/frontends/web"
     cp apps/web/package.json "$workspaceDir/frontends/web/package.json"
     cp -r apps/web/dist "$workspaceDir/frontends/web/dist"
