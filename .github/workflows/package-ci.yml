@@ -63,5 +63,7 @@ jobs:
 
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
-          read -r -a build_attrs <<< "$attrs"
+          mapfile -t build_attrs <<< "$attrs"
+          printf 'Building %d package attrs\n' "${#build_attrs[@]}"
+          printf '%s\n' "${build_attrs[@]}"
           nix build --no-link --print-build-logs "${build_attrs[@]}"
