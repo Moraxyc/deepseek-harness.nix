@@ -10,14 +10,14 @@
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-noema";
-  version = "0.1.0-rc.2-unstable-2026-08-19";
+  version = "0.1.0-rc.2";
   deployPackage = "@zseven-w/dsh-noema";
   linkKernelNodeModules = dsh-kernel;
 
   src = fetchFromGitHub {
     owner = "ZSeven-W";
     repo = "dsh-noema";
-    rev = "3f2dc5aa43e5174cd69271729b9fc178bf8dd85a";
+    tag = "v${finalAttrs.version}";
     hash = "sha256-7b0IDdT1cl4nRQN/sx5nhfvXaEkBnwdl3mBmW8QY+Ck=";
   };
 
@@ -48,7 +48,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   passthru.updateScript = nix-update-script {
     extraArgs = [
       "--flake"
-      "--version=branch"
+      "--version=unstable"
     ];
   };
 
