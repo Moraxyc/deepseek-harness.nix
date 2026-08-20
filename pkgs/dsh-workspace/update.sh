@@ -13,7 +13,7 @@ trap 'rm -rf "$tmp_dir"' EXIT
 
 old_src="$(nix eval --raw ".#$attr.src.rev" 2>/dev/null)"
 
-nix-update --flake --version=stable --src-only "$attr"
+nix-update --flake --version=unstable --src-only "$attr"
 
 new_src="$(nix eval --raw ".#$attr.src.rev" 2>/dev/null)"
 
