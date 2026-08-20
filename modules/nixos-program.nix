@@ -3,15 +3,22 @@
   lib,
   ...
 }:
+let
+  cfg = config.programs.dsh;
+in
 
 {
   imports = [ ./shared-profile-options.nix ];
 
-  config = lib.mkIf config.programs.dsh.enable {
+  config = lib.mkIf cfg.enable {
     environment.systemPackages = [
-      ((config.programs.dsh.package.withProfiles config.programs.dsh.profiles).override {
-        defaultProfile = config.programs.dsh.defaultProfile;
+      ((cfg.package.withProfiles cfg.profiles).override {
+        defaultProfile = cfg.defaultProfile;
       })
     ];
+
+    environment.variables = lib.mkIf (cfg.home != null) {
+      DSH_HOME = cfg.home;
+    };
   };
 }

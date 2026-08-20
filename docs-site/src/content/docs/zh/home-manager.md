@@ -68,6 +68,19 @@ inputs.home-manager.lib.homeManagerConfiguration {
 该模块会把组合后的包加入 `home.packages`，并在 Home Manager 激活时生成和
 同步受管理的 profile。
 
+设置 `programs.dsh.home` 可以改用其他 `DSH_HOME`：
+
+```nix
+{ config, ... }:
+{
+  programs.dsh.home = "${config.home.homeDirectory}/.local/share/dsh";
+}
+```
+
+未设置时，dsh 使用 `~/.dsh`。显式设置后，Home Manager 会把它导出到用户
+会话，并在激活时用它同步 profile；除非另设 `services.dsh.dataDir`，用户服务
+也会继承该路径。
+
 ## NixOS 管理的 Home Manager
 
 当 Home Manager 由 NixOS 管理时：
@@ -123,7 +136,8 @@ programs.dsh.package = inputs.deepseek-harness.packages.${pkgs.system}.dsh;
 ## Per-User Web 服务
 
 `homeModules.default` 还提供 `services.dsh`，以 systemd user 单元运行。
-默认使用 `~/.dsh` 作为 `DSH_HOME`，因此会与 CLI 生成的 profile 共用：
+设置后使用 `programs.dsh.home`，否则默认使用 `~/.dsh`，因此会与 CLI 生成的
+profile 共用：
 
 ```nix
 services.dsh = {

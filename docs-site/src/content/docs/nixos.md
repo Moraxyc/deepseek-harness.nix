@@ -43,6 +43,17 @@ The module:
 - adds a composed `dsh` package to `environment.systemPackages`;
 - exposes the `programs.dsh` and `services.dsh` option groups.
 
+## Set DSH Home
+
+Set `programs.dsh.home` to export an explicit `DSH_HOME` through the system
+environment:
+
+```nix
+programs.dsh.home = "/var/lib/dsh-cli";
+```
+
+When unset, dsh keeps its per-user `$HOME/.dsh` default.
+
 ## Declare Profiles
 
 Profiles are declared as attributes of `programs.dsh.profiles`. A profile

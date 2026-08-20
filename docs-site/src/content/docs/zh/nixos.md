@@ -42,6 +42,16 @@ description: 通过 NixOS 模块启用 dsh 及其 web 服务。
 - 把组合后的 `dsh` 加入 `environment.systemPackages`；
 - 提供 `programs.dsh` 和 `services.dsh` 两组选项。
 
+## 设置 DSH Home
+
+设置 `programs.dsh.home`，可通过系统环境显式导出 `DSH_HOME`：
+
+```nix
+programs.dsh.home = "/var/lib/dsh-cli";
+```
+
+未设置时，dsh 仍按用户使用默认的 `$HOME/.dsh`。
+
 ## 声明 Profile
 
 profile 声明在 `programs.dsh.profiles` 下。名为 `tui` 的 profile 会生成到

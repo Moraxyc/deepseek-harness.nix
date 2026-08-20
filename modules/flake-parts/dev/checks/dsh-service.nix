@@ -10,7 +10,10 @@
         nodes.machine =
           { pkgs, ... }:
           {
-            imports = [ ../../../../modules/nixos-service.nix ];
+            imports = [
+              ../../../../modules/nixos-program.nix
+              ../../../../modules/nixos-service.nix
+            ];
 
             environment.etc."dsh-test.env".text = "DEEPSEEK_API_KEY=test-key\n";
             environment.systemPackages = with pkgs; [
@@ -22,12 +25,16 @@
             # dshBundleCheckHook validates the composed profile at build
             # time, so this profile must be a real web profile and its patch
             # must remain a top-level YAML array.
-            programs.dsh.profiles.web = {
-              bundles = [ pkgs.dsh.bundles.web-app ];
-              patch = ''
-                # served by programs.dsh.profiles
-                []
-              '';
+            programs.dsh = {
+              enable = true;
+              home = "/var/lib/dsh/cli-home";
+              profiles.web = {
+                bundles = [ pkgs.dsh.bundles.web-app ];
+                patch = ''
+                  # served by programs.dsh.profiles
+                  []
+                '';
+              };
             };
 
             services.dsh = {
@@ -38,6 +45,12 @@
           };
 
         testScript = ''
+          machine.succeed(
+            "set +u; . /etc/set-environment; set -u; test \"$DSH_HOME\" = /var/lib/dsh/cli-home; dsh --profile nix-web --version"
+          )
+          machine.succeed(
+            "test -f /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml"
+          )
           machine.wait_for_unit("dsh-web.service")
           machine.wait_until_succeeds(
             "grep -q 'served by programs.dsh.profiles' /var/lib/dsh/home/profiles/nix-web/cordis.patch.yml"

@@ -70,6 +70,19 @@ inputs.home-manager.lib.homeManagerConfiguration {
 The module adds the composed package to `home.packages` and seeds managed
 profiles during Home Manager activation.
 
+Set `programs.dsh.home` to use another `DSH_HOME`:
+
+```nix
+{ config, ... }:
+{
+  programs.dsh.home = "${config.home.homeDirectory}/.local/share/dsh";
+}
+```
+
+When unset, dsh uses `~/.dsh`. Home Manager exports an explicit value to the
+user session and uses it during profile activation. The user service inherits
+the same location unless `services.dsh.dataDir` is set separately.
+
 ## NixOS-Managed Home Manager
 
 When Home Manager is managed by NixOS:
@@ -127,8 +140,8 @@ Neither mode takes over an existing unmarked directory with the same name.
 ## Per-User Web Service
 
 `homeModules.default` also provides `services.dsh` as a systemd user unit.
-It defaults to `~/.dsh` as `DSH_HOME`, so it shares profiles materialized by
-the CLI:
+It uses `programs.dsh.home` when set and otherwise defaults to `~/.dsh`, so it
+shares profiles materialized by the CLI:
 
 ```nix
 services.dsh = {

@@ -13,6 +13,13 @@ in
 
     package = lib.mkPackageOption pkgs.dsh "dsh" { };
 
+    home = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      example = "/home/alice/.local/share/dsh";
+      description = "Directory exported as `DSH_HOME`. Leave unset to use dsh's `$HOME/.dsh` default.";
+    };
+
     profiles = profileOptions.mkProfilesOption { };
 
     defaultProfile = lib.mkOption {

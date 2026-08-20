@@ -99,7 +99,17 @@ in
 
     dataDir = lib.mkOption {
       type = lib.types.str;
-      default = "${config.home.homeDirectory}/.dsh";
+      default =
+        if config.programs.dsh.home != null then
+          config.programs.dsh.home
+        else
+          "${config.home.homeDirectory}/.dsh";
+      defaultText = lib.literalExpression ''
+        if config.programs.dsh.home != null then
+          config.programs.dsh.home
+        else
+          "''${config.home.homeDirectory}/.dsh"
+      '';
       description = "Directory used as `DSH_HOME`; defaults to the same location the dsh CLI uses.";
     };
 
