@@ -15,8 +15,8 @@ buildDshBundle (finalAttrs: {
   src = fetchFromGitHub {
     owner = "ccch1mneyyy";
     repo = "dsh-TUI";
-    rev = "f97c7cdce7fd38a24f8203087c24fd2172daa638";
-    hash = "sha256-+rVXQB3NqsJxeQfA/6hfku368tvHJ4irxOmDLvj4xho=";
+    tag = "v${finalAttrs.version}";
+    hash = "sha256-bz2S2Nf8vfRCC+3XnzreWLoX7v1RwuIlbKIEU8hlvH0=";
   };
 
   pnpmDeps = fetchPnpmDeps {
