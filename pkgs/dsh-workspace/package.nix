@@ -27,14 +27,12 @@ buildNpmPackage (finalAttrs: {
   __structuredAttrs = true;
   strictDeps = true;
 
-  workspaceSrc = fetchFromGitHub {
+  src = fetchFromGitHub {
     owner = "deepseek-ai";
     repo = "deepseek-harness";
     tag = "dsh-v${finalAttrs.version}";
     hash = "sha256-FzToX43k6upXkwTxTYXHRK5IdatxibxeZgZBpuDE7S4=";
   };
-
-  src = finalAttrs.workspaceSrc;
 
   env.DSH_CLIENT_COMMIT_HASH = "141eb6fef83422698aef7a981029e843e8161534";
 
