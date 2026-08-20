@@ -1,6 +1,7 @@
 #!/usr/bin/env nix-shell
 #!nix-shell -i bash -p coreutils gnused jq nix nix-update yq-go
 # shellcheck shell=bash
+# shellcheck disable=SC2016
 set -euo pipefail
 
 repo_root="$(git rev-parse --show-toplevel)"
@@ -12,7 +13,7 @@ trap 'rm -rf "$tmp_dir"' EXIT
 
 old_src="$(nix eval --raw ".#$attr.src.rev" 2>/dev/null)"
 
-nix-update --flake --version=branch --src-only "$attr"
+nix-update --flake --version=stable --src-only "$attr"
 
 new_src="$(nix eval --raw ".#$attr.src.rev" 2>/dev/null)"
 
@@ -32,21 +33,14 @@ mv "$tmp_dir/pnpm-lock.json" "$repo_root/pkgs/dsh-workspace/pnpm-lock.json"
 new_deps="$(nix build --no-link --print-out-paths ".#$attr.pnpmDeps")"
 new_hash="$(nix hash path --type sha256 "$new_deps")"
 
-if old_output="$(nix build --no-link --print-out-paths ".#$attr.fetchPnpmDeps" 2>&1)"; then
-  old_deps="$(printf '%s\n' "$old_output" | tail -n1)"
-  old_hash="$(nix hash path --type sha256 "$old_deps")"
-else
-  old_hash="$(printf '%s\n' "$old_output" | sed -n 's/.*got: *\(sha256-[A-Za-z0-9+/=]\{1,\}\).*/\1/p' | tail -n1)"
-fi
+EXPECTED_PNPM_HASH="$new_hash" nix build --impure --no-link --print-out-paths --expr '
+  let
+    flake = builtins.getFlake (toString ./.);
+    package = flake.packages.${builtins.currentSystem}.dsh-workspace;
+  in
+  package.passthru.fetchPnpmDeps.overrideAttrs (_: {
+    outputHash = builtins.getEnv "EXPECTED_PNPM_HASH";
+  })
+' >/dev/null
 
-if [ -z "$old_hash" ]; then
-  printf 'dsh-workspace: could not determine fetchPnpmDeps output hash\n' >&2
-  exit 1
-fi
-
-if [ "$new_hash" != "$old_hash" ]; then
-  printf 'dsh-workspace: pnpmDeps hash %s does not match fetchPnpmDeps hash %s\n' "$new_hash" "$old_hash" >&2
-  exit 1
-fi
-
-printf 'dsh-workspace: generated pnpmDeps matches fetchPnpmDeps (%s)\n' "$new_hash"
+printf 'dsh-workspace: pnpmDeps matches fetchPnpmDeps (%s)\n' "$new_hash"

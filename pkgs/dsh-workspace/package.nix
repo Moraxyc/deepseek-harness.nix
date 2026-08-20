@@ -65,19 +65,6 @@ buildNpmPackage (finalAttrs: {
 
   preConfigure = "patchDshWorkspace composition";
 
-  # pnpmDeps = (fetchPnpmDeps.override { yq = yq-go; }) {
-  #   inherit (finalAttrs)
-  #     pname
-  #     version
-  #     src
-  #     postPatch
-  #     ;
-  #   nativeBuildInputs = [ dshWorkspacePatchHook ];
-  #   pnpm = pnpm_11;
-  #   fetcherVersion = 4;
-  #   hash = "sha256-zmlWt5HYvzkCnCDD5X/psgfGPbRAUwO0p4qDtI5+R5M=";
-  # };
-
   pnpmDeps = importPnpmLock {
     inherit (finalAttrs) pname version;
     lockfileJson = ./pnpm-lock.json;
@@ -154,6 +141,7 @@ buildNpmPackage (finalAttrs: {
   '';
 
   passthru = {
+    # Used by the update script to compare against importPnpmLock.
     fetchPnpmDeps = (fetchPnpmDeps.override { yq = yq-go; }) {
       inherit (finalAttrs)
         pname
