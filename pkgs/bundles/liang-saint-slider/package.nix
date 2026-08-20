@@ -9,19 +9,19 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-plugin-liang-calibrator";
-  version = "0-unstable-2026-08-14";
+  version = "0-unstable-2026-08-19";
 
   src = fetchFromGitHub {
     owner = "BruzWJ";
     repo = "Liang-Saint-Slider";
-    rev = "ff19dde9997f53e040eaed8bd7f0e91c0d56b4aa";
-    hash = "sha256-2T9OrACDrBWIEv6i231YU9K5YL/+1YG+L9wwniuf5fw=";
+    rev = "530fa661245cc82ff9f10458089a3fd3ccec2e4a";
+    hash = "sha256-0TLswr5JtrismW1zhTiWeiz2PsW/ryL1CbACJwJbIHk=";
   };
 
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
-    hash = "sha256-3O+aGpR3B4VKfKugsUOdbnevSBdh8cYMhg2bQC1C6CQ=";
+    hash = "sha256-BDuDPgtnuz26vO3sj3eqBUhlw6iqEbyQQxHemRA3AR4=";
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
