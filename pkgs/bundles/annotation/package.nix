@@ -14,8 +14,8 @@ buildDshBundle (finalAttrs: {
   src = fetchFromGitHub {
     owner = "omdsh-dev";
     repo = "dsh-annotation";
-    rev = "0f6aed8d8133ab003ee24b4aa4d62072b2689f6e";
-    hash = "sha256-3tfuDakNaYlb6SoXn87R5p7K4T/KF8Pu5KkYeubOXUE=";
+    rev = "9f74a6127119074e102ca92d8bf032898525a12d";
+    hash = "sha256-wTMALl4pjP3h5W0s/e+oypAzC9CMjMRg55Zi4tmvliU=";
   };
 
   npmDeps = fetchNpmDeps {
