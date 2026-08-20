@@ -65,6 +65,11 @@ buildDshBundle (finalAttrs: {
     # the kernel; linkKernelNodeModules merges the kernel peers into this tree.
     cp -r node_modules "$appDir/node_modules"
 
+    # Workspace links point into vendor/dsh-std, which is not installed.
+    rm -rf "$appDir/node_modules/@dsh-std"
+    mkdir -p "$appDir/node_modules/@dsh-std"
+    cp -rL node_modules/@dsh-std/. "$appDir/node_modules/@dsh-std/"
+
     runHook postInstall
   '';
 
