@@ -22,7 +22,7 @@ let
 in
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
-  version = "dsh-v0.1.0-rc.7-unstable-2026-08-17";
+  version = "dsh-v0.1.0-rc.8";
 
   workspaceSrc = fetchFromGitHub {
     owner = "deepseek-ai";
