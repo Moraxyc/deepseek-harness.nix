@@ -10,22 +10,22 @@
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-noema";
-  version = "0.1.0-rc.1-unstable-2026-08-15";
+  version = "0.1.0-rc.2-unstable-2026-08-19";
   deployPackage = "@zseven-w/dsh-noema";
   linkKernelNodeModules = dsh-kernel;
 
   src = fetchFromGitHub {
     owner = "ZSeven-W";
     repo = "dsh-noema";
-    rev = "acfb4cd58c9486412fb3bfc9e978eae66e04e5a7";
-    hash = "sha256-SNUSPMPN65uOjSDxyFxJeItMyUnbMXhIzlTrLXp7yO0=";
+    rev = "3f2dc5aa43e5174cd69271729b9fc178bf8dd85a";
+    hash = "sha256-7b0IDdT1cl4nRQN/sx5nhfvXaEkBnwdl3mBmW8QY+Ck=";
   };
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-1ctfEcSAw4GoNVcBxCSwpfEVy8F+lQ9/qbFGaqQverM=";
+    hash = "sha256-IgTpkTt5Js3abke85E8WMSWvuCP4yR8o2I/NqZMLPUM=";
   };
 
   npmDeps = null;
