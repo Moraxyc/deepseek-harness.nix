@@ -22,12 +22,12 @@ let
 in
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
-  version = "dsh-v0.1.0-rc.7-unstable-2026-08-17";
+  version = "0.1.0-rc.7";
 
   workspaceSrc = fetchFromGitHub {
     owner = "deepseek-ai";
     repo = "deepseek-harness";
-    rev = "99f6f02fecdb7dff40c3fbc9470f5907c29f74ca";
+    tag = "dsh-v${finalAttrs.version}";
     hash = "sha256-xPP8FB308n8SD5B65whaErLyaDBbFferoQ9g3H6h2es=";
   };
 
