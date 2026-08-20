@@ -38,7 +38,7 @@ buildDshBundle (finalAttrs: {
         --frozen-lockfile \
         --registry="$NIX_NPM_REGISTRY"
     '';
-    hash = "sha256-KuyQKgLtR06LAGDI4fcLBAgHbGDsGo9HPFzH/q60dEI=";
+    hash = "sha256-GYwMjr/101805uudheyX85TvXZRWlxb72c9KMrOVKeI=";
   };
 
   nativeBuildInputs = [ pnpm_11 ];
