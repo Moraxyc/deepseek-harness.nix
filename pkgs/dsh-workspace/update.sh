@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#!nix-shell -i bash -p coreutils gnused jq nix nix-update yq-go
+#!nix-shell -i bash -p coreutils git gnused jq nix nix-update yq-go
 # shellcheck shell=bash
 # shellcheck disable=SC2016
 set -euo pipefail
@@ -11,11 +11,31 @@ attr="${UPDATE_NIX_ATTR_PATH:-dsh-workspace}"
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
-old_src="$(nix eval --raw ".#$attr.src.rev" 2>/dev/null)"
+old_src="$(nix-instantiate --eval --raw --expr \
+  "(builtins.getFlake (toString ./.)).packages.\${builtins.currentSystem}.$attr.src.rev" \
+  2>/dev/null)"
+
+if [[ "$old_src" == refs/tags/* ]]; then
+  old_src="$(git ls-remote \
+    https://github.com/deepseek-ai/deepseek-harness.git \
+    "$old_src" | cut -f1)"
+fi
 
 nix-update --flake --version=unstable --src-only "$attr"
 
-new_src="$(nix eval --raw ".#$attr.src.rev" 2>/dev/null)"
+new_src="$(nix-instantiate --eval --raw --expr \
+  "(builtins.getFlake (toString ./.)).packages.\${builtins.currentSystem}.$attr.src.rev" \
+  2>/dev/null)"
+
+if [[ "$new_src" == refs/tags/* ]]; then
+  new_src="$(git ls-remote \
+    https://github.com/deepseek-ai/deepseek-harness.git \
+    "$new_src" | cut -f1)"
+
+  sed -i \
+    "s|^  env\\.DSH_CLIENT_COMMIT_HASH = .*;$|  env.DSH_CLIENT_COMMIT_HASH = \"$new_src\";|" \
+    pkgs/dsh-workspace/package.nix
+fi
 
 if [ "$old_src" = "$new_src" ]; then
   printf 'dsh-workspace: src unchanged (%s); skipping pnpm-lock regeneration\n' "$old_src"

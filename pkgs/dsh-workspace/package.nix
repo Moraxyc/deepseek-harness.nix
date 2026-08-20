@@ -22,16 +22,21 @@ let
 in
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
-  version = "0.1.0-rc.7";
+  version = "0.1.0-rc.8";
+
+  __structuredAttrs = true;
+  strictDeps = true;
 
   workspaceSrc = fetchFromGitHub {
     owner = "deepseek-ai";
     repo = "deepseek-harness";
     tag = "dsh-v${finalAttrs.version}";
-    hash = "sha256-xPP8FB308n8SD5B65whaErLyaDBbFferoQ9g3H6h2es=";
+    hash = "sha256-FzToX43k6upXkwTxTYXHRK5IdatxibxeZgZBpuDE7S4=";
   };
 
   src = finalAttrs.workspaceSrc;
+
+  env.DSH_CLIENT_COMMIT_HASH = "141eb6fef83422698aef7a981029e843e8161534";
 
   nodejs = nodejs-slim;
   disallowedReferences = [
@@ -43,10 +48,10 @@ buildNpmPackage (finalAttrs: {
   postPatch = ''
     patchDshWorkspace dependencies
 
-    substituteInPlace packages/terminal/terminal-bash/src/config.ts \
+    substituteInPlace "packages/terminal/terminal-bash/src/config.ts" \
       --replace-fail \
-      "shellPath: z.string().default('/bin/bash')" \
-      "shellPath: z.string().default('${lib.getExe bashInteractive}')"
+      "export const DEFAULT_BASH_SHELL = '/bin/bash'" \
+      "export const DEFAULT_BASH_SHELL = '${lib.getExe bashInteractive}'"
 
     substituteInPlace packages/client/tsdown.client.ts \
       --replace-fail \
