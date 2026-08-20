@@ -9,7 +9,7 @@ let
   unitName = "dsh-web";
   profileOptions = import ./profile-options.nix { inherit lib; };
   profileName = name: "nix-${name}";
-  composedPackage =
+  servicePackage =
     let
       managedProfiles = map profileName (lib.attrNames cfg.profiles);
     in
@@ -19,6 +19,9 @@ let
       }
     else
       pkgs.dsh.presets.web;
+  composedPackage = servicePackage.override {
+    homePatch = config.programs.dsh.patch;
+  };
   execArgs = [
     "--profile"
     cfg.profile

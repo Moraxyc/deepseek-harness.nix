@@ -88,7 +88,7 @@ let
     };
 in
 {
-  inherit profileName;
+  inherit profileName renderPatch;
 
   makeProfileTemplates =
     { profiles }:
@@ -112,6 +112,7 @@ in
 
   makeProfileSeeder =
     {
+      homePatchFile ? null,
       profileTemplates,
       profiles,
     }:
@@ -161,7 +162,7 @@ in
           local destination=$2
           local temporary
 
-          [ -f "$source" ] || die "managed profile source is missing: $source"
+          [ -f "$source" ] || die "managed source is missing: $source"
           validate_owned_file "$destination"
 
           if [ -f "$destination" ] && cmp -s "$source" "$destination"; then
@@ -231,6 +232,9 @@ in
         }
 
         requested_profile=''${1:-}
+        ${lib.optionalString (homePatchFile != null) ''
+          copy_owned_file ${lib.escapeShellArg "${homePatchFile}"} "$home/cordis.patch.yml"
+        ''}
         case "$requested_profile" in
           "")
             ${lib.concatStringsSep "\n" (lib.mapAttrsToList seedInvocation profiles)}

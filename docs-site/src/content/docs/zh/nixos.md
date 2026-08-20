@@ -52,6 +52,26 @@ programs.dsh.home = "/var/lib/dsh-cli";
 
 未设置时，dsh 仍按用户使用默认的 `$HOME/.dsh`。
 
+## 管理 Home 级 Patch
+
+`programs.dsh.patch` 接受结构化的 Cordis patch 条目列表，并将其管理为
+`$DSH_HOME/cordis.patch.yml`：
+
+```nix
+programs.dsh.patch = [
+  {
+    id = "agent-default-model";
+    config = {
+      provider = "deepseek-official";
+      model = "deepseek-v4-flash";
+    };
+  }
+];
+```
+
+该层在每个 profile 自身的 patch 之后应用，因此影响所有 profile。模块组合的
+CLI 和服务包会在启动前还原声明的文件。默认值 `null` 不管理该文件。
+
 ## 声明 Profile
 
 profile 声明在 `programs.dsh.profiles` 下。名为 `tui` 的 profile 会生成到

@@ -14,6 +14,7 @@ in
     environment.systemPackages = [
       ((cfg.package.withProfiles cfg.profiles).override {
         defaultProfile = cfg.defaultProfile;
+        homePatch = cfg.patch;
       })
     ];
 

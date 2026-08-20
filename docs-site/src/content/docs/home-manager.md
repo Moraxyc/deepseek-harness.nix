@@ -83,6 +83,24 @@ When unset, dsh uses `~/.dsh`. Home Manager exports an explicit value to the
 user session and uses it during profile activation. The user service inherits
 the same location unless `services.dsh.dataDir` is set separately.
 
+Declare the home-level Cordis patch as structured data:
+
+```nix
+programs.dsh.patch = [
+  {
+    id = "agent-default-model";
+    config = {
+      provider = "deepseek-official";
+      model = "deepseek-v4-flash";
+    };
+  }
+];
+```
+
+Home Manager synchronizes this list to `$DSH_HOME/cordis.patch.yml` during
+activation. The composed CLI and user service restore it again before launch.
+The layer applies after each profile patch; `null` leaves the file unmanaged.
+
 ## NixOS-Managed Home Manager
 
 When Home Manager is managed by NixOS:

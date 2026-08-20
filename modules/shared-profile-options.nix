@@ -20,6 +20,26 @@ in
       description = "Directory exported as `DSH_HOME`. Leave unset to use dsh's `$HOME/.dsh` default.";
     };
 
+    patch = lib.mkOption {
+      type = lib.types.nullOr (lib.types.listOf lib.types.attrs);
+      default = null;
+      example = lib.literalExpression ''
+        [
+          {
+            id = "agent-default-model";
+            config = {
+              provider = "deepseek-official";
+              model = "deepseek-v4-flash";
+            };
+          }
+        ]
+      '';
+      description = ''
+        Home-level Cordis patch layer managed at
+        `$DSH_HOME/cordis.patch.yml`. Leave unset to keep the file unmanaged.
+      '';
+    };
+
     profiles = profileOptions.mkProfilesOption { };
 
     defaultProfile = lib.mkOption {

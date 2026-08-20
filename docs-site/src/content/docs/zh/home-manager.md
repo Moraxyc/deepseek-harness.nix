@@ -81,6 +81,24 @@ inputs.home-manager.lib.homeManagerConfiguration {
 会话，并在激活时用它同步 profile；除非另设 `services.dsh.dataDir`，用户服务
 也会继承该路径。
 
+Home 级 Cordis patch 可以用结构化数据声明：
+
+```nix
+programs.dsh.patch = [
+  {
+    id = "agent-default-model";
+    config = {
+      provider = "deepseek-official";
+      model = "deepseek-v4-flash";
+    };
+  }
+];
+```
+
+Home Manager 会在激活时把该列表同步到 `$DSH_HOME/cordis.patch.yml`。组合后的
+CLI 和用户服务也会在启动前还原它。该层在每个 profile patch 之后应用；设为
+`null` 时不管理此文件。
+
 ## NixOS 管理的 Home Manager
 
 当 Home Manager 由 NixOS 管理时：

@@ -54,6 +54,27 @@ programs.dsh.home = "/var/lib/dsh-cli";
 
 When unset, dsh keeps its per-user `$HOME/.dsh` default.
 
+## Manage the Home-Level Patch
+
+`programs.dsh.patch` accepts a structured list of Cordis patch entries and
+manages it as `$DSH_HOME/cordis.patch.yml`:
+
+```nix
+programs.dsh.patch = [
+  {
+    id = "agent-default-model";
+    config = {
+      provider = "deepseek-official";
+      model = "deepseek-v4-flash";
+    };
+  }
+];
+```
+
+This layer applies after each profile's own patch and therefore affects every
+profile. Module-composed CLI and service packages restore the declared file
+before launch. The default `null` leaves the file unmanaged.
+
 ## Declare Profiles
 
 Profiles are declared as attributes of `programs.dsh.profiles`. A profile

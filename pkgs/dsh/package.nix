@@ -32,6 +32,8 @@
   profiles ? { },
   # Optional profile used when the caller does not pass --profile.
   defaultProfile ? null,
+  # Optional home-level Cordis patch managed under $DSH_HOME.
+  homePatch ? null,
   meta ? { },
 }:
 
@@ -56,6 +58,11 @@ let
 
   baseBundle = bundles.base;
   managedProfileNames = map profileFiles.profileName (lib.attrNames profiles);
+  homePatchFile =
+    if homePatch == null then
+      null
+    else
+      writeText "dsh-home-cordis.patch.yml" (profileFiles.renderPatch homePatch);
 
   resolveBundles =
     bundlesOrSelector:
@@ -72,6 +79,7 @@ let
     || lib.any (bundle: bundle.passthru.requiresTty or false) (profile.bundles or [ ]);
 in
 assert defaultProfile == null || lib.elem defaultProfile managedProfileNames;
+assert homePatch == null || lib.isList homePatch;
 
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "dsh";
@@ -120,7 +128,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       --add-flags "--expose-internals" \
       --add-flags "$appDir/lib/bin.js"
 
-    ${lib.optionalString (profiles != { }) ''
+    ${lib.optionalString (profiles != { } || homePatch != null) ''
       wrapProgram $out/bin/dsh \
         --run ${lib.escapeShellArg ''
           requested_profile=
@@ -202,7 +210,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     };
 
     seedProfiles = profileFiles.makeProfileSeeder {
-      inherit profiles;
+      inherit homePatchFile profiles;
       profileTemplates = finalAttrs.passthru.profileTemplates;
     };
 
@@ -228,7 +236,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     withProfiles =
       configuredProfiles:
       dsh.override {
-        inherit defaultBundles;
+        inherit defaultBundles homePatch;
         defaultProfile = null;
         profiles = lib.mapAttrs (
           _: profile:
@@ -257,8 +265,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       in
       assert lib.isList selectedBundles;
       dsh.override {
+        inherit defaultProfile homePatch;
         defaultBundles = lib.unique (defaultBundles ++ selectedBundles);
-        inherit defaultProfile;
         profiles = profilesWithBundles;
       };
   };

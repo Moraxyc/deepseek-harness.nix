@@ -41,6 +41,10 @@ avoid hardcoding the prefix.
 Each profile supports `bundles` and a YAML `patch` layer. `patch` is applied
 after the bundle layers as `cordis.patch.yml`.
 
+`programs.dsh.patch` manages the structured home-level
+`$DSH_HOME/cordis.patch.yml`. It applies after the selected profile's patch
+and is shared by every profile.
+
 ## NixOS Web Service
 
 Enable `services.dsh` to run the web preset as a systemd unit. It binds only

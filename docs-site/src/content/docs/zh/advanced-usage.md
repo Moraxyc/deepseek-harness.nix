@@ -37,6 +37,10 @@ Nix 标记的同名目录不会被接管或覆盖。
 每个 profile 支持 `bundles` 和一层 YAML `patch`；`patch` 会作为
 `cordis.patch.yml` 在 bundle 层之后应用。
 
+`programs.dsh.patch` 以结构化数据管理 Home 级
+`$DSH_HOME/cordis.patch.yml`。该层在所选 profile 的 patch 之后应用，并由
+所有 profile 共用。
+
 ## NixOS Web 服务
 
 启用 `services.dsh` 可以把 web preset 作为 systemd 单元运行。默认只监听
