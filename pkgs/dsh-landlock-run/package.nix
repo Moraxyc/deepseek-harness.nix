@@ -1,6 +1,5 @@
 {
   lib,
-  file,
   pkgsStatic,
   dsh-workspace,
 }:
@@ -15,8 +14,6 @@ stdenv.mkDerivation (finalAttrs: {
   inherit (dsh-workspace) src;
 
   sourceRoot = "${finalAttrs.src.name}/native/landlock-run";
-
-  nativeBuildInputs = [ file ];
 
   buildPhase = ''
     runHook preBuild
