@@ -15,8 +15,8 @@ stdenv.mkDerivation (finalAttrs: {
   src = fetchFromGitHub {
     owner = "anywhere-labs";
     repo = "deepseek-harness-desktop";
-    rev = "8dbb94428e17dd99eb9ed66ea6e6885968fd5dd1";
-    hash = "sha256-wx0Lg7hTg/p6N5d2tTFTx3VRtya3chYTh6HTLL4Iqb4=";
+    rev = "3c028e0a61e0e7b7085ff1bfd4816e46f680a70d";
+    hash = "sha256-OkxsdWlFXNjMLy6UhWy69CPsNXlMsh881WE//RPJYqs=";
   };
 
   postPatch = ''
@@ -27,7 +27,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   offlineCache = yarn-berry_4.fetchYarnBerryDeps {
     inherit (finalAttrs) src missingHashes postPatch;
-    hash = "sha256-zntl+MUVyB/5hKAp+odpHmGaWvQDWMRKdsPfYpQ8Fvo=";
+    hash = "sha256-P4iVIVNOGOUfzjd5ShIEz2yVKKoEzW/FLfTGVxShQYs=";
   };
 
   nativeBuildInputs = [
