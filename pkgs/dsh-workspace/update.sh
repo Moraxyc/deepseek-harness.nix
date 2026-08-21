@@ -21,7 +21,12 @@ if [[ "$old_src" == refs/tags/* ]]; then
     "$old_src" | cut -f1)"
 fi
 
-nix-update --flake --version=unstable --src-only "$attr"
+nix-update \
+  --flake \
+  --version=unstable \
+  --src-only \
+  --override-filename=pkgs/dsh-workspace/package.nix \
+  "$attr"
 
 new_src="$(nix-instantiate --eval --raw --expr \
   "(builtins.getFlake (toString ./.)).packages.\${builtins.currentSystem}.$attr.src.rev" \
@@ -45,7 +50,12 @@ fi
 src="$(nix build --no-link --print-out-paths ".#$attr.src")"
 
 landlock_version="$(jq -er '.version | strings' "$src/native/landlock-run/package.json")"
-nix-update --flake --version="$landlock_version" --no-src dsh-landlock-run
+nix-update \
+  --flake \
+  --version="$landlock_version" \
+  --no-src \
+  --override-filename=pkgs/dsh-landlock-run/package.nix \
+  dsh-landlock-run
 
 yq -o=json . "$src/pnpm-lock.yaml" > "$tmp_dir/pnpm-lock.json"
 mv "$tmp_dir/pnpm-lock.json" "$repo_root/pkgs/dsh-workspace/pnpm-lock.json"

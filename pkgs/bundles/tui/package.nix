@@ -94,6 +94,7 @@ buildDshBundle (finalAttrs: {
         "--flake"
         "--subpackage=dshStd"
         "--subpackage=dshEcosystemSpec"
+        "--override-filename=pkgs/bundles/tui/package.nix"
       ];
     };
   };
