@@ -90,7 +90,7 @@ buildNpmPackage (finalAttrs: {
   npmDeps = null;
   npmInstallFlags = finalAttrs.pnpmDeps.passthru.pnpmInstallFlags;
   npmConfigHook = pnpmConfigHook;
-  npmBuildScript = "build";
+  npmBuildScript = "build:official";
 
   # node-pty's postinstall can't run before deploy assembles the composition.
   preInstall = ''

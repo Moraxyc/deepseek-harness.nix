@@ -22,6 +22,7 @@ dshBundleCheckHook() {
   : "${dshBundleCheckTimeout:=60}"
   : "${dshBundleCheckTtyTimeout:=15}"
   : "${dshBundleCheckArgs:=--help}"
+  : "${dshBundleCheckWebArgs:=--no-open --port 0}"
   mkdir -p "$dshBundleCheckHome"
 
   local -a profiles=()
@@ -55,6 +56,16 @@ dshBundleCheckHook() {
     read -r -a checkArgs <<< "$dshBundleCheckArgs"
   fi
 
+  local -a webCheckArgs=()
+  if [[ -n "$dshBundleCheckWebArgs" ]]; then
+    read -r -a webCheckArgs <<< "$dshBundleCheckWebArgs"
+  fi
+
+  local -a webProfiles=()
+  if [[ -n "${dshBundleCheckWebProfiles-}" ]]; then
+    read -r -a webProfiles <<< "$dshBundleCheckWebProfiles"
+  fi
+
   local -a ttyProfiles=()
   if [[ -n "${dshBundleCheckTtyProfiles-}" ]]; then
     read -r -a ttyProfiles <<< "$dshBundleCheckTtyProfiles"
@@ -68,10 +79,27 @@ dshBundleCheckHook() {
     return 1
   }
 
+  is_web_profile() {
+    local profile=$1 item
+    for item in "${webProfiles[@]}"; do
+      [[ "$item" == "$profile" ]] && return 0
+    done
+    return 1
+  }
+
   local profile
   for profile in "${profiles[@]}"; do
     echo "dshBundleCheckHook: checking dsh profile $profile"
-    if is_tty_profile "$profile"; then
+    if is_web_profile "$profile"; then
+      local status=0
+      DSH_HOME="$dshBundleCheckHome" DSH_TELEMETRY_DISABLED=1 \
+        timeout "$dshBundleCheckTimeout" \
+        "$cmdProgram" --profile "$profile" "${webCheckArgs[@]}" || status=$?
+      if [[ "$status" -ne 124 ]]; then
+        echo "dshBundleCheckHook: dsh profile $profile failed" >&2
+        return 1
+      fi
+    elif is_tty_profile "$profile"; then
       local logFile="$dshBundleCheckHome/$profile.log"
       local wrappedCommand
       local status=0

@@ -77,6 +77,11 @@ let
     profile:
     (profile.requiresTty or false)
     || lib.any (bundle: bundle.passthru.requiresTty or false) (profile.bundles or [ ]);
+
+  profileRequiresWeb =
+    profile:
+    (profile.requiresWeb or false)
+    || lib.any (bundle: bundle.passthru.requiresWeb or false) (profile.bundles or [ ]);
 in
 assert defaultProfile == null || lib.elem defaultProfile managedProfileNames;
 assert homePatch == null || lib.isList homePatch;
@@ -178,6 +183,13 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     util-linux
   ];
   dshBundleCheckProfiles = lib.concatStringsSep " " managedProfileNames;
+  dshBundleCheckWebProfiles = lib.concatStringsSep " " (
+    lib.flatten (
+      lib.mapAttrsToList (
+        name: profile: lib.optional (profileRequiresWeb profile) (profileFiles.profileName name)
+      ) profiles
+    )
+  );
   # Profiles that need a real terminal enter an interactive loop instead of
   # exiting after --help; dshBundleCheckHook treats a booted, still-running
   # smoke window as success for these.

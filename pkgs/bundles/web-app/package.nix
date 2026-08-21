@@ -18,6 +18,7 @@ buildDshBundle.fromWorkspace (finalAttrs: {
       target = "lib/node_modules/@deepseek-ai/dsh-web-frontend";
     }
   ];
+  passthru.requiresWeb = true;
   meta = {
     description = "Web interface for dsh";
     descriptions.zh-CN = "dsh 的网页界面";
