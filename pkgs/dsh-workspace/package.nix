@@ -1,4 +1,5 @@
 {
+  codex,
   lib,
   bashInteractive,
   buildNpmPackage,
@@ -19,6 +20,7 @@
 
 let
   platformKey = with stdenv.hostPlatform.node; "${platform}-${arch}";
+  fetchPnpmDeps' = fetchPnpmDeps.override { yq = yq-go; };
 in
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
@@ -70,7 +72,24 @@ buildNpmPackage (finalAttrs: {
 
   pnpmDeps = importPnpmLock {
     inherit (finalAttrs) pname version;
+    fetchPnpmDeps = fetchPnpmDeps';
     lockfileJson = ./pnpm-lock.json;
+    packageSourceOverrides = {
+      "@openai/codex@*-${platformKey}" =
+        {
+          pkg,
+          previousSource,
+          patchPackageSource,
+        }:
+        patchPackageSource {
+          inherit pkg;
+          source = previousSource;
+          symlinks = {
+            "vendor/*/bin/codex" = lib.getExe codex;
+            "vendor/*/bin/codex-code-mode-host" = lib.getExe' codex "codex-code-mode-host";
+          };
+        };
+    };
     targetPlatform =
       if stdenv.buildPlatform == stdenv.hostPlatform then stdenv.targetPlatform else null;
     patchedDependencySources = {
@@ -147,20 +166,10 @@ buildNpmPackage (finalAttrs: {
   '';
 
   passthru = {
+    runtimeDeps = [ codex ];
+
     # Used by the update script to compare against importPnpmLock.
-    fetchPnpmDeps = (fetchPnpmDeps.override { yq = yq-go; }) {
-      inherit (finalAttrs)
-        pname
-        version
-        src
-        postPatch
-        ;
-      nativeBuildInputs = [ dshWorkspacePatchHook ];
-      pnpm = pnpm_11;
-      fetcherVersion = 4;
-      pnpmInstallFlags = finalAttrs.pnpmDeps.passthru.pnpmInstallFlags;
-      hash = "";
-    };
+    fetchPnpmDeps = finalAttrs.pnpmDeps.passthru.fetchPnpmDeps;
 
     updateScript = ./update.sh;
   };

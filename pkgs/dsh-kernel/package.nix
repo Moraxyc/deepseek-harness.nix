@@ -55,6 +55,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   passthru = {
     runtimeDeps =
       lib.optionals stdenvNoCC.hostPlatform.isLinux [ bashInteractive ]
+      ++ (dsh-workspace.passthru.runtimeDeps or [ ])
       ++ lib.optional (claudeCodePackage != null) claudeCodePackage;
   };
 

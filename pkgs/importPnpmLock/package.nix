@@ -18,7 +18,10 @@ in
   fetcherVersion ? null,
   pname ? null,
   registry ? "https://registry.npmjs.org",
-  # Escape hatch like importNpmLock's packageSourceOverrides
+  # Escape hatch like importNpmLock's packageSourceOverrides. Keys may contain
+  # `*` wildcards; exact keys take precedence over the longest matching
+  # wildcard key. Values may be source paths or functions receiving
+  # { pkg, previousSource, patchPackageSource }.
   packageSourceOverrides ? { },
   # SRI content hashes for git dependencies, keyed by lockfile package id.
   # Example: gitHashes."foo@git+https://..." = "sha256-...";
@@ -188,6 +191,39 @@ let
   fetchedPackages = lib.filter packageMatchesTarget packages;
   skippedPackages = lib.filter (pkg: !(packageMatchesTarget pkg)) packages;
 
+  globMatches =
+    pattern: value:
+    (builtins.match "^${concatStringsSep ".*" (map lib.escapeRegex (splitString "*" pattern))}$" value)
+    != null;
+
+  overrideKeyForPackage =
+    pkg:
+    let
+      wildcardKeys = lib.attrNames (
+        lib.filterAttrs (pattern: _: pattern != pkg.id && globMatches pattern pkg.id) packageSourceOverrides
+      );
+      sortedWildcardKeys = lib.sort (
+        a: b: stringLength a > stringLength b || (stringLength a == stringLength b && a < b)
+      ) wildcardKeys;
+    in
+    if builtins.hasAttr pkg.id packageSourceOverrides then
+      pkg.id
+    else if sortedWildcardKeys == [ ] then
+      null
+    else
+      head sortedWildcardKeys;
+
+  overrideForPackage =
+    pkg:
+    let
+      key = overrideKeyForPackage pkg;
+    in
+    if key == null then null else packageSourceOverrides.${key};
+
+  overrideKeysById = listToAttrs (
+    map (pkg: nameValuePair pkg.id (overrideKeyForPackage pkg)) fetchedPackages
+  );
+
   pnpmInstallFlags =
     if effectiveTargetPlatform == null then
       [ ]
@@ -233,6 +269,51 @@ let
           -C "$src" .
       '';
 
+  patchPackageSource =
+    {
+      pkg,
+      source,
+      symlinks ? { },
+    }:
+    runCommand "${lib.strings.sanitizeDerivationName "${pkg.baseName}-${pkg.version}-patched"}"
+      { src = source; }
+      ''
+        workDir="$TMPDIR/package-source"
+        mkdir -p "$workDir"
+        tar -xzf "$src" -C "$workDir"
+
+        packageDir="$workDir/package"
+        [ -d "$packageDir" ] || packageDir="$workDir"
+
+        ${concatStringsSep "\n" (
+          mapAttrsToList (path: target: ''
+            matched=0
+            for destination in "$packageDir"/${path}; do
+              if [ -e "$destination" ] || [ -L "$destination" ]; then
+                matched=1
+                rm -f "$destination"
+                mkdir -p "$(dirname "$destination")"
+                ln -s ${lib.escapeShellArg target} "$destination"
+              fi
+            done
+            [ "$matched" -eq 1 ] || {
+              printf 'importPnpmLock: source path not found: %s\n' ${lib.escapeShellArg path} >&2
+              exit 1
+            }
+          '') symlinks
+        )}
+
+        tar \
+          --sort=name \
+          --mtime="@1" \
+          --owner=0 \
+          --group=0 \
+          --numeric-owner \
+          --pax-option=exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime \
+          -czf "$out" \
+          -C "$workDir" .
+      '';
+
   fetchGitSource =
     pkg:
     fetchgit (
@@ -250,29 +331,52 @@ let
       // (fetcherOpts.${pkg.id} or { })
     );
 
-  fetchSource =
+  fetchRegistrySource =
     pkg:
-    if pkg.kind == "git" then
-      packTarball pkg (packageSourceOverrides.${pkg.id} or (fetchGitSource pkg))
-    else if (pkg.kind == "registry" || pkg.kind == "tarball") then
-      packageSourceOverrides.${pkg.id} or (
-        if pkg.integrity != "" then
-          fetchurl (
-            {
-              url = pkg.url;
-              hash = pkg.integrity;
-            }
-            // (fetcherOpts.${pkg.id} or { })
-          )
-        else
-          throw ''
-            importPnpmLock: tarball dependency `${pkg.id}` has no integrity
-            hash in the lockfile. Provide `packageSourceOverrides.${pkg.id}`
-            with a verified tarball (e.g. a fetchurl result) for this package.
-          ''
+    if pkg.integrity != "" then
+      fetchurl (
+        {
+          url = pkg.url;
+          hash = pkg.integrity;
+        }
+        // (fetcherOpts.${pkg.id} or { })
       )
     else
+      throw ''
+        importPnpmLock: tarball dependency `${pkg.id}` has no integrity
+        hash in the lockfile. Provide `packageSourceOverrides.${pkg.id}`
+        with a verified tarball (e.g. a fetchurl result) for this package.
+      '';
+
+  fetchDefaultSource =
+    pkg:
+    if pkg.kind == "git" then
+      fetchGitSource pkg
+    else if pkg.kind == "registry" || pkg.kind == "tarball" then
+      fetchRegistrySource pkg
+    else
       throw "importPnpmLock: unsupported package kind `${pkg.kind}` for `${pkg.id}`";
+
+  fetchSource =
+    pkg:
+    let
+      override = overrideForPackage pkg;
+      previousSource = fetchDefaultSource pkg;
+      source =
+        if override == null then
+          previousSource
+        else if lib.isFunction override then
+          override {
+            inherit
+              pkg
+              previousSource
+              patchPackageSource
+              ;
+          }
+        else
+          override;
+    in
+    if pkg.kind == "git" then packTarball pkg source else source;
 
   sourcesById = listToAttrs (map (pkg: nameValuePair pkg.id (fetchSource pkg)) fetchedPackages);
   kindById = listToAttrs (map (pkg: nameValuePair pkg.id pkg.kind) fetchedPackages);
@@ -283,14 +387,23 @@ let
       let
         src = sourcesById.${id};
         kind = kindById.${id};
+        overrideKey = overrideKeysById.${id} or null;
         baseResolution = v.resolution or { };
       in
       v
       // {
         resolution =
           # Git sources are re-packed from a fetchgit checkout, so the lockfile's
-          # original resolution does not describe the local tarball.
-          (if kind == "git" then { } else baseResolution) // {
+          # original resolution does not describe the local tarball. A source
+          # override may also change the tarball, so its original integrity is
+          # not valid for the rewritten file URL.
+          (
+            if kind == "git" || overrideKey != null then
+              builtins.removeAttrs baseResolution [ "integrity" ]
+            else
+              baseResolution
+          )
+          // {
             tarball = "file:${src}";
           };
       }
@@ -436,6 +549,7 @@ lib.extendMkDerivation {
           skippedPackages
           pnpmInstallFlags
           ;
+        fetchPnpmDeps = upstream;
         targetPlatform = effectiveTargetPlatform;
         fetcherVersion = effectiveFetcherVersion;
       };
