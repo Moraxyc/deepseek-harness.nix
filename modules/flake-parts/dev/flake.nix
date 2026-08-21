@@ -1,5 +1,5 @@
 {
-  description = "DeepSeek Harness Nix (Development)";
+  description = "DSH Nix development flake";
 
   inputs = {
     dev-nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";

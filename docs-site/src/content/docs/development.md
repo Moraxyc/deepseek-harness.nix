@@ -1,6 +1,6 @@
 ---
 title: Development
-description: Build, test, and maintain the DeepSeek Harness Nix flake.
+description: Build, test, and maintain the DSH Nix flake.
 ---
 
 This page covers local flake usage that requires cloning the repository. For

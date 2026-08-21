@@ -6,14 +6,14 @@
   dsh,
 }:
 let
-  catalogSource = builtins.toFile "deepseek-harness-docs-catalog.ts" ''
+  catalogSource = builtins.toFile "dsh-nix-docs-catalog.ts" ''
     import type { Catalog } from './catalog';
 
     export const catalog: Catalog = ${builtins.toJSON (import ../../lib/catalog.nix { scope = dsh; })};
   '';
 in
 buildNpmPackage (finalAttrs: {
-  pname = "deepseek-harness-docs";
+  pname = "dsh-nix-docs";
   version = (lib.importJSON ../../docs-site/package.json).version;
 
   inherit nodejs;
@@ -24,7 +24,6 @@ buildNpmPackage (finalAttrs: {
       ../../docs-site/astro.config.mjs
       ../../docs-site/package-lock.json
       ../../docs-site/package.json
-      ../../docs-site/public
       ../../docs-site/src
       ../../docs-site/tsconfig.json
     ];
@@ -43,7 +42,7 @@ buildNpmPackage (finalAttrs: {
   '';
 
   meta = {
-    description = "DeepSeek Harness Nix documentation site";
+    description = "DSH Nix documentation site";
     homepage = "https://moraxyc.github.io/deepseek-harness.nix/";
     license = lib.licenses.mit;
     inherit (nodejs.meta) platforms;

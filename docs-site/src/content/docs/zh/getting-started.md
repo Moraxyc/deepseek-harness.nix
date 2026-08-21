@@ -74,8 +74,10 @@ cachix use deepseek-harness-nix
 }
 ```
 
-## 许可证与声明
+## 许可证与品牌声明
 
 本仓库自身的代码与文档以 MIT 许可证授权。该许可证不覆盖上游 `deepseek-harness`、DeepSeek 或 `@deepseek-ai` 的材料、名称和商标，也不覆盖第三方组件。
 
-本项目是独立社区项目，与 DeepSeek、`@deepseek-ai`、`deepseek-harness` 或 `deepseek harness` 名称/商标没有关联，也不代表上述任何一方的认可或支持。完整条款见仓库的 [LICENSE](https://github.com/moraxyc/deepseek-harness.nix/blob/main/LICENSE)。
+DSH Nix 是独立社区项目，与 DeepSeek 无隶属、合作、授权或背书关系。“DeepSeek Harness”仅用于准确说明本项目为其提供 Nix 打包与集成。
+
+DSH Nix 使用独立的项目名称与视觉呈现，品牌名称与素材的使用遵循上游的 [DeepSeek Harness 品牌素材使用规范](https://github.com/deepseek-ai/deepseek-harness/blob/master/BRAND_GUIDELINES.zh.md)。许可条款见仓库的 [LICENSE](https://github.com/moraxyc/deepseek-harness.nix/blob/main/LICENSE)。

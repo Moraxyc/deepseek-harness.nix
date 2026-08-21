@@ -1,5 +1,5 @@
 ---
-title: DeepSeek Harness Nix
+title: DSH Nix
 description: DeepSeek Harness 的 Nix 打包、bundles、presets 和模块。
 template: splash
 hero:
@@ -13,9 +13,8 @@ hero:
       icon: external
 ---
 
-<div class="home-brand" aria-label="DeepSeek Harness">
-  <img src="/deepseek-harness.nix/deepseek-harness-logo.svg" alt="" width="42" height="42" />
-  <span>DeepSeek Harness</span>
+<div class="home-brand" aria-label="DSH Nix">
+  <span>DSH Nix</span>
 </div>
 
 <section class="home-start" aria-labelledby="quickstart-title">

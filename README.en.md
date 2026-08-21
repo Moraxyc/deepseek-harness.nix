@@ -1,9 +1,10 @@
-# deepseek-harness-nix
+# DSH Nix
 
 > **English** | [简体中文](README.md)
 
-Nix packaging for DeepSeek Harness (`dsh`): CLI, desktop app, kernel, workspace
-bundles (plugins), presets, a NixOS module, and an overlay.
+DSH Nix is community-maintained Nix packaging for DeepSeek Harness (`dsh`):
+CLI, desktop app, kernel, workspace bundles (plugins), presets, a NixOS module,
+and an overlay.
 
 ## Table of Contents
 
@@ -15,6 +16,7 @@ bundles (plugins), presets, a NixOS module, and an overlay.
 - [Home Manager](#home-manager)
 - [Advanced Usage](#advanced-usage)
 - [Development](#development)
+- [Brand Notice](#brand-notice)
 - [License](#license)
 
 ## Quickstart
@@ -112,16 +114,23 @@ Detailed integration instructions live in
 For repository-local builds, the dev shell, and checks, see
 [Development](https://moraxyc.github.io/deepseek-harness.nix/development/).
 
+## Brand Notice
+
+DSH Nix is an independent community project. It is not affiliated with,
+sponsored by, authorized by, or endorsed by DeepSeek. “DeepSeek Harness” is
+used only to accurately describe the Nix packaging and integration provided by
+this project.
+
+DSH Nix uses an independent project name and visual presentation. Its use of
+brand names and assets follows the upstream
+[DeepSeek Harness Brand Asset Usage Guidelines](https://github.com/deepseek-ai/deepseek-harness/blob/master/BRAND_GUIDELINES.md).
+
 ## License
 
 This repository's own code and documentation are licensed under the MIT
 License. See [LICENSE](LICENSE).
 
 The MIT license covers only this repository's code and documentation. It does
-not cover upstream `deepseek-harness`, DeepSeek / `@deepseek-ai` materials,
-names, or trademarks, nor any third-party components; those remain subject to
-their respective owners' licenses and terms.
-
-This project is an independent community project and is not affiliated with,
-endorsed by, or supported by DeepSeek, `@deepseek-ai`, `deepseek-harness`, or
-the `deepseek harness` name or trademark.
+not cover upstream `deepseek-harness`, DeepSeek / `@deepseek-ai` materials, or
+any third-party components; those remain subject to their respective owners'
+licenses and terms.

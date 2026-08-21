@@ -7,7 +7,7 @@ export default defineConfig({
   trailingSlash: "always",
   integrations: [
     starlight({
-      title: "DeepSeek Harness Nix",
+      title: "DSH Nix",
       defaultLocale: "root",
       locales: {
         root: { label: "English", lang: "en" },

@@ -1,10 +1,10 @@
-# deepseek-harness-nix
+# DSH Nix
 
 > [English](README.en.md) | **简体中文**
 
-DeepSeek Harness（`dsh`）的 Nix 打包：提供 `dsh`、`dsh-desktop`、
-`dsh-kernel`、`dsh-workspace`，以及 bundle（插件）、preset、NixOS 模块和
-overlay。
+DSH Nix 是 DeepSeek Harness（`dsh`）的社区 Nix 打包：提供 `dsh`、
+`dsh-desktop`、`dsh-kernel`、`dsh-workspace`，以及 bundle（插件）、preset、
+NixOS 模块和 overlay。
 
 ## 目录
 
@@ -16,6 +16,7 @@ overlay。
 - [Home Manager](#home-manager)
 - [高级用法](#高级用法)
 - [开发](#开发)
+- [品牌声明](#品牌声明)
 - [许可证](#许可证)
 
 ## 快速开始
@@ -107,15 +108,19 @@ NixOS 参数、自定义 profile、覆盖方式和 Overlay 的详细说明见
 需要 clone 仓库、本地构建、进入开发 shell 或运行检查时，见
 [开发文档](https://moraxyc.github.io/deepseek-harness.nix/zh/development/)。
 
+## 品牌声明
+
+DSH Nix 是独立社区项目，与 DeepSeek 无隶属、合作、授权或背书关系。
+“DeepSeek Harness”仅用于准确说明本项目为其提供 Nix 打包与集成。
+
+DSH Nix 使用独立的项目名称与视觉呈现，品牌名称与素材的使用遵循上游的
+[DeepSeek Harness 品牌素材使用规范](https://github.com/deepseek-ai/deepseek-harness/blob/master/BRAND_GUIDELINES.zh.md)。
+
 ## 许可证
 
 本仓库自身的代码与文档以 MIT 许可证授权，完整条款见
 [LICENSE](LICENSE)。
 
 MIT 授权范围仅覆盖本仓库自身的代码与文档，不覆盖上游 `deepseek-harness`、
-DeepSeek / `@deepseek-ai` 的材料、名称或商标，也不覆盖任何第三方组件；
-这些内容分别适用各自权利人的许可和条款。
-
-本项目是独立社区项目，与 DeepSeek、`@deepseek-ai`、`deepseek-harness`
-及 `deepseek harness` 名称或商标没有关联，也不代表上述任何一方的认可
-或支持。
+DeepSeek / `@deepseek-ai` 的材料或任何第三方组件；这些内容分别适用各自
+权利人的许可和条款。

@@ -74,8 +74,10 @@ Or add it to Nix configuration manually:
 }
 ```
 
-## License and Notice
+## License and Brand Notice
 
 This repository's own code and documentation are licensed under the MIT License. The license does not cover upstream `deepseek-harness`, DeepSeek or `@deepseek-ai` materials, names, or trademarks, or third-party components.
 
-This is an independent community project. It is not affiliated with, endorsed by, or supported by DeepSeek, `@deepseek-ai`, `deepseek-harness`, or the `deepseek harness` name or trademark. See the repository [LICENSE](https://github.com/moraxyc/deepseek-harness.nix/blob/main/LICENSE) for the full terms.
+DSH Nix is an independent community project. It is not affiliated with, sponsored by, authorized by, or endorsed by DeepSeek. “DeepSeek Harness” is used only to accurately describe the Nix packaging and integration provided by this project.
+
+DSH Nix uses an independent project name and visual presentation. Its use of brand names and assets follows the upstream [DeepSeek Harness Brand Asset Usage Guidelines](https://github.com/deepseek-ai/deepseek-harness/blob/master/BRAND_GUIDELINES.md). See the repository [LICENSE](https://github.com/moraxyc/deepseek-harness.nix/blob/main/LICENSE) for license terms.

@@ -1,5 +1,5 @@
 {
-  description = "DeepSeek Harness Nix";
+  description = "DSH Nix: Nix packaging for DeepSeek Harness";
 
   nixConfig = {
     extra-substituters = [ "https://deepseek-harness-nix.cachix.org" ];

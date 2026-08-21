@@ -177,12 +177,6 @@ header.header {
   letter-spacing: -0.01em;
 }
 
-.home-brand img {
-  display: block;
-  width: 2.15rem;
-  height: 2.15rem;
-}
-
 .home-start {
   display: grid;
   grid-template-columns: minmax(12rem, 0.8fr) minmax(20rem, 1.2fr);

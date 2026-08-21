@@ -1,6 +1,6 @@
 ---
 title: 开发
-description: 构建、测试和维护 DeepSeek Harness Nix flake。
+description: 构建、测试和维护 DSH Nix flake。
 ---
 
 本文覆盖需要 clone 仓库的本地 flake 用法。远程 flake 用法见
