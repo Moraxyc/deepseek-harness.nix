@@ -10,15 +10,15 @@
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-genui";
-  version = "0.8.6-unstable-2026-08-20";
+  version = "0.8.6-unstable-2026-08-21";
   deployPackage = "@omdsh-dev/dsh-genui";
   linkKernelNodeModules = dsh-kernel;
 
   src = fetchFromGitHub {
     owner = "omdsh-dev";
     repo = "dsh-genui";
-    rev = "7ac881b8e351fbae17a998c8d5bb2b012c648cb5";
-    hash = "sha256-QUShglOp2gjJ0XFWOqiiqx/vUsuUojR6CnSEJwbQUcA=";
+    rev = "c75ca7cec500f7804fdf8be2d43bb970691a89c3";
+    hash = "sha256-2utsgW1sK4wzRbvlh0VZmqURo5RIljiEVCxkNss8a3A=";
   };
 
   pnpmDeps = fetchPnpmDeps {
