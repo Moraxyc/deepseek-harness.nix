@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# shellcheck shell=bash
+# shellcheck disable=SC2016
 
 dshWorkspaceDie() {
   printf 'dsh-workspace: %s\n' "$1" >&2
@@ -49,10 +51,11 @@ dshWorkspacePatchDependencies() {
     '.dependencies *= load(strenv(DEPS_FILE))' apps/cli/package.json
   DEPS_FILE="$workspace_lock_deps" yq -i \
     '.importers."apps/cli".dependencies *= load(strenv(DEPS_FILE))' pnpm-lock.yaml
+
 }
 
 dshWorkspacePrepareComposition() {
-  local bundle_name package_json bundle_patch bundle_patch_tag
+  local bundle_name package_json bundle_patch bundle_patch_tag bundle_runtime_deps
   local -a bundle_names=()
 
   dshWorkspaceRequire || return
@@ -109,6 +112,28 @@ dshWorkspacePrepareComposition() {
       'del(.importers."apps/nix-composition".dependencies[strenv(DSH_BUNDLE_NAME)])' \
       pnpm-lock.yaml
   done
+
+  # Workspace bundles share the kernel node_modules at runtime. Keep their
+  # non-workspace dependencies in the production composition as well.
+  bundle_runtime_deps="$TMPDIR/dsh-workspace-bundle-runtime-dependencies.json"
+  yq -o=json -I=0 '
+    .importers
+    | to_entries
+    | map(select(.key | test("^packages/bundle/")) | .value.dependencies // {})
+    | .[] as $item ireduce ({}; . * $item)
+    | with_entries(
+        select(
+          ((.value.specifier // "") | test("^workspace:") | not)
+          and ((.value.version // "") | test("^link:") | not)
+        )
+      )
+  ' pnpm-lock.yaml > "$bundle_runtime_deps"
+  DEPS_FILE="$bundle_runtime_deps" yq -i \
+    '.dependencies *= (load(strenv(DEPS_FILE)) | with_entries(.value = .value.specifier))' \
+    apps/nix-composition/package.json
+  DEPS_FILE="$bundle_runtime_deps" yq -i \
+    '.importers."apps/nix-composition".dependencies *= load(strenv(DEPS_FILE))' \
+    pnpm-lock.yaml
 }
 
 patchDshWorkspace() {

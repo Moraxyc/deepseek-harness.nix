@@ -13,7 +13,7 @@
   pnpm_11,
   python3,
   stdenv,
-  dsh-landlock-run ? null,
+  dsh-landlock-run,
   yq-go,
 }:
 
@@ -71,6 +71,8 @@ buildNpmPackage (finalAttrs: {
   pnpmDeps = importPnpmLock {
     inherit (finalAttrs) pname version;
     lockfileJson = ./pnpm-lock.json;
+    targetPlatform =
+      if stdenv.buildPlatform == stdenv.hostPlatform then stdenv.targetPlatform else null;
     patchedDependencySources = {
       "node-pty@1.2.0-beta.15" = "${finalAttrs.src}/patches/node-pty@1.2.0-beta.15.patch";
     };
@@ -86,6 +88,7 @@ buildNpmPackage (finalAttrs: {
   ];
 
   npmDeps = null;
+  npmInstallFlags = finalAttrs.pnpmDeps.passthru.pnpmInstallFlags;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
 
@@ -155,6 +158,7 @@ buildNpmPackage (finalAttrs: {
       nativeBuildInputs = [ dshWorkspacePatchHook ];
       pnpm = pnpm_11;
       fetcherVersion = 4;
+      pnpmInstallFlags = finalAttrs.pnpmDeps.passthru.pnpmInstallFlags;
       hash = "";
     };
 

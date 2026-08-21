@@ -29,6 +29,9 @@ in
   # Patch files for lockfile patchedDependencies, keyed by lockfile package id.
   # Example: patchedDependencySources."node-pty@1.2.0-beta.15" = ./node-pty.patch;
   patchedDependencySources ? { },
+  # Optional target platform, such as stdenv.targetPlatform, for filtering
+  # platform-specific packages.
+  targetPlatform ? null,
   ...
 }:
 let
@@ -51,6 +54,16 @@ let
 
   lockfile = builtins.fromJSON (builtins.readFile lockfileJson);
   pnpmPkg = if pnpm != null then pnpm else defaultPnpm;
+
+  effectiveTargetPlatform =
+    if targetPlatform == null then
+      null
+    else
+      {
+        os = targetPlatform.node.platform;
+        cpu = targetPlatform.node.arch;
+        libc = if targetPlatform.isLinux then targetPlatform.libc else null;
+      };
 
   effectivePname = if pname != null then pname else "pnpm-deps";
   effectiveFetcherVersion = if fetcherVersion != null then fetcherVersion else 4;
@@ -97,6 +110,18 @@ let
           ;
       };
 
+  platformFieldMatches =
+    values: target:
+    if target == null || values == null then
+      true
+    else
+      let
+        values' = if builtins.isList values then values else [ values ];
+        allowed = lib.filter (value: !hasPrefix "!" value) values';
+        excluded = lib.filter (value: hasPrefix "!" value) values';
+      in
+      !(elem "!${target}" excluded) && (allowed == [ ] || elem target allowed);
+
   makePackage =
     id: v:
     let
@@ -106,6 +131,9 @@ let
       baseName = last (splitString "/" name);
       meta = info // {
         inherit name version baseName;
+        os = v.os or null;
+        cpu = v.cpu or null;
+        libc = v.libc or null;
       };
       resolution = v.resolution or { };
       integrity = resolution.integrity or "";
@@ -147,6 +175,34 @@ let
       throw "importPnpmLock: no fetchable resolution for `${id}`";
 
   packages = lib.attrValues (lib.mapAttrs makePackage (lockfile.packages or { }));
+
+  packageMatchesTarget =
+    pkg:
+    effectiveTargetPlatform == null
+    || (
+      platformFieldMatches pkg.os effectiveTargetPlatform.os
+      && platformFieldMatches pkg.cpu effectiveTargetPlatform.cpu
+      && platformFieldMatches pkg.libc effectiveTargetPlatform.libc
+    );
+
+  fetchedPackages = lib.filter packageMatchesTarget packages;
+  skippedPackages = lib.filter (pkg: !(packageMatchesTarget pkg)) packages;
+
+  pnpmInstallFlags =
+    if effectiveTargetPlatform == null then
+      [ ]
+    else
+      [
+        "--config.force=false"
+        "--os"
+        effectiveTargetPlatform.os
+        "--cpu"
+        effectiveTargetPlatform.cpu
+      ]
+      ++ lib.optionals (effectiveTargetPlatform.libc != null) [
+        "--libc"
+        effectiveTargetPlatform.libc
+      ];
 
   patchedDependencies = lockfile.patchedDependencies or { };
   patchedDependencyFiles = lib.mapAttrs (
@@ -218,25 +274,28 @@ let
     else
       throw "importPnpmLock: unsupported package kind `${pkg.kind}` for `${pkg.id}`";
 
-  sourcesById = listToAttrs (map (pkg: nameValuePair pkg.id (fetchSource pkg)) packages);
-  kindById = listToAttrs (map (pkg: nameValuePair pkg.id pkg.kind) packages);
+  sourcesById = listToAttrs (map (pkg: nameValuePair pkg.id (fetchSource pkg)) fetchedPackages);
+  kindById = listToAttrs (map (pkg: nameValuePair pkg.id pkg.kind) fetchedPackages);
 
   rewritePackage =
     id: v:
-    let
-      src = sourcesById.${id};
-      kind = kindById.${id};
-      baseResolution = v.resolution or { };
-    in
-    v
-    // {
-      resolution =
-        # Git sources are re-packed from a fetchgit checkout, so the lockfile's
-        # original resolution does not describe the local tarball.
-        (if kind == "git" then { } else baseResolution) // {
-          tarball = "file:${src}";
-        };
-    };
+    if builtins.hasAttr id sourcesById then
+      let
+        src = sourcesById.${id};
+        kind = kindById.${id};
+        baseResolution = v.resolution or { };
+      in
+      v
+      // {
+        resolution =
+          # Git sources are re-packed from a fetchgit checkout, so the lockfile's
+          # original resolution does not describe the local tarball.
+          (if kind == "git" then { } else baseResolution) // {
+            tarball = "file:${src}";
+          };
+      }
+    else
+      v;
 
   rewrittenLockfileData = lockfile // {
     packages = lib.mapAttrs rewritePackage (lockfile.packages or { });
@@ -334,6 +393,7 @@ let
     fetcherVersion = effectiveFetcherVersion;
     src = source;
     hash = "";
+    inherit pnpmInstallFlags;
   };
   nativeBuildInputs' = upstream.nativeBuildInputs;
 in
@@ -370,7 +430,13 @@ lib.extendMkDerivation {
       '';
 
       passthru = {
-        inherit packages;
+        inherit
+          packages
+          fetchedPackages
+          skippedPackages
+          pnpmInstallFlags
+          ;
+        targetPlatform = effectiveTargetPlatform;
         fetcherVersion = effectiveFetcherVersion;
       };
     };
