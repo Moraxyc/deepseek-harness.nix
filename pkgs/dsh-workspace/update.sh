@@ -8,6 +8,10 @@ repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
 
 attr="${UPDATE_NIX_ATTR_PATH:-dsh-workspace}"
+if [[ "$attr" == packages.* ]]; then
+  attr="${attr#packages.}"
+  attr="${attr#*.}"
+fi
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
