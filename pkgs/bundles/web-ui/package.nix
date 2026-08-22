@@ -60,8 +60,11 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     find "$out/lib/node_modules" -depth -type d -empty -delete
   '';
 
-  passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
+  passthru = {
+    updateScript = nix-update-script {
+      extraArgs = [ "--flake" ];
+    };
+    requiresWeb = true;
   };
 
   meta = {
