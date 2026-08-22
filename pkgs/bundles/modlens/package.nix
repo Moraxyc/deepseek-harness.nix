@@ -9,14 +9,14 @@
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-modlens";
-  version = "3.22.1";
+  version = "3.23.1";
   deployPackage = "@liustack/modlens";
 
   src = fetchFromGitHub {
     owner = "liustack";
     repo = "modlens";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-mufbMZ2gv1kFUwvG67AofuDPcnAVyRyKFegTxCIG2iY=";
+    hash = "sha256-SrbdmiGCiIdBS79EdyXpbMW2cfusXbvkns4UrPfRiOE=";
   };
 
   pnpmDeps = fetchPnpmDeps {
