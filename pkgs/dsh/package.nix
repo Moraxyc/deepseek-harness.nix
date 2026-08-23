@@ -53,10 +53,19 @@ let
       util-linux
       writeShellApplication
       writeText
+      webBundle
       ;
   };
 
   baseBundle = bundles.base;
+  webBundle = bundles.web-app;
+  profilesForComposition = lib.mapAttrs (
+    _: profile:
+    profile
+    // {
+      bundles = profileFiles.profileBundles profile;
+    }
+  ) profiles;
   managedProfileNames = map profileFiles.profileName (lib.attrNames profiles);
   homePatchFile =
     if homePatch == null then
@@ -78,10 +87,7 @@ let
     (profile.requiresTty or false)
     || lib.any (bundle: bundle.passthru.requiresTty or false) (profile.bundles or [ ]);
 
-  profileRequiresWeb =
-    profile:
-    (profile.requiresWeb or false)
-    || lib.any (bundle: bundle.passthru.requiresWeb or false) (profile.bundles or [ ]);
+  profileRequiresWeb = profileFiles.profileNeedsWeb;
 in
 assert defaultProfile == null || lib.elem defaultProfile managedProfileNames;
 assert homePatch == null || lib.isList homePatch;
@@ -214,7 +220,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     composedBundles = composition.composeBundles {
       base = baseBundle;
       defaults = defaultBundles;
-      inherit profiles;
+      profiles = profilesForComposition;
     };
 
     profileTemplates = profileFiles.makeProfileTemplates {

@@ -10,6 +10,7 @@
   util-linux,
   writeShellApplication,
   writeText,
+  webBundle,
 }:
 
 let
@@ -38,6 +39,14 @@ let
     else
       throw "dsh profile: patch must be a YAML string or a list of patch operations";
 
+  profileNeedsWeb =
+    profile:
+    (profile.requiresWeb or false)
+    || lib.any (bundle: bundle.passthru.requiresWeb or false) (profile.bundles or [ ]);
+
+  profileBundles =
+    profile: lib.unique (lib.optional (profileNeedsWeb profile) webBundle ++ (profile.bundles or [ ]));
+
   profileSpec =
     name: profile:
     let
@@ -46,7 +55,7 @@ let
       # The manifest argument order is the Cordis patch order. Keep the base
       # layer first, then apply profile bundles in their declared order.
       bundleManifests = map (bundle: "${bundle}/nix-support/dsh-bundles.json") (
-        lib.unique ([ baseBundle ] ++ profile.bundles)
+        [ baseBundle ] ++ profileBundles profile
       );
       patch = renderPatch (profile.patch or "[]");
       packageJson = runCommand "dsh-profile-${targetName}-package.json" { } ''
@@ -88,7 +97,12 @@ let
     };
 in
 {
-  inherit profileName renderPatch;
+  inherit
+    profileBundles
+    profileName
+    profileNeedsWeb
+    renderPatch
+    ;
 
   makeProfileTemplates =
     { profiles }:
