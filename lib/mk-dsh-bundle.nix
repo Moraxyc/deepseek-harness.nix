@@ -112,6 +112,11 @@ let
       exit 1
     }
 
+    # Workspace deploys copy read-only Nix inputs. The merge below removes
+    # collisions and creates peer links, so its directory parents must be
+    # writable during the build.
+    find "$bundleNodeModules" -type d -exec chmod u+rwx {} +
+
     is_kernel_peer_kept() {
       local candidate=$1 item
       while IFS= read -r item; do
@@ -352,6 +357,8 @@ let
       "artifacts"
       "dsh-kernel"
       "dsh-workspace"
+      "linkKernelNodeModules"
+      "linkKernelNodeModulesKeep"
       "runtimeDeps"
     ];
     extendDrvArgs =
@@ -361,6 +368,8 @@ let
         dsh-kernel,
         dsh-workspace,
         disallowedReferences ? [ ],
+        linkKernelNodeModules ? null,
+        linkKernelNodeModulesKeep ? [ ],
         nativeBuildInputs ? [ ],
         runtimeDeps ? [ ],
         version ? dsh-workspace.version,
@@ -409,7 +418,12 @@ let
         dontBuild = true;
         installPhase = if installPhase == null then defaultInstallPhase else installPhase;
         nativeBuildInputs = [ nodejs-slim ] ++ nativeBuildInputs;
-        postInstall = postInstall + validateInstalledBundle;
+        postInstall =
+          postInstall
+          + lib.optionalString (linkKernelNodeModules != null) (
+            linkKernelNodeModulesScript linkKernelNodeModules linkKernelNodeModulesKeep
+          )
+          + validateInstalledBundle;
         passthru = passthru // bundleProtocol;
         meta = meta // {
           description =

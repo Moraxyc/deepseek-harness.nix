@@ -23,9 +23,8 @@
 
             # The service composes its package from the profiles declared
             # under programs.dsh.
-            # dshBundleCheckHook validates the composed profile at build
-            # time, so this profile must be a real web profile and its patch
-            # must remain a top-level YAML array.
+            # Agent Presets imply the web bundle. Keep a raw YAML profile patch
+            # here to cover both profile options together.
             programs.dsh = {
               enable = true;
               home = "/var/lib/dsh/cli-home";
@@ -39,7 +38,10 @@
                 }
               ];
               profiles.web = {
-                bundles = [ pkgs.dsh.bundles.web-app ];
+                agentPreset = {
+                  id = "service-web";
+                  source = "standard";
+                };
                 patch = ''
                   # served by programs.dsh.profiles
                   []
@@ -59,7 +61,7 @@
             "set +u; . /etc/set-environment; set -u; test \"$DSH_HOME\" = /var/lib/dsh/cli-home; dsh --profile nix-web --version"
           )
           machine.succeed(
-            "test -f /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml"
+            "test -f /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml; yq -e 'length == 1 and .[0].id == \"agent-presets\" and .[0].config.default == \"service-web\"' /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml"
           )
           machine.succeed(
             "truncate -s 0 /var/lib/dsh/cli-home/cordis.patch.yml; set +u; . /etc/set-environment; set -u; dsh --profile nix-web --version; yq -e '.[0].id == \"agent-default-model\" and .[0].config.model == \"deepseek-v4-flash\" and .[0].config.provider == \"deepseek-official\"' /var/lib/dsh/cli-home/cordis.patch.yml"

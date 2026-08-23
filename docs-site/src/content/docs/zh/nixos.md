@@ -83,6 +83,8 @@ profile 声明在 `programs.dsh.profiles` 下。名为 `tui` 的 profile 会生�
 每个 profile 支持：
 
 - `bundles`：bundle 包列表，例如 `pkgs.dsh.bundles.tui`；
+- `agentPreset`：可选的内置 Agent Preset 副本，并通过 `enableTools` 解除指定行
+  的 `disabled`；
 - `patch`：一组 Cordis patch 操作或原始 YAML，作为 `cordis.patch.yml`
   在所有 bundle 层之后应用；
 - `mode`：`managed`（默认）或 `mutable`；
@@ -101,6 +103,10 @@ programs.dsh.profiles = {
   };
 };
 ```
+
+如需可选的 Claude Code 或 Codex 子 agent 工具，请加入对应的
+`subagent-claude-code` 或 `subagent-codex` bundle，再按[高级用法](../advanced-usage/)
+声明 `agentPreset`。Provider bundle 与面向模型的 preset 行是两个独立选择。
 
 默认 profile 应使用生成后的名称，而不是硬编码 `nix-` 前缀：
 

@@ -41,6 +41,52 @@ Nix 标记的同名目录不会被接管或覆盖。
 `$DSH_HOME/cordis.patch.yml`。该层在所选 profile 的 patch 之后应用，并由
 所有 profile 共用。
 
+## 可选的 Claude Code 和 Codex 子 agent
+
+上游通过 plugin manager 把 provider 安装到指定 profile：
+
+```sh
+dsh plugin --profile <name> add @deepseek-ai/dsh-subagent-claude-code
+dsh plugin --profile <name> add @deepseek-ai/dsh-subagent-codex
+dsh --profile <name>
+```
+
+在 Nix 中对应为 profile bundle。Bundle 只注册休眠的 Host provider，并携带
+锁定版本的产品运行时；不会登录、创建原生产品状态，也不会回退到 `PATH` 中的
+`claude`/`codex`。认证和原生设置仍由 Claude Code、Codex 自己管理，包括
+`HOME`/`CODEX_HOME`。
+
+面向模型的委派工具由 Agent Preset 单独决定。应同时显式声明 provider bundle
+和要开放的 preset 行：
+
+```nix
+programs.dsh = {
+  enable = true;
+  profiles.web = {
+    bundles = with pkgs.dsh.bundles; [
+      web-app
+      subagent-codex
+      subagent-claude-code
+    ];
+    agentPreset = {
+      id = "web-subagents";
+      source = "standard";
+      enableTools = [
+        "tool-subagent-codex"
+        "tool-subagent-claude-code"
+      ];
+    };
+  };
+  defaultProfile = config.programs.dsh.profiles.web.materializedName;
+};
+```
+
+Nix 会把指定的内置 preset 复制到
+`$DSH_HOME/.agent-presets/web-subagents`，只从 `enableTools` 列出的行删除
+`disabled`，并把该副本设为 profile 默认值。`managed` profile 会持续同步副本；
+`mutable` profile 只在首次运行时生成，之后可本地编辑。只安装 provider bundle
+不会自动向模型暴露工具。
+
 ## NixOS Web 服务
 
 启用 `services.dsh` 可以把 web preset 作为 systemd 单元运行。默认只监听

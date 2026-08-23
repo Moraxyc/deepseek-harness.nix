@@ -45,6 +45,53 @@ after the bundle layers as `cordis.patch.yml`.
 `$DSH_HOME/cordis.patch.yml`. It applies after the selected profile's patch
 and is shared by every profile.
 
+## Optional Claude Code and Codex Subagents
+
+Upstream installs these providers into a profile with the plugin manager:
+
+```sh
+dsh plugin --profile <name> add @deepseek-ai/dsh-subagent-claude-code
+dsh plugin --profile <name> add @deepseek-ai/dsh-subagent-codex
+dsh --profile <name>
+```
+
+The Nix equivalents are profile bundles. The bundle registers a dormant Host
+provider and carries its pinned product payload; it does not log in, create
+native product state, or fall back to a `claude`/`codex` found on `PATH`.
+Authentication and native settings remain owned by Claude Code and Codex
+(`HOME`/`CODEX_HOME` included).
+
+Model-facing delegation is a separate Agent Preset choice. Keep the provider
+bundle and the preset explicit:
+
+```nix
+programs.dsh = {
+  enable = true;
+  profiles.web = {
+    bundles = with pkgs.dsh.bundles; [
+      web-app
+      subagent-codex
+      subagent-claude-code
+    ];
+    agentPreset = {
+      id = "web-subagents";
+      source = "standard";
+      enableTools = [
+        "tool-subagent-codex"
+        "tool-subagent-claude-code"
+      ];
+    };
+  };
+  defaultProfile = config.programs.dsh.profiles.web.materializedName;
+};
+```
+
+Nix copies the selected shipped preset into
+`$DSH_HOME/.agent-presets/web-subagents`, removes `disabled` only from the
+listed rows, and sets that preset as the profile default. `managed` profiles
+resync this copy; `mutable` profiles seed it once for local editing. Installing
+only a provider bundle does not expose a model tool.
+
 ## NixOS Web Service
 
 Enable `services.dsh` to run the web preset as a systemd unit. It binds only

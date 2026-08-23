@@ -70,6 +70,11 @@ inputs.home-manager.lib.homeManagerConfiguration {
 The module adds the composed package to `home.packages` and seeds managed
 profiles during Home Manager activation.
 
+Profiles also support `agentPreset` for a declarative copy of a shipped Agent
+Preset. Combine it with `subagent-codex` or `subagent-claude-code` in
+`bundles`; the provider bundle and the model-facing preset rows are separate
+choices. See [Advanced Usage](../advanced-usage/) for a complete example.
+
 Set `programs.dsh.home` to use another `DSH_HOME`:
 
 ```nix

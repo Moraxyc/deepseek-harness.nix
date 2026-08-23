@@ -14,6 +14,9 @@ in
 {
   # pnpm-lock.yaml converted to JSON
   lockfileJson,
+  # Additional dependency entries to merge into pnpm lockfile importers.
+  # Values use the lockfile importer format with `specifier` and `version`.
+  importerDependencyOverrides ? { },
   pnpm ? null,
   fetcherVersion ? null,
   pname ? null,
@@ -410,12 +413,6 @@ let
     else
       v;
 
-  rewrittenLockfileData = lockfile // {
-    packages = lib.mapAttrs rewritePackage (lockfile.packages or { });
-  };
-
-  lockfileYaml = writeText "pnpm-lock.yaml" (builtins.toJSON rewrittenLockfileData);
-
   importerDeps =
     importer:
     let
@@ -432,7 +429,21 @@ let
       peerDependencies = specifiers "peerDependencies";
     };
 
-  importers = lockfile.importers or { };
+  importers = lib.mapAttrs (
+    path: importer:
+    importer
+    // lib.optionalAttrs (builtins.hasAttr path importerDependencyOverrides) {
+      dependencies = (importer.dependencies or { }) // importerDependencyOverrides.${path};
+    }
+  ) (lockfile.importers or { });
+
+  rewrittenLockfileData = lockfile // {
+    inherit importers;
+    packages = lib.mapAttrs rewritePackage (lockfile.packages or { });
+  };
+
+  lockfileYaml = writeText "pnpm-lock.yaml" (builtins.toJSON rewrittenLockfileData);
+
   workspacePaths = lib.filter (path: path != ".") (lib.attrNames importers);
 
   rootPackageJson = writeText "package.json" (

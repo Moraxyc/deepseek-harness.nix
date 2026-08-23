@@ -87,6 +87,8 @@ you need a different composition or package source.
 Each profile supports:
 
 - `bundles`: a list of bundle packages, e.g. `pkgs.dsh.bundles.tui`;
+- `agentPreset`: optionally copy a shipped Agent Preset and remove `disabled`
+  from selected row ids with `enableTools`;
 - `patch`: a list of Cordis patch operations or raw YAML applied after all
   bundle layers as `cordis.patch.yml`;
 - `mode`: `managed` (default) or `mutable`;
@@ -105,6 +107,11 @@ programs.dsh.profiles = {
   };
 };
 ```
+
+For optional Claude Code or Codex subagent tools, add the matching
+`subagent-claude-code` or `subagent-codex` bundle and declare `agentPreset` as
+shown in [Advanced Usage](../advanced-usage/). The provider bundle and the
+model-facing preset row are separate choices.
 
 Use the materialized name for defaults instead of hardcoding the `nix-`
 prefix:

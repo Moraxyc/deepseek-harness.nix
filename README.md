@@ -80,6 +80,10 @@ Bundle 是插件式扩展；preset 是开箱即用的组合。Bundle 按组合�
 后面的 bundle 会覆盖前面的 Cordis 配置。
 完整目录见 [Bundles 和预设](https://moraxyc.github.io/deepseek-harness.nix/zh/catalog/)。
 
+可选的 `subagent-codex` 和 `subagent-claude-code` bundle 只提供休眠的 Host
+provider；需要在 profile 的 `agentPreset` 中显式开放对应的面向模型工具。
+完整示例见[高级用法](https://moraxyc.github.io/deepseek-harness.nix/zh/advanced-usage/)。
+
 ## NixOS
 
 NixOS 集成见 [NixOS 集成指南](https://moraxyc.github.io/deepseek-harness.nix/zh/nixos/)。

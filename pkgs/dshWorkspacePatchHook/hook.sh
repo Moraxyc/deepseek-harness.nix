@@ -13,7 +13,9 @@ dshWorkspaceRequire() {
   for path in \
     apps/cli/package.json \
     pnpm-lock.yaml \
-    vendor/group/package.json
+    vendor/group/package.json \
+    packages/subagent/subagent-claude-code/package.json \
+    packages/subagent/subagent-codex/package.json
   do
     if [ ! -f "$path" ]; then
       dshWorkspaceDie "workspace patch expected file '$path'"
@@ -25,6 +27,12 @@ dshWorkspaceRequire() {
     dshWorkspaceDie "workspace patch expected directory 'packages/bundle'"
     return 1
   fi
+}
+
+dshWorkspaceOptionalProviderNames() {
+  printf '%s\n' \
+    '@deepseek-ai/dsh-subagent-codex' \
+    '@deepseek-ai/dsh-subagent-claude-code'
 }
 
 dshWorkspacePatchDependencies() {
@@ -52,10 +60,44 @@ dshWorkspacePatchDependencies() {
   DEPS_FILE="$workspace_lock_deps" yq -i \
     '.importers."apps/cli".dependencies *= load(strenv(DEPS_FILE))' pnpm-lock.yaml
 
+  dshWorkspacePatchCodexPlatformDependency || return
+}
+
+dshWorkspacePatchCodexPlatformDependency() {
+  local platform_key=${DSH_CODEX_PLATFORM_KEY:-}
+  local codex_version platform_package platform_specifier platform_version
+
+  [ -n "$platform_key" ] || return 0
+
+  codex_version=$(yq -r '.dependencies["@openai/codex"] // ""' \
+    packages/subagent/subagent-codex/package.json) || return
+  [ -n "$codex_version" ] || {
+    dshWorkspaceDie "Codex dependency version is missing"
+    return 1
+  }
+
+  platform_package="@openai/codex-${platform_key}"
+  platform_version="${codex_version}-${platform_key}"
+  platform_specifier="npm:@openai/codex@${platform_version}"
+
+  DSH_CODEX_PLATFORM_PACKAGE="$platform_package" \
+    DSH_CODEX_PLATFORM_SPECIFIER="$platform_specifier" \
+    yq -i \
+      '.dependencies[strenv(DSH_CODEX_PLATFORM_PACKAGE)] = strenv(DSH_CODEX_PLATFORM_SPECIFIER)' \
+      packages/subagent/subagent-codex/package.json
+  DSH_CODEX_PLATFORM_PACKAGE="$platform_package" \
+    DSH_CODEX_PLATFORM_SPECIFIER="$platform_specifier" \
+    DSH_CODEX_PLATFORM_VERSION="@openai/codex@${platform_version}" \
+    yq -i '
+      .importers."packages/subagent/subagent-codex".dependencies[strenv(DSH_CODEX_PLATFORM_PACKAGE)] = {
+        "specifier": strenv(DSH_CODEX_PLATFORM_SPECIFIER),
+        "version": strenv(DSH_CODEX_PLATFORM_VERSION)
+      }
+    ' pnpm-lock.yaml
 }
 
 dshWorkspacePrepareComposition() {
-  local bundle_name package_json bundle_patch bundle_patch_tag bundle_runtime_deps
+  local bundle_name package_json bundle_patch bundle_patch_tag bundle_runtime_deps provider_name
   local -a bundle_names=()
 
   dshWorkspaceRequire || return
@@ -112,6 +154,19 @@ dshWorkspacePrepareComposition() {
       'del(.importers."apps/nix-composition".dependencies[strenv(DSH_BUNDLE_NAME)])' \
       pnpm-lock.yaml
   done
+
+  # Optional provider packages are deployed into their own profile bundles.
+  # Keeping them out of the kernel also keeps their private product payloads
+  # out of profiles that do not select the provider bundle.
+  while IFS= read -r provider_name; do
+    [ -n "$provider_name" ] || continue
+    DSH_PROVIDER_NAME="$provider_name" yq -i \
+      'del(.dependencies[strenv(DSH_PROVIDER_NAME)])' \
+      apps/nix-composition/package.json
+    DSH_PROVIDER_NAME="$provider_name" yq -i \
+      'del(.importers."apps/nix-composition".dependencies[strenv(DSH_PROVIDER_NAME)])' \
+      pnpm-lock.yaml
+  done < <(dshWorkspaceOptionalProviderNames)
 
   # Workspace bundles share the kernel node_modules at runtime. Keep their
   # non-workspace dependencies in the production composition as well.

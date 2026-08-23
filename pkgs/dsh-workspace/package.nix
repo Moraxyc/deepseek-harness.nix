@@ -20,6 +20,15 @@
 
 let
   platformKey = with stdenv.hostPlatform.node; "${platform}-${arch}";
+  pnpmLock = builtins.fromJSON (builtins.readFile ./pnpm-lock.json);
+  codexVersion =
+    pnpmLock.importers."packages/subagent/subagent-codex".dependencies."@openai/codex".specifier;
+  codexPlatformPackage = "@openai/codex-${platformKey}";
+  codexPlatformVersion = "${codexVersion}-${platformKey}";
+  codexPlatformDependency = {
+    specifier = "npm:@openai/codex@${codexPlatformVersion}";
+    version = "@openai/codex@${codexPlatformVersion}";
+  };
   fetchPnpmDeps' = fetchPnpmDeps.override { yq = yq-go; };
 in
 buildNpmPackage (finalAttrs: {
@@ -46,7 +55,7 @@ buildNpmPackage (finalAttrs: {
   ];
 
   postPatch = ''
-    patchDshWorkspace dependencies
+    DSH_CODEX_PLATFORM_KEY=${lib.escapeShellArg platformKey} patchDshWorkspace dependencies
 
     substituteInPlace "packages/terminal/terminal-bash/src/config.ts" \
       --replace-fail \
@@ -74,21 +83,10 @@ buildNpmPackage (finalAttrs: {
     inherit (finalAttrs) pname version;
     fetchPnpmDeps = fetchPnpmDeps';
     lockfileJson = ./pnpm-lock.json;
-    packageSourceOverrides = {
-      "@openai/codex@*-${platformKey}" =
-        {
-          pkg,
-          previousSource,
-          patchPackageSource,
-        }:
-        patchPackageSource {
-          inherit pkg;
-          source = previousSource;
-          symlinks = {
-            "vendor/*/bin/codex" = lib.getExe codex;
-            "vendor/*/bin/codex-code-mode-host" = lib.getExe' codex "codex-code-mode-host";
-          };
-        };
+    importerDependencyOverrides = {
+      "packages/subagent/subagent-codex" = {
+        "${codexPlatformPackage}" = codexPlatformDependency;
+      };
     };
     targetPlatform =
       if stdenv.buildPlatform == stdenv.hostPlatform then stdenv.targetPlatform else null;
@@ -133,13 +131,60 @@ buildNpmPackage (finalAttrs: {
       "$appDir"
     yq -i '.name = "@deepseek-ai/dsh-nix-composition"' "$appDir/package.json"
 
-    # Keep only the runtime artifacts needed by the kernel and bundle packages.
-    rm -rf "$appDir/node_modules/@anthropic-ai/claude-agent-sdk-"*
-    jq 'del(.optionalDependencies)' \
-      "$appDir/node_modules/@anthropic-ai/claude-agent-sdk/package.json" \
-      > "$appDir/node_modules/@anthropic-ai/claude-agent-sdk/package.json.tmp"
-    mv "$appDir/node_modules/@anthropic-ai/claude-agent-sdk/package.json.tmp" \
-      "$appDir/node_modules/@anthropic-ai/claude-agent-sdk/package.json"
+    providerRoot="$workspaceDir/providers"
+    mkdir -p "$providerRoot"
+    while IFS= read -r providerPackage; do
+      [ -n "$providerPackage" ] || continue
+      providerName="''${providerPackage#@deepseek-ai/dsh-}"
+      providerDir="$providerRoot/$providerName"
+      pnpm --filter "$providerPackage" deploy \
+        --prod \
+        --config.node-linker=hoisted \
+        --config.link-workspace-packages=true \
+        "$providerDir"
+      if [ "$providerPackage" = '@deepseek-ai/dsh-subagent-codex' ]; then
+        codexPlatformPackage="@openai/codex-${platformKey}"
+        if [ ! -d "$providerDir/node_modules/$codexPlatformPackage" ]; then
+          codexPlatformSource="node_modules/$codexPlatformPackage"
+          [ -d "$codexPlatformSource" ] || {
+            printf 'dsh-workspace: Codex platform package is missing: %s\n' "$codexPlatformSource" >&2
+            exit 1
+          }
+          mkdir -p "$providerDir/node_modules/@openai"
+          cp -rL "$codexPlatformSource" "$providerDir/node_modules/@openai/"
+        fi
+        codexPlatformRoot="$providerDir/node_modules/$codexPlatformPackage"
+        codexBinaryCount=0
+        for codexBinary in \
+          "$codexPlatformRoot"/vendor/*/bin/codex \
+          "$codexPlatformRoot"/vendor/*/bin/codex-code-mode-host
+        do
+          if [ -e "$codexBinary" ] || [ -L "$codexBinary" ]; then
+            codexBinaryCount=$((codexBinaryCount + 1))
+            rm -f "$codexBinary"
+            case "$(basename "$codexBinary")" in
+              codex)
+                ln -s ${lib.getExe codex} "$codexBinary"
+                ;;
+              codex-code-mode-host)
+                ln -s ${lib.getExe' codex "codex-code-mode-host"} "$codexBinary"
+                ;;
+            esac
+          fi
+        done
+        [ "$codexBinaryCount" -gt 0 ] || {
+          printf 'dsh-workspace: Codex platform payload has no vendor binaries: %s\n' "$codexPlatformRoot" >&2
+          exit 1
+        }
+      fi
+      for artifact in package.json cordis.patch.yml lib node_modules; do
+        [ -e "$providerDir/$artifact" ] || {
+          printf 'dsh-workspace: provider artifact is missing: %s\n' "$providerDir/$artifact" >&2
+          exit 1
+        }
+      done
+    done < <(dshWorkspaceOptionalProviderNames)
+
     rm -f "$appDir/node_modules/node-pty/build/"{{binding.,}Makefile,config.gypi,pty.target.mk}
     sed -i '1{/^#!/d;}' "$appDir/lib/bin.js"
     ${lib.getExe nodejs-slim} "$appDir/node_modules/@deepseek-ai/dsh-subprocess-local/scripts/ensure-spawn-helper.mjs"
@@ -166,8 +211,6 @@ buildNpmPackage (finalAttrs: {
   '';
 
   passthru = {
-    runtimeDeps = [ codex ];
-
     # Used by the update script to compare against importPnpmLock.
     fetchPnpmDeps = finalAttrs.pnpmDeps.passthru.fetchPnpmDeps;
 

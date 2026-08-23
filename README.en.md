@@ -81,7 +81,10 @@ Bundles are plugin-style extensions that can be combined into a `dsh` runtime;
 presets are ready-to-use combinations. Bundles apply in list order, with later
 bundles overriding earlier Cordis configuration. See
 [Bundles and Presets](https://moraxyc.github.io/deepseek-harness.nix/catalog/)
-for the full catalog.
+for the full catalog. The optional `subagent-codex` and
+`subagent-claude-code` bundles provide dormant Host providers; use a profile's
+`agentPreset` to expose the corresponding model-facing tool. See
+[Advanced Usage](https://moraxyc.github.io/deepseek-harness.nix/advanced-usage/).
 
 ## NixOS
 

@@ -68,6 +68,10 @@ inputs.home-manager.lib.homeManagerConfiguration {
 该模块会把组合后的包加入 `home.packages`，并在 Home Manager 激活时生成和
 同步受管理的 profile。
 
+Profile 也支持 `agentPreset`，用于声明式复制内置 Agent Preset。将它与
+`subagent-codex` 或 `subagent-claude-code` bundle 一起使用；Provider bundle
+与面向模型的 preset 行是两个独立选择。完整示例见[高级用法](../advanced-usage/)。
+
 设置 `programs.dsh.home` 可以改用其他 `DSH_HOME`：
 
 ```nix
