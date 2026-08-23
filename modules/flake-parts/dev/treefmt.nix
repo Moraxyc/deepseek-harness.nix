@@ -9,7 +9,10 @@
       programs = {
         nixfmt.enable = true;
         shellcheck.enable = true;
-        prettier.enable = true;
+        prettier = {
+          enable = true;
+          excludes = [ "pkgs/dsh-workspace/pnpm-lock.json" ];
+        };
       };
     };
   };
