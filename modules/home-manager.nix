@@ -23,10 +23,9 @@ in
       DSH_HOME = cfg.home;
     };
 
-    home.activation.dsh = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      ${
-        lib.optionalString (cfg.home != null) "DSH_HOME=${lib.escapeShellArg cfg.home} "
-      }${lib.getExe composed.passthru.seedProfiles}
-    '';
+    home.activation.dsh = lib.hm.dag.entryAfter [ "writeBoundary" ] (
+      lib.optionalString (cfg.home != null) "DSH_HOME=${lib.escapeShellArg cfg.home} "
+      + lib.getExe composed.passthru.seedProfiles
+    );
   };
 }
