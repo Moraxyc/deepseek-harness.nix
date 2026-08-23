@@ -10,22 +10,22 @@
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-ads";
-  version = "0-unstable-2026-08-18";
+  version = "0-unstable-2026-08-22";
   deployPackage = "@dsh-external/dsh-ads";
   linkKernelNodeModules = dsh-kernel;
 
   src = fetchFromGitHub {
     owner = "Nagi-ovo";
     repo = "dsh-ads";
-    rev = "3a2ba704bc383099c686d3288ff6e0d61fc391e5";
-    hash = "sha256-ixRxETpVrot/mqtnzytpKFxk/QnouPL3dVXoNjpBb1o=";
+    rev = "aa752ed8d24d0a4b5ce1fde4b99b0d9d7f5a1e22";
+    hash = "sha256-zRlpf4iy5DHlh0zSd/rBeAH+y8f5KoCfm5HJ34HHZoE=";
   };
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-w8IInG5knJJ85etVZd0f2Prr9wSyltlfMoia3yeAA/Y=";
+    hash = "sha256-+jPabCkXJJET99D/WBr34fMVaxwQbudGRA/AjSokAWk=";
   };
 
   npmDeps = null;
