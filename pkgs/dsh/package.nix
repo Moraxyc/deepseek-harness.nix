@@ -183,6 +183,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     runHook postInstall
   '';
 
+  __darwinAllowLocalNetworking = true;
   doInstallCheck = true;
   nativeInstallCheckInputs = [
     dshBundleCheckHook
