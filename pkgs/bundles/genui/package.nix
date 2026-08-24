@@ -11,7 +11,7 @@
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-genui";
   version = "0.8.6-unstable-2026-08-24";
-  deployPackage = "@omdsh-dev/dsh-genui";
+  deployPackage = "@changfenhuang/dsh-genui";
   linkKernelNodeModules = dsh-kernel;
 
   src = fetchFromGitHub {
