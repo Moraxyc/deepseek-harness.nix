@@ -9,19 +9,19 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-annotation";
-  version = "0-unstable-2026-08-22";
+  version = "0-unstable-2026-08-24";
 
   src = fetchFromGitHub {
     owner = "omdsh-dev";
     repo = "dsh-annotation";
-    rev = "599cd1e68c320da2def27574a57a4e5e786d757b";
-    hash = "sha256-172xRkcuOdJX6bCAYl/5QlK2diICtvd/cPtLHma3j8s=";
+    rev = "d49951bd3b4810b81ebdb7eb232c414ed3ed6adb";
+    hash = "sha256-9lcZXix9rQaTJsI6qbNNBc7c8HXmRxc9ostXCStNXBA=";
   };
 
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
-    hash = "sha256-x1P1fQw7bRSki7sGEHB+jWlxYY4woKhZjcbcRKJKXe4=";
+    hash = "sha256-q6OH/p4NlRYjoX/i006Y1pDU5bsTy8aM7jeVG/5zIAI=";
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
@@ -36,13 +36,13 @@ buildDshBundle (finalAttrs: {
 
     cat > package-lock.json <<'JSON'
     {
-      "name": "@omdsh-dev/dsh-annotation",
+      "name": "@changfenhuang/dsh-annotation",
       "version": "${finalAttrs.version}",
       "lockfileVersion": 3,
       "requires": true,
       "packages": {
         "": {
-          "name": "@omdsh-dev/dsh-annotation",
+          "name": "@changfenhuang/dsh-annotation",
           "version": "${finalAttrs.version}"
         }
       }
@@ -56,7 +56,7 @@ buildDshBundle (finalAttrs: {
   installPhase = ''
     runHook preInstall
 
-    appDir="$out/lib/node_modules/@omdsh-dev/dsh-annotation"
+    appDir="$out/lib/node_modules/@changfenhuang/dsh-annotation"
     mkdir -p "$appDir"
 
     cp -r package.json cordis.patch.yml client.js lib "$appDir/"
