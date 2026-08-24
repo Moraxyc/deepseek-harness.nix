@@ -21,7 +21,7 @@ buildDshBundle (finalAttrs: {
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
-    hash = "sha256-Gs3QuQRYXEUB+U1ruNCBSGUKRiSE/yfIXQQQj18BGLo=";
+    hash = "sha256-q6OH/p4NlRYjoX/i006Y1pDU5bsTy8aM7jeVG/5zIAI=";
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
@@ -36,13 +36,13 @@ buildDshBundle (finalAttrs: {
 
     cat > package-lock.json <<'JSON'
     {
-      "name": "@omdsh-dev/dsh-annotation",
+      "name": "@changfenhuang/dsh-annotation",
       "version": "${finalAttrs.version}",
       "lockfileVersion": 3,
       "requires": true,
       "packages": {
         "": {
-          "name": "@omdsh-dev/dsh-annotation",
+          "name": "@changfenhuang/dsh-annotation",
           "version": "${finalAttrs.version}"
         }
       }
@@ -56,7 +56,7 @@ buildDshBundle (finalAttrs: {
   installPhase = ''
     runHook preInstall
 
-    appDir="$out/lib/node_modules/@omdsh-dev/dsh-annotation"
+    appDir="$out/lib/node_modules/@changfenhuang/dsh-annotation"
     mkdir -p "$appDir"
 
     cp -r package.json cordis.patch.yml client.js lib "$appDir/"
