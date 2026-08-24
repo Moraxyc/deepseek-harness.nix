@@ -64,6 +64,14 @@ buildNpmPackage (finalAttrs: {
       "Object.entries(cssExports ?? {})" \
       "Object.entries(cssExports ?? {}).sort(([a], [b]) => a.localeCompare(b))"
   ''
+  + lib.optionalString (lib.versionOlder pnpm_11.version "11.7.0") ''
+    # pnpm < 11.7 cannot parse file: selectors in allowBuilds.
+    yq -i '
+      .allowBuilds."@deepseek-ai/dsh-subprocess-local" =
+        .allowBuilds."@deepseek-ai/dsh-subprocess-local@file:packages/subprocess/subprocess-local" |
+      del(.allowBuilds."@deepseek-ai/dsh-subprocess-local@file:packages/subprocess/subprocess-local")
+    ' pnpm-workspace.yaml
+  ''
   + lib.optionalString (lib.meta.availableOn stdenv.hostPlatform dsh-landlock-run) ''
     install -Dm755 ${dsh-landlock-run}/bin/landlock-run native/landlock-run/packages/${platformKey}/bin/landlock-run
   '';
