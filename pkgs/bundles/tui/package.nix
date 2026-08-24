@@ -10,13 +10,13 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-tui";
-  version = "0.8.8";
+  version = "0.9.0";
 
   src = fetchFromGitHub {
     owner = "ccch1mneyyy";
     repo = "dsh-TUI";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-N5jjAoHeABAM+rQMGuPtQasLEk9wmU/bSw2X2ilGg0U=";
+    hash = "sha256-bUlL9YPYKqLSTXtT59c+D609Ga77J5l/60giSEsbowY=";
   };
 
   postPatch = ''
