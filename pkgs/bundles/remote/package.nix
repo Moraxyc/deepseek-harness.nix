@@ -17,6 +17,7 @@ buildDshBundle (finalAttrs: {
   };
 
   npmDepsHash = "sha256-57h+8zN4oUIqeOkUtmNnCyFB5o6djbg2OS9H/3a18sg=";
+  npmFlags = [ "--legacy-peer-deps" ];
   dontNpmBuild = true;
   linkKernelNodeModules = dsh-kernel;
   # Keep the hard dependency local so a kernel-owned sidebar cannot replace it.
