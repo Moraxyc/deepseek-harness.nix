@@ -11,7 +11,7 @@
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-web-ui";
   version = "0.3.3";
-  deployPackage = "@linxin666/dsh-web-ui-all";
+  deployPackage = "@linxin666/dsh-web-all";
   stripPrepareScripts = true;
   disableChildBundlePatches = true;
   linkKernelNodeModules = dsh-kernel;
