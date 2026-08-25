@@ -23,7 +23,7 @@ buildDshBundle (finalAttrs: {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = lib.fakeHash;
+    hash = "sha256-c0g6Gl3rdXDYB2wtMcdICYDZgoCEg7s5mD/RfybHqwI=";
   };
 
   npmDeps = null;
