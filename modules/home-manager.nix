@@ -5,10 +5,17 @@
 }:
 let
   cfg = config.programs.dsh;
-  composed = (cfg.package.withProfiles cfg.profiles).override {
-    defaultProfile = cfg.defaultProfile;
-    homePatch = cfg.patch;
-  };
+  composed =
+    (
+      (cfg.package.override {
+        agentPresets = cfg.agentPresets;
+      }).withProfiles
+      cfg.profiles
+    ).override
+      {
+        defaultProfile = cfg.defaultProfile;
+        homePatch = cfg.patch;
+      };
 in
 {
   imports = [

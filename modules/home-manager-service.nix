@@ -14,9 +14,15 @@ let
       managedProfiles = map profileName (lib.attrNames cfg.profiles);
     in
     if lib.elem cfg.profile managedProfiles then
-      (config.programs.dsh.package.withProfiles cfg.profiles).override {
-        defaultProfile = cfg.profile;
-      }
+      (
+        (config.programs.dsh.package.override {
+          agentPresets = cfg.agentPresets;
+        }).withProfiles
+        cfg.profiles
+      ).override
+        {
+          defaultProfile = cfg.profile;
+        }
     else
       pkgs.dsh.presets.web;
   composedPackage = servicePackage.override {
@@ -64,6 +70,14 @@ in
         This option defaults to `programs.dsh.profiles`, so custom profiles
         declared there are reused by the service automatically. Assigning
         `services.dsh.profiles` replaces the inherited profiles.
+      '';
+    };
+
+    agentPresets = profileOptions.mkAgentPresetsOption {
+      default = config.programs.dsh.agentPresets;
+      defaultText = lib.literalExpression "config.programs.dsh.agentPresets";
+      extraDescription = ''
+        This option defaults to `programs.dsh.agentPresets`.
       '';
     };
 

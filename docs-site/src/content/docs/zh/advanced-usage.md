@@ -27,8 +27,8 @@ description: 自定义 profile、包覆盖、服务和反向代理配置。
 （默认 `~/.dsh/profiles/nix-tui`）。Nix 只同步由它管理的 profile；已有但没有
 Nix 标记的同名目录不会被接管或覆盖。
 
-`defaultProfile` 使用生成后的名称（`nix-tui`，不是 `tui`），在没有显式传入
-`--profile` 时使用。显式传入 `--profile` 时仍可选择任何可用 profile。
+`defaultProfile` 使用生成后的名称（`nix-tui`）。不要直接填原始 profile key（`tui`）。
+没有显式传入 `--profile` 时，dsh 使用这个名称；显式传入时仍可选择任何可用 profile。
 
 每个声明的 profile 都暴露只读的 `rawName`（`tui`）和
 `materializedName`（`nix-tui`）。在模块中，`defaultProfile` 可使用
@@ -275,12 +275,32 @@ programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
 ];
 ```
 
-安装提供程序 Bundle 只会注册处于待命状态的 Host provider，不会启动 Codex 或
-Claude Code，也不会向模型授予对应工具。随上游提供的 `standard` 和 `code`
+安装提供程序 Bundle 只会把 Host provider 放进运行时。它不会启动 Codex 或
+Claude Code，也不会自动开放对应工具。内置的 `standard` 和 `code`
 Agent Preset 默认禁用 `tool-subagent-codex` 与
-`tool-subagent-claude-code`。如需对某个会话授权，请把上游 preset 复制到
-`$DSH_HOME/.agent-presets/<id>/`，再删除对应工具条目的 `disabled`。Bundle
-安装与 Agent Preset 授权是两层独立配置。
+`tool-subagent-claude-code`。可以同时声明 preset 和 profile：
+
+```nix
+programs.dsh = {
+  agentPresets.web-subagents = {
+    source = "standard";
+    enableTools = [ "tool-subagent-codex" ];
+  };
+
+  profiles.web = {
+    bundles = with pkgs.dsh.bundles; [
+      web-app
+      subagent-codex
+    ];
+    agentPreset = "web-subagents";
+  };
+};
+```
+
+构建时会把指定的 preset 复制到
+`$DSH_HOME/.agent-presets/web-subagents`，只从 `enableTools` 列出的行删除
+`disabled`。`managed` profile 会在启动前同步副本；`mutable` profile 只生成一次。
+安装 Bundle 不会开放工具；工具是否可用由 Agent Preset 单独决定。
 
 这些 Bundle 使用 DeepSeek Harness 上游 workspace 固定的版本，不搜索
 `PATH`。如需改用某个 Nixpkgs revision 或 overlay 单独打包的二进制，可以覆盖

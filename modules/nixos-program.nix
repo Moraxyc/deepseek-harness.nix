@@ -12,10 +12,18 @@ in
 
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [
-      ((cfg.package.withProfiles cfg.profiles).override {
-        defaultProfile = cfg.defaultProfile;
-        homePatch = cfg.patch;
-      })
+      (
+        (
+          (cfg.package.override {
+            agentPresets = cfg.agentPresets;
+          }).withProfiles
+          cfg.profiles
+        ).override
+        {
+          defaultProfile = cfg.defaultProfile;
+          homePatch = cfg.patch;
+        }
+      )
     ];
 
     environment.variables = lib.mkIf (cfg.home != null) {

@@ -4,6 +4,42 @@
 let
   dshPatchOp = lib.types.attrs;
 
+  agentPresetSubmodule = {
+    options = {
+      source = lib.mkOption {
+        type = lib.types.str;
+        default = "standard";
+        description = ''
+          Shipped Agent Preset to copy into the user preset root.
+        '';
+      };
+
+      enableTools = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        description = ''
+          IDs of Agent Preset rows whose `disabled` field is removed.
+        '';
+      };
+
+      name = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        description = ''
+          Optional display name written to the generated preset.
+        '';
+      };
+
+      description = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        description = ''
+          Optional display description written to the generated preset.
+        '';
+      };
+    };
+  };
+
   profileSubmodule = { name, ... }: {
     options = {
       rawName = lib.mkOption {
@@ -34,6 +70,16 @@ let
           Their package manifests are resolved during the build in list
           order and applied after the shared `@deepseek-ai/dsh-base`
           layer; later bundles override earlier Cordis configuration.
+        '';
+      };
+
+      agentPreset = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        description = ''
+          ID of an entry in `programs.dsh.agentPresets`. The preset controls the
+          tool rows visible to the model; provider bundles are configured
+          separately.
         '';
       };
 
@@ -71,7 +117,32 @@ let
   };
 in
 {
-  inherit profileSubmodule;
+  inherit agentPresetSubmodule profileSubmodule;
+
+  mkAgentPresetsOption =
+    {
+      default ? { },
+      defaultText ? null,
+      extraDescription ? "",
+    }:
+    lib.mkOption {
+      type = lib.types.attrsOf (lib.types.submodule agentPresetSubmodule);
+      inherit default defaultText;
+      example = lib.literalExpression ''
+        {
+          web-subagents = {
+            source = "standard";
+            enableTools = [ "tool-subagent-codex" ];
+          };
+        }
+      '';
+      description = ''
+        Agent Preset definitions declared in Nix. The build prepares each
+        declared preset and checks that its shipped source exists. Activation
+        copies the selected preset into the user preset root.
+        ${extraDescription}
+      '';
+    };
 
   mkProfilesOption =
     {

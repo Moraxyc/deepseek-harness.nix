@@ -14,6 +14,7 @@
   util-linux,
   writeShellApplication,
   writeText,
+  yq-go,
 
   buildDshBundle,
   dsh,
@@ -30,6 +31,8 @@
 
   # Profiles materialized under $DSH_HOME/profiles/nix-<name>.
   profiles ? { },
+  # Agent Preset definitions referenced by profiles.
+  agentPresets ? { },
   # Optional profile used when the caller does not pass --profile.
   defaultProfile ? null,
   # Optional home-level Cordis patch managed under $DSH_HOME.
@@ -47,6 +50,8 @@ let
       diffutils
       gnugrep
       dshBundleResolver
+      dsh-kernel
+      agentPresets
       lib
       linkFarm
       runCommand
@@ -55,6 +60,7 @@ let
       writeText
       tuiBundle
       webBundle
+      yq-go
       ;
   };
 
@@ -231,8 +237,11 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       inherit profiles;
     };
 
+    agentPresetTemplates = profileFiles.makeAgentPresetTemplates { };
+
     seedProfiles = profileFiles.makeProfileSeeder {
       inherit homePatchFile profiles;
+      agentPresetTemplates = finalAttrs.passthru.agentPresetTemplates;
       profileTemplates = finalAttrs.passthru.profileTemplates;
     };
 
@@ -258,7 +267,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     withProfiles =
       configuredProfiles:
       dsh.override {
-        inherit defaultBundles homePatch;
+        inherit agentPresets defaultBundles homePatch;
         defaultProfile = null;
         profiles = lib.mapAttrs (
           _: profile:
@@ -287,7 +296,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       in
       assert lib.isList selectedBundles;
       dsh.override {
-        inherit defaultProfile homePatch;
+        inherit agentPresets defaultProfile homePatch;
         defaultBundles = lib.unique (defaultBundles ++ selectedBundles);
         profiles = profilesWithBundles;
       };

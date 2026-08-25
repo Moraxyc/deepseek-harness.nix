@@ -83,6 +83,8 @@ profile 声明在 `programs.dsh.profiles` 下。名为 `tui` 的 profile 会生�
 每个 profile 支持：
 
 - `bundles`：bundle 包列表，例如 `pkgs.dsh.bundles.tui`；
+- `agentPreset`：`programs.dsh.agentPresets` 中的 ID；引用的 preset 会复制到
+  `$DSH_HOME/.agent-presets`；
 - `patch`：一组 Cordis patch 操作或原始 YAML，作为 `cordis.patch.yml`
   在所有 bundle 层之后应用；
 - `mode`：`managed`（默认）或 `mutable`；
@@ -102,7 +104,11 @@ programs.dsh.profiles = {
 };
 ```
 
-默认 profile 应使用生成后的名称，而不是硬编码 `nix-` 前缀：
+Agent Preset 写在 `programs.dsh.agentPresets` 下，再由 profile 引用。
+`enableTools` 只会从列出的 preset 行删除 `disabled`，不会自动安装 provider bundle。
+子 agent 示例见[高级用法](../advanced-usage/)。
+
+默认 profile 应使用生成后的名称（例如 `nix-tui`）。不要在配置中手写 `nix-` 前缀：
 
 ```nix
 { config, inputs, pkgs, ... }:
@@ -197,4 +203,4 @@ journalctl -u dsh-web -f
   时，导入 `inputs.nixpkgs.nixosModules.readOnlyPkgs` 并把 `nixpkgs.pkgs`
   指向该 pkgs。
 - 如果 `dsh` 启动后没有使用预期 profile，检查 `programs.dsh.defaultProfile`
-  是否使用了生成后的名称（`nix-tui`），而不是原始 profile key（`tui`）。
+  是否写的是生成后的名称（`nix-tui`）；原始 profile key 是 `tui`，不能直接使用。

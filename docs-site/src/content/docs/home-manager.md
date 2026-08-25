@@ -70,6 +70,11 @@ inputs.home-manager.lib.homeManagerConfiguration {
 The module adds the composed package to `home.packages` and seeds managed
 profiles during Home Manager activation.
 
+An individual profile can reference a definition from
+`programs.dsh.agentPresets`: set `agentPreset = "name"` and list the provider
+bundle separately. Home Manager copies the selected preset during activation; see
+[Advanced Usage](../advanced-usage/) for the tool authorization example.
+
 Set `programs.dsh.home` to use another `DSH_HOME`:
 
 ```nix

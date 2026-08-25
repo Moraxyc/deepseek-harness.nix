@@ -87,6 +87,8 @@ you need a different composition or package source.
 Each profile supports:
 
 - `bundles`: a list of bundle packages, e.g. `pkgs.dsh.bundles.tui`;
+- `agentPreset`: an ID from `programs.dsh.agentPresets`; the referenced shipped
+  preset is copied to `$DSH_HOME/.agent-presets`;
 - `patch`: a list of Cordis patch operations or raw YAML applied after all
   bundle layers as `cordis.patch.yml`;
 - `mode`: `managed` (default) or `mutable`;
@@ -105,6 +107,11 @@ programs.dsh.profiles = {
   };
 };
 ```
+
+Declare an Agent Preset under `programs.dsh.agentPresets` and reference it from
+the profile. `enableTools` removes `disabled` only from the listed preset rows;
+it does not install a provider bundle. See [Advanced Usage](../advanced-usage/)
+for a complete subagent example.
 
 Use the materialized name for defaults instead of hardcoding the `nix-`
 prefix:

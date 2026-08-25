@@ -40,6 +40,8 @@ in
       '';
     };
 
+    agentPresets = profileOptions.mkAgentPresetsOption { };
+
     profiles = profileOptions.mkProfilesOption { };
 
     defaultProfile = lib.mkOption {

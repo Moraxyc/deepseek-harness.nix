@@ -68,6 +68,10 @@ inputs.home-manager.lib.homeManagerConfiguration {
 该模块会把组合后的包加入 `home.packages`，并在 Home Manager 激活时生成和
 同步受管理的 profile。
 
+Profile 可以引用 `programs.dsh.agentPresets` 中的定义：设置
+`agentPreset = "name"`，再单独列出 provider bundle。Home Manager 会在激活时复制
+指定的 preset；工具授权示例见[高级用法](../advanced-usage/)。
+
 设置 `programs.dsh.home` 可以改用其他 `DSH_HOME`：
 
 ```nix
@@ -185,4 +189,4 @@ journalctl --user -u dsh-web -f
   `nixpkgs.overlays` 不能可靠替代 NixOS 级 overlay；应使用全局
   `nixpkgs.overlays`。
 - 如果 `dsh` 启动后没有使用预期 profile，检查 `programs.dsh.defaultProfile`
-  是否使用了生成后的名称（`nix-tui`），而不是原始 profile key（`tui`）。
+  是否写的是生成后的名称（`nix-tui`）；原始 profile key 是 `tui`，不能直接使用。

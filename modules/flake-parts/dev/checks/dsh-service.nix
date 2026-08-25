@@ -181,10 +181,15 @@
                     pkgs.dsh.bundles.subagent-codex
                     pkgs.dsh.bundles.subagent-claude-code
                   ];
+                  agentPreset = "web-subagents";
                   patch = ''
                     # served by programs.dsh.profiles
                     []
                   '';
+                };
+                agentPresets.web-subagents = {
+                  source = "standard";
+                  enableTools = [ "tool-subagent-codex" ];
                 };
               };
 
@@ -201,6 +206,12 @@
             )
             machine.succeed(
               "test -f /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml"
+            )
+            machine.succeed(
+              "test -f /var/lib/dsh/cli-home/.agent-presets/web-subagents/agent.cordis.yml; yq -e '[.. | select(type == \"!!map\") | select(.id == \"tool-subagent-codex\" and has(\"disabled\"))] | length == 0' /var/lib/dsh/cli-home/.agent-presets/web-subagents/agent.cordis.yml; yq -e '[.. | select(type == \"!!map\") | select(.id == \"tool-subagent-claude-code\" and .disabled == true)] | length == 1' /var/lib/dsh/cli-home/.agent-presets/web-subagents/agent.cordis.yml"
+            )
+            machine.succeed(
+              "yq -e 'length == 1 and .[0].id == \"agent-presets\" and .[0].config.default == \"web-subagents\"' /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml"
             )
             machine.succeed(
               "yq -e '.dependencies.\"@deepseek-ai/dsh-subagent-codex\" != null and .dependencies.\"@deepseek-ai/dsh-subagent-claude-code\" != null' $(dirname $(dirname $(readlink -f /run/current-system/sw/bin/dsh)))/lib/deepseek-harness/package.json"

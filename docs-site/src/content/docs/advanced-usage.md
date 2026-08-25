@@ -286,13 +286,33 @@ programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
 ];
 ```
 
-Installing a provider Bundle only registers its dormant Host provider. It does
-not start Codex or Claude Code and does not grant either model-facing tool. The
+Installing a provider Bundle only puts its Host provider in the runtime. It does
+not start Codex or Claude Code, and it does not authorize either model-facing tool. The
 shipped `standard` and `code` Agent Presets keep `tool-subagent-codex` and
-`tool-subagent-claude-code` disabled. To authorize one for a session, copy a
-shipped preset into `$DSH_HOME/.agent-presets/<id>/` and remove `disabled` from
-that tool row. Bundle installation and Agent Preset authorization are separate
-controls.
+`tool-subagent-claude-code` disabled. Declare the preset and profile together:
+
+```nix
+programs.dsh = {
+  agentPresets.web-subagents = {
+    source = "standard";
+    enableTools = [ "tool-subagent-codex" ];
+  };
+
+  profiles.web = {
+    bundles = with pkgs.dsh.bundles; [
+      web-app
+      subagent-codex
+    ];
+    agentPreset = "web-subagents";
+  };
+};
+```
+
+The build copies the selected preset into
+`$DSH_HOME/.agent-presets/web-subagents` and removes `disabled` only from the
+listed rows. `managed` profiles sync the copy again before launch; `mutable`
+profiles seed it once. Bundle installation and Agent Preset authorization are
+separate: installing a bundle does not authorize its tools.
 
 The Bundles use the versions pinned by the upstream DeepSeek Harness workspace;
 they do not search `PATH`. To use separately packaged binaries from a Nixpkgs
