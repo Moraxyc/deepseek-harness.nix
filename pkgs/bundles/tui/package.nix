@@ -20,11 +20,19 @@ buildDshBundle (finalAttrs: {
   };
 
   postPatch = ''
-    rm -rf vendor/dsh-std dsh-ecosystem-spec
-    mkdir -p vendor/dsh-std dsh-ecosystem-spec
+    rm -rf vendor/dsh-std dsh-ecosystem-spec dsh-auth
+    mkdir -p vendor/dsh-std dsh-ecosystem-spec dsh-auth
     cp -r ${finalAttrs.passthru.dshStd}/. vendor/dsh-std/
     cp -r ${finalAttrs.passthru.dshEcosystemSpec}/. dsh-ecosystem-spec/
-    chmod -R u+w vendor/dsh-std dsh-ecosystem-spec
+    cp -r ${finalAttrs.passthru.dshAuth}/. dsh-auth/
+    chmod -R u+w vendor/dsh-std dsh-ecosystem-spec dsh-auth
+
+    # fetchFromGitHub provides a tarball without a Git index, but verify:i18n
+    # only needs the source file list for its static scan.
+    substituteInPlace scripts/verify-i18n.ts \
+      --replace-fail \
+        "execSync('git ls-files src scripts', { encoding: 'utf8' })" \
+        "execSync('find src scripts -type f -print', { encoding: 'utf8' })"
   '';
 
   pnpmDeps = fetchPnpmDeps {
@@ -86,6 +94,12 @@ buildDshBundle (finalAttrs: {
       rev = "e1b902b0f95f4280a8e68d414ec7a4d25d6ce106";
       hash = "sha256-LVc7bMUJMI4GYW3IyBWYwFzkibayu6BgZxlO67FPtGk=";
     };
+    dshAuth = fetchFromGitHub {
+      owner = "ccch1mneyyy";
+      repo = "dsh-auth";
+      rev = "fba02bcf7fb57e3d9885f73882d5835ccdf526c4";
+      hash = "sha256-ip/jdsm/YiPvVdZ0o2m/thImd+4ZmRjzQKzXvJ9dAK8=";
+    };
     inherit (finalAttrs) pnpmDeps;
     requiresTty = true;
 
@@ -94,6 +108,7 @@ buildDshBundle (finalAttrs: {
         "--flake"
         "--subpackage=dshStd"
         "--subpackage=dshEcosystemSpec"
+        "--subpackage=dshAuth"
         "--override-filename=pkgs/bundles/tui/package.nix"
       ];
     };
