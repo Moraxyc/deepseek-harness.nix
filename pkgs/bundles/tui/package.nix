@@ -78,6 +78,13 @@ buildDshBundle (finalAttrs: {
     mkdir -p "$appDir/node_modules/@dsh-std"
     cp -rL node_modules/@dsh-std/. "$appDir/node_modules/@dsh-std/"
 
+    # dsh-auth is a workspace link in the source tarball and must be copied
+    # into the final bundle instead of leaving a dangling link.
+    rm -rf "$appDir/node_modules/@deepseek-harness-tui/dsh-auth"
+    mkdir -p "$appDir/node_modules/@deepseek-harness-tui/dsh-auth"
+    cp -rL node_modules/@deepseek-harness-tui/dsh-auth/. \
+      "$appDir/node_modules/@deepseek-harness-tui/dsh-auth/"
+
     runHook postInstall
   '';
 
@@ -101,6 +108,7 @@ buildDshBundle (finalAttrs: {
       hash = "sha256-ip/jdsm/YiPvVdZ0o2m/thImd+4ZmRjzQKzXvJ9dAK8=";
     };
     inherit (finalAttrs) pnpmDeps;
+    requiresTui = true;
     requiresTty = true;
 
     updateScript = nix-update-script {

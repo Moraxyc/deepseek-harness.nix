@@ -53,11 +53,13 @@ let
       util-linux
       writeShellApplication
       writeText
+      tuiBundle
       webBundle
       ;
   };
 
   baseBundle = bundles.base;
+  tuiBundle = bundles.tui;
   webBundle = bundles.web-app;
   profilesForComposition = lib.mapAttrs (
     _: profile:
@@ -85,6 +87,7 @@ let
   profileRequiresTty =
     profile:
     (profile.requiresTty or false)
+    || profileFiles.profileNeedsTui profile
     || lib.any (bundle: bundle.passthru.requiresTty or false) (profile.bundles or [ ]);
 
   profileRequiresWeb = profileFiles.profileNeedsWeb;

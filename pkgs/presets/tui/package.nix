@@ -11,8 +11,7 @@ dsh.override {
   };
   profiles = {
     tui = {
-      requiresTty = true;
-      bundles = [ bundles.tui ];
+      requiresTui = true;
     };
   };
 }
