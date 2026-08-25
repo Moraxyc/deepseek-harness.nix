@@ -7,16 +7,11 @@
   ripgrep,
   stdenvNoCC,
 }:
-buildDshBundle.fromWorkspace (finalAttrs: {
+buildDshBundle.fromWorkspace (_finalAttrs: {
   inherit dsh-kernel dsh-workspace;
   pname = "dsh-base";
-  artifacts = [
-    {
-      source = "bundles/base";
-      target = "lib/node_modules/@deepseek-ai/${finalAttrs.pname}";
-      linkNodeModules = true;
-    }
-  ];
+  packageName = "@deepseek-ai/dsh-base";
+  linkKernelNodeModules = dsh-kernel;
   runtimeDeps = [ ripgrep ] ++ lib.optionals stdenvNoCC.hostPlatform.isLinux [ bubblewrap ];
   meta = {
     description = "Foundation shared by all dsh profiles";

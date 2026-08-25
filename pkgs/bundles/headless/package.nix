@@ -5,16 +5,11 @@
   dsh-workspace,
   stdenvNoCC,
 }:
-buildDshBundle.fromWorkspace (finalAttrs: {
+buildDshBundle.fromWorkspace (_finalAttrs: {
   inherit dsh-kernel dsh-workspace;
   pname = "dsh-headless";
-  artifacts = [
-    {
-      source = "bundles/headless";
-      target = "lib/node_modules/@deepseek-ai/${finalAttrs.pname}";
-      linkNodeModules = true;
-    }
-  ];
+  packageName = "@deepseek-ai/dsh-headless";
+  linkKernelNodeModules = dsh-kernel;
   meta = {
     description = "Run dsh without a graphical interface";
     descriptions.zh-CN = "无需图形界面即可运行 dsh";

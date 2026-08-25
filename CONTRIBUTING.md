@@ -8,8 +8,8 @@ Use the builder that matches where the bundle source comes from:
   `installPhase` and place the built bundle under `$out/lib/node_modules`.
 - `buildDshBundle.fromPnpmWorkspace`: external pnpm monorepo whose selected
   workspace package should be deployed directly into `$out/lib`.
-- `buildDshBundle.fromWorkspace`: upstream artifacts already produced by
-  `dsh-workspace`, so the bundle package only copies them into `$out`.
+- `buildDshBundle.fromWorkspace`: an upstream package and its production
+  closure already deployed by `dsh-workspace`.
 
 Every builder runs the same bundle validation: `$out/lib/node_modules` must
 contain at least one package declaring `dsh.bundle.patch`, and the patch file
@@ -203,10 +203,9 @@ automatically, so keep `pnpm_11` in `disallowedReferences` when it is used.
 ## Adding an upstream workspace bundle
 
 Use `buildDshBundle.fromWorkspace` for bundles built from the pinned
-`dsh-workspace` source. The workspace already contains `package.json`,
-`cordis.patch.yml`, and `lib` under `packages/bundle/<name>`. Point one
-artifact at that source and copy it to the standard node_modules package
-path:
+`dsh-workspace` source. `dsh-workspace` discovers every upstream manifest with
+`dsh.bundle` and deploys that package and its production closure. Select the
+deployment by its exact npm `packageName`:
 
 ```nix
 {
@@ -215,17 +214,11 @@ path:
   dsh-kernel,
   dsh-workspace,
 }:
-buildDshBundle.fromWorkspace (finalAttrs: {
+buildDshBundle.fromWorkspace (_finalAttrs: {
   inherit dsh-kernel dsh-workspace;
   pname = "example-workspace-bundle";
-
-  artifacts = [
-    {
-      source = "bundles/example-workspace-bundle";
-      target = "lib/node_modules/@deepseek-ai/${finalAttrs.pname}";
-      linkNodeModules = true;
-    }
-  ];
+  packageName = "@deepseek-ai/example-workspace-bundle";
+  linkKernelNodeModules = dsh-kernel;
 
   runtimeDeps = [ ];
 
@@ -238,7 +231,13 @@ buildDshBundle.fromWorkspace (finalAttrs: {
 })
 ```
 
-`fromWorkspace` automatically keeps `dsh-workspace` out of the runtime closure.
-Set `linkNodeModules = true` when the bundle package expects kernel peers to
-resolve from `dsh-kernel`. Use `runtimeDeps` for executable tools that must be
-prepended to `PATH` when the composed dsh runs.
+`fromWorkspace` copies the complete deployment into the standard
+`$out/lib/node_modules/<packageName>` layout and keeps `dsh-workspace` out of
+the runtime closure. Use `linkKernelNodeModules = dsh-kernel` to deduplicate
+kernel-owned packages and satisfy kernel peers. `linkKernelNodeModulesKeep`
+retains an intentional bundle-local version of a kernel package.
+
+The optional `artifacts` list is only for additional workspace outputs that do
+not belong to the npm package, such as a built web frontend. Use `runtimeDeps`
+only for executables that must be prepended to `PATH`; npm payloads owned by a
+Bundle stay in its deployed closure.

@@ -55,7 +55,7 @@ let
     removeSuffix
     ;
 
-  lockfile = builtins.fromJSON (builtins.readFile lockfileJson);
+  lockfile = lib.importJSON lockfileJson;
   pnpmPkg = if pnpm != null then pnpm else defaultPnpm;
 
   effectiveTargetPlatform =
@@ -399,7 +399,7 @@ let
           # not valid for the rewritten file URL.
           (
             if kind == "git" || overrideKey != null then
-              builtins.removeAttrs baseResolution [ "integrity" ]
+              removeAttrs baseResolution [ "integrity" ]
             else
               baseResolution
           )
@@ -548,10 +548,12 @@ lib.extendMkDerivation {
           fetchedPackages
           skippedPackages
           pnpmInstallFlags
+          lockfile
           ;
         fetchPnpmDeps = upstream;
         targetPlatform = effectiveTargetPlatform;
         fetcherVersion = effectiveFetcherVersion;
+
       };
     };
 } { }

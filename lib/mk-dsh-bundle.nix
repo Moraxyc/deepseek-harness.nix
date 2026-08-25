@@ -350,17 +350,23 @@ let
     constructDrv = stdenvNoCC.mkDerivation;
     excludeDrvArgNames = [
       "artifacts"
+      "packageName"
       "dsh-kernel"
       "dsh-workspace"
+      "linkKernelNodeModules"
+      "linkKernelNodeModulesKeep"
       "runtimeDeps"
     ];
     extendDrvArgs =
       finalAttrs:
       {
-        artifacts,
+        packageName,
+        artifacts ? [ ],
         dsh-kernel,
         dsh-workspace,
         disallowedReferences ? [ ],
+        linkKernelNodeModules ? null,
+        linkKernelNodeModulesKeep ? [ ],
         nativeBuildInputs ? [ ],
         runtimeDeps ? [ ],
         version ? dsh-workspace.version,
@@ -372,28 +378,31 @@ let
       }:
       let
         bundleProtocol = validateProtocol { inherit runtimeDeps; };
+        bundleSource = "${dsh-workspace}/lib/dsh-workspace/runtime-bundles/${packageName}";
         defaultInstallPhase = ''
           runHook preInstall
 
-          ${lib.concatMapStringsSep "\n" (
-            artifact:
-            let
-              linkNodeModules = artifact.linkNodeModules or false;
-            in
-            ''
-              source="${dsh-workspace}/lib/dsh-workspace/${artifact.source}"
-              destination="$out/${artifact.target}"
-              [ -d "$source" ] || {
-                printf 'buildDshBundle: workspace artifact is missing: %s\n' "$source" >&2
-                exit 1
-              }
-              mkdir -p "$destination"
-              cp -r "$source"/. "$destination"/
-              ${lib.optionalString linkNodeModules ''
-                ln -s ${dsh-kernel}/lib/deepseek-harness/node_modules "$destination/node_modules"
-              ''}
-            ''
-          ) artifacts}
+          source="${bundleSource}"
+          destination="$out/lib/node_modules/${packageName}"
+          [ -d "$source" ] || {
+            printf 'buildDshBundle: workspace bundle is missing: %s\n' "$source" >&2
+            exit 1
+          }
+          mkdir -p "$destination"
+          cp -r "$source"/. "$destination"/
+          chmod -R u+w "$destination"
+
+          ${lib.concatMapStringsSep "\n" (artifact: ''
+            source="${dsh-workspace}/lib/dsh-workspace/${artifact.source}"
+            destination="$out/${artifact.target}"
+            [ -d "$source" ] || {
+              printf 'buildDshBundle: workspace artifact is missing: %s\n' "$source" >&2
+              exit 1
+            }
+            mkdir -p "$destination"
+            cp -r "$source"/. "$destination"/
+            chmod -R u+w "$destination"
+          '') artifacts}
 
           runHook postInstall
         '';
@@ -409,7 +418,12 @@ let
         dontBuild = true;
         installPhase = if installPhase == null then defaultInstallPhase else installPhase;
         nativeBuildInputs = [ nodejs-slim ] ++ nativeBuildInputs;
-        postInstall = postInstall + validateInstalledBundle;
+        postInstall =
+          postInstall
+          + lib.optionalString (linkKernelNodeModules != null) (
+            linkKernelNodeModulesScript linkKernelNodeModules linkKernelNodeModulesKeep
+          )
+          + validateInstalledBundle;
         passthru = passthru // bundleProtocol;
         meta = meta // {
           description =

@@ -273,6 +273,60 @@ the default, override the result:
 }
 ```
 
+## Optional Subagent Providers
+
+Codex and Claude Code are optional Profile Bundles. Add only the providers a
+profile may use:
+
+```nix
+programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
+  web-app
+  subagent-codex
+  subagent-claude-code
+];
+```
+
+Installing a provider Bundle only registers its dormant Host provider. It does
+not start Codex or Claude Code and does not grant either model-facing tool. The
+shipped `standard` and `code` Agent Presets keep `tool-subagent-codex` and
+`tool-subagent-claude-code` disabled. To authorize one for a session, copy a
+shipped preset into `$DSH_HOME/.agent-presets/<id>/` and remove `disabled` from
+that tool row. Bundle installation and Agent Preset authorization are separate
+controls.
+
+The Bundles use the versions pinned by the upstream DeepSeek Harness workspace;
+they do not search `PATH`. To use separately packaged binaries from a Nixpkgs
+revision or overlay, override the Bundle inputs:
+
+```nix
+programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
+  (subagent-codex.override {
+    codexPackage = pkgs.codex;
+  })
+  (subagent-claude-code.override {
+    claudeCodePackage = pkgs.claude-code;
+  })
+];
+```
+
+`codexPackage` must provide `bin/codex` and `bin/codex-code-mode-host`;
+`claudeCodePackage` must expose `bin/claude` as its main program. Attribute
+names and availability depend on the selected Nixpkgs revision or overlays.
+When overridden, the executable version follows that package instead of the
+upstream workspace lock.
+
+The Claude Agent SDK is MIT-licensed, while its bundled Claude Code payload is
+unfree. Consumers selecting `subagent-claude-code` must allow that package
+explicitly:
+
+```nix
+{ lib, ... }:
+{
+  nixpkgs.config.allowUnfreePredicate =
+    package: lib.getName package == "dsh-subagent-claude-code";
+}
+```
+
 ## Custom Bundle Compositions
 
 Use `withBundles` to add bundles. It accepts either a list of bundle packages

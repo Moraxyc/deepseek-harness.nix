@@ -8,8 +8,8 @@
   `$out/lib/node_modules`。
 - `buildDshBundle.fromPnpmWorkspace`：外部 pnpm monorepo，把选中的工作区
   包直接部署到 `$out/lib`。
-- `buildDshBundle.fromWorkspace`：使用 `dsh-workspace` 已产出的上游构建
-  产物，bundle 包只需复制到 `$out/lib`。
+- `buildDshBundle.fromWorkspace`：使用 `dsh-workspace` 已部署的上游包及其
+  production 闭包。
 
 所有 builder 执行同一套 bundle 校验：`$out/lib/node_modules` 中至少有一个
 包声明 `dsh.bundle.patch`，且补丁文件存在于该包根目录下。
@@ -192,9 +192,8 @@ buildDshBundle (finalAttrs: {
 ## 添加上游 workspace bundle
 
 从固定 `dsh-workspace` 源码构建的 bundle 使用 `buildDshBundle.fromWorkspace`。
-workspace 已在 `packages/bundle/<name>` 下包含 `package.json`、
-`cordis.patch.yml` 和 `lib`。把其中一个 artifact 指向该源码，再复制到标准
-node_modules 包路径：
+`dsh-workspace` 会发现所有声明 `dsh.bundle` 的上游 manifest，并部署对应包及其
+production 闭包。用准确的 npm `packageName` 选择部署结果：
 
 ```nix
 {
@@ -203,17 +202,11 @@ node_modules 包路径：
   dsh-kernel,
   dsh-workspace,
 }:
-buildDshBundle.fromWorkspace (finalAttrs: {
+buildDshBundle.fromWorkspace (_finalAttrs: {
   inherit dsh-kernel dsh-workspace;
   pname = "example-workspace-bundle";
-
-  artifacts = [
-    {
-      source = "bundles/example-workspace-bundle";
-      target = "lib/node_modules/@deepseek-ai/${finalAttrs.pname}";
-      linkNodeModules = true;
-    }
-  ];
+  packageName = "@deepseek-ai/example-workspace-bundle";
+  linkKernelNodeModules = dsh-kernel;
 
   runtimeDeps = [ ];
 
@@ -226,6 +219,12 @@ buildDshBundle.fromWorkspace (finalAttrs: {
 })
 ```
 
-`fromWorkspace` 会把 `dsh-workspace` 排除在运行时闭包之外。bundle 包需要从
-`dsh-kernel` 解析 kernel peer 时，设置 `linkNodeModules = true`。组合后 dsh
-运行前需要预置到 `PATH` 的可执行工具，用 `runtimeDeps` 列出。
+`fromWorkspace` 把完整部署结果复制到标准
+`$out/lib/node_modules/<packageName>` 布局，并把 `dsh-workspace` 排除在运行时
+闭包之外。设置 `linkKernelNodeModules = dsh-kernel` 可去重 kernel 持有的包，
+并满足 bundle 的 kernel peer。若需保留与 kernel 同名的 bundle 本地版本，使用
+`linkKernelNodeModulesKeep`。
+
+可选的 `artifacts` 只用于 npm 包之外的额外 workspace 产物，例如构建后的 web
+frontend。只有必须预置到 `PATH` 的可执行程序才放入 `runtimeDeps`；Bundle 持有
+的 npm payload 保留在其部署闭包内。

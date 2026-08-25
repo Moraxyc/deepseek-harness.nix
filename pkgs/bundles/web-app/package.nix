@@ -4,15 +4,12 @@
   dsh-kernel,
   dsh-workspace,
 }:
-buildDshBundle.fromWorkspace (finalAttrs: {
+buildDshBundle.fromWorkspace (_finalAttrs: {
   inherit dsh-kernel dsh-workspace;
   pname = "dsh-web-app";
+  packageName = "@deepseek-ai/dsh-web-app";
+  linkKernelNodeModules = dsh-kernel;
   artifacts = [
-    {
-      source = "bundles/web-app";
-      target = "lib/node_modules/@deepseek-ai/${finalAttrs.pname}";
-      linkNodeModules = true;
-    }
     {
       source = "frontends/web";
       target = "lib/node_modules/@deepseek-ai/dsh-web-frontend";

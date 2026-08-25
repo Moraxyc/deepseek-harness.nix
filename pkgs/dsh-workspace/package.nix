@@ -1,5 +1,4 @@
 {
-  codex,
   lib,
   bashInteractive,
   buildNpmPackage,
@@ -7,7 +6,6 @@
   fetchFromGitHub,
   importPnpmLock,
   dshWorkspacePatchHook,
-  jq,
   nodejs,
   nodejs-slim,
   pnpmConfigHook,
@@ -46,8 +44,6 @@ buildNpmPackage (finalAttrs: {
   ];
 
   postPatch = ''
-    patchDshWorkspace dependencies
-
     substituteInPlace "packages/terminal/terminal-bash/src/config.ts" \
       --replace-fail \
       "export const DEFAULT_BASH_SHELL = '/bin/bash'" \
@@ -76,28 +72,12 @@ buildNpmPackage (finalAttrs: {
     install -Dm755 ${dsh-landlock-run}/bin/landlock-run native/landlock-run/packages/${platformKey}/bin/landlock-run
   '';
 
-  preConfigure = "patchDshWorkspace composition";
+  preConfigure = "patchDshWorkspace kernel";
 
   pnpmDeps = importPnpmLock {
     inherit (finalAttrs) pname version;
     fetchPnpmDeps = fetchPnpmDeps';
     lockfileJson = ./pnpm-lock.json;
-    packageSourceOverrides = {
-      "@openai/codex@*-${platformKey}" =
-        {
-          pkg,
-          previousSource,
-          patchPackageSource,
-        }:
-        patchPackageSource {
-          inherit pkg;
-          source = previousSource;
-          symlinks = {
-            "vendor/*/bin/codex" = lib.getExe codex;
-            "vendor/*/bin/codex-code-mode-host" = lib.getExe' codex "codex-code-mode-host";
-          };
-        };
-    };
     targetPlatform =
       if stdenv.buildPlatform == stdenv.hostPlatform then stdenv.targetPlatform else null;
     patchedDependencySources = {
@@ -106,7 +86,6 @@ buildNpmPackage (finalAttrs: {
   };
 
   nativeBuildInputs = [
-    jq
     nodejs-slim.npm
     pnpm_11
     python3
@@ -132,37 +111,58 @@ buildNpmPackage (finalAttrs: {
     appDir="$workspaceDir/kernel"
     mkdir -p "$workspaceDir"
 
-    cp -r apps/cli/lib apps/nix-composition/lib
-    cp -r apps/cli/config apps/nix-composition/config
-    pnpm --filter @deepseek-ai/dsh-nix-composition deploy \
+    cp -r apps/cli/lib apps/nix-kernel/lib
+    cp -r apps/cli/config apps/nix-kernel/config
+    pnpm --filter @deepseek-ai/dsh-nix-kernel deploy \
       --prod \
       --config.node-linker=hoisted \
       --config.link-workspace-packages=true \
       "$appDir"
-    yq -i '.name = "@deepseek-ai/dsh-nix-composition"' "$appDir/package.json"
 
-    # Keep only the runtime artifacts needed by the kernel and bundle packages.
-    rm -rf "$appDir/node_modules/@anthropic-ai/claude-agent-sdk-"*
-    jq 'del(.optionalDependencies)' \
-      "$appDir/node_modules/@anthropic-ai/claude-agent-sdk/package.json" \
-      > "$appDir/node_modules/@anthropic-ai/claude-agent-sdk/package.json.tmp"
-    mv "$appDir/node_modules/@anthropic-ai/claude-agent-sdk/package.json.tmp" \
-      "$appDir/node_modules/@anthropic-ai/claude-agent-sdk/package.json"
     rm -f "$appDir/node_modules/node-pty/build/"{{binding.,}Makefile,config.gypi,pty.target.mk}
     sed -i '1{/^#!/d;}' "$appDir/lib/bin.js"
     ${lib.getExe nodejs-slim} "$appDir/node_modules/@deepseek-ai/dsh-subprocess-local/scripts/ensure-spawn-helper.mjs"
 
-    for bundle in packages/bundle/*; do
-      [ -d "$bundle" ] || continue
-      bundleName=$(basename "$bundle")
-      bundleDir="$workspaceDir/bundles/$bundleName"
-      mkdir -p "$bundleDir"
-      for artifact in package.json cordis.patch.yml lib; do
-        [ -e "$bundle/$artifact" ] || {
-          printf 'dsh-workspace: bundle artifact is missing: %s\n' "$bundle/$artifact" >&2
+    runtimeBundlesDir="$workspaceDir/runtime-bundles"
+    for packageJson in packages/*/*/package.json; do
+      [ -f "$packageJson" ] || continue
+      bundlePatchTag=$(yq -r '.dsh.bundle.patch | tag' "$packageJson")
+      case "$bundlePatchTag" in
+        "!!null")
+          continue
+          ;;
+        "!!str")
+          bundlePatch=$(yq -r '.dsh.bundle.patch' "$packageJson")
+          ;;
+        *)
+          printf 'dsh-workspace: bundle patch must be a string: %s\n' "$packageJson" >&2
+          exit 1
+          ;;
+      esac
+
+      packageName=$(yq -r '.name // ""' "$packageJson")
+      [ -n "$packageName" ] || {
+        printf 'dsh-workspace: bundle package has no name: %s\n' "$packageJson" >&2
+        exit 1
+      }
+      [ -n "$bundlePatch" ] || {
+        printf 'dsh-workspace: bundle patch is empty: %s\n' "$packageJson" >&2
+        exit 1
+      }
+
+      bundleDir="$runtimeBundlesDir/$packageName"
+      mkdir -p "$(dirname "$bundleDir")"
+      pnpm --filter "$packageName" deploy \
+        --prod \
+        --config.node-linker=hoisted \
+        --config.link-workspace-packages=true \
+        "$bundleDir"
+
+      for artifact in package.json "$bundlePatch" lib; do
+        [ -e "$bundleDir/$artifact" ] || {
+          printf 'dsh-workspace: deployed bundle artifact is missing: %s\n' "$bundleDir/$artifact" >&2
           exit 1
         }
-        cp -r "$bundle/$artifact" "$bundleDir/$artifact"
       done
     done
 
@@ -174,8 +174,6 @@ buildNpmPackage (finalAttrs: {
   '';
 
   passthru = {
-    runtimeDeps = [ codex ];
-
     # Used by the update script to compare against importPnpmLock.
     fetchPnpmDeps = finalAttrs.pnpmDeps.passthru.fetchPnpmDeps;
 

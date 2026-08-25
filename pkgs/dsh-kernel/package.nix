@@ -7,9 +7,6 @@
   nodejs-slim,
   stdenvNoCC,
   dsh-workspace,
-
-  # Optional external Claude Code executable exposed through PATH.
-  claudeCodePackage ? null,
 }:
 
 stdenvNoCC.mkDerivation (finalAttrs: {
@@ -53,10 +50,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   '';
 
   passthru = {
-    runtimeDeps =
-      lib.optionals stdenvNoCC.hostPlatform.isLinux [ bashInteractive ]
-      ++ (dsh-workspace.passthru.runtimeDeps or [ ])
-      ++ lib.optional (claudeCodePackage != null) claudeCodePackage;
+    runtimeDeps = lib.optionals stdenvNoCC.hostPlatform.isLinux [ bashInteractive ];
   };
 
   meta = {

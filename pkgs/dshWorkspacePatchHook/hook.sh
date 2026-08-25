@@ -12,128 +12,150 @@ dshWorkspaceRequire() {
 
   for path in \
     apps/cli/package.json \
+    packages/bundle/base/package.json \
     pnpm-lock.yaml \
-    vendor/group/package.json
+    pnpm-workspace.yaml
   do
     if [ ! -f "$path" ]; then
       dshWorkspaceDie "workspace patch expected file '$path'"
       return 1
     fi
   done
+}
 
-  if [ ! -d packages/bundle ]; then
-    dshWorkspaceDie "workspace patch expected directory 'packages/bundle'"
+dshWorkspacePrepareKernel() {
+  local base_deps bundle_names kernel_dep_count kernel_deps kernel_peers lock_deps package_paths source_lock_deps workspace_overrides
+
+  dshWorkspaceRequire || return
+  bundle_names="$TMPDIR/dsh-workspace-bundle-names.json"
+  package_paths="$TMPDIR/dsh-workspace-package-paths.json"
+  base_deps="$TMPDIR/dsh-workspace-base-dependencies.json"
+  kernel_deps="$TMPDIR/dsh-workspace-kernel-dependencies.json"
+  kernel_peers="$TMPDIR/dsh-workspace-kernel-peers.json"
+  source_lock_deps="$TMPDIR/dsh-workspace-source-lock-dependencies.json"
+  lock_deps="$TMPDIR/dsh-workspace-kernel-lock-dependencies.json"
+  workspace_overrides="$TMPDIR/dsh-workspace-overrides.json"
+
+  yq ea -o=json -I=0 '
+    select(.name != null)
+    | {(.name): (filename | sub("/package.json$"; ""))}
+      as $item ireduce ({}; . * $item)
+  ' vendor/*/package.json packages/*/*/package.json > "$package_paths"
+
+  yq ea -o=json -I=0 '
+    select(.dsh.bundle != null)
+    | {(.name): true}
+      as $item ireduce ({}; . * $item)
+  ' packages/*/*/package.json > "$bundle_names"
+
+  yq -o=json -I=0 '.overrides // {}' pnpm-workspace.yaml > "$workspace_overrides"
+
+  yq -o=json -I=0 '
+    (.peerDependenciesMeta // {}) as $meta
+    | (.dependencies // {})
+      * ((.peerDependencies // {})
+        | with_entries(select(($meta[.key].optional // false) != true)))
+  ' packages/bundle/base/package.json > "$base_deps"
+
+  # Bundle manifests stay outside the kernel; the CLI and base runtime remain
+  # shared so their required peers resolve to one workspace instance.
+  BUNDLE_NAMES="$bundle_names" BASE_DEPS="$base_deps" \
+    yq -o=json -I=0 '
+      ((.dependencies // {})
+        | with_entries(select(load(strenv(BUNDLE_NAMES))[.key] != true)))
+      * load(strenv(BASE_DEPS))
+    ' apps/cli/package.json > "$kernel_deps"
+
+  while :; do
+    kernel_dep_count=$(yq '. | length' "$kernel_deps")
+    KERNEL_DEPS="$kernel_deps" yq ea -o=json -I=0 '
+      (
+        select(.name as $name | load(strenv(KERNEL_DEPS))[$name] != null)
+        | (.peerDependenciesMeta // {}) as $meta
+        | ((.peerDependencies // {})
+          | with_entries(select(($meta[.key].optional // false) != true)))
+      ) as $item ireduce ({}; . * $item)
+    ' vendor/*/package.json packages/*/*/package.json > "$kernel_peers"
+
+    KERNEL_PEERS="$kernel_peers" yq -i '
+      . = load(strenv(KERNEL_PEERS)) * .
+    ' "$kernel_deps"
+    [ "$(yq '. | length' "$kernel_deps")" -eq "$kernel_dep_count" ] && break
+  done
+
+  mkdir -p apps/nix-kernel
+  cp apps/cli/package.json apps/nix-kernel/package.json
+  KERNEL_DEPS="$kernel_deps" yq -i '
+    .name = "@deepseek-ai/dsh-nix-kernel"
+    | .private = true
+    | .dependencies = load(strenv(KERNEL_DEPS))
+    | del(
+        .bin,
+        .devDependencies,
+        .optionalDependencies,
+        .peerDependencies,
+        .peerDependenciesMeta,
+        .scripts
+      )
+  ' apps/nix-kernel/package.json
+
+  yq -o=json -I=0 '
+    (.importers."apps/cli".dependencies // {})
+    * (.importers."packages/bundle/base".dependencies // {})
+    * (.importers."packages/bundle/base".devDependencies // {})
+  ' pnpm-lock.yaml > "$source_lock_deps"
+
+  # Workspace links are importer-relative. Rebuild them for apps/nix-kernel
+  # while retaining upstream link: overrides and external lock entries.
+  KERNEL_DEPS="$kernel_deps" PACKAGE_PATHS="$package_paths" \
+    SOURCE_LOCK_DEPS="$source_lock_deps" WORKSPACE_OVERRIDES="$workspace_overrides" \
+    yq -o=json -I=0 '
+      load(strenv(KERNEL_DEPS)) as $dependencies
+      | load(strenv(PACKAGE_PATHS)) as $paths
+      | load(strenv(SOURCE_LOCK_DEPS)) as $source
+      | load(strenv(WORKSPACE_OVERRIDES)) as $overrides
+      | $dependencies
+      | to_entries
+      | map(
+          . as $dependency
+          | {
+              "key": .key,
+              "value": (
+                ({
+                  "specifier": (
+                    (
+                      "link:../../" + ($paths[$dependency.key] // "")
+                      | select((($overrides[$dependency.key] // "") | test("^link:")))
+                    )
+                    // ($source[$dependency.key].specifier // $dependency.value)
+                  ),
+                  "version": "link:../../" + $paths[$dependency.key]
+                } | select($paths[$dependency.key] != null))
+                // $source[$dependency.key]
+              )
+            }
+        )
+      | from_entries
+    ' apps/cli/package.json > "$lock_deps"
+
+  if ! yq -e '
+    to_entries
+    | map(select(
+        .value == null
+        or .value.specifier == null
+        or .value.version == null
+      ))
+    | length == 0
+  ' "$lock_deps" >/dev/null; then
+    dshWorkspaceDie "kernel dependency is missing from the workspace lockfile"
     return 1
   fi
-}
 
-dshWorkspacePatchDependencies() {
-  local workspace_deps workspace_lock_deps
-
-  dshWorkspaceRequire || return
-  workspace_deps="$TMPDIR/dsh-workspace-dependencies.json"
-  workspace_lock_deps="$TMPDIR/dsh-workspace-lock-dependencies.json"
-
-  yq ea -o=json -I=0 \
-    "(select(.name | test(\"^@deepseek-ai/\")) | {
-      (.name): \"workspace:^\"
-    }) as \$item ireduce ({}; . * \$item)" \
-    vendor/group/package.json packages/*/*/package.json > "$workspace_deps"
-  yq ea -o=json -I=0 \
-    "(select(.name | test(\"^@deepseek-ai/\")) | {
-      (.name): {
-        \"specifier\": \"workspace:^\",
-        \"version\": \"link:\" + (filename | sub(\"/package.json\$\"; \"\") | sub(\"^\"; \"../../\"))
-      }
-    }) as \$item ireduce ({}; . * \$item)" \
-    vendor/group/package.json packages/*/*/package.json > "$workspace_lock_deps"
-  DEPS_FILE="$workspace_deps" yq -i \
-    '.dependencies *= load(strenv(DEPS_FILE))' apps/cli/package.json
-  DEPS_FILE="$workspace_lock_deps" yq -i \
-    '.importers."apps/cli".dependencies *= load(strenv(DEPS_FILE))' pnpm-lock.yaml
-
-}
-
-dshWorkspacePrepareComposition() {
-  local bundle_name package_json bundle_patch bundle_patch_tag bundle_runtime_deps
-  local -a bundle_names=()
-
-  dshWorkspaceRequire || return
-  for package_json in packages/bundle/*/package.json; do
-    [ -f "$package_json" ] || continue
-
-    bundle_patch_tag=$(yq -r '.dsh.bundle.patch | tag' "$package_json") || return
-    case "$bundle_patch_tag" in
-      "!!null")
-        continue
-        ;;
-      "!!str")
-        bundle_patch=$(yq -r '.dsh.bundle.patch' "$package_json") || return
-        [ -n "$bundle_patch" ] || {
-          dshWorkspaceDie "bundle package '$package_json' has an empty dsh.bundle.patch"
-          return 1
-        }
-        ;;
-      *)
-        dshWorkspaceDie "bundle package '$package_json' has a non-string dsh.bundle.patch"
-        return 1
-        ;;
-    esac
-
-    bundle_name=$(yq -r '.name // ""' "$package_json") || return
-    [ -n "$bundle_name" ] || {
-      dshWorkspaceDie "bundle package '$package_json' has no name"
-      return 1
+  LOCK_DEPS="$lock_deps" yq -i '
+    .importers."apps/nix-kernel" = {
+      "dependencies": load(strenv(LOCK_DEPS))
     }
-    bundle_names+=("$bundle_name")
-  done
-
-  mkdir -p apps/nix-composition
-  cp apps/cli/package.json apps/nix-composition/package.json
-
-  yq -i '
-    .name = "@deepseek-ai/dsh-nix-composition" |
-    del(.devDependencies)
-  ' apps/nix-composition/package.json
-  yq -i '
-    .importers."apps/nix-composition".dependencies =
-      .importers."apps/cli".dependencies
   ' pnpm-lock.yaml
-
-  for bundle_name in "${bundle_names[@]}"; do
-    [ -n "$bundle_name" ] || {
-      dshWorkspaceDie "composition bundle name cannot be empty"
-      return 1
-    }
-    DSH_BUNDLE_NAME="$bundle_name" yq -i \
-      'del(.dependencies[strenv(DSH_BUNDLE_NAME)])' \
-      apps/nix-composition/package.json
-    DSH_BUNDLE_NAME="$bundle_name" yq -i \
-      'del(.importers."apps/nix-composition".dependencies[strenv(DSH_BUNDLE_NAME)])' \
-      pnpm-lock.yaml
-  done
-
-  # Workspace bundles share the kernel node_modules at runtime. Keep their
-  # non-workspace dependencies in the production composition as well.
-  bundle_runtime_deps="$TMPDIR/dsh-workspace-bundle-runtime-dependencies.json"
-  yq -o=json -I=0 '
-    .importers
-    | to_entries
-    | map(select(.key | test("^packages/bundle/")) | .value.dependencies // {})
-    | .[] as $item ireduce ({}; . * $item)
-    | with_entries(
-        select(
-          ((.value.specifier // "") | test("^workspace:") | not)
-          and ((.value.version // "") | test("^link:") | not)
-        )
-      )
-  ' pnpm-lock.yaml > "$bundle_runtime_deps"
-  DEPS_FILE="$bundle_runtime_deps" yq -i \
-    '.dependencies *= (load(strenv(DEPS_FILE)) | with_entries(.value = .value.specifier))' \
-    apps/nix-composition/package.json
-  DEPS_FILE="$bundle_runtime_deps" yq -i \
-    '.importers."apps/nix-composition".dependencies *= load(strenv(DEPS_FILE))' \
-    pnpm-lock.yaml
 }
 
 patchDshWorkspace() {
@@ -141,11 +163,8 @@ patchDshWorkspace() {
   shift || true
 
   case "$phase" in
-    dependencies)
-      dshWorkspacePatchDependencies
-      ;;
-    composition)
-      dshWorkspacePrepareComposition
+    kernel)
+      dshWorkspacePrepareKernel
       ;;
     *)
       dshWorkspaceDie "unknown workspace patch phase '$phase'"

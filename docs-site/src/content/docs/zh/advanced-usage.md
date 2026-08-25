@@ -262,6 +262,57 @@ pkgs.dsh.dsh.withProfiles {
 }
 ```
 
+## 可选子代理提供程序
+
+Codex 和 Claude Code 以可选 Profile Bundle 提供。只需把允许该 profile 使用的
+提供程序加入组合：
+
+```nix
+programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
+  web-app
+  subagent-codex
+  subagent-claude-code
+];
+```
+
+安装提供程序 Bundle 只会注册处于待命状态的 Host provider，不会启动 Codex 或
+Claude Code，也不会向模型授予对应工具。随上游提供的 `standard` 和 `code`
+Agent Preset 默认禁用 `tool-subagent-codex` 与
+`tool-subagent-claude-code`。如需对某个会话授权，请把上游 preset 复制到
+`$DSH_HOME/.agent-presets/<id>/`，再删除对应工具条目的 `disabled`。Bundle
+安装与 Agent Preset 授权是两层独立配置。
+
+这些 Bundle 使用 DeepSeek Harness 上游 workspace 固定的版本，不搜索
+`PATH`。如需改用某个 Nixpkgs revision 或 overlay 单独打包的二进制，可以覆盖
+Bundle input：
+
+```nix
+programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
+  (subagent-codex.override {
+    codexPackage = pkgs.codex;
+  })
+  (subagent-claude-code.override {
+    claudeCodePackage = pkgs.claude-code;
+  })
+];
+```
+
+`codexPackage` 必须提供 `bin/codex` 和 `bin/codex-code-mode-host`；
+`claudeCodePackage` 必须把 `bin/claude` 声明为 main program。属性名和可用性取决于
+所选 Nixpkgs revision 或 overlay。覆盖后，可执行文件版本由覆盖包决定，不再跟随
+上游 workspace lock。
+
+Claude Agent SDK 使用 MIT 许可证，其内置 Claude Code payload 为非自由软件。
+选择 `subagent-claude-code` 时需显式允许该包：
+
+```nix
+{ lib, ... }:
+{
+  nixpkgs.config.allowUnfreePredicate =
+    package: lib.getName package == "dsh-subagent-claude-code";
+}
+```
+
 ## 自定义 Bundle 组合
 
 用 `withBundles` 追加 bundle。它既接受 bundle 包列表，也接受一个接收 bundle
