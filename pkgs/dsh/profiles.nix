@@ -10,6 +10,7 @@
   util-linux,
   writeShellApplication,
   writeText,
+  tuiBundle,
   webBundle,
 }:
 
@@ -44,8 +45,18 @@ let
     (profile.requiresWeb or false)
     || lib.any (bundle: bundle.passthru.requiresWeb or false) (profile.bundles or [ ]);
 
+  profileNeedsTui =
+    profile:
+    (profile.requiresTui or false)
+    || lib.any (bundle: bundle.passthru.requiresTui or false) (profile.bundles or [ ]);
+
   profileBundles =
-    profile: lib.unique (lib.optional (profileNeedsWeb profile) webBundle ++ (profile.bundles or [ ]));
+    profile:
+    lib.unique (
+      lib.optional (profileNeedsWeb profile) webBundle
+      ++ lib.optional (profileNeedsTui profile) tuiBundle
+      ++ (profile.bundles or [ ])
+    );
 
   profileSpec =
     name: profile:
@@ -99,6 +110,7 @@ in
 {
   inherit
     profileBundles
+    profileNeedsTui
     profileName
     profileNeedsWeb
     renderPatch

@@ -10,21 +10,29 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-tui";
-  version = "0.9.0";
+  version = "0.9.2";
 
   src = fetchFromGitHub {
     owner = "ccch1mneyyy";
     repo = "dsh-TUI";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-bUlL9YPYKqLSTXtT59c+D609Ga77J5l/60giSEsbowY=";
+    hash = "sha256-AU3SxnjucUA8yvQia+cw/q3cqItRCFb/njaiRoiOS9c=";
   };
 
   postPatch = ''
-    rm -rf vendor/dsh-std dsh-ecosystem-spec
-    mkdir -p vendor/dsh-std dsh-ecosystem-spec
+    rm -rf vendor/dsh-std dsh-ecosystem-spec dsh-auth
+    mkdir -p vendor/dsh-std dsh-ecosystem-spec dsh-auth
     cp -r ${finalAttrs.passthru.dshStd}/. vendor/dsh-std/
     cp -r ${finalAttrs.passthru.dshEcosystemSpec}/. dsh-ecosystem-spec/
-    chmod -R u+w vendor/dsh-std dsh-ecosystem-spec
+    cp -r ${finalAttrs.passthru.dshAuth}/. dsh-auth/
+    chmod -R u+w vendor/dsh-std dsh-ecosystem-spec dsh-auth
+
+    # fetchFromGitHub provides a tarball without a Git index, but verify:i18n
+    # only needs the source file list for its static scan.
+    substituteInPlace scripts/verify-i18n.ts \
+      --replace-fail \
+        "execSync('git ls-files src scripts', { encoding: 'utf8' })" \
+        "execSync('find src scripts -type f -print', { encoding: 'utf8' })"
   '';
 
   pnpmDeps = fetchPnpmDeps {
@@ -38,7 +46,7 @@ buildDshBundle (finalAttrs: {
         --frozen-lockfile \
         --registry="$NIX_NPM_REGISTRY"
     '';
-    hash = "sha256-3Umh/NMT10gs1+4oDp7P5Qie9ObNGR63QtyKPOpabbo=";
+    hash = "sha256-Y4pIHu/Z6QlMqHX16ZBQy2SAVisD20IkqZKAuFQRRpw=";
   };
 
   nativeBuildInputs = [ pnpm_11 ];
@@ -70,6 +78,13 @@ buildDshBundle (finalAttrs: {
     mkdir -p "$appDir/node_modules/@dsh-std"
     cp -rL node_modules/@dsh-std/. "$appDir/node_modules/@dsh-std/"
 
+    # dsh-auth is a workspace link in the source tarball and must be copied
+    # into the final bundle instead of leaving a dangling link.
+    rm -rf "$appDir/node_modules/@deepseek-harness-tui/dsh-auth"
+    mkdir -p "$appDir/node_modules/@deepseek-harness-tui/dsh-auth"
+    cp -rL node_modules/@deepseek-harness-tui/dsh-auth/. \
+      "$appDir/node_modules/@deepseek-harness-tui/dsh-auth/"
+
     runHook postInstall
   '';
 
@@ -86,7 +101,14 @@ buildDshBundle (finalAttrs: {
       rev = "e1b902b0f95f4280a8e68d414ec7a4d25d6ce106";
       hash = "sha256-LVc7bMUJMI4GYW3IyBWYwFzkibayu6BgZxlO67FPtGk=";
     };
+    dshAuth = fetchFromGitHub {
+      owner = "ccch1mneyyy";
+      repo = "dsh-auth";
+      rev = "fba02bcf7fb57e3d9885f73882d5835ccdf526c4";
+      hash = "sha256-ip/jdsm/YiPvVdZ0o2m/thImd+4ZmRjzQKzXvJ9dAK8=";
+    };
     inherit (finalAttrs) pnpmDeps;
+    requiresTui = true;
     requiresTty = true;
 
     updateScript = nix-update-script {
@@ -94,6 +116,7 @@ buildDshBundle (finalAttrs: {
         "--flake"
         "--subpackage=dshStd"
         "--subpackage=dshEcosystemSpec"
+        "--subpackage=dshAuth"
         "--override-filename=pkgs/bundles/tui/package.nix"
       ];
     };
