@@ -278,6 +278,21 @@ stdenvNoCC.mkDerivation (finalAttrs: {
         ) configuredProfiles;
       };
 
+    # pkgs.dsh.dsh.withAgentPresets { web-subagents = { source = "standard"; }; }
+    # merges definitions by ID; a later definition replaces an earlier one.
+    withAgentPresets =
+      configuredAgentPresets:
+      assert lib.isAttrs configuredAgentPresets;
+      dsh.override {
+        inherit
+          defaultBundles
+          defaultProfile
+          homePatch
+          profiles
+          ;
+        agentPresets = agentPresets // configuredAgentPresets;
+      };
+
     # pkgs.dsh.dsh.withBundles (b: with b; [ tui web-app ])
     # pkgs.dsh.dsh.withBundles [ pkgs.dsh.bundles.tui pkgs.dsh.bundles.web-app ]
     # adds selected bundles to the current composition and to every managed

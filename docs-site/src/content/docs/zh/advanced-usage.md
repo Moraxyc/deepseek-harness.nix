@@ -262,6 +262,30 @@ pkgs.dsh.dsh.withProfiles {
 }
 ```
 
+`withAgentPresets` 可以给包添加 preset 定义。多次调用会按 ID 合并；同一个
+ID 以后一次定义为准。它可以放在 `withProfiles` 前面或后面：
+
+```nix
+(
+  (pkgs.dsh.dsh.withAgentPresets {
+    web-subagents = {
+      source = "standard";
+      enableTools = [ "tool-subagent-codex" ];
+    };
+  }).withAgentPresets {
+    code-subagents = {
+      source = "code";
+      enableTools = [ "tool-subagent-claude-code" ];
+    };
+  }
+).withProfiles {
+  web = {
+    bundles = [ pkgs.dsh.bundles.subagent-codex ];
+    agentPreset = "web-subagents";
+  };
+}
+```
+
 ## 可选子代理提供程序
 
 Codex 和 Claude Code 以可选 Profile Bundle 提供。只需把允许该 profile 使用的
@@ -356,8 +380,9 @@ bundle 会覆盖前面 bundle 的 Cordis 配置；基础层固定在最前面。
 
 ## 覆盖
 
-preset 通过 `override` 设置其他包输入；追加 bundle 请使用 `withBundles`。
-`withProfiles` 只替换 `profiles`，并清除 preset 的默认 profile。
+preset 通过 `override` 设置其他包输入。`withAgentPresets` 按 ID 合并 preset
+定义，`withBundles` 用于添加 Bundle，`withProfiles` 会替换包里的 profiles，并清除
+preset 的默认 profile。
 
 ## Overlay
 

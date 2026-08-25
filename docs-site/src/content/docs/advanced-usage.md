@@ -273,6 +273,32 @@ the default, override the result:
 }
 ```
 
+Use `withAgentPresets` to add preset definitions to a package. Multiple calls
+merge by ID; a later definition replaces an earlier definition with the same
+ID. You can call it before or after `withProfiles` when a profile references one
+of the presets:
+
+```nix
+(
+  (pkgs.dsh.dsh.withAgentPresets {
+    web-subagents = {
+      source = "standard";
+      enableTools = [ "tool-subagent-codex" ];
+    };
+  }).withAgentPresets {
+    code-subagents = {
+      source = "code";
+      enableTools = [ "tool-subagent-claude-code" ];
+    };
+  }
+).withProfiles {
+  web = {
+    bundles = [ pkgs.dsh.bundles.subagent-codex ];
+    agentPreset = "web-subagents";
+  };
+}
+```
+
 ## Optional Subagent Providers
 
 Codex and Claude Code are optional Profile Bundles. Add only the providers a
@@ -372,9 +398,9 @@ always first.
 
 ## Overrides
 
-Presets expose `override` for package inputs, but use `withBundles` to add
-bundles. `withProfiles` replaces only `profiles` and clears the preset's default
-profile.
+Presets expose `override` for package inputs. Use `withAgentPresets` to merge
+preset definitions, `withBundles` to add bundles, and `withProfiles` to replace
+the package's profiles. `withProfiles` also clears the preset's default profile.
 
 ## Overlay
 

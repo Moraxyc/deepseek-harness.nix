@@ -143,6 +143,39 @@
           absent = [ ];
         };
 
+        dsh-agent-presets =
+          let
+            package =
+              (
+                (pkgs.dsh.dsh.withAgentPresets {
+                  first = {
+                    source = "standard";
+                  };
+                }).withProfiles
+                {
+                  first = {
+                    agentPreset = "first";
+                  };
+                  second = {
+                    agentPreset = "second";
+                  };
+                }
+              ).withAgentPresets
+                {
+                  second = {
+                    source = "code";
+                  };
+                };
+          in
+          pkgs.runCommand "dsh-agent-presets-composition" { } ''
+            testHome=$(mktemp -d)
+            DSH_HOME="$testHome" ${package}/bin/dsh --profile nix-first --version
+            DSH_HOME="$testHome" ${package}/bin/dsh --profile nix-second --version
+            test -f "$testHome/.agent-presets/first/agent.cordis.yml"
+            test -f "$testHome/.agent-presets/second/agent.cordis.yml"
+            touch "$out"
+          '';
+
         dsh-service = pkgs.testers.runNixOSTest {
           name = "dsh-service";
 
