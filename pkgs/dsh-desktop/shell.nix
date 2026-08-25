@@ -15,8 +15,8 @@ stdenv.mkDerivation (finalAttrs: {
   src = fetchFromGitHub {
     owner = "anywhere-labs";
     repo = "deepseek-harness-desktop";
-    rev = "3e6314a7ef108bdd70714434032127e546cbec48";
-    hash = "sha256-TIZrK/cDUwIW5MSv36o4zwG+AQW97510p+QbcXoxnOs=";
+    rev = "efc72d4fa8da2d8ef1e11fcf7d40bf2fe3ab409a";
+    hash = "sha256-UvHda9XsGYDfYLu4knb6G9PBJnEF0tsYtxEnJMYsbWU=";
   };
 
   postPatch = ''
