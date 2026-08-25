@@ -4,6 +4,7 @@
   fetchPnpmDeps,
   buildDshBundle,
   dsh-kernel,
+  dsh-workspace,
   pnpmConfigHook,
   pnpm_11,
   nix-update-script,
@@ -34,10 +35,38 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
 
   preBuild = ''
     mkdir -p node_modules/@deepseek-ai
+    # Keep declaration-merge providers local so TypeScript resolves them against ui-slots.
     for entry in ${dsh-kernel}/lib/deepseek-harness/node_modules/@deepseek-ai/*; do
       name="$(basename "$entry")"
-      ln -sfn "$entry" "node_modules/@deepseek-ai/$name"
+      case "$name" in
+        dsh-client-locale|dsh-client-runtime|dsh-client-ui-conversation|dsh-client-ui-input-trigger|dsh-client-ui-settings)
+          packageDir="node_modules/@deepseek-ai/$name"
+          rm -rf "$packageDir"
+          mkdir -p "$packageDir"
+          cp "$entry/package.json" "$packageDir/package.json"
+          cp -r "$entry/lib" "$packageDir/lib"
+          chmod -R u+w "$packageDir"
+          ;;
+        *)
+          ln -sfn "$entry" "node_modules/@deepseek-ai/$name"
+          ;;
+      esac
     done
+
+    uiSlots="${dsh-workspace}/lib/dsh-workspace/client-packages/@deepseek-ai/dsh-client-ui-slots"
+    rm -rf node_modules/@deepseek-ai/dsh-client-ui-slots
+    cp -r "$uiSlots" node_modules/@deepseek-ai/dsh-client-ui-slots
+    chmod -R u+w node_modules/@deepseek-ai/dsh-client-ui-slots
+  '';
+
+  postBuild = ''
+    rm -rf \
+      node_modules/@deepseek-ai/dsh-client-ui-slots \
+      node_modules/@deepseek-ai/dsh-client-locale \
+      node_modules/@deepseek-ai/dsh-client-runtime \
+      node_modules/@deepseek-ai/dsh-client-ui-conversation \
+      node_modules/@deepseek-ai/dsh-client-ui-input-trigger \
+      node_modules/@deepseek-ai/dsh-client-ui-settings
   '';
 
   postDeploy = ''

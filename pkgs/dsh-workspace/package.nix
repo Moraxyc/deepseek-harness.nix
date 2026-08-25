@@ -166,6 +166,13 @@ buildNpmPackage (finalAttrs: {
       done
     done
 
+    # External bundles may need client packages that are build-time peers of
+    # the CLI kernel without adding them to the kernel runtime closure.
+    clientPackagesDir="$workspaceDir/client-packages/@deepseek-ai/dsh-client-ui-slots"
+    mkdir -p "$clientPackagesDir"
+    cp packages/client/ui-slots/package.json "$clientPackagesDir/package.json"
+    cp -r packages/client/ui-slots/lib "$clientPackagesDir/lib"
+
     mkdir -p "$workspaceDir/frontends/web"
     cp apps/web/package.json "$workspaceDir/frontends/web/package.json"
     cp -r apps/web/dist "$workspaceDir/frontends/web/dist"
