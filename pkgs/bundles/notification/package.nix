@@ -21,7 +21,7 @@ buildDshBundle (finalAttrs: {
     owner = "omdsh-dev";
     repo = "dsh-notification";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-v3927JxC2JPIekk5gyrQV049ajMIGXlV4Ycwg/GK5HM=";
+    hash = "sha256-L9NkWrcrGpEZwPstvnA7D5Eq7TAKfOrmLl2t5Cy87xU=";
   };
 
   # The upstream lockfile points at a developer's external DSH checkout. The
