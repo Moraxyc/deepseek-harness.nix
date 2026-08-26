@@ -18,7 +18,7 @@ let
     hash = "sha256-VQ8lyHNtcTHrOum21Z4dZyZgrxexmUY7yEN8kjao838=";
   };
   contextUnstable = context.overrideAttrs (old: rec {
-    version = "0-unstable-2026-08-25";
+    version = "branch";
     src = fetchFromGitHub {
       owner = "bowenliang123";
       repo = "dsh-context";
