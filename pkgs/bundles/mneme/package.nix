@@ -22,6 +22,7 @@ buildDshBundle (finalAttrs: {
   };
 
   npmDeps = null;
+  dontPatch = true;
   dontConfigure = true;
   linkKernelNodeModules = dsh-kernel;
 

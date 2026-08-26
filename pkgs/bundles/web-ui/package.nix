@@ -20,7 +20,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     owner = "zhu1090093659";
     repo = "dsh-web-ui";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-v3927JxC2JPIekk5gyrQV049ajMIGXlV4Ycwg/GK5HM=";
+    hash = "sha256-awvg3xjVz1LbKjUCUXcvFDG7XK99Zq0KOyhHIzKWrN0=";
   };
 
   pnpmDeps = fetchPnpmDeps {

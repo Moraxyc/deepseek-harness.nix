@@ -14,6 +14,7 @@ buildDshBundle (finalAttrs: {
     rev = "b78a167064ca612f1c400060d2bfc1dc9bc46436";
     hash = "sha256-ceP1nbyoA2oasNP4OIRN3O20MJXAorIRow9yUZXk/cM=";
   };
+  dontPatch = true;
   npmDepsHash = "sha256-EXMwWYsck/wej6G0myADgNwOFOQZnt1l4dnkXC9T53o=";
   npmBuildScript = "build";
   linkKernelNodeModules = dsh-kernel;

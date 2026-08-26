@@ -19,6 +19,7 @@ buildDshBundle (finalAttrs: {
   # The host half is authored JavaScript; rebuild the browser half from its
   # TypeScript source with the pinned Nix esbuild instead of using lib/client.js.
   dontConfigure = true;
+  dontPatch = true;
   npmDeps = null;
   nativeBuildInputs = [ esbuild ];
   linkKernelNodeModules = dsh-kernel;

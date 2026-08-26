@@ -1,7 +1,6 @@
 {
   lib,
   fetchFromGitHub,
-  importNpmLock,
   buildDshBundle,
   dsh-kernel,
   nix-update-script,
@@ -16,10 +15,7 @@ buildDshBundle (finalAttrs: {
     rev = "d850f83503fc0966524a2477890faeff09148577";
     hash = "sha256-O2VKY/20TnSQo7J8GHEF9wquHQggF2hgXb+YTWRdpDo=";
   };
-  npmDeps = importNpmLock {
-    npmRoot = finalAttrs.src;
-  };
-  npmConfigHook = importNpmLock.npmConfigHook;
+  npmDepsHash = "sha256-J8l4N+zHM7iogI0osS7cLaS1cgMvYIw1wKGBdeuUuds=";
   npmBuildScript = "build";
   linkKernelNodeModules = dsh-kernel;
 
