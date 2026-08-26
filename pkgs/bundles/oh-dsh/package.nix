@@ -30,7 +30,7 @@ let
       inherit version src;
       pnpm = pnpm_11;
       fetcherVersion = 4;
-      hash = "sha256-39ubS6WWMxKQE/z7f7NaiLQDQ/EIAZ+pg2E11XUlBb0=";
+      hash = "sha256-aJ7oBhhvRIZ49EN72jeIGWD+lxkV/XHBi2byM091Dmo=";
     };
   });
 in
