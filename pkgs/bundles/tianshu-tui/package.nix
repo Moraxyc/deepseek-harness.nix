@@ -42,19 +42,19 @@ let
 in
 buildDshBundle (finalAttrs: {
   pname = "dsh-tianshu-tui";
-  version = "0.1.2-rc.18";
+  version = "0.1.2-rc.20";
 
   src = fetchFromGitHub {
     owner = "huiliyi37";
     repo = "dsh-tianshu-tui";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-7tOvMxgvtmAlSgbcpfx6iVAsDSNb71lQ495QPTA283g=";
+    hash = "sha256-o88yvUKzzM9LA/PgYr2ZTeyFKlNqR7tvSdPbzM3yjaY=";
   };
 
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
-    hash = "sha256-l9lkbvsFNBFtYRca246k8pW1vMy0zeQ/tbJu1b5YI/c=";
+    hash = "sha256-GKz+6fpGYC+coDd5t7VjcNSMZpuQQTTjp3+eEm7GNw0=";
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
