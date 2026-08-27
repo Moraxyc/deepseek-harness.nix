@@ -1,8 +1,10 @@
 {
   lib,
   fetchFromGitHub,
+  fetchNpmDeps,
   buildDshBundle,
   dsh-kernel,
+  jq,
   nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
@@ -16,8 +18,40 @@ buildDshBundle (finalAttrs: {
     hash = "sha256-tA/S3oel0wYK1MRguDaaTKQlQbgTZSZN+XUVCAJMuSU=";
   };
 
-  npmDepsHash = "sha256-VsvYS9uAhZnoFMPOplFh1Xbdp2fgUSFqOl9uHCjH1W4=";
-  npmBuildScript = "build";
+  # Upstream commits the generated lib and has no runtime dependencies. Its
+  # lockfile omits registry metadata, so do not resolve dev-only tooling here.
+  npmDeps = fetchNpmDeps {
+    name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
+    inherit (finalAttrs) src postPatch;
+    hash = "sha256-YMaDuHb7PoCCkH4KmJVISe+uaaedSflRGE+/dw2WHmI=";
+    forceEmptyCache = true;
+    nativeBuildInputs = [ jq ];
+  };
+
+  nativeBuildInputs = [ jq ];
+  postPatch = ''
+    jq 'del(.scripts, .dependencies, .devDependencies, .peerDependencies)' \
+      package.json > package.json.tmp
+    mv package.json.tmp package.json
+
+    cat > package-lock.json <<'JSON'
+    {
+      "name": "@omdsh-dev/dsh-plugin-check",
+      "version": "${finalAttrs.version}",
+      "lockfileVersion": 3,
+      "requires": true,
+      "packages": {
+        "": {
+          "name": "@omdsh-dev/dsh-plugin-check",
+          "version": "${finalAttrs.version}"
+        }
+      }
+    }
+    JSON
+  '';
+
+  dontConfigure = true;
+  dontNpmBuild = true;
   linkKernelNodeModules = dsh-kernel;
 
   installPhase = ''
@@ -25,7 +59,8 @@ buildDshBundle (finalAttrs: {
 
     appDir="$out/lib/node_modules/@omdsh-dev/dsh-plugin-check"
     mkdir -p "$appDir"
-    cp -r package.json cordis.patch.yml lib "$appDir/"
+    cp ${finalAttrs.src}/package.json "$appDir/"
+    cp -r cordis.patch.yml lib "$appDir/"
 
     runHook postInstall
   '';
