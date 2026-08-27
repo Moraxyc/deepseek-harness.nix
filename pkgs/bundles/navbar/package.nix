@@ -14,8 +14,8 @@ buildDshBundle (finalAttrs: {
   src = fetchFromGitHub {
     owner = "vlln";
     repo = "dsh-navbar";
-    rev = "502253836f49bf73d55f1d525bd191b1b1c27c38";
-    hash = "sha256-0vuB6wTepqmr2HdocBx1l7QjCXXmy+hEBzpyQBHZgrE=";
+    rev = "4542a8e1fc94c153faee4f68ef03650b933fea94";
+    hash = "sha256-I+39FkhtTA2FJkVOH6jj5EPcQ8TKvkaqYDhQbdD2QDk=";
   };
 
   npmDeps = fetchNpmDeps {
