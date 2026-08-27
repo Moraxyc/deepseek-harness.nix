@@ -6,6 +6,7 @@
   dsh-kernel,
   jq,
   nix-update-script,
+  writers,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-plugin-liang-calibrator";
@@ -21,7 +22,7 @@ buildDshBundle (finalAttrs: {
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
-    hash = "sha256-BDuDPgtnuz26vO3sj3eqBUhlw6iqEbyQQxHemRA3AR4=";
+    hash = "sha256-5xQMQFMkF6yXQ2S7p/Xi4b0V/9hVBumsB55xMYiA72g=";
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
@@ -35,26 +36,9 @@ buildDshBundle (finalAttrs: {
     jq '.dsh.bundle.patch = "./cordis.patch.yml" | del(.peerDependencies, .peerDependenciesMeta)' package.json > package.json.tmp
     mv package.json.tmp package.json
 
-    cat > cordis.patch.yml <<'YAML'
-    - insert:
-        - id: liang-calibrator
-          name: dsh-plugin-liang-calibrator
-    YAML
+    cp ${writers.writeYAML "cordis.patch.yml" finalAttrs.passthru.cordisPatch} cordis.patch.yml
 
-    cat > package-lock.json <<'JSON'
-    {
-      "name": "dsh-plugin-liang-calibrator",
-      "version": "${finalAttrs.version}",
-      "lockfileVersion": 3,
-      "requires": true,
-      "packages": {
-        "": {
-          "name": "dsh-plugin-liang-calibrator",
-          "version": "${finalAttrs.version}"
-        }
-      }
-    }
-    JSON
+    cp ${writers.writeJSON "package-lock.json" finalAttrs.passthru.packageLock} package-lock.json
   '';
 
   installPhase = ''
@@ -67,11 +51,35 @@ buildDshBundle (finalAttrs: {
     runHook postInstall
   '';
 
-  passthru.updateScript = nix-update-script {
-    extraArgs = [
-      "--flake"
-      "--version=branch"
+  passthru = {
+    cordisPatch = [
+      {
+        insert = [
+          {
+            id = "liang-calibrator";
+            name = "dsh-plugin-liang-calibrator";
+          }
+        ];
+      }
     ];
+
+    packageLock = {
+      name = "dsh-plugin-liang-calibrator";
+      version = finalAttrs.version;
+      lockfileVersion = 3;
+      requires = true;
+      packages."" = {
+        name = "dsh-plugin-liang-calibrator";
+        version = finalAttrs.version;
+      };
+    };
+
+    updateScript = nix-update-script {
+      extraArgs = [
+        "--flake"
+        "--version=branch"
+      ];
+    };
   };
 
   meta = {

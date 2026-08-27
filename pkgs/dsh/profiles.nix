@@ -12,6 +12,7 @@
   util-linux,
   writeShellApplication,
   writeText,
+  writers,
   tuiBundle,
   webBundle,
   yq-go,
@@ -122,7 +123,7 @@ let
     let
       sourceDir = "${dsh-kernel}/lib/deepseek-harness/config/agent-presets/${definition.source}";
       shippedRoot = "${dsh-kernel}/lib/deepseek-harness/config/agent-presets";
-      emptyMetadata = writeText "dsh-agent-preset-empty.yml" "{}\n";
+      emptyMetadata = writers.writeYAML "dsh-agent-preset-empty.yml" { };
       marker = writeText "dsh-agent-preset-${id}-managed" ''
         owner=nix
         schema=1
@@ -207,14 +208,16 @@ let
         else
           rawPatch;
       patchFile =
-        if agentPreset == null || lib.isList rawPatch then
+        if lib.isList rawPatch then
+          writers.writeYAML "dsh-profile-${targetName}-cordis.patch.yml" (
+            if agentPreset == null then rawPatch else rawPatch ++ agentPresetPatch
+          )
+        else if agentPreset == null then
           writeText "dsh-profile-${targetName}-cordis.patch.yml" patch
         else
           let
             basePatchFile = writeText "dsh-profile-${targetName}-raw-cordis.patch.yml" rawPatch;
-            agentPatchFile = writeText "dsh-profile-${targetName}-agent-preset.patch.yml" (
-              renderPatch agentPresetPatch
-            );
+            agentPatchFile = writers.writeYAML "dsh-profile-${targetName}-agent-preset.patch.yml" agentPresetPatch;
           in
           runCommand "dsh-profile-${targetName}-cordis.patch.yml" { nativeBuildInputs = [ yq-go ]; } ''
             cp ${lib.escapeShellArg basePatchFile} "$out"
@@ -228,7 +231,7 @@ let
           ${lib.escapeShellArg targetName} \
           ${lib.concatStringsSep " " (map lib.escapeShellArg bundleManifests)}
       '';
-      workspace = builtins.toJSON {
+      workspace = {
         packages = [ "." ];
         nodeLinker = "hoisted";
         autoInstallPeers = false;
@@ -284,7 +287,7 @@ in
           "${spec.targetName}/package.json" = "${spec.packageJson}/package.json";
           "${spec.targetName}/cordis.patch.yml" = spec.patchFile;
           "${spec.targetName}/pnpm-workspace.yaml" =
-            writeText "${lib.strings.sanitizeDerivationName "dsh-profile-${spec.targetName}-pnpm-workspace.yaml"}" "${spec.workspace}\n";
+            writers.writeYAML "${lib.strings.sanitizeDerivationName "dsh-profile-${spec.targetName}-pnpm-workspace.yaml"}" spec.workspace;
           "${spec.targetName}/.nix-managed" =
             writeText "${lib.strings.sanitizeDerivationName "dsh-profile-${spec.targetName}-managed"}" spec.marker;
         }

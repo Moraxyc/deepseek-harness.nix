@@ -5,7 +5,7 @@
   yarn-berry_4,
   nodejs_22,
   electron_43,
-  jq,
+  writers,
 }:
 
 stdenv.mkDerivation (finalAttrs: {
@@ -25,6 +25,15 @@ stdenv.mkDerivation (finalAttrs: {
 
   missingHashes = ./missing-hashes.json;
 
+  passthru = {
+    packageJson = {
+      name = "dsh-desktop";
+      version = finalAttrs.version;
+      type = "module";
+      main = "node_modules/dsh-plugin-desktop/lib/main.js";
+    };
+  };
+
   offlineCache = yarn-berry_4.fetchYarnBerryDeps {
     inherit (finalAttrs) src missingHashes postPatch;
     hash = "sha256-z2Z8OflCryQBY5hKS1mELpuZte10pHxn4+txzDyzJHA=";
@@ -34,7 +43,6 @@ stdenv.mkDerivation (finalAttrs: {
     yarn-berry_4
     yarn-berry_4.yarnBerryConfigHook
     nodejs_22
-    jq
   ];
 
   env = {
@@ -85,10 +93,8 @@ stdenv.mkDerivation (finalAttrs: {
       printf 'electron\n' > "$appResources/app/node_modules/electron/path.txt"
     fi
 
-    jq -n \
-      --arg version "${finalAttrs.version}" \
-      '{name:"dsh-desktop", version:$version, type:"module", main:"node_modules/dsh-plugin-desktop/lib/main.js"}' \
-      > "$appResources/app/package.json"
+    cp ${writers.writeJSON "package.json" finalAttrs.passthru.packageJson} \
+      "$appResources/app/package.json"
 
     cp dsh-plugin-desktop/build/app-icon.png "$out/icon.png"
 

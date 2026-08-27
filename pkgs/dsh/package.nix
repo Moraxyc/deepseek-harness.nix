@@ -14,6 +14,7 @@
   util-linux,
   writeShellApplication,
   writeText,
+  writers,
   yq-go,
 
   buildDshBundle,
@@ -58,6 +59,7 @@ let
       util-linux
       writeShellApplication
       writeText
+      writers
       tuiBundle
       webBundle
       yq-go
@@ -76,10 +78,7 @@ let
   ) profiles;
   managedProfileNames = map profileFiles.profileName (lib.attrNames profiles);
   homePatchFile =
-    if homePatch == null then
-      null
-    else
-      writeText "dsh-home-cordis.patch.yml" (profileFiles.renderPatch homePatch);
+    if homePatch == null then null else writers.writeYAML "dsh-home-cordis.patch.yml" homePatch;
 
   resolveBundles =
     bundlesOrSelector:

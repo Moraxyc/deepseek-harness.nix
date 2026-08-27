@@ -6,6 +6,7 @@
   dsh-kernel,
   jq,
   nix-update-script,
+  writers,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-navbar";
@@ -20,7 +21,7 @@ buildDshBundle (finalAttrs: {
 
   npmDeps = fetchNpmDeps {
     inherit (finalAttrs) pname src postPatch;
-    hash = "sha256-s7OO0nW1g0xZPo9TCSPqNH7v8mGvvFCFaByClD73ZFI=";
+    hash = "sha256-eHpM6b6tsKEVHQYR9nPsZ6wRkyDzqVqsVp54oADjQtA=";
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
@@ -33,20 +34,7 @@ buildDshBundle (finalAttrs: {
       package.json > package.json.tmp
     mv package.json.tmp package.json
 
-    cat > package-lock.json <<'JSON'
-    {
-      "name": "@vlln/dsh-navbar",
-      "version": "${finalAttrs.version}",
-      "lockfileVersion": 3,
-      "requires": true,
-      "packages": {
-        "": {
-          "name": "@vlln/dsh-navbar",
-          "version": "${finalAttrs.version}"
-        }
-      }
-    }
-    JSON
+    cp ${writers.writeJSON "package-lock.json" finalAttrs.passthru.packageLock} package-lock.json
   '';
 
   dontConfigure = true;
@@ -63,11 +51,24 @@ buildDshBundle (finalAttrs: {
     runHook postInstall
   '';
 
-  passthru.updateScript = nix-update-script {
-    extraArgs = [
-      "--flake"
-      "--version=branch"
-    ];
+  passthru = {
+    packageLock = {
+      name = "@vlln/dsh-navbar";
+      version = finalAttrs.version;
+      lockfileVersion = 3;
+      requires = true;
+      packages."" = {
+        name = "@vlln/dsh-navbar";
+        version = finalAttrs.version;
+      };
+    };
+
+    updateScript = nix-update-script {
+      extraArgs = [
+        "--flake"
+        "--version=branch"
+      ];
+    };
   };
 
   meta = {

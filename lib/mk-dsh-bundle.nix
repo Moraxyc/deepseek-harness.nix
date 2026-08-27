@@ -7,10 +7,12 @@
   pnpm_11,
   stdenvNoCC,
   writeShellApplication,
+  writers,
 }:
 
 let
   resolveDshBundles = ../lib/resolve-dsh-bundles.mjs;
+  emptyCordisPatch = writers.writeYAML "empty-cordis.patch.yml" [ ];
 
   # Shared protocol required by the composition layer for every bundle.
   protocol =
@@ -58,7 +60,7 @@ let
       # Aggregators keep child manifests for dependency resolution, even when
       # a published package omitted its declared canonical patch file.
       if [ -f "$1/cordis.patch.yml" ] || jq -e '.dsh?.bundle?.patch? == "./cordis.patch.yml"' "$1/package.json" >/dev/null 2>&1; then
-        printf '[]\n' > "$1/cordis.patch.yml"
+        cp ${emptyCordisPatch} "$1/cordis.patch.yml"
       fi
     }
     for entry in "$out"/lib/node_modules/*; do

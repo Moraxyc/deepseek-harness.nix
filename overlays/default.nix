@@ -10,6 +10,7 @@ let
       pnpm_11
       stdenvNoCC
       writeShellApplication
+      writers
       ;
   };
   dsh = final.lib.makeScope final.newScope (

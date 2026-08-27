@@ -6,6 +6,7 @@
   dsh-kernel,
   jq,
   nix-update-script,
+  writers,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-annotation";
@@ -21,7 +22,7 @@ buildDshBundle (finalAttrs: {
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
-    hash = "sha256-4reQet/iE8mFLIAi5i3MNWbag5Ep9GXNYIGG/BDvsxA=";
+    hash = "sha256-fJT4oHONQ0YSHcVekR3MAjkm84Nb+CnGCECW8hLQBoE=";
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
@@ -34,20 +35,7 @@ buildDshBundle (finalAttrs: {
       package.json > package.json.tmp
     mv package.json.tmp package.json
 
-    cat > package-lock.json <<'JSON'
-    {
-      "name": "@changfenhuang/dsh-annotation",
-      "version": "${finalAttrs.version}",
-      "lockfileVersion": 3,
-      "requires": true,
-      "packages": {
-        "": {
-          "name": "@changfenhuang/dsh-annotation",
-          "version": "${finalAttrs.version}"
-        }
-      }
-    }
-    JSON
+    cp ${writers.writeJSON "package-lock.json" finalAttrs.passthru.packageLock} package-lock.json
   '';
 
   dontConfigure = true;
@@ -64,11 +52,24 @@ buildDshBundle (finalAttrs: {
     runHook postInstall
   '';
 
-  passthru.updateScript = nix-update-script {
-    extraArgs = [
-      "--flake"
-      "--version=branch"
-    ];
+  passthru = {
+    packageLock = {
+      name = "@changfenhuang/dsh-annotation";
+      version = finalAttrs.version;
+      lockfileVersion = 3;
+      requires = true;
+      packages."" = {
+        name = "@changfenhuang/dsh-annotation";
+        version = finalAttrs.version;
+      };
+    };
+
+    updateScript = nix-update-script {
+      extraArgs = [
+        "--flake"
+        "--version=branch"
+      ];
+    };
   };
 
   meta = {

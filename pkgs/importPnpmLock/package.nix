@@ -5,8 +5,8 @@
   fetchgit,
   fetchPnpmDeps,
   runCommand,
-  writeText,
   pnpm,
+  writers,
 }:
 let
   defaultPnpm = pnpm;
@@ -414,7 +414,7 @@ let
     packages = lib.mapAttrs rewritePackage (lockfile.packages or { });
   };
 
-  lockfileYaml = writeText "pnpm-lock.yaml" (builtins.toJSON rewrittenLockfileData);
+  lockfileYaml = writers.writeYAML "pnpm-lock.yaml" rewrittenLockfileData;
 
   importerDeps =
     importer:
@@ -435,26 +435,33 @@ let
   importers = lockfile.importers or { };
   workspacePaths = lib.filter (path: path != ".") (lib.attrNames importers);
 
-  rootPackageJson = writeText "package.json" (
-    builtins.toJSON (
-      {
-        name = effectivePname;
-        version = "0.0.0";
-      }
-      // importerDeps (importers."." or { })
-    )
-  );
+  packageJson = {
+    root = {
+      name = effectivePname;
+      version = "0.0.0";
+    }
+    // importerDeps (importers."." or { });
+
+    workspaces = lib.listToAttrs (
+      map (
+        path:
+        nameValuePair path (
+          {
+            name = lib.last (lib.splitString "/" path);
+            version = "0.0.0";
+          }
+          // importerDeps importers.${path}
+        )
+      ) workspacePaths
+    );
+  };
+
+  rootPackageJson = writers.writeJSON "package.json" packageJson.root;
 
   workspacePackageJson =
     path:
-    writeText "pnpm-workspace-${lib.strings.sanitizeDerivationName path}.json" (
-      builtins.toJSON (
-        {
-          name = lib.last (lib.splitString "/" path);
-          version = "0.0.0";
-        }
-        // importerDeps importers.${path}
-      )
+    writers.writeJSON "pnpm-workspace-${lib.strings.sanitizeDerivationName path}.json" (
+      packageJson.workspaces.${path}
     );
 
   workspaceFileInputs = lib.listToAttrs (
@@ -477,7 +484,7 @@ let
     then
       null
     else
-      writeText "pnpm-workspace.yaml" (builtins.toJSON workspaceConfig);
+      writers.writeYAML "pnpm-workspace.yaml" workspaceConfig;
 
   source =
     runCommand "pnpm-deps-source"
@@ -549,6 +556,9 @@ lib.extendMkDerivation {
           skippedPackages
           pnpmInstallFlags
           lockfile
+          packageJson
+          rewrittenLockfileData
+          workspaceConfig
           ;
         fetchPnpmDeps = upstream;
         targetPlatform = effectiveTargetPlatform;

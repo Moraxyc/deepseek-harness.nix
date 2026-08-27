@@ -6,6 +6,7 @@
   dsh-kernel,
   jq,
   nix-update-script,
+  writers,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-plugin-check";
@@ -23,7 +24,7 @@ buildDshBundle (finalAttrs: {
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
-    hash = "sha256-YMaDuHb7PoCCkH4KmJVISe+uaaedSflRGE+/dw2WHmI=";
+    hash = "sha256-TR8Ekp3BMFZauBe8SruA8ks/SN0mo6FPWBRbnb+1mLo=";
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
@@ -34,20 +35,7 @@ buildDshBundle (finalAttrs: {
       package.json > package.json.tmp
     mv package.json.tmp package.json
 
-    cat > package-lock.json <<'JSON'
-    {
-      "name": "@omdsh-dev/dsh-plugin-check",
-      "version": "${finalAttrs.version}",
-      "lockfileVersion": 3,
-      "requires": true,
-      "packages": {
-        "": {
-          "name": "@omdsh-dev/dsh-plugin-check",
-          "version": "${finalAttrs.version}"
-        }
-      }
-    }
-    JSON
+    cp ${writers.writeJSON "package-lock.json" finalAttrs.passthru.packageLock} package-lock.json
   '';
 
   dontConfigure = true;
@@ -65,8 +53,21 @@ buildDshBundle (finalAttrs: {
     runHook postInstall
   '';
 
-  passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
+  passthru = {
+    packageLock = {
+      name = "@omdsh-dev/dsh-plugin-check";
+      version = finalAttrs.version;
+      lockfileVersion = 3;
+      requires = true;
+      packages."" = {
+        name = "@omdsh-dev/dsh-plugin-check";
+        version = finalAttrs.version;
+      };
+    };
+
+    updateScript = nix-update-script {
+      extraArgs = [ "--flake" ];
+    };
   };
 
   meta = {

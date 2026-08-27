@@ -6,6 +6,7 @@
   dsh-kernel,
   jq,
   nix-update-script,
+  writers,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-usage-stats";
@@ -23,7 +24,7 @@ buildDshBundle (finalAttrs: {
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
-    hash = "sha256-6EIvKmKfFftiDHBnRqv0338PbmRYwL7ZhRiS34/Ru1Y=";
+    hash = "sha256-5jJhlTqyMvxNWE4h5c3b+M9x83OY9S4mv4XlcARvDRQ=";
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
@@ -36,20 +37,7 @@ buildDshBundle (finalAttrs: {
       package.json > package.json.tmp
     mv package.json.tmp package.json
 
-    cat > package-lock.json <<'JSON'
-    {
-      "name": "@ychris12138/dsh-usage-stats",
-      "version": "${finalAttrs.version}",
-      "lockfileVersion": 3,
-      "requires": true,
-      "packages": {
-        "": {
-          "name": "@ychris12138/dsh-usage-stats",
-          "version": "${finalAttrs.version}"
-        }
-      }
-    }
-    JSON
+    cp ${writers.writeJSON "package-lock.json" finalAttrs.passthru.packageLock} package-lock.json
   '';
 
   dontConfigure = true;
@@ -65,8 +53,21 @@ buildDshBundle (finalAttrs: {
     runHook postInstall
   '';
 
-  passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
+  passthru = {
+    packageLock = {
+      name = "@ychris12138/dsh-usage-stats";
+      version = finalAttrs.version;
+      lockfileVersion = 3;
+      requires = true;
+      packages."" = {
+        name = "@ychris12138/dsh-usage-stats";
+        version = finalAttrs.version;
+      };
+    };
+
+    updateScript = nix-update-script {
+      extraArgs = [ "--flake" ];
+    };
   };
 
   meta = {

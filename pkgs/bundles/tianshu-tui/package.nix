@@ -6,6 +6,7 @@
   buildDshBundle,
   jq,
   nix-update-script,
+  writers,
 }:
 
 let
@@ -54,7 +55,7 @@ buildDshBundle (finalAttrs: {
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
-    hash = "sha256-vYxYjogpcxNYjUcKbSUbaz9jifEPXTpb/cmvmPeNdQY=";
+    hash = "sha256-BMFwZiX77WTlp3XoAIExa1TJxUfCU2vk8Sx94SHwGQM=";
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
@@ -66,20 +67,7 @@ buildDshBundle (finalAttrs: {
       package.json > package.json.tmp
     mv package.json.tmp package.json
 
-    cat > package-lock.json <<'JSON'
-    {
-      "name": "@huiliyi37/dsh-tianshu-tui",
-      "version": "${finalAttrs.version}",
-      "lockfileVersion": 3,
-      "requires": true,
-      "packages": {
-        "": {
-          "name": "@huiliyi37/dsh-tianshu-tui",
-          "version": "${finalAttrs.version}"
-        }
-      }
-    }
-    JSON
+    cp ${writers.writeJSON "package-lock.json" finalAttrs.passthru.packageLock} package-lock.json
   '';
 
   dontConfigure = true;
@@ -101,11 +89,24 @@ buildDshBundle (finalAttrs: {
     runHook postInstall
   '';
 
-  passthru.updateScript = nix-update-script {
-    extraArgs = [
-      "--flake"
-      "--version=unstable"
-    ];
+  passthru = {
+    packageLock = {
+      name = "@huiliyi37/dsh-tianshu-tui";
+      version = finalAttrs.version;
+      lockfileVersion = 3;
+      requires = true;
+      packages."" = {
+        name = "@huiliyi37/dsh-tianshu-tui";
+        version = finalAttrs.version;
+      };
+    };
+
+    updateScript = nix-update-script {
+      extraArgs = [
+        "--flake"
+        "--version=unstable"
+      ];
+    };
   };
 
   meta = {
