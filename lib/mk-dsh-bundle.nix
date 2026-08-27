@@ -53,9 +53,13 @@ let
 
   suppressChildBundlePatches = ''
     suppress_patch() {
-      [ -f "$1/cordis.patch.yml" ] || return 0
       [ "$1" = "$deployPackagePath" ] && return 0
-      printf '[]\n' > "$1/cordis.patch.yml"
+
+      # Aggregators keep child manifests for dependency resolution, even when
+      # a published package omitted its declared canonical patch file.
+      if [ -f "$1/cordis.patch.yml" ] || jq -e '.dsh?.bundle?.patch? == "./cordis.patch.yml"' "$1/package.json" >/dev/null 2>&1; then
+        printf '[]\n' > "$1/cordis.patch.yml"
+      fi
     }
     for entry in "$out"/lib/node_modules/*; do
       [ -d "$entry" ] || continue
@@ -327,7 +331,7 @@ let
           nodejs-slim.npm
           pnpm
         ]
-        ++ lib.optionals stripPrepareScripts [ jq ]
+        ++ lib.optionals (stripPrepareScripts || disableChildBundlePatches) [ jq ]
         ++ nativeBuildInputs;
         passthru = passthru // bundleProtocol;
         installPhase = defaultInstallPhase;
