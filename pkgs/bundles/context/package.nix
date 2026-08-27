@@ -10,20 +10,20 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-context";
-  version = "0.32.0";
+  version = "0.34.0";
 
   src = fetchFromGitHub {
     owner = "bowenliang123";
     repo = "dsh-context";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-5LmEtEvCWx/F2LvlqqeTIjv5i9JWU3KkkxCJUxJuCM8=";
+    hash = "sha256-ocMjvsDc1/E/cCXmoY/SKfD6OQicHzesBMa5GQnGwM4=";
   };
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-aJ7oBhhvRIZ49EN72jeIGWD+lxkV/XHBi2byM091Dmo=";
+    hash = "sha256-NtWqRFBILNj3E65fB0EOhZWvrtAA5pSDmI6vmTV5z9U=";
   };
 
   npmDeps = null;
