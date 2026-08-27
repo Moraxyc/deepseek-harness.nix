@@ -1,0 +1,82 @@
+{
+  lib,
+  fetchFromGitHub,
+  fetchNpmDeps,
+  buildDshBundle,
+  dsh-kernel,
+  jq,
+  nix-update-script,
+}:
+buildDshBundle (finalAttrs: {
+  pname = "dsh-security-audit";
+  version = "0-unstable-2026-08-25";
+
+  src = fetchFromGitHub {
+    owner = "omdsh-dev";
+    repo = "dsh-security-audit";
+    rev = "deeb194dc9bf03047acf77013d17bbd5257e965a";
+    hash = "sha256-Df5NCH4+Urr59snPbyQ3oI+RBDvAejby1RvBjGiPu8c=";
+  };
+
+  # Upstream commits the generated lib. The lockfile only contains build-time
+  # dependencies, which are unnecessary when that payload is used directly.
+  npmDeps = fetchNpmDeps {
+    name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
+    inherit (finalAttrs) src postPatch;
+    hash = "sha256-9Hcixrm3g5iAt9pibEI6VrwsVKnz8VrZEFZDRwF2MI0=";
+    forceEmptyCache = true;
+    nativeBuildInputs = [ jq ];
+  };
+
+  nativeBuildInputs = [ jq ];
+  postPatch = ''
+    jq 'del(.scripts, .dependencies, .devDependencies, .peerDependencies)' \
+      package.json > package.json.tmp
+    mv package.json.tmp package.json
+
+    cat > package-lock.json <<'JSON'
+    {
+      "name": "@deepseek-ai/dsh-security-audit",
+      "version": "${finalAttrs.version}",
+      "lockfileVersion": 3,
+      "requires": true,
+      "packages": {
+        "": {
+          "name": "@deepseek-ai/dsh-security-audit",
+          "version": "${finalAttrs.version}"
+        }
+      }
+    }
+    JSON
+  '';
+
+  dontConfigure = true;
+  dontNpmBuild = true;
+  linkKernelNodeModules = dsh-kernel;
+
+  installPhase = ''
+    runHook preInstall
+
+    appDir="$out/lib/node_modules/@deepseek-ai/dsh-security-audit"
+    mkdir -p "$appDir"
+    cp ${finalAttrs.src}/package.json "$appDir/"
+    cp -r cordis.patch.yml lib "$appDir/"
+
+    runHook postInstall
+  '';
+
+  passthru.updateScript = nix-update-script {
+    extraArgs = [
+      "--flake"
+      "--version=branch"
+    ];
+  };
+
+  meta = {
+    description = "Read-only local DSH security audit for configuration, plugin provenance, sessions, and network exposure";
+    descriptions.zh-CN = "只读审计 DSH 本地配置、插件来源、会话结构与网络暴露面的安全插件";
+    homepage = "https://github.com/omdsh-dev/dsh-security-audit";
+    license = lib.licenses.mit;
+    platforms = lib.platforms.unix;
+  };
+})
