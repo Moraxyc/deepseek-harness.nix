@@ -16,7 +16,7 @@ buildDshBundle (finalAttrs: {
     owner = "bowenliang123";
     repo = "dsh-context";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-ocMjvsDc1/E/cCXmoY/SKfD6OQicHzesBMa5GQnGwM4=";
+    hash = "sha256-7AwRLZg+mLARmrP55OFcMfOsQI8+SnWbQ+Cwl7IlCDI=";
   };
 
   pnpmDeps = fetchPnpmDeps {
