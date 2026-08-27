@@ -4,20 +4,18 @@
   fetchNpmDeps,
   buildDshBundle,
   dsh-kernel,
-  nodejs-slim,
-  python3,
   yq-go,
   nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-graph-memory";
-  version = "1.6.0-beta.8";
+  version = "2.0.0-unstable-2026-08-27";
 
   src = fetchFromGitHub {
     owner = "adoresever";
     repo = "graph-memory";
-    rev = "66183143b67bf7c337fa7ce31343435b8635ea95";
-    hash = "sha256-o39jez5zhevFoWSO9vzDla3MlchEqITYoHzJ6vKlLDo=";
+    rev = "443e6ccb9d1d37169404977199398f4b4935c4fc";
+    hash = "sha256-LE64wK6526FoJNirasOxs9K+9AJhV1v7rQKB4pDtSdE=";
   };
 
   postPatch = ''
@@ -32,35 +30,17 @@ buildDshBundle (finalAttrs: {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
     nativeBuildInputs = [ yq-go ];
-    hash = "sha256-rIcB7xmFmC12OggUaWbAzznldgQMb6ZMukAw2jB5Hrw=";
+    hash = "sha256-4GQmxkxH+31oPUCdzBSzOF/wDhP6rLdrPTqFrkDFEcU=";
   };
 
   nativeBuildInputs = [
-    python3
     yq-go
   ];
-  disallowedReferences = [ python3 ];
   npmBuildScript = "build";
   linkKernelNodeModules = dsh-kernel;
 
-  preBuild = ''
-    rm -rf node_modules/@photostructure/sqlite/prebuilds
-    (
-      cd node_modules/@photostructure/sqlite
-      ${nodejs-slim}/bin/node \
-        ${nodejs-slim.npm}/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js \
-        rebuild
-    )
-  '';
-
   installPhase = ''
     runHook preInstall
-
-    # Keep only the native module; node-gyp's generated build files retain
-    # references to the build-time Node.js and Python paths.
-    find node_modules/@photostructure/sqlite/build \
-      -type f ! -name phstr_sqlite.node -delete
-    find node_modules/@photostructure/sqlite/build -depth -type d -empty -delete
 
     appDir="$out/lib/node_modules/graph-memory"
     mkdir -p "$appDir"
