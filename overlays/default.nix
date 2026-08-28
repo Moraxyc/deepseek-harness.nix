@@ -17,6 +17,7 @@ let
     self:
     {
       inherit buildDshBundle;
+      helpers.buildBundle = buildDshBundle;
       mkDshBundle = buildDshBundle;
     }
     // final.lib.packagesFromDirectoryRecursive {

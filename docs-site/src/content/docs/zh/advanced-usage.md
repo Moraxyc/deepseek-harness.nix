@@ -395,6 +395,52 @@ preset 的默认 profile。
 }
 ```
 
-该 scope 包含 `pkgs.dsh.bundles.*`、`pkgs.dsh.presets.*`，以及
-`pkgs.dsh.dsh-desktop` 等包输出。flake 的 `packages` 展开的是同一 scope，
-因此 `nix build .#bundles.tui` 和 `nix run .#presets.web` 仍然可用。
+该 scope 包含 `pkgs.dsh.bundles.*`、`pkgs.dsh.presets.*`、
+`pkgs.dsh.helpers.*` 下的公开 helper，以及 `pkgs.dsh.dsh-desktop` 等包输出。
+flake 的 `packages` 展开的是同一 scope，因此 `nix build .#bundles.tui` 和
+`nix run .#presets.web` 仍然可用。
+
+### 打包外部 Bundle
+
+对于本 flake 未收录的独立 bundle，使用 `pkgs.dsh.helpers.buildBundle`：
+
+```nix
+{ pkgs, ... }:
+let
+  customBundle = pkgs.dsh.helpers.buildBundle (finalAttrs: {
+    pname = "example-bundle";
+    version = "0.1.0";
+
+    src = pkgs.fetchFromGitHub {
+      owner = "example";
+      repo = "example-bundle";
+      tag = "v${finalAttrs.version}";
+      hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+    };
+
+    npmDepsHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+    npmBuildScript = "build";
+    linkKernelNodeModules = pkgs.dsh.dsh-kernel;
+
+    installPhase = ''
+      runHook preInstall
+
+      packageRoot="$out/lib/node_modules/${finalAttrs.pname}"
+      mkdir -p "$packageRoot"
+      cp -r package.json cordis.patch.yml dist "$packageRoot/"
+
+      runHook postInstall
+    '';
+
+    meta.description = "Example DSH bundle";
+  });
+in
+{
+  programs.dsh.profiles.tui.bundles = [ customBundle ];
+}
+```
+
+安装后的 `package.json` 必须声明 `dsh.bundle.patch`，对应 patch 文件也必须位于
+同一 package root 中。Builder 会校验该约定，并生成组合阶段使用的 bundle
+manifest。外部 pnpm monorepo 可使用
+`pkgs.dsh.helpers.buildBundle.fromPnpmWorkspace`。

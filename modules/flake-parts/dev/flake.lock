@@ -69,12 +69,29 @@
         "type": "github"
       }
     },
+    "nixpkgs-2605": {
+      "locked": {
+        "lastModified": 1787848966,
+        "narHash": "sha256-7gDpu5hpq0rOYnYMcOWqSzquK4HA/xU8Xf3CjUBOOJA=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "d57af924f160a5084293c71c2043f058bd1cdb60",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-26.05",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "dev-flake-compat": "dev-flake-compat",
         "dev-nixpkgs": "dev-nixpkgs",
         "flake-compat": "flake-compat",
         "git-hooks-nix": "git-hooks-nix",
+        "nixpkgs-2605": "nixpkgs-2605",
         "treefmt-nix": "treefmt-nix"
       }
     },

@@ -413,7 +413,53 @@ Add the overlay to Nixpkgs and use the `pkgs.dsh` scope:
 }
 ```
 
-The scope includes `pkgs.dsh.bundles.*`, `pkgs.dsh.presets.*`, and package
-outputs such as `pkgs.dsh.dsh-desktop`. Flake `packages` expand the same
-scope, so `nix build .#bundles.tui` and `nix run .#presets.web` work the same
-way.
+The scope includes `pkgs.dsh.bundles.*`, `pkgs.dsh.presets.*`, public helpers
+under `pkgs.dsh.helpers.*`, and package outputs such as
+`pkgs.dsh.dsh-desktop`. Flake `packages` expand the same scope, so
+`nix build .#bundles.tui` and `nix run .#presets.web` work the same way.
+
+### Packaging an External Bundle
+
+Use `pkgs.dsh.helpers.buildBundle` for a standalone bundle that is not packaged
+by this flake:
+
+```nix
+{ pkgs, ... }:
+let
+  customBundle = pkgs.dsh.helpers.buildBundle (finalAttrs: {
+    pname = "example-bundle";
+    version = "0.1.0";
+
+    src = pkgs.fetchFromGitHub {
+      owner = "example";
+      repo = "example-bundle";
+      tag = "v${finalAttrs.version}";
+      hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+    };
+
+    npmDepsHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+    npmBuildScript = "build";
+    linkKernelNodeModules = pkgs.dsh.dsh-kernel;
+
+    installPhase = ''
+      runHook preInstall
+
+      packageRoot="$out/lib/node_modules/${finalAttrs.pname}"
+      mkdir -p "$packageRoot"
+      cp -r package.json cordis.patch.yml dist "$packageRoot/"
+
+      runHook postInstall
+    '';
+
+    meta.description = "Example DSH bundle";
+  });
+in
+{
+  programs.dsh.profiles.tui.bundles = [ customBundle ];
+}
+```
+
+The installed `package.json` must declare `dsh.bundle.patch`, and the referenced
+patch must exist under the same package root. The builder validates that
+contract and emits the bundle manifest used by composition. For an external
+pnpm monorepo, use `pkgs.dsh.helpers.buildBundle.fromPnpmWorkspace`.

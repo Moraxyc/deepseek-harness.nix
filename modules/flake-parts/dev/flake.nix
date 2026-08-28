@@ -4,6 +4,7 @@
   inputs = {
     dev-nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     dev-flake-compat.url = "github:NixOS/flake-compat";
+    nixpkgs-2605.url = "github:NixOS/nixpkgs/nixos-26.05";
 
     flake-compat.url = "github:NixOS/flake-compat";
 

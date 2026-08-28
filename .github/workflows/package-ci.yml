@@ -82,3 +82,10 @@ jobs:
           printf 'Building %d package attrs\n' "${#build_attrs[@]}"
           printf '%s\n' "${build_attrs[@]}"
           nix build --no-link --print-build-logs "${build_attrs[@]}"
+
+      - name: Check bundle helper with nixpkgs 26.05
+        run: |
+          nix build --no-link --print-build-logs \
+            --inputs-from ./modules/flake-parts/dev \
+            --override-input nixpkgs nixpkgs-2605 \
+            .#checks.x86_64-linux.dsh-bundle-helper
