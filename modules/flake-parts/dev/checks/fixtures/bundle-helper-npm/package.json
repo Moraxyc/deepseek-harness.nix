@@ -1,0 +1,19 @@
+{
+  "name": "dsh-bundle-helper-check",
+  "version": "1.0.0",
+  "files": [
+    "cordis.patch.yml",
+    "dist"
+  ],
+  "dependencies": {
+    "@sinclair/typebox": "0.34.52"
+  },
+  "devDependencies": {
+    "@standard-schema/spec": "1.1.0"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

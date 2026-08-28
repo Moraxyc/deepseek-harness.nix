@@ -5,34 +5,21 @@
     { pkgs, ... }:
     let
       bundleName = "dsh-bundle-helper-check";
+      bundleSource = ./fixtures/bundle-helper-npm;
       bundle = pkgs.dsh.helpers.buildBundle (_finalAttrs: {
         pname = bundleName;
         version = "1.0.0";
 
-        src = null;
-        npmDeps = null;
-        dontUnpack = true;
-        dontPatch = true;
-        dontConfigure = true;
+        src = bundleSource;
+        npmDeps = pkgs.importNpmLock { npmRoot = bundleSource; };
+        npmConfigHook = pkgs.importNpmLock.npmConfigHook;
         dontBuild = true;
 
-        installPhase = ''
-          runHook preInstall
-
+        postInstall = ''
           packageRoot="$out/lib/node_modules/${bundleName}"
-          mkdir -p "$packageRoot"
-          cp ${
-            pkgs.writeText "package.json" (
-              builtins.toJSON {
-                name = bundleName;
-                version = "1.0.0";
-                dsh.bundle.patch = "./cordis.patch.yml";
-              }
-            )
-          } "$packageRoot/package.json"
-          cp ${pkgs.writeText "cordis.patch.yml" "[]\n"} "$packageRoot/cordis.patch.yml"
-
-          runHook postInstall
+          test -f "$packageRoot/dist/index.js"
+          test -f "$packageRoot/node_modules/@sinclair/typebox/package.json"
+          test ! -e "$packageRoot/node_modules/@standard-schema/spec"
         '';
 
         meta.description = "External bundle helper regression check";

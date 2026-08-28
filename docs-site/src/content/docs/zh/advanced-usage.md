@@ -422,16 +422,6 @@ let
     npmBuildScript = "build";
     linkKernelNodeModules = pkgs.dsh.dsh-kernel;
 
-    installPhase = ''
-      runHook preInstall
-
-      packageRoot="$out/lib/node_modules/${finalAttrs.pname}"
-      mkdir -p "$packageRoot"
-      cp -r package.json cordis.patch.yml dist "$packageRoot/"
-
-      runHook postInstall
-    '';
-
     meta.description = "Example DSH bundle";
   });
 in
@@ -440,7 +430,9 @@ in
 }
 ```
 
-安装后的 `package.json` 必须声明 `dsh.bundle.patch`，对应 patch 文件也必须位于
-同一 package root 中。Builder 会校验该约定，并生成组合阶段使用的 bundle
-manifest。外部 pnpm monorepo 可使用
+该 helper 使用 `buildNpmPackage` 的标准 `npmInstallHook`：由
+`package.json.name` 决定 package 目录，由 `npm pack` 文件清单决定运行时内容。
+安装后的 manifest 必须声明 `dsh.bundle.patch`，对应文件也必须包含在 package
+内容中。Builder 会校验结果，并生成组合阶段使用的 bundle manifest。只有非标准
+package 布局才需要覆盖 `installPhase`。外部 pnpm monorepo 可使用
 `pkgs.dsh.helpers.buildBundle.fromPnpmWorkspace`。

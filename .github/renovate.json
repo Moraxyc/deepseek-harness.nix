@@ -2,5 +2,9 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
   "enabledManagers": ["github-actions", "npm"],
-  "includePaths": [".github/workflows/**", "docs-site/**"]
+  "includePaths": [
+    ".github/workflows/**",
+    "docs-site/**",
+    "modules/flake-parts/dev/checks/fixtures/bundle-helper-npm/**"
+  ]
 }

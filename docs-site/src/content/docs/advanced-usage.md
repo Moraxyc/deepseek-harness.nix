@@ -441,16 +441,6 @@ let
     npmBuildScript = "build";
     linkKernelNodeModules = pkgs.dsh.dsh-kernel;
 
-    installPhase = ''
-      runHook preInstall
-
-      packageRoot="$out/lib/node_modules/${finalAttrs.pname}"
-      mkdir -p "$packageRoot"
-      cp -r package.json cordis.patch.yml dist "$packageRoot/"
-
-      runHook postInstall
-    '';
-
     meta.description = "Example DSH bundle";
   });
 in
@@ -459,7 +449,10 @@ in
 }
 ```
 
-The installed `package.json` must declare `dsh.bundle.patch`, and the referenced
-patch must exist under the same package root. The builder validates that
-contract and emits the bundle manifest used by composition. For an external
-pnpm monorepo, use `pkgs.dsh.helpers.buildBundle.fromPnpmWorkspace`.
+The helper uses `buildNpmPackage`'s standard `npmInstallHook`: `package.json.name`
+selects the package directory, and the `npm pack` file list selects the runtime
+payload. The installed manifest must declare `dsh.bundle.patch`, and that file
+must be included in the package payload. The builder validates the result and
+emits the bundle manifest used by composition. Override `installPhase` only for
+a nonstandard package layout. For an external pnpm monorepo, use
+`pkgs.dsh.helpers.buildBundle.fromPnpmWorkspace`.

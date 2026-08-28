@@ -4,8 +4,8 @@
 
 Use the builder that matches where the bundle source comes from:
 
-- `buildDshBundle`: standalone npm source that must provide its own
-  `installPhase` and place the built bundle under `$out/lib/node_modules`.
+- `buildDshBundle`: standalone npm source installed with `buildNpmPackage`'s
+  standard `npmInstallHook` unless it needs a custom layout.
 - `buildDshBundle.fromPnpmWorkspace`: external pnpm monorepo whose selected
   workspace package should be deployed directly into `$out/lib`.
 - `buildDshBundle.fromWorkspace`: an upstream package and its production
@@ -135,20 +135,17 @@ build, add it to `disallowedReferences` in the bundle expression.
 
 ## Adding a standalone npm bundle
 
-Use `buildDshBundle` when the source is not a pnpm workspace deploy target.
-The derivation must populate `$out/lib/node_modules` itself. Copy the package
-manifest, patch file, runtime code, and bundle-specific dependencies into the
-package root. Kernel-owned packages are provided by `linkKernelNodeModules`:
+Use `buildDshBundle` when the source is not a pnpm workspace deploy target. Its
+standard install uses `package.json.name` for the package directory and the
+`npm pack` file list for the runtime payload. Kernel-owned packages are
+provided by `linkKernelNodeModules`:
 
 ```nix
 {
   lib,
   fetchFromGitHub,
-  fetchPnpmDeps,
   buildDshBundle,
   dsh-kernel,
-  pnpmConfigHook,
-  pnpm_11,
 }:
 buildDshBundle (finalAttrs: {
   pname = "example-bundle";
@@ -162,29 +159,8 @@ buildDshBundle (finalAttrs: {
     hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
   };
 
-  pnpmDeps = fetchPnpmDeps {
-    inherit (finalAttrs) pname version src;
-    pnpm = pnpm_11;
-    fetcherVersion = 4;
-    hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
-  };
-
-  nativeBuildInputs = [ pnpm_11 ];
-  disallowedReferences = [ pnpm_11 ];
-
-  npmDeps = null;
-  npmConfigHook = pnpmConfigHook;
+  npmDepsHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
   npmBuildScript = "build";
-
-  installPhase = ''
-    runHook preInstall
-
-    appDir="$out/lib/node_modules/example-bundle"
-    mkdir -p "$appDir"
-    cp -r package.json cordis.patch.yml lib "$appDir/"
-
-    runHook postInstall
-  '';
 
   meta = {
     description = "Example standalone DSH bundle";
@@ -194,6 +170,11 @@ buildDshBundle (finalAttrs: {
   };
 })
 ```
+
+The package manifest must include `cordis.patch.yml` and the runtime build
+output in its npm package payload. Override `installPhase` only when the npm
+package layout cannot represent the required runtime output; a custom phase
+must place the package under `$out/lib/node_modules`.
 
 If the package needs `pnpmDeps`, `fetchPnpmDeps`, `pnpmConfigHook`, or
 `pnpm_11`, add them to the function arguments just like the pnpm workspace

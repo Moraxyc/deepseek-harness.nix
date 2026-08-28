@@ -205,8 +205,8 @@ let
     done
   '';
 
-  # Build a bundle from its own npm source. Use this for external bundles that
-  # are not produced by the upstream workspace build.
+  # Build a bundle from its own npm source. buildNpmPackage's npmInstallHook
+  # owns the standard npm package layout unless the bundle overrides it.
   buildDshBundle = lib.extendMkDerivation {
     constructDrv = buildNpmPackage;
     excludeDrvArgNames = [
