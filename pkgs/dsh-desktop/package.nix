@@ -15,6 +15,7 @@
   writeShellScript,
   nix,
   coreutils,
+  gawk,
   gnused,
   yarn-berry_4,
   git,
@@ -130,6 +131,7 @@ stdenvNoCC.mkDerivation (
         PATH=${
           lib.makeBinPath [
             coreutils
+            gawk
             git
             gnused
             nix
