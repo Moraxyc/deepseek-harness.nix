@@ -34,10 +34,28 @@ stdenv.mkDerivation (finalAttrs: {
     };
   };
 
-  offlineCache = yarn-berry_4.fetchYarnBerryDeps {
-    inherit (finalAttrs) src missingHashes postPatch;
-    hash = "sha256-z2Z8OflCryQBY5hKS1mELpuZte10pHxn4+txzDyzJHA=";
-  };
+  offlineCache =
+    (yarn-berry_4.fetchYarnBerryDeps {
+      inherit (finalAttrs) src missingHashes postPatch;
+      hash = "sha256-z2Z8OflCryQBY5hKS1mELpuZte10pHxn4+txzDyzJHA=";
+    }).overrideAttrs
+      (_: {
+        buildPhase = ''
+          runHook preBuild
+
+          yarnLock=''${yarnLock:=$PWD/yarn.lock}
+          filteredLock=$(mktemp)
+          awk '
+            /^".*@file:/ { skip = 1; next }
+            skip && /^$/ { skip = 0; next }
+            !skip { print }
+          ' "$yarnLock" > "$filteredLock"
+          yarn-berry-fetcher fetch "$filteredLock" "$missingHashes"
+          cp "$yarnLock" "$out/yarn.lock"
+
+          runHook postBuild
+        '';
+      });
 
   nativeBuildInputs = [
     yarn-berry_4

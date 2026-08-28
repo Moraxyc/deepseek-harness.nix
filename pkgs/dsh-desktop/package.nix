@@ -152,8 +152,13 @@ stdenvNoCC.mkDerivation (
         cp -a "$src/." "$tmp/source/"
         chmod -R u+w "$tmp/source"
         sed -i 's/^  version: 10$/  version: 9/' "$tmp/source/yarn.lock"
+        awk '
+          /^".*@file:/ { skip = 1; next }
+          skip && /^$/ { skip = 0; next }
+          !skip { print }
+        ' "$tmp/source/yarn.lock" > "$tmp/yarn.lock"
 
-        yarn-berry-fetcher missing-hashes "$tmp/source/yarn.lock" \
+        yarn-berry-fetcher missing-hashes "$tmp/yarn.lock" \
           > "$PWD/pkgs/dsh-desktop/missing-hashes.json"
 
         nix-update --flake --version=skip --no-src "$shell_attr"
