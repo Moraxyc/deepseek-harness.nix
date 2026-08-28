@@ -78,7 +78,10 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
    让 pnpm 在部署前跳过源码包重建。该方式同时支持 `packages/*` 多包
    workspace 和只声明 `packages: ["."]` 的单包 workspace。
 2. 运行 `pnpm config set --location=project inject-workspace-packages true`。
-3. 运行：
+3. 如果 nixpkgs 提供的 `pnpm_11` 较旧，DSH package scope 会提供 pnpm 11.22.0，
+   确保依赖获取和 workspace deploy 使用同一个兼容版本，同时不修改调用方的
+   package set。
+4. 运行：
 
    ```sh
    pnpm --filter <deployPackage> deploy \

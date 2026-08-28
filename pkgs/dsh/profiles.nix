@@ -546,9 +546,11 @@ in
         }
 
         requested_profile=''${1:-}
-        ${lib.optionalString (homePatchFile != null) ''
-          copy_owned_file ${lib.escapeShellArg "${homePatchFile}"} "$home/cordis.patch.yml"
-        ''}
+      ''
+      + lib.optionalString (homePatchFile != null) ''
+        copy_owned_file ${lib.escapeShellArg "${homePatchFile}"} "$home/cordis.patch.yml"
+      ''
+      + ''
         case "$requested_profile" in
           "")
             ${lib.concatStringsSep "\n" (lib.mapAttrsToList seedInvocation profiles)}

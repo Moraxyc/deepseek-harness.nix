@@ -13,7 +13,6 @@
 let
   resolveDshBundles = ../lib/resolve-dsh-bundles.mjs;
   emptyCordisPatch = writers.writeYAML "empty-cordis.patch.yml" [ ];
-
   # Shared protocol required by the composition layer for every bundle.
   protocol =
     {
@@ -290,30 +289,36 @@ let
         bundleProtocol = validateProtocol { inherit runtimeDeps; };
         defaultInstallPhase = ''
           runHook preInstall
-
-          ${lib.optionalString stripPrepareScripts ''
-            if [ -d packages ]; then
-              find packages -name package.json -print0 \
-                | xargs -0 -n1 sh -c '
-                    jq "del(.scripts.prepare)" "$0" > "$0.tmp"
-                    mv "$0.tmp" "$0"
-                  '
-            else
-              jq "del(.scripts.prepare)" package.json > package.json.tmp
-              mv package.json.tmp package.json
-            fi
-          ''}
+        ''
+        + lib.optionalString stripPrepareScripts ''
+          if [ -d packages ]; then
+            find packages -name package.json -print0 \
+              | xargs -0 -n1 sh -c '
+                  jq "del(.scripts.prepare)" "$0" > "$0.tmp"
+                  mv "$0.tmp" "$0"
+                '
+          else
+            jq "del(.scripts.prepare)" package.json > package.json.tmp
+            mv package.json.tmp package.json
+          fi
+        ''
+        + ''
           ${preDeploy}
 
           pnpm config set --location=project inject-workspace-packages true
+          # Dependencies were installed by npmInstallHook; deploy must only
+          # copy them and must not rerun native install scripts.
           pnpm --filter ${lib.escapeShellArg deployPackage} deploy \
             --prod \
+            --ignore-scripts \
             --config.node-linker=hoisted \
             --config.link-workspace-packages=true \
             "$out/lib"
 
           deployPackagePath="$out/lib/node_modules/${lib.escapeShellArg deployPackage}"
-          ${lib.optionalString disableChildBundlePatches suppressChildBundlePatches}
+        ''
+        + lib.optionalString disableChildBundlePatches suppressChildBundlePatches
+        + ''
           ${postDeploy}
 
           runHook postInstall

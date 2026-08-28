@@ -82,7 +82,10 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
    workspaces that use `packages/*` and single-package workspaces that only
    define `packages: ["."]`.
 2. Run `pnpm config set --location=project inject-workspace-packages true`.
-3. Run:
+3. The DSH package scope provides pnpm 11.22.0 when nixpkgs provides an older
+   `pnpm_11`, so dependency fetching and workspace deployment use the same
+   compatible package without changing the caller's package set.
+4. Run:
 
    ```sh
    pnpm --filter <deployPackage> deploy \
