@@ -163,7 +163,7 @@
               ).withAgentPresets
                 {
                   second = {
-                    source = "code";
+                    source = "ptc";
                   };
                 };
           in

@@ -274,7 +274,7 @@ ID 以后一次定义为准。它可以放在 `withProfiles` 前面或后面：
     };
   }).withAgentPresets {
     code-subagents = {
-      source = "code";
+      source = "ptc";
       enableTools = [ "tool-subagent-claude-code" ];
     };
   }
@@ -300,7 +300,7 @@ programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
 ```
 
 安装提供程序 Bundle 只会把 Host provider 放进运行时。它不会启动 Codex 或
-Claude Code，也不会自动开放对应工具。内置的 `standard` 和 `code`
+Claude Code，也不会自动开放对应工具。内置的 `standard` 和 `ptc`
 Agent Preset 默认禁用 `tool-subagent-codex` 与
 `tool-subagent-claude-code`。可以同时声明 preset 和 profile：
 

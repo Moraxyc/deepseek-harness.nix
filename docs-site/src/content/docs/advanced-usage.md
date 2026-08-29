@@ -287,7 +287,7 @@ of the presets:
     };
   }).withAgentPresets {
     code-subagents = {
-      source = "code";
+      source = "ptc";
       enableTools = [ "tool-subagent-claude-code" ];
     };
   }
@@ -314,7 +314,7 @@ programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
 
 Installing a provider Bundle only puts its Host provider in the runtime. It does
 not start Codex or Claude Code, and it does not authorize either model-facing tool. The
-shipped `standard` and `code` Agent Presets keep `tool-subagent-codex` and
+shipped `standard` and `ptc` Agent Presets keep `tool-subagent-codex` and
 `tool-subagent-claude-code` disabled. Declare the preset and profile together:
 
 ```nix

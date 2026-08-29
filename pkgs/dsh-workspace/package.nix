@@ -5,7 +5,9 @@
   fetchPnpmDeps,
   fetchFromGitHub,
   importPnpmLock,
+  jq,
   dshWorkspacePatchHook,
+  makeWrapper,
   nodejs,
   nodejs-slim,
   pnpmConfigHook,
@@ -29,6 +31,7 @@ buildNpmPackage (finalAttrs: {
   outputs = [
     "out"
     "cohort"
+    "kernel"
   ];
 
   src = fetchFromGitHub {
@@ -91,6 +94,8 @@ buildNpmPackage (finalAttrs: {
   };
 
   nativeBuildInputs = [
+    jq
+    makeWrapper
     nodejs-slim.npm
     pnpm_11
     python3
@@ -119,6 +124,7 @@ buildNpmPackage (finalAttrs: {
 
     workspaceDir="$out/lib/dsh-workspace"
     appDir="$workspaceDir/kernel"
+    kernelApp="$kernel/lib/deepseek-harness"
     mkdir -p "$workspaceDir"
 
     cp -r apps/cli/lib apps/nix-kernel/lib
@@ -133,6 +139,21 @@ buildNpmPackage (finalAttrs: {
     rm -f "$appDir/node_modules/node-pty/build/"{{binding.,}Makefile,config.gypi,pty.target.mk}
     sed -i '1{/^#!/d;}' "$appDir/lib/bin.js"
     ${lib.getExe nodejs-slim} "$appDir/node_modules/@deepseek-ai/dsh-subprocess-local/scripts/ensure-spawn-helper.mjs"
+
+    mkdir -p "$kernelApp"
+    cp -r "$appDir/lib" "$kernelApp/lib"
+    cp -r "$appDir/config" "$kernelApp/config"
+    cp -r "$appDir/node_modules/@deepseek-ai/dsh-agent-presets/presets" "$kernelApp/config/agent-presets"
+    cp "$appDir/package.json" "$kernelApp/package.json"
+    # Keep the public kernel self-contained; do not symlink back into the workspace.
+    cp -r "$appDir/node_modules" "$kernelApp/node_modules"
+    jq '.name = "@deepseek-ai/dsh"' "$kernelApp/package.json" > "$kernelApp/package.json.tmp"
+    mv "$kernelApp/package.json.tmp" "$kernelApp/package.json"
+
+    mkdir -p "$kernel/bin"
+    makeWrapper ${lib.getExe nodejs-slim} "$kernel/bin/dsh" \
+      --add-flags "--expose-internals" \
+      --add-flags "$kernelApp/lib/bin.js"
 
     runtimeBundlesDir="$workspaceDir/runtime-bundles"
     for packageJson in packages/*/*/package.json; do
