@@ -543,11 +543,11 @@ lib.extendMkDerivation {
       dontConfigure = true;
       dontBuild = true;
 
-      preInstall = ''
-        export PNPM_CONFIG_TRUST_LOCKFILE=true
-        export pnpm_config_trust_lockfile=true
-        export NIX_NPM_REGISTRY="${registry}"
-      '';
+      # Rewritten registry packages intentionally use local tarball resolutions.
+      env = {
+        NIX_NPM_REGISTRY = registry;
+        pnpm_config_trust_lockfile = "true";
+      };
 
       passthru = {
         inherit
