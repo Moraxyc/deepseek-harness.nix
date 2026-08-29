@@ -39,7 +39,7 @@ buildNpmPackage (finalAttrs: {
   };
 
   env.DSH_CLIENT_COMMIT_HASH = "cd5ef8148158c3a752a658978873241fdf8e2bbc";
-  env.PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = false;
+  env.PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = "false";
 
   nodejs = nodejs-slim;
   disallowedReferences = [

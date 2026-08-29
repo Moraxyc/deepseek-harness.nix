@@ -233,7 +233,7 @@ let
       {
         nodejs = nodejs-slim;
         env = env // {
-          PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = false;
+          PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = "false";
         };
         disallowedReferences = lib.unique (disallowedReferences ++ [ nodejs ]);
         nativeBuildInputs = [
@@ -332,7 +332,7 @@ let
       {
         nodejs = nodejs-slim;
         env = env // {
-          PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = false;
+          PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = "false";
         };
         disallowedReferences = lib.unique (
           disallowedReferences

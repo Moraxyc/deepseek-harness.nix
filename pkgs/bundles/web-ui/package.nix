@@ -7,8 +7,12 @@
   dsh-workspace,
   pnpmConfigHook,
   pnpm_11,
+  yq-go,
   nix-update-script,
 }:
+let
+  fetchPnpmDeps' = fetchPnpmDeps.override { yq = yq-go; };
+in
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-web-ui";
   version = "0.3.7";
@@ -29,9 +33,19 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
       --replace-fail "file:../../.dsh-cohorts/" "file:.dsh-cohorts/"
     mkdir -p ".dsh-cohorts/${dsh-workspace.version}"
     cp -r ${dsh-workspace.cohort}/. ".dsh-cohorts/${dsh-workspace.version}/"
+    yq -i '
+      .packages |= with_entries(
+        (select(.key | contains("@file:.dsh-cohorts/")) |
+          .value.resolution |= del(.integrity)) // .
+      )
+    ' pnpm-lock.yaml
+    printf '%s\n' \
+      'manage-package-manager-versions=false' \
+      'node-linker=hoisted' \
+      >> .npmrc
   '';
 
-  pnpmDeps = fetchPnpmDeps {
+  pnpmDeps = fetchPnpmDeps' {
     inherit (finalAttrs)
       pname
       version
@@ -40,17 +54,13 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
       ;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-dyzW3urHQJZCo+1IQYpnH/mjvOhQkNp/i8D1SceE1MQ=";
+    hash = "sha256-A7QKX1htTSbxRUclSUWjGVg7WPi7MPXfcs382ssDNws=";
   };
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
-
-  preConfigure = ''
-    # Ensure build-time bins such as tsc are resolvable from the pinned store.
-    pnpm config set --location=project node-linker hoisted
-  '';
+  nativeBuildInputs = [ yq-go ];
 
   preBuild = ''
     for d in packages/*/node_modules; do
