@@ -4,13 +4,14 @@
   fetchPnpmDeps,
   buildDshBundle,
   dsh-kernel,
+  dsh-workspace,
   pnpmConfigHook,
   pnpm_11,
   nix-update-script,
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-web-ui";
-  version = "0.3.6";
+  version = "0.3.7";
   deployPackage = "@linxin666/dsh-web-all";
   stripPrepareScripts = true;
   disableChildBundlePatches = true;
@@ -20,11 +21,23 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     owner = "zhu1090093659";
     repo = "dsh-web-ui";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-wWH/6f3gZLi6i6Si4XrjtfCNgl4OdwHqVa2S4W3/4ks=";
+    hash = "sha256-rllxpqaso4AUYi0CNn83DxQHZ/T3fZwm4PXivdMltsk=";
   };
 
+  postPatch = ''
+    substituteInPlace pnpm-lock.yaml \
+      --replace-fail "file:../../.dsh-cohorts/" "file:.dsh-cohorts/"
+    mkdir -p ".dsh-cohorts/${dsh-workspace.version}"
+    cp -r ${dsh-workspace.cohort}/. ".dsh-cohorts/${dsh-workspace.version}/"
+  '';
+
   pnpmDeps = fetchPnpmDeps {
-    inherit (finalAttrs) pname version src;
+    inherit (finalAttrs)
+      pname
+      version
+      src
+      postPatch
+      ;
     pnpm = pnpm_11;
     fetcherVersion = 4;
     hash = "sha256-dyzW3urHQJZCo+1IQYpnH/mjvOhQkNp/i8D1SceE1MQ=";

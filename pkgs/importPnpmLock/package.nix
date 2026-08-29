@@ -70,6 +70,11 @@ let
 
   effectivePname = if pname != null then pname else "pnpm-deps";
   effectiveFetcherVersion = if fetcherVersion != null then fetcherVersion else 4;
+  fetchEnv = {
+    NIX_NPM_REGISTRY = registry;
+    pnpm_config_manage_package_manager_versions = "false";
+    pnpm_config_trust_lockfile = "true";
+  };
 
   packageKey =
     id:
@@ -513,6 +518,7 @@ let
     fetcherVersion = effectiveFetcherVersion;
     src = source;
     hash = "";
+    env = fetchEnv;
     inherit pnpmInstallFlags;
   };
   nativeBuildInputs' = upstream.nativeBuildInputs;
@@ -544,10 +550,7 @@ lib.extendMkDerivation {
       dontBuild = true;
 
       # Rewritten registry packages intentionally use local tarball resolutions.
-      env = {
-        NIX_NPM_REGISTRY = registry;
-        pnpm_config_trust_lockfile = "true";
-      };
+      env = fetchEnv;
 
       passthru = {
         inherit

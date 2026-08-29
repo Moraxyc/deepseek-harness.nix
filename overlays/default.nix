@@ -1,5 +1,29 @@
 final: prev:
 let
+  # Keep pnpm from downloading a package manager version declared by an
+  # upstream project. This applies to the independent dependency fetch while
+  # retaining fetchPnpmDeps.override for its package dependencies.
+  wrapFetchPnpmDeps =
+    base:
+    let
+      wrapped = prev.lib.makeOverridable (
+        args:
+        base (
+          args
+          // {
+            prePnpmInstall = (args.prePnpmInstall or "") + ''
+              export pnpm_config_manage_package_manager_versions=false
+            '';
+          }
+        )
+      );
+    in
+    wrapped
+    // {
+      override = overrides: wrapFetchPnpmDeps (base.override overrides);
+      overrideDerivation = f: wrapFetchPnpmDeps (base.overrideDerivation f);
+    };
+  fetchPnpmDeps = wrapFetchPnpmDeps prev.fetchPnpmDeps;
   compatiblePnpm =
     if prev.lib.versionOlder prev.pnpm_11.version "11.22.0" then
       prev.pnpm_11.overrideAttrs (_oldAttrs: {
@@ -41,5 +65,5 @@ let
   importPnpmLock = dsh.importPnpmLock;
 in
 {
-  inherit dsh importPnpmLock;
+  inherit dsh fetchPnpmDeps importPnpmLock;
 }

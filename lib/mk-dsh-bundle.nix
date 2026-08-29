@@ -221,6 +221,7 @@ let
         linkKernelNodeModulesKeep ? [ ],
         nativeBuildInputs ? [ ],
         disallowedReferences ? [ ],
+        env ? { },
         meta ? { },
         passthru ? { },
         postInstall ? "",
@@ -231,6 +232,9 @@ let
       in
       {
         nodejs = nodejs-slim;
+        env = env // {
+          PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = false;
+        };
         disallowedReferences = lib.unique (disallowedReferences ++ [ nodejs ]);
         nativeBuildInputs = [
           nodejs-slim
@@ -280,6 +284,7 @@ let
         pnpm ? pnpm_11,
         nativeBuildInputs ? [ ],
         disallowedReferences ? [ ],
+        env ? { },
         meta ? { },
         passthru ? { },
         postInstall ? "",
@@ -326,6 +331,9 @@ let
       in
       {
         nodejs = nodejs-slim;
+        env = env // {
+          PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = false;
+        };
         disallowedReferences = lib.unique (
           disallowedReferences
           ++ [

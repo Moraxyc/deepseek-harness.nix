@@ -22,19 +22,24 @@ let
 in
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
-  version = "0.1.1-rc.2";
+  version = "0.1.2-alpha.1";
 
   __structuredAttrs = true;
   strictDeps = true;
+  outputs = [
+    "out"
+    "cohort"
+  ];
 
   src = fetchFromGitHub {
     owner = "deepseek-ai";
     repo = "deepseek-harness";
     tag = "dsh-v${finalAttrs.version}";
-    hash = "sha256-rrjXoyccTxKIbZ00Z4Vy7EA9tGZ15WUqLBFnZSgw1YE=";
+    hash = "sha256-v4XBZN7NN+LodosuIoa3HGUlmrk5dsouTVxJrxPMhlY=";
   };
 
-  env.DSH_CLIENT_COMMIT_HASH = "b150a551b8d465e31e418e1b2eaf5e79bbb7d28e";
+  env.DSH_CLIENT_COMMIT_HASH = "cd5ef8148158c3a752a658978873241fdf8e2bbc";
+  env.PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = false;
 
   nodejs = nodejs-slim;
   disallowedReferences = [
@@ -94,6 +99,7 @@ buildNpmPackage (finalAttrs: {
   ];
 
   npmDeps = null;
+  dontNpmInstall = true;
   npmInstallFlags = finalAttrs.pnpmDeps.passthru.pnpmInstallFlags;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build:official";
@@ -107,17 +113,22 @@ buildNpmPackage (finalAttrs: {
   installPhase = ''
     runHook preInstall
 
+    PNPM_CONFIG_OFFLINE=true \
+      PNPM_CONFIG_VERIFY_DEPS_BEFORE_RUN=false \
+      pnpm run release:pack --family dsh --out "$cohort"
+
     workspaceDir="$out/lib/dsh-workspace"
     appDir="$workspaceDir/kernel"
     mkdir -p "$workspaceDir"
 
     cp -r apps/cli/lib apps/nix-kernel/lib
-    cp -r apps/cli/config apps/nix-kernel/config
     pnpm --filter @deepseek-ai/dsh-nix-kernel deploy \
       --prod \
       --config.node-linker=hoisted \
       --config.link-workspace-packages=true \
       "$appDir"
+
+    cp -r apps/cli/config "$appDir/config"
 
     rm -f "$appDir/node_modules/node-pty/build/"{{binding.,}Makefile,config.gypi,pty.target.mk}
     sed -i '1{/^#!/d;}' "$appDir/lib/bin.js"

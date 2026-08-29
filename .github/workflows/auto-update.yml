@@ -42,7 +42,7 @@ jobs:
                 hasUpdateScript = p: (p.passthru or { }).updateScript or null != null;
                 packageSet = builtins.getAttr system f.packages;
                 legacyPackages = builtins.getAttr system f.legacyPackages;
-                packages = builtins.filter (name: hasUpdateScript (builtins.getAttr name packageSet)) (builtins.attrNames packageSet);
+                packages = builtins.filter (name: name != "pnpm_11" && hasUpdateScript (builtins.getAttr name packageSet)) (builtins.attrNames packageSet);
                 bundles = builtins.filter (name: hasUpdateScript (builtins.getAttr name legacyPackages.bundles)) (builtins.attrNames legacyPackages.bundles);
                 toAttrs = labelPrefix: attrPrefix: names: pkgSet: map (name: {
                   inherit name;
