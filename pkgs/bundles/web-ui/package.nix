@@ -54,7 +54,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
       ;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-lGS1GkHLJlSDvrOFKNqTp9Lkwa7VPqPWLyUa6c815QM=";
+    hash = "sha256-bZ+hJFVDufR82US+MdtXanKoNkLooJJh5myvhV6uqkw=";
   };
 
   npmDeps = null;
