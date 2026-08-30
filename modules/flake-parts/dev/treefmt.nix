@@ -11,7 +11,7 @@
         shellcheck.enable = true;
         prettier = {
           enable = true;
-          excludes = [ "pkgs/dsh-workspace/pnpm-lock.json" ];
+          excludes = [ "pkgs/**/pnpm-lock.json" ];
         };
       };
     };
