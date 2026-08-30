@@ -5,10 +5,10 @@
   buildDshBundle,
   dsh-kernel,
   dsh-workspace,
+  importPnpmLock,
   pnpmConfigHook,
   pnpm_11,
   yq-go,
-  nix-update-script,
 }:
 let
   fetchPnpmDeps' = fetchPnpmDeps.override { yq = yq-go; };
@@ -45,16 +45,19 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
       >> .npmrc
   '';
 
-  pnpmDeps = fetchPnpmDeps' {
-    inherit (finalAttrs)
-      pname
-      version
-      src
-      postPatch
-      ;
+  pnpmDeps = importPnpmLock {
+    inherit (finalAttrs) pname version;
+    fetchPnpmDeps = fetchPnpmDeps';
+    lockfileJson = ./pnpm-lock.json;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-bZ+hJFVDufR82US+MdtXanKoNkLooJJh5myvhV6uqkw=";
+    patchedDependencySources = {
+      "@morlay/ui-conversation-message-actions@0.0.11" =
+        "${finalAttrs.src}/patches/@morlay__ui-conversation-message-actions@0.0.11.patch";
+    };
+    packageSourceOverrides."*@file:../../.dsh-cohorts/*" =
+      { pkg, ... }:
+      "${dsh-workspace.cohort}/${lib.last (lib.splitString "/" pkg.url)}";
   };
 
   npmDeps = null;
@@ -84,9 +87,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   '';
 
   passthru = {
-    updateScript = nix-update-script {
-      extraArgs = [ "--flake" ];
-    };
+    updateScript = ./update.sh;
     requiresWeb = true;
   };
 
