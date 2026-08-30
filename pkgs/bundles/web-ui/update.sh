@@ -6,9 +6,9 @@ set -euo pipefail
 repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
 
-attr="${UPDATE_NIX_ATTR_PATH:-bundles.web-ui}"
+attr="${UPDATE_NIX_ATTR_PATH:-legacyPackages.$(nix eval --raw --impure --expr 'builtins.currentSystem').bundles.web-ui}"
 case "$attr" in
-  packages.* | legacyPackages.*)
+  packages.*)
     attr="${attr#*.}"
     attr="${attr#*.}"
     ;;
