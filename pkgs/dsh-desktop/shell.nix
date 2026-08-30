@@ -10,13 +10,13 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "dsh-desktop-shell";
-  version = "2.0.4-unstable-2026-08-29";
+  version = "2.0.4-unstable-2026-08-30";
 
   src = fetchFromGitHub {
     owner = "anywhere-labs";
     repo = "deepseek-harness-desktop";
-    rev = "b9758b4346f6a806e4407873c5269b9989a39fbe";
-    hash = "sha256-v5dqFaVDwwhnW6cw2VrLAyeVspehJuuOXbeDcuZfFKA=";
+    rev = "e71a9ef0b168763d422042835a8c3b7d6d809800";
+    hash = "sha256-EN7ow2JN4d3N4uE9KdenPNFAGyqbEKoeX4Sx2QVG8YI=";
   };
 
   postPatch = ''
