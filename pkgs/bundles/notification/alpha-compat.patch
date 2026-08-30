@@ -1,0 +1,183 @@
+diff --git a/package.json b/package.json
+--- a/package.json
++++ b/package.json
+@@ -27,10 +27,11 @@
+     "client": {
+       "platform": "web",
+       "inject": [
+-        "@deepseek-ai/dsh-client-runtime",
+-        "@deepseek-ai/dsh-client-ui-slots",
+-        "@deepseek-ai/dsh-client-ui-settings",
+-        "@deepseek-ai/dsh-client-locale"
++        "@deepseek-ai/dsh-api-session-controller",
++        "@deepseek-ai/dsh-client-locale",
++        "@deepseek-ai/dsh-client-ui-renderer",
++        "@deepseek-ai/dsh-client-ui-session",
++        "@deepseek-ai/dsh-client-ui-settings"
+       ]
+     }
+   },
+diff --git a/src/client/SettingsSection.tsx b/src/client/SettingsSection.tsx
+--- a/src/client/SettingsSection.tsx
++++ b/src/client/SettingsSection.tsx
+@@ -9,7 +9,7 @@
+  */
+ import { useEffect, useState } from 'react'
+ import type { PropsLocale, PropsRuntime, InjectFace } from '@deepseek-ai/dsh-client-ui-slots'
+-import type { SnapshotStore } from '@deepseek-ai/dsh-client-runtime/client'
++import type { SnapshotStore } from '@deepseek-ai/dsh-client-store'
+ import type { NotificationRule, NotificationSettings } from '../contract.ts'
+ import type { NotificationKey } from './locales.ts'
+ import { notificationsApi, type NotificationCreationResult } from './notifier.ts'
+diff --git a/src/client/store.ts b/src/client/store.ts
+--- a/src/client/store.ts
++++ b/src/client/store.ts
+@@ -3,7 +3,7 @@
+  * persistence) shared between the settings section and the completion runner.
+  * The host knows nothing of these preferences — the client owns them.
+  */
+-import { createSnapshotStore, type SnapshotStore } from '@deepseek-ai/dsh-client-runtime/client'
++import { createSnapshotStore, type SnapshotStore } from '@deepseek-ai/dsh-client-store'
+ import type { NotificationSettings } from '../contract.ts'
+ 
+ /** The out-of-the-box preferences. */
+diff --git a/src/client/index.ts b/src/client/index.ts
+--- a/src/client/index.ts
++++ b/src/client/index.ts
+@@ -10,7 +10,12 @@
+-import type { ClientContext, SessionListState, SnapshotStore } from '@deepseek-ai/dsh-client-runtime/client'
+ // Type-only: the ctx.locale Context merge.
+ import type {} from '@deepseek-ai/dsh-client-locale/client'
+ // Type-only: the settings.section SlotMap entry.
+ import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
++import type { Context as ClientContext } from '@deepseek-ai/cordis'
++import type { SessionListState } from '@deepseek-ai/dsh-api-session-controller/client'
++import type { SnapshotStore } from '@deepseek-ai/dsh-client-store'
++// Type-only: the ctx.slots and uiSession Context merges.
++import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
++import type {} from '@deepseek-ai/dsh-client-ui-session/client'
+ import type { NotificationSettings, PendingKind } from '../contract.ts'
+ import { NotificationSettingsSection, type NotificationSectionInjected } from './SettingsSection.tsx'
+@@ -32,1 +37,1 @@
+-export const inject = ['sessions', 'slots', 'locale']
++export const inject = ['sessions', 'uiSession', 'slots', 'locale']
+@@ -130,60 +135,73 @@
+ 
+-  // Pending-interaction runner: seed from the current snapshot before
+-  // subscribing so a newly observed question is not mistaken for startup
+-  // history. Re-seed on reconnect for the same reason: a wait that existed
+-  // while disconnected must not generate a stale notification.
++  // Pending-interaction runner: the UI session service owns the live map;
++  // session-list updates only refresh the metadata used by the notification.
++  const pending = ctx.uiSession.pendingInteractions
++  const pendingKind = (kind: string | undefined): PendingKind | undefined =>
++    kind === 'approval' || kind === 'question' || kind === 'plan-review' ? kind : undefined
+   ctx.effect(() => {
+-    const observed = new Map<SessionId, { kind: PendingKind | undefined }>()
++    const observed = new Map<SessionId, { kind: PendingKind | undefined }>()
+     const sequences = new Map<SessionId, number>()
+-    const seed = (state: SessionListState): void => {
++    const seed = (
++      state: SessionListState,
++      interactions: ReadonlyMap<SessionId, { readonly kind: string }>,
++    ): void => {
+       const live = new Set(state.ids)
+-      for (const id of state.ids) observed.set(id, { kind: state.byId[id].pendingInteraction })
++      for (const id of state.ids) observed.set(id, { kind: pendingKind(interactions.get(id)?.kind) })
+       for (const id of [...observed.keys()]) {
+         if (!live.has(id)) {
+-          observed.delete(id)
+-          sequences.delete(id)
++          observed.delete(id)
++          sequences.delete(id)
+         }
+       }
+     }
+-    seed(sessions.list.getSnapshot())
++    const process = (): void => {
++      const state = sessions.list.getSnapshot()
++      const interactions = pending.getSnapshot()
++      const current = settings.getSnapshot()
++      const live = new Set(state.ids)
++      for (const id of state.ids) {
++        const summary = state.byId[id]
++        const kind = pendingKind(interactions.get(id)?.kind)
++        const previous = observed.get(id)
++        const next = pendingAdvance(previous, kind)
++        observed.set(id, { kind: next.kind })
++        if (!next.fresh || next.kind === undefined) continue
++        const sequence = (sequences.get(id) ?? 0) + 1
++        sequences.set(id, sequence)
++        const plan = pendingNotificationFor(
++          summary.id,
++          summary.origin,
++          summary.displayTitle,
++          next.kind,
++          sequence,
++          current,
++        )
++        if (plan === null) continue
++        const permission = notificationsApi()?.permission ?? 'denied'
++        const showIt = shouldShow(permission, current.backgroundOnly, document.hidden, id, state.current)
++        if (showIt) {
++          show(
++            t(pendingTitleKey(plan.kind)),
++            bodyText(plan.body, t('notify.pendingBody')),
++            plan.tag,
++            current.requireInteraction,
++          )
++        }
++      }
++      for (const id of [...observed.keys()]) {
++        if (!live.has(id)) {
++          observed.delete(id)
++          sequences.delete(id)
++        }
++      }
++    }
++    seed(sessions.list.getSnapshot(), pending.getSnapshot())
+     const reseed = (): void => {
+       observed.clear()
+-      seed(sessions.list.getSnapshot())
++      seed(sessions.list.getSnapshot(), pending.getSnapshot())
+     }
+     const stopReset = ctx.on('connection/reset', reseed)
+-    const off = sessions.list.subscribe(() => {
+-      const state = sessions.list.getSnapshot()
+-      const current = settings.getSnapshot()
+-      for (const id of state.ids) {
+-        const summary = state.byId[id]
+-        const kind: PendingKind | undefined = summary.pendingInteraction
+-        const previous = observed.get(id)
+-        const next = pendingAdvance(previous, kind)
+-        observed.set(id, { kind: next.kind })
+-        if (!next.fresh || next.kind === undefined) continue
+-        const sequence = (sequences.get(id) ?? 0) + 1
+-        sequences.set(id, sequence)
+-        const plan = pendingNotificationFor(
+-          summary.id,
+-          summary.origin,
+-          summary.displayTitle,
+-          next.kind,
+-          sequence,
+-          current,
+-        )
+-        if (plan === null) continue
+-        const permission = notificationsApi()?.permission ?? 'denied'
+-        const showIt = shouldShow(permission, current.backgroundOnly, document.hidden, id, state.current)
+-        if (showIt) {
+-          show(
+-            t(pendingTitleKey(plan.kind)),
+-            bodyText(plan.body, t('notify.pendingBody')),
+-            plan.tag,
+-            current.requireInteraction,
+-          )
+-        }
+-      }
+-      seed(state)
+-    })
+-    return () => { off(); stopReset() }
++    const offPending = pending.subscribe(process)
++    const offSessions = sessions.list.subscribe(process)
++    return () => { offPending(); offSessions(); stopReset() }
+   }, 'dsh-notification: pending runner')
