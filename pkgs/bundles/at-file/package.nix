@@ -33,6 +33,8 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
 
+  patches = [ ./alpha-compat.patch ];
+
   preBuild = ''
     mkdir -p node_modules/@deepseek-ai
     # Keep declaration-merge providers local so TypeScript resolves them against ui-slots.
@@ -57,11 +59,20 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     rm -rf node_modules/@deepseek-ai/dsh-client-ui-slots
     cp -r "$uiSlots" node_modules/@deepseek-ai/dsh-client-ui-slots
     chmod -R u+w node_modules/@deepseek-ai/dsh-client-ui-slots
+
+    clientStore="${dsh-workspace.cohort}/deepseek-ai-dsh-client-store-${dsh-workspace.version}.tgz"
+    rm -rf node_modules/@deepseek-ai/dsh-client-store
+    mkdir -p node_modules/@deepseek-ai/dsh-client-store
+    tar -xzf "$clientStore" \
+      -C node_modules/@deepseek-ai/dsh-client-store \
+      --strip-components=1
+    chmod -R u+w node_modules/@deepseek-ai/dsh-client-store
   '';
 
   postBuild = ''
     rm -rf \
       node_modules/@deepseek-ai/dsh-client-ui-slots \
+      node_modules/@deepseek-ai/dsh-client-store \
       node_modules/@deepseek-ai/dsh-client-locale \
       node_modules/@deepseek-ai/dsh-client-runtime \
       node_modules/@deepseek-ai/dsh-client-ui-conversation \
