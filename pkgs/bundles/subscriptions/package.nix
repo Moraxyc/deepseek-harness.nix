@@ -62,6 +62,7 @@ buildDshBundle (finalAttrs: {
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
+  patches = [ ./alpha-compat.patch ];
   nativeBuildInputs = [
     jq
     pnpm_11
@@ -78,6 +79,25 @@ buildDshBundle (finalAttrs: {
       cp -r "${dsh-workspace}/lib/dsh-workspace/client-packages/@deepseek-ai/$clientPackage" \
         "node_modules/@deepseek-ai/$clientPackage"
       chmod -R u+w "node_modules/@deepseek-ai/$clientPackage"
+    done
+    for clientPackage in \
+      dsh-api-remotes \
+      dsh-api-session-controller \
+      dsh-client-connection \
+      dsh-client-locale \
+      dsh-client-store \
+      dsh-client-ui-conversation \
+      dsh-client-ui-input-trigger \
+      dsh-client-ui-primitives \
+      dsh-client-ui-renderer \
+      dsh-client-ui-session \
+      dsh-client-ui-settings; do
+      archive="${dsh-workspace.cohort}/deepseek-ai-$clientPackage-${dsh-workspace.version}.tgz"
+      packageDir="node_modules/@deepseek-ai/$clientPackage"
+      rm -rf "$packageDir"
+      mkdir -p "$packageDir"
+      tar -xzf "$archive" -C "$packageDir" --strip-components=1
+      chmod -R u+w "$packageDir"
     done
   '';
 
