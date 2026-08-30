@@ -21,6 +21,7 @@
   dsh,
   dshBundleCheckHook,
   dsh-kernel,
+  writableTmpDirAsHomeHook,
 
   bundles,
 
@@ -196,6 +197,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   nativeInstallCheckInputs = [
     dshBundleCheckHook
     util-linux
+    writableTmpDirAsHomeHook
   ];
   dshBundleCheckProfiles = lib.concatStringsSep " " managedProfileNames;
   dshBundleCheckWebProfiles = lib.concatStringsSep " " (
