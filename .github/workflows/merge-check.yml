@@ -3,14 +3,16 @@ name: Merge Check
 on:
   workflow_run:
     workflows: [Package CI, Docs]
-    types: [completed]
+    types: [requested, in_progress, completed]
 
 permissions:
+  actions: read
+  contents: read
   statuses: write
 
 concurrency:
   group: merge-check-${{ github.event.workflow_run.head_sha }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   update:
@@ -18,40 +20,16 @@ jobs:
     name: update
     runs-on: ubuntu-latest
     steps:
+      # workflow_run has write access; never load code from the pull request.
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
       - name: Publish workflow result
         uses: actions/github-script@v9
         with:
           script: |
-            const run = context.payload.workflow_run;
-            const statuses = await github.paginate(
-              github.rest.repos.listCommitStatusesForRef,
-              {
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: run.head_sha,
-                per_page: 100,
-              },
-            );
-            const mergeStatus = statuses.find(
-              (status) => status.context === 'Merge Check',
-            );
-
-            if (mergeStatus?.state === 'success') {
-              core.info('Merge Check already passed');
-              return;
-            }
-
-            const state = run.conclusion === 'success' ? 'success' : 'failure';
-            const description = state === 'success'
-              ? `${run.name} succeeded`
-              : `${run.name} concluded with ${run.conclusion}`;
-
-            await github.rest.repos.createCommitStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: run.head_sha,
-              state,
-              context: 'Merge Check',
-              description,
-              target_url: run.html_url,
-            });
+            const updateMergeCheck = require('./.github/scripts/merge-check.js');
+            await updateMergeCheck({ github, context });

@@ -12,6 +12,9 @@ on:
       - "flake.nix"
       - "default.nix"
       - "modules/flake-parts/**"
+      - ".github/scripts/merge-check.js"
+      - ".github/scripts/merge-check.test.js"
+      - ".github/workflows/merge-check.yml"
       - ".github/workflows/package-ci.yml"
       - "scripts/select-package-ci-attrs.sh"
   pull_request:
@@ -23,6 +26,9 @@ on:
       - "flake.nix"
       - "default.nix"
       - "modules/flake-parts/**"
+      - ".github/scripts/merge-check.js"
+      - ".github/scripts/merge-check.test.js"
+      - ".github/workflows/merge-check.yml"
       - ".github/workflows/package-ci.yml"
       - "scripts/select-package-ci-attrs.sh"
   workflow_dispatch:
@@ -56,6 +62,9 @@ jobs:
           name: ${{ vars.CACHIX_CACHE_NAME || 'deepseek-harness-nix' }}
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
           skipPush: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+
+      - name: Check merge status aggregation
+        run: nix build --no-link .#checks.x86_64-linux.merge-check
 
       - name: Build package set
         env:
