@@ -2,6 +2,7 @@
   lib,
   makeSetupHook,
   coreutils,
+  curl,
   util-linux,
 }:
 
@@ -9,6 +10,7 @@ makeSetupHook {
   name = "dsh-bundle-check-hook";
   propagatedNativeBuildInputs = [
     coreutils
+    curl
     util-linux
   ];
   meta = {

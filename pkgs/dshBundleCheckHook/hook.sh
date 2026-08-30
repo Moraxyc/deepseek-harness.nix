@@ -87,15 +87,58 @@ dshBundleCheckHook() {
     return 1
   }
 
+  check_web_profile() {
+    local profile=$1
+    local logFile="$dshBundleCheckHome/$profile.web.log"
+    local line webPid webUrl=''
+    local ready='' status=0
+
+    : >"$logFile"
+    DSH_HOME="$dshBundleCheckHome" DSH_TELEMETRY_DISABLED=1 \
+      timeout --signal=TERM --kill-after=2s "$dshBundleCheckTimeout" \
+      "$cmdProgram" --profile "$profile" "${webCheckArgs[@]}" \
+      >"$logFile" 2>&1 &
+    webPid=$!
+
+    while kill -0 "$webPid" 2>/dev/null; do
+      while IFS= read -r line; do
+        case "$line" in
+          *"dsh web: "*) read -r webUrl _ <<<"${line#*dsh web: }" ;;
+        esac
+      done <"$logFile"
+
+      if [[ -n "$webUrl" ]] \
+        && curl --fail --silent --output /dev/null \
+          --noproxy '*' --proto '=http,https' \
+          --connect-timeout 1 --max-time 1 "$webUrl"; then
+        ready=1
+        break
+      fi
+      sleep 0.1
+    done
+
+    if [[ -n "$ready" ]]; then
+      kill "$webPid" 2>/dev/null || true
+      wait "$webPid" 2>/dev/null || true
+      cat "$logFile"
+      return 0
+    fi
+
+    wait "$webPid" || status=$?
+    cat "$logFile" >&2
+    if [[ "$status" -eq 124 ]]; then
+      echo "dshBundleCheckHook: web endpoint for $profile was not ready within $dshBundleCheckTimeout seconds" >&2
+    else
+      echo "dshBundleCheckHook: $profile exited before its web endpoint was ready (status $status)" >&2
+    fi
+    return 1
+  }
+
   local profile
   for profile in "${profiles[@]}"; do
     echo "dshBundleCheckHook: checking dsh profile $profile"
     if is_web_profile "$profile"; then
-      local status=0
-      DSH_HOME="$dshBundleCheckHome" DSH_TELEMETRY_DISABLED=1 \
-        timeout "$dshBundleCheckTimeout" \
-        "$cmdProgram" --profile "$profile" "${webCheckArgs[@]}" || status=$?
-      if [[ "$status" -ne 124 ]]; then
+      if ! check_web_profile "$profile"; then
         echo "dshBundleCheckHook: dsh profile $profile failed" >&2
         return 1
       fi
