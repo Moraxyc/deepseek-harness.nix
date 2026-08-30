@@ -1,50 +1,45 @@
 import { defineConfig } from "astro/config";
-import starlight from "@astrojs/starlight";
+import react from "@astrojs/react";
+import tailwindcss from "@tailwindcss/vite";
+import mdx from "@astrojs/mdx";
+import sitemap from "@astrojs/sitemap";
+import { unified } from "@astrojs/markdown-remark";
+import {
+  rehypeCode,
+  remarkCodeTab,
+  remarkHeading,
+  remarkNpm,
+  remarkStructure,
+} from "fumadocs-core/mdx-plugins";
+
+const remarkPlugins = [
+  remarkHeading,
+  remarkCodeTab,
+  remarkNpm,
+  [remarkStructure, { exportAs: "structuredData" }],
+];
+const rehypePlugins = [rehypeCode];
 
 export default defineConfig({
   site: "https://moraxyc.github.io",
   base: "/deepseek-harness.nix",
-  trailingSlash: "always",
-  integrations: [
-    starlight({
-      title: "DSH Nix",
-      defaultLocale: "root",
-      locales: {
-        root: { label: "English", lang: "en" },
-        zh: { label: "简体中文", lang: "zh-CN" },
-      },
-      customCss: ["./src/styles/custom.css"],
-      sidebar: [
-        {
-          label: "Documentation",
-          translations: { "zh-CN": "文档" },
-          items: [
-            { label: "Home", slug: "index", translations: { "zh-CN": "首页" } },
-            {
-              label: "Getting Started",
-              slug: "getting-started",
-              translations: { "zh-CN": "快速开始" },
-            },
-            {
-              label: "Bundles and Presets",
-              slug: "catalog",
-              translations: { "zh-CN": "Bundles 和预设" },
-            },
-            { label: "NixOS", slug: "nixos" },
-            { label: "Home Manager", slug: "home-manager" },
-            {
-              label: "Advanced Usage",
-              slug: "advanced-usage",
-              translations: { "zh-CN": "高级用法" },
-            },
-            {
-              label: "Development",
-              slug: "development",
-              translations: { "zh-CN": "开发说明" },
-            },
-          ],
-        },
-      ],
+  trailingSlash: "ignore",
+  markdown: {
+    processor: unified({
+      syntaxHighlight: false,
+      remarkPlugins,
+      rehypePlugins,
     }),
+  },
+  integrations: [
+    react(),
+    mdx({
+      extendMarkdownConfig: true,
+      syntaxHighlight: false,
+    }),
+    sitemap(),
   ],
+  vite: {
+    plugins: [tailwindcss()],
+  },
 });

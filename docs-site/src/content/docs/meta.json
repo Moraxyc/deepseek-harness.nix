@@ -1,0 +1,12 @@
+{
+  "title": "Documentation",
+  "pages": [
+    "index",
+    "getting-started",
+    "catalog",
+    "nixos",
+    "home-manager",
+    "advanced-usage",
+    "development"
+  ]
+}

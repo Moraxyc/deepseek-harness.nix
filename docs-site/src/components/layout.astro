@@ -1,0 +1,54 @@
+---
+import { ClientRouter } from "astro:transitions";
+
+interface Props {
+  lang?: string;
+}
+
+const { lang = "en" } = Astro.props;
+---
+
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <ClientRouter fallback="swap" />
+  </head>
+  <body class="flex min-h-screen flex-col">
+    <slot />
+  </body>
+  <script>
+    const copyCode = async (button: HTMLButtonElement) => {
+      const pre = button.closest("figure")?.querySelector("pre");
+      if (!pre) return;
+
+      const clone = pre.cloneNode(true) as HTMLElement;
+      clone.querySelectorAll(".nd-copy-ignore").forEach((node) => node.replaceWith("\n"));
+
+      try {
+        await navigator.clipboard.writeText(clone.textContent ?? "");
+      } catch {
+        return;
+      }
+
+      button.dataset.checked = "true";
+      button.setAttribute("aria-label", "Copied Text");
+      window.setTimeout(() => {
+        delete button.dataset.checked;
+        button.setAttribute("aria-label", "Copy Text");
+      }, 1500);
+    };
+
+    document.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+
+      const button = target.closest<HTMLButtonElement>(
+        'figure.shiki button[aria-label="Copy Text"]',
+      );
+      if (!button) return;
+
+      event.preventDefault();
+      void copyCode(button);
+    });
+  </script>
+</html>

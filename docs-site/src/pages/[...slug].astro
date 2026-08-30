@@ -1,0 +1,77 @@
+---
+import { render, type CollectionEntry } from "astro:content";
+import type { TOCItemType } from "fumadocs-core/toc";
+import defaultMdxComponents from "fumadocs-ui/mdx";
+import { Docs } from "@/components/docs";
+import Layout from "@/components/layout.astro";
+import { i18n, source, type Locale } from "@/lib/source";
+import "@/styles/global.css";
+
+interface Props {
+  page: CollectionEntry<"docs">;
+  locale: Locale;
+  slugs: string[];
+}
+
+export function getStaticPaths() {
+  return source.getPages().map((page) => {
+    const locale = (page.locale ?? i18n.defaultLanguage) as Locale;
+    const routeSlugs = locale === i18n.defaultLanguage ? page.slugs : [locale, ...page.slugs];
+
+    return {
+      params: { slug: routeSlugs.length > 0 ? routeSlugs.join("/") : undefined },
+      props: { page: page.data._raw, locale, slugs: page.slugs },
+    };
+  });
+}
+
+const { page, locale, slugs } = Astro.props;
+const { Content, headings } = await render(page);
+const docsPage = source.getPage(slugs, locale);
+
+if (!docsPage) throw new Error(`Unable to resolve documentation page: ${locale}/${slugs.join("/")}`);
+
+const toc: TOCItemType[] = headings.map((heading) => ({
+  depth: heading.depth,
+  title: heading.text,
+  url: `#${heading.slug}`,
+}));
+
+const localeUrls = Object.fromEntries(
+  i18n.languages.map((targetLocale) => [
+    targetLocale,
+    source.getPage(slugs, targetLocale)?.url,
+  ]),
+) as Partial<Record<Locale, string>>;
+
+const homeUrls = Object.fromEntries(
+  i18n.languages.map((targetLocale) => [targetLocale, source.getPage([], targetLocale)?.url]),
+) as Partial<Record<Locale, string>>;
+---
+
+<Layout lang={locale === "zh" ? "zh-CN" : "en"}>
+  <title>{page.data.title}</title>
+  <meta name="title" content={page.data.title} />
+  {page.data.description && <meta name="description" content={page.data.description} />}
+  <Docs
+    tree={source.getPageTree(locale)}
+    pathname={Astro.url.pathname}
+    params={Astro.params}
+    locale={locale}
+    localeUrls={localeUrls}
+    homeUrls={homeUrls}
+    page={{
+      toc,
+      tableOfContent: { enabled: page.data.tableOfContents !== false },
+    }}
+    client:load
+  >
+    <h1 class="text-[1.75em] font-semibold">{page.data.title}</h1>
+    {page.data.description && (
+      <p class="mb-8 text-lg text-fd-muted-foreground">{page.data.description}</p>
+    )}
+    <div class="prose flex-1">
+      <Content components={{ ...defaultMdxComponents }} />
+    </div>
+  </Docs>
+</Layout>
