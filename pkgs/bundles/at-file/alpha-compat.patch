@@ -2,7 +2,7 @@ diff --git a/package.json b/package.json
 index a49b9ff..7deab0a 100644
 --- a/package.json
 +++ b/package.json
-@@ -27,9 +27,10 @@
+@@ -27,9 +27,11 @@
      "client": {
        "platform": "web",
        "inject": [
@@ -12,6 +12,7 @@ index a49b9ff..7deab0a 100644
          "@deepseek-ai/dsh-client-ui-input-trigger",
 -        "@deepseek-ai/dsh-client-ui-slots",
 +        "@deepseek-ai/dsh-client-ui-session",
++        "@deepseek-ai/dsh-client-ui-workspace",
          "@deepseek-ai/dsh-client-locale"
        ]
      }
@@ -45,10 +46,11 @@ diff --git a/src/client/SettingsSection.tsx b/src/client/SettingsSection.tsx
 index 9892af1..5de3f0e 100644
 --- a/src/client/SettingsSection.tsx
 +++ b/src/client/SettingsSection.tsx
-@@ -1,4 +1,6 @@
+@@ -1,4 +1,7 @@
  /** Settings section for global and workspace-specific file filter rules. */
 +import type { UseSessions } from '@deepseek-ai/dsh-client-ui-session/client'
 +import type { SessionListState } from '@deepseek-ai/dsh-api-session-controller/client'
++import type {} from '@deepseek-ai/dsh-client-ui-workspace/client'
  import type { PropsLocale, PropsRuntime, InjectFace } from '@deepseek-ai/dsh-client-ui-slots'
  import { useEffect, useMemo, useState, type ReactElement } from 'react'
  import type { AtFileSettings, FileIgnoreRule, FileIgnoreRuleInput } from '../contract.ts'
@@ -224,3 +226,18 @@ index 3b4324b..b781aa7 100644
        ...(directory === '' ? {} : { description: directory }),
      }
    })
+
+diff --git a/src/settings.ts b/src/settings.ts
+--- a/src/settings.ts
++++ b/src/settings.ts
+@@ -6,6 +6,6 @@
+ import type { Context } from '@deepseek-ai/cordis'
+ import z from '@deepseek-ai/schemastery'
+-import { settingsNamespace, type SettingsScope } from '@deepseek-ai/dsh-settings'
++import type { SettingsNamespace, SettingsScope } from '@deepseek-ai/dsh-settings'
+ import type { AtFileSettings } from './contract.ts'
+ import type { FileIgnoreRule } from './contract.ts'
+ import { DEFAULT_IGNORE_FILES } from './defaults.ts'
+@@ -14,1 +14,1 @@
+-export const AT_FILE_NAMESPACE = settingsNamespace('at-file')
++export const AT_FILE_NAMESPACE = 'at-file' as SettingsNamespace
