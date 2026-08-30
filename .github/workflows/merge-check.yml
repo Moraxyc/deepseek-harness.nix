@@ -3,7 +3,8 @@ name: Merge Check
 on:
   workflow_run:
     workflows: [Package CI, Docs]
-    types: [requested, in_progress, completed]
+    types: [completed]
+    branches-ignore: [main]
 
 permissions:
   actions: read
