@@ -270,7 +270,7 @@
               "journalctl -u dsh-web --no-pager | grep -q 'dsh web: http://127.0.0.1:3080'"
             )
             machine.wait_until_succeeds(
-              "curl --fail --silent http://127.0.0.1:3080/ | grep -q '<title>DeepSeek Harness</title>'"
+              "url=$(journalctl -u dsh-web --no-pager | awk '/dsh web: http/ { url = $NF } END { print url }'); test -n \"$url\"; curl --fail --silent --show-error --noproxy '*' --max-time 5 --location --cookie-jar /tmp/dsh-web-test-cookies --cookie /tmp/dsh-web-test-cookies \"$url\" | grep -q '<title>DeepSeek Harness</title>'"
             )
             machine.succeed(
               "! systemd-cgls --unit dsh-web.service --no-pager | grep -Eiq 'codex|claude'"

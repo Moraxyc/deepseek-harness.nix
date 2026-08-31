@@ -31,6 +31,7 @@ let
   execArgs = [
     "--profile"
     cfg.profile
+    "--no-open"
     "--host"
     cfg.listenAddress
     "--port"
