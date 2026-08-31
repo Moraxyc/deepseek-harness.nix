@@ -10,20 +10,20 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-agent-teams";
-  version = "0.1.14";
+  version = "0.1.15";
 
   src = fetchFromGitHub {
     owner = "NanmiCoder";
     repo = "dsh-agent-teams";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-FJaoXEdL24ur+HmF2VwuN5qPofeeMjBouoc50N3ZDEs=";
+    hash = "sha256-qBrY6c7I4FAEI58I4jRifC4jzKFerQzikZ9AuajjRKo=";
   };
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-OL3B3dQjI8evLhUukJcTi4IRY402+kBmZg6RktHi5kY=";
+    hash = "sha256-8GgXKcwa0PyB5guVHwq3CNIjllZY8JrlgNmtM2t5kjs=";
   };
 
   npmDeps = null;
