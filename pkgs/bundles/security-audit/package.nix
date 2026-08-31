@@ -10,13 +10,13 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-security-audit";
-  version = "0-unstable-2026-08-28";
+  version = "0-unstable-2026-08-30";
 
   src = fetchFromGitHub {
     owner = "omdsh-dev";
     repo = "dsh-security-audit";
-    rev = "b4aced970599c594b0d7864340b92adc1207651b";
-    hash = "sha256-+IU3DllxUj+rH5AZ3B3cj6CdqC0/BnFcZy2mU2JvW4U=";
+    rev = "8a1b4e9aab8570b5ee8613c30f73db9e51896eb7";
+    hash = "sha256-SbmIb433V2eMSJVYbRSruzw04YZ1R0JWY31/ep4Qy64=";
   };
 
   # Upstream commits the generated lib. The lockfile only contains build-time
@@ -24,7 +24,7 @@ buildDshBundle (finalAttrs: {
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
-    hash = "sha256-gfiuacFdcTOOBTPlEIkUML5chvYqrMNw5jSrrWlrjls=";
+    hash = "sha256-XHD/0V0kgUqm728e7R/Dp7X4udcFCyAK/r5tjGJArmU=";
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
