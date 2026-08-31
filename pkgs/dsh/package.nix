@@ -1,6 +1,7 @@
 {
   lib,
   coreutils,
+  curl,
   diffutils,
   gnugrep,
   jq,
@@ -196,6 +197,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   doInstallCheck = true;
   nativeInstallCheckInputs = [
     dshBundleCheckHook
+    curl
     util-linux
     writableTmpDirAsHomeHook
   ];

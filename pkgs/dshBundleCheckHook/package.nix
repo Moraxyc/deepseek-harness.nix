@@ -10,7 +10,7 @@ makeSetupHook {
   name = "dsh-bundle-check-hook";
   propagatedNativeBuildInputs = [
     coreutils
-    curl
+    (lib.getBin curl)
     util-linux
   ];
   meta = {
