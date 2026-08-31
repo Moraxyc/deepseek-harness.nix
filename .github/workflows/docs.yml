@@ -35,20 +35,24 @@ jobs:
     name: Build documentation site
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-
       - name: Install Nix
         uses: cachix/install-nix-action@v31
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
-          extra_nix_config: accept-flake-config = true
+          extra_nix_config: |
+            accept-flake-config = true
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
       - name: Build site with Nix
         run: |
           set -euo pipefail
-          nix build .#docs-site --print-build-logs --out-link "$RUNNER_TEMP/docs-site-result"
-          cp -R "$(readlink -f "$RUNNER_TEMP/docs-site-result")"/. "$RUNNER_TEMP/docs-site"
+          site_path="$(
+            nix build "github:${GITHUB_REPOSITORY}?rev=${GITHUB_SHA}#docs-site" \
+              --no-link \
+              --print-build-logs \
+              --print-out-paths
+          )"
+          cp -R "$site_path"/. "$RUNNER_TEMP/docs-site"
 
       - name: Upload Pages artifact
         if: github.event_name != 'pull_request'
