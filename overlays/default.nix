@@ -1,8 +1,8 @@
 final: prev:
 let
   # Keep pnpm from downloading a package manager version declared by an
-  # upstream project. This applies to the independent dependency fetch while
-  # retaining fetchPnpmDeps.override for its package dependencies.
+  # upstream project. Upstream release lockfiles are the source of truth, so
+  # their pinned dependencies must not be blocked by pnpm's release-age default.
   wrapFetchPnpmDeps =
     base:
     let
@@ -13,6 +13,7 @@ let
           // {
             prePnpmInstall = (args.prePnpmInstall or "") + ''
               export pnpm_config_manage_package_manager_versions=false
+              export pnpm_config_minimum_release_age=0
             '';
           }
         )
