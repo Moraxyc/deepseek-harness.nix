@@ -179,7 +179,7 @@
         dsh-service = pkgs.testers.runNixOSTest {
           name = "dsh-service";
 
-          nodes.machine =
+          containers.machine =
             { pkgs, ... }:
             {
               imports = [
