@@ -10,13 +10,13 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-tui";
-  version = "0.9.3";
+  version = "0.10.0-beta.3";
 
   src = fetchFromGitHub {
     owner = "ccch1mneyyy";
     repo = "dsh-TUI";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-Fu4ujIj8JXS/npYNUUnruFUvI7HPyUGTKzP6qQdH/aQ=";
+    hash = "sha256-6PndAYMTnsG/5EIjOSGa9VikZwFIddkOHPmQ+TuQFwg=";
   };
 
   postPatch = ''
@@ -46,7 +46,7 @@ buildDshBundle (finalAttrs: {
         --frozen-lockfile \
         --registry="$NIX_NPM_REGISTRY"
     '';
-    hash = "sha256-KhiQi6uIG+ftXX9VNR3763xGXFrsxaGXG41ua/ArBF8=";
+    hash = "sha256-Q33gyQ9KF1RJlnlvhLMn+FyMnKTnrNJi8mRzJJU2s/E=";
   };
 
   nativeBuildInputs = [ pnpm_11 ];
@@ -68,7 +68,7 @@ buildDshBundle (finalAttrs: {
     appDir="$out/lib/node_modules/@deepseek-harness-tui/dsh-tui"
     mkdir -p "$appDir"
 
-    cp -r package.json cordis.patch.yml cordis.yml dsh-ecosystem-spec skills lib "$appDir/"
+    cp -r package.json cordis.patch.yml cordis.yml dsh-ecosystem-spec presets lib "$appDir/"
     # Bundle-private deps such as auto-bind and dsh-working-activity are not in
     # the kernel; linkKernelNodeModules merges the kernel peers into this tree.
     cp -r node_modules "$appDir/node_modules"
