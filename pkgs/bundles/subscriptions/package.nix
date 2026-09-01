@@ -62,7 +62,6 @@ buildDshBundle (finalAttrs: {
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
-  patches = [ ./alpha-compat.patch ];
   nativeBuildInputs = [
     jq
     pnpm_11
