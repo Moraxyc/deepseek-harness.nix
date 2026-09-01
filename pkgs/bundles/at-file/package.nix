@@ -33,8 +33,6 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
 
-  patches = [ ./alpha-compat.patch ];
-
   preBuild = ''
     # Build against the alpha.2 client cohort; the kernel carries host/runtime packages only.
     rm -rf node_modules/@deepseek-ai
