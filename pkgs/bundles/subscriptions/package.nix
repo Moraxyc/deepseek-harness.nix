@@ -12,13 +12,13 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-plugin-subscriptions";
-  version = "0.5.3";
+  version = "0.6.0";
 
   src = fetchFromGitHub {
     owner = "V1ki";
     repo = "dsh-plugin-subscriptions";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-G1jUtSKzdT60tangtE0kkJtMIvD/Vos9524CEK91YYk=";
+    hash = "sha256-Ai0qbUVVIy5segIZFZW7vOA08ZfIOQLBDrT8skqqQm8=";
   };
 
   # The release lockfile contains absolute links to the author's DSH checkout.
@@ -56,13 +56,12 @@ buildDshBundle (finalAttrs: {
     fetcherVersion = 4;
     postPatch = finalAttrs.postPatch;
     nativeBuildInputs = [ jq ];
-    hash = "sha256-W1vNLvmziiOJw+HnaLPWv06pLtX2+PMOs7XbRa90LNc=";
+    hash = "sha256-QpJjPFxfKz36gvW/JAdRHV+lPGICLS8C6F7N1j7nxeQ=";
   };
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
-  patches = [ ./alpha-compat.patch ];
   nativeBuildInputs = [
     jq
     pnpm_11
