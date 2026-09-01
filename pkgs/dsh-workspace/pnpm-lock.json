@@ -452,10 +452,6 @@
           "specifier": "workspace:^",
           "version": "link:../../packages/core/agent"
         },
-        "@deepseek-ai/dsh-agent-spine-demo": {
-          "specifier": "workspace:^",
-          "version": "link:../../packages/examples/agent-spine-demo"
-        },
         "@deepseek-ai/dsh-attachment-local": {
           "specifier": "workspace:^",
           "version": "link:../../packages/attachment/attachment-local"
@@ -563,6 +559,10 @@
         "@deepseek-ai/dsh-settings-file": {
           "specifier": "workspace:^",
           "version": "link:../../packages/settings/settings-file"
+        },
+        "@deepseek-ai/dsh-shell-env": {
+          "specifier": "workspace:^",
+          "version": "link:../../packages/shell/shell-env"
         },
         "@deepseek-ai/dsh-subagent": {
           "specifier": "workspace:^",
@@ -1858,9 +1858,17 @@
     },
     "packages/bundle/sdk-minimal": {
       "dependencies": {
-        "@deepseek-ai/dsh-agent-spine-demo": {
+        "@deepseek-ai/cordis-plugin-timer": {
           "specifier": "workspace:^",
-          "version": "link:../../examples/agent-spine-demo"
+          "version": "link:../../../vendor/timer"
+        },
+        "@deepseek-ai/dsh-agent": {
+          "specifier": "workspace:^",
+          "version": "link:../../core/agent"
+        },
+        "@deepseek-ai/dsh-agent-loop": {
+          "specifier": "workspace:^",
+          "version": "link:../../core/agent-loop"
         },
         "@deepseek-ai/dsh-deepseek-llm-api-extensions": {
           "specifier": "workspace:^",
@@ -1870,9 +1878,25 @@
           "specifier": "workspace:^",
           "version": "link:../../fs/fs-local"
         },
+        "@deepseek-ai/dsh-invariants": {
+          "specifier": "workspace:^",
+          "version": "link:../../runtime-diagnostics/invariants"
+        },
+        "@deepseek-ai/dsh-jobs-local": {
+          "specifier": "workspace:^",
+          "version": "link:../../jobs/jobs-local"
+        },
+        "@deepseek-ai/dsh-llm": {
+          "specifier": "workspace:^",
+          "version": "link:../../llm/llm"
+        },
         "@deepseek-ai/dsh-llm-deepseek": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm-deepseek"
+        },
+        "@deepseek-ai/dsh-llm-retry": {
+          "specifier": "workspace:^",
+          "version": "link:../../llm/llm-retry"
         },
         "@deepseek-ai/dsh-plugin-package-inventory-deepseek": {
           "specifier": "workspace:^",
@@ -1886,6 +1910,10 @@
           "specifier": "workspace:^",
           "version": "link:../../sandbox/sandbox-policy"
         },
+        "@deepseek-ai/dsh-scope": {
+          "specifier": "workspace:^",
+          "version": "link:../../core/scope"
+        },
         "@deepseek-ai/dsh-sdk-app": {
           "specifier": "workspace:^",
           "version": "link:../sdk-app"
@@ -1893,6 +1921,10 @@
         "@deepseek-ai/dsh-sdk-jsonrpc-server": {
           "specifier": "workspace:^",
           "version": "link:../../sdk/server"
+        },
+        "@deepseek-ai/dsh-session": {
+          "specifier": "workspace:^",
+          "version": "link:../../core/session"
         },
         "@deepseek-ai/dsh-session-log-deepseek": {
           "specifier": "workspace:^",
@@ -1906,9 +1938,17 @@
           "specifier": "workspace:^",
           "version": "link:../../session/session-projection"
         },
+        "@deepseek-ai/dsh-session-title": {
+          "specifier": "workspace:^",
+          "version": "link:../../session/session-title"
+        },
         "@deepseek-ai/dsh-subprocess-local": {
           "specifier": "workspace:^",
           "version": "link:../../subprocess/subprocess-local"
+        },
+        "@deepseek-ai/dsh-system-prompt": {
+          "specifier": "workspace:^",
+          "version": "link:../../core/system-prompt"
         },
         "@deepseek-ai/dsh-terminal": {
           "specifier": "workspace:^",
@@ -1929,16 +1969,16 @@
         "@deepseek-ai/dsh-tool-str-replace-editor": {
           "specifier": "workspace:^",
           "version": "link:../../fs/tool-str-replace-editor"
+        },
+        "@deepseek-ai/dsh-tools": {
+          "specifier": "workspace:^",
+          "version": "link:../../core/tools"
         }
       },
       "devDependencies": {
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -2199,6 +2239,10 @@
         "@deepseek-ai/dsh-session-stats": {
           "specifier": "workspace:^",
           "version": "link:../../session/session-stats"
+        },
+        "@deepseek-ai/dsh-session-turn-outline": {
+          "specifier": "workspace:^",
+          "version": "link:../../session/session-turn-outline"
         },
         "@deepseek-ai/dsh-subprocess": {
           "specifier": "workspace:^",
@@ -2801,6 +2845,10 @@
         "@deepseek-ai/dsh-session-stats": {
           "specifier": "workspace:^",
           "version": "link:../../session/session-stats"
+        },
+        "@deepseek-ai/dsh-session-turn-outline": {
+          "specifier": "workspace:^",
+          "version": "link:../../session/session-turn-outline"
         },
         "@deepseek-ai/dsh-settings": {
           "specifier": "workspace:^",
@@ -4075,6 +4123,10 @@
         "@types/react": {
           "specifier": "~18.3.1",
           "version": "18.3.31"
+        },
+        "@types/react-dom": {
+          "specifier": "~18.3.0",
+          "version": "18.3.7(@types/react@18.3.31)"
         },
         "react": {
           "specifier": "^18.2.0",
@@ -5714,10 +5766,6 @@
           "specifier": "workspace:^",
           "version": "link:../../test-support/agent-loop-testkit"
         },
-        "@deepseek-ai/dsh-agent-spine-demo": {
-          "specifier": "workspace:^",
-          "version": "link:../../examples/agent-spine-demo"
-        },
         "@deepseek-ai/dsh-app-boot": {
           "specifier": "workspace:^",
           "version": "link:../../boot/app-boot"
@@ -6334,160 +6382,6 @@
         }
       }
     },
-    "packages/examples/agent-spine-demo": {
-      "dependencies": {
-        "@deepseek-ai/schemastery": {
-          "specifier": "link:../../../vendor/schemastery",
-          "version": "link:../../../vendor/schemastery"
-        }
-      },
-      "devDependencies": {
-        "@deepseek-ai/cordis": {
-          "specifier": "workspace:^",
-          "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/cordis-plugin-timer": {
-          "specifier": "workspace:^",
-          "version": "link:../../../vendor/timer"
-        },
-        "@deepseek-ai/dsh-agent": {
-          "specifier": "workspace:^",
-          "version": "link:../../core/agent"
-        },
-        "@deepseek-ai/dsh-agent-instructions": {
-          "specifier": "workspace:^",
-          "version": "link:../../context/agent-instructions"
-        },
-        "@deepseek-ai/dsh-agent-loop": {
-          "specifier": "workspace:^",
-          "version": "link:../../core/agent-loop"
-        },
-        "@deepseek-ai/dsh-bash-local": {
-          "specifier": "workspace:^",
-          "version": "link:../../shell/bash-local"
-        },
-        "@deepseek-ai/dsh-bash-sandbox": {
-          "specifier": "workspace:^",
-          "version": "link:../../shell/bash-sandbox"
-        },
-        "@deepseek-ai/dsh-fs-local": {
-          "specifier": "workspace:^",
-          "version": "link:../../fs/fs-local"
-        },
-        "@deepseek-ai/dsh-fs-observation-policy": {
-          "specifier": "workspace:^",
-          "version": "link:../../fs/fs-observation-policy"
-        },
-        "@deepseek-ai/dsh-fs-sandbox": {
-          "specifier": "workspace:^",
-          "version": "link:../../fs/fs-sandbox"
-        },
-        "@deepseek-ai/dsh-goal": {
-          "specifier": "workspace:^",
-          "version": "link:../../goal/goal"
-        },
-        "@deepseek-ai/dsh-goal-round-driver": {
-          "specifier": "workspace:^",
-          "version": "link:../../goal/goal-round-driver"
-        },
-        "@deepseek-ai/dsh-home-paths": {
-          "specifier": "workspace:^",
-          "version": "link:../../util/home-paths"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
-        "@deepseek-ai/dsh-jobs": {
-          "specifier": "workspace:^",
-          "version": "link:../../jobs/jobs"
-        },
-        "@deepseek-ai/dsh-jobs-local": {
-          "specifier": "workspace:^",
-          "version": "link:../../jobs/jobs-local"
-        },
-        "@deepseek-ai/dsh-llm": {
-          "specifier": "workspace:^",
-          "version": "link:../../llm/llm"
-        },
-        "@deepseek-ai/dsh-llm-retry": {
-          "specifier": "workspace:^",
-          "version": "link:../../llm/llm-retry"
-        },
-        "@deepseek-ai/dsh-sandbox-local": {
-          "specifier": "workspace:^",
-          "version": "link:../../sandbox/sandbox-local"
-        },
-        "@deepseek-ai/dsh-sandbox-policy": {
-          "specifier": "workspace:^",
-          "version": "link:../../sandbox/sandbox-policy"
-        },
-        "@deepseek-ai/dsh-scope": {
-          "specifier": "workspace:^",
-          "version": "link:../../core/scope"
-        },
-        "@deepseek-ai/dsh-session": {
-          "specifier": "workspace:^",
-          "version": "link:../../core/session"
-        },
-        "@deepseek-ai/dsh-session-projection": {
-          "specifier": "workspace:^",
-          "version": "link:../../session/session-projection"
-        },
-        "@deepseek-ai/dsh-session-title": {
-          "specifier": "workspace:^",
-          "version": "link:../../session/session-title"
-        },
-        "@deepseek-ai/dsh-shell-env": {
-          "specifier": "workspace:^",
-          "version": "link:../../shell/shell-env"
-        },
-        "@deepseek-ai/dsh-skill": {
-          "specifier": "workspace:^",
-          "version": "link:../../skill/skill"
-        },
-        "@deepseek-ai/dsh-skill-filesystem": {
-          "specifier": "workspace:^",
-          "version": "link:../../skill/skill-filesystem"
-        },
-        "@deepseek-ai/dsh-subprocess-local": {
-          "specifier": "workspace:^",
-          "version": "link:../../subprocess/subprocess-local"
-        },
-        "@deepseek-ai/dsh-system-prompt": {
-          "specifier": "workspace:^",
-          "version": "link:../../core/system-prompt"
-        },
-        "@deepseek-ai/dsh-tool-bash": {
-          "specifier": "workspace:^",
-          "version": "link:../../shell/tool-bash"
-        },
-        "@deepseek-ai/dsh-tool-fs": {
-          "specifier": "workspace:^",
-          "version": "link:../../fs/tool-fs"
-        },
-        "@deepseek-ai/dsh-tool-goal": {
-          "specifier": "workspace:^",
-          "version": "link:../../goal/tool-goal"
-        },
-        "@deepseek-ai/dsh-tool-jobs": {
-          "specifier": "workspace:^",
-          "version": "link:../../jobs/tool-jobs"
-        },
-        "@deepseek-ai/dsh-tool-skill": {
-          "specifier": "workspace:^",
-          "version": "link:../../skill/tool-skill"
-        },
-        "@deepseek-ai/dsh-tools": {
-          "specifier": "workspace:^",
-          "version": "link:../../core/tools"
-        },
-        "@deepseek-ai/node-addon-landlock-run": {
-          "specifier": "workspace:^",
-          "version": "link:../../../native/landlock-run/packages/entry"
-        }
-      }
-    },
     "packages/experimental/agent-team": {
       "dependencies": {
         "@deepseek-ai/dsh-brand": {
@@ -6539,10 +6433,6 @@
         "@deepseek-ai/dsh-session-persistence-jsonl": {
           "specifier": "workspace:^",
           "version": "link:../../session/session-persistence-jsonl"
-        },
-        "@deepseek-ai/dsh-session-persistence-sqlite": {
-          "specifier": "workspace:^",
-          "version": "link:../../session/session-persistence-sqlite"
         },
         "@deepseek-ai/dsh-session-projection": {
           "specifier": "workspace:^",
@@ -7695,10 +7585,6 @@
         "@deepseek-ai/dsh-agent": {
           "specifier": "workspace:^",
           "version": "link:../../core/agent"
-        },
-        "@deepseek-ai/dsh-agent-spine-demo": {
-          "specifier": "workspace:^",
-          "version": "link:../../examples/agent-spine-demo"
         },
         "@deepseek-ai/dsh-bash-local": {
           "specifier": "workspace:^",
@@ -8920,10 +8806,6 @@
           "specifier": "workspace:^",
           "version": "link:../../session/session-persistence-jsonl"
         },
-        "@deepseek-ai/dsh-session-persistence-sqlite": {
-          "specifier": "workspace:^",
-          "version": "link:../../session/session-persistence-sqlite"
-        },
         "@deepseek-ai/dsh-session-projection": {
           "specifier": "workspace:^",
           "version": "link:../../session/session-projection"
@@ -9724,9 +9606,13 @@
           "specifier": "workspace:^",
           "version": "link:../../core/agent"
         },
-        "@deepseek-ai/dsh-agent-spine-demo": {
+        "@deepseek-ai/dsh-agent-loop": {
           "specifier": "workspace:^",
-          "version": "link:../../examples/agent-spine-demo"
+          "version": "link:../../core/agent-loop"
+        },
+        "@deepseek-ai/dsh-agent-loop-testkit": {
+          "specifier": "workspace:^",
+          "version": "link:../../test-support/agent-loop-testkit"
         },
         "@deepseek-ai/dsh-attachment": {
           "specifier": "workspace:^",
@@ -9940,9 +9826,9 @@
           "specifier": "workspace:^",
           "version": "link:../../session/session-persistence"
         },
-        "@deepseek-ai/dsh-session-persistence-sqlite": {
+        "@deepseek-ai/dsh-session-persistence-jsonl": {
           "specifier": "workspace:^",
-          "version": "link:../../session/session-persistence-sqlite"
+          "version": "link:../../session/session-persistence-jsonl"
         },
         "@deepseek-ai/dsh-session-projection": {
           "specifier": "workspace:^",
@@ -10182,52 +10068,6 @@
         }
       }
     },
-    "packages/session/session-persistence-sqlite": {
-      "dependencies": {
-        "@deepseek-ai/dsh-brand": {
-          "specifier": "workspace:^",
-          "version": "link:../../util/brand"
-        },
-        "@deepseek-ai/schemastery": {
-          "specifier": "link:../../../vendor/schemastery",
-          "version": "link:../../../vendor/schemastery"
-        }
-      },
-      "devDependencies": {
-        "@deepseek-ai/cordis": {
-          "specifier": "workspace:^",
-          "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/cordis-plugin-include": {
-          "specifier": "workspace:^",
-          "version": "link:../../../vendor/include"
-        },
-        "@deepseek-ai/cordis-plugin-loader": {
-          "specifier": "workspace:^",
-          "version": "link:../../../vendor/loader"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
-        "@deepseek-ai/dsh-llm": {
-          "specifier": "workspace:^",
-          "version": "link:../../llm/llm"
-        },
-        "@deepseek-ai/dsh-session": {
-          "specifier": "workspace:^",
-          "version": "link:../../core/session"
-        },
-        "@deepseek-ai/dsh-session-persistence": {
-          "specifier": "workspace:^",
-          "version": "link:../session-persistence"
-        },
-        "typescript": {
-          "specifier": "^6.0.3",
-          "version": "6.0.3"
-        }
-      }
-    },
     "packages/session/session-projection": {
       "dependencies": {
         "zod": {
@@ -10398,10 +10238,6 @@
           "specifier": "workspace:^",
           "version": "link:../../../vendor/logger-console"
         },
-        "@deepseek-ai/dsh-agent-spine-demo": {
-          "specifier": "workspace:^",
-          "version": "link:../../examples/agent-spine-demo"
-        },
         "@deepseek-ai/dsh-anonymous-user-id": {
           "specifier": "workspace:^",
           "version": "link:../../identity/anonymous-user-id"
@@ -10499,10 +10335,6 @@
         "@deepseek-ai/dsh-session-persistence-jsonl": {
           "specifier": "workspace:^",
           "version": "link:../session-persistence-jsonl"
-        },
-        "@deepseek-ai/dsh-session-persistence-sqlite": {
-          "specifier": "workspace:^",
-          "version": "link:../session-persistence-sqlite"
         },
         "@deepseek-ai/dsh-session-projection": {
           "specifier": "workspace:^",
@@ -10641,6 +10473,44 @@
         "@deepseek-ai/dsh-timeout": {
           "specifier": "workspace:^",
           "version": "link:../../util/timeout"
+        }
+      }
+    },
+    "packages/session/session-turn-outline": {
+      "dependencies": {
+        "zod": {
+          "specifier": "^4.4.3",
+          "version": "4.4.3"
+        }
+      },
+      "devDependencies": {
+        "@deepseek-ai/cordis": {
+          "specifier": "workspace:^",
+          "version": "link:../../../vendor/cordis"
+        },
+        "@deepseek-ai/cordis-plugin-include": {
+          "specifier": "workspace:^",
+          "version": "link:../../../vendor/include"
+        },
+        "@deepseek-ai/cordis-plugin-loader": {
+          "specifier": "workspace:^",
+          "version": "link:../../../vendor/loader"
+        },
+        "@deepseek-ai/dsh-invariants": {
+          "specifier": "workspace:^",
+          "version": "link:../../runtime-diagnostics/invariants"
+        },
+        "@deepseek-ai/dsh-llm": {
+          "specifier": "workspace:^",
+          "version": "link:../../llm/llm"
+        },
+        "@deepseek-ai/dsh-session": {
+          "specifier": "workspace:^",
+          "version": "link:../../core/session"
+        },
+        "@deepseek-ai/dsh-session-projection": {
+          "specifier": "workspace:^",
+          "version": "link:../session-projection"
         }
       }
     },
@@ -11740,10 +11610,6 @@
           "specifier": "workspace:^",
           "version": "link:../../core/agent"
         },
-        "@deepseek-ai/dsh-agent-spine-demo": {
-          "specifier": "workspace:^",
-          "version": "link:../../examples/agent-spine-demo"
-        },
         "@deepseek-ai/dsh-app-boot": {
           "specifier": "workspace:^",
           "version": "link:../../boot/app-boot"
@@ -11834,10 +11700,6 @@
           "specifier": "workspace:^",
           "version": "link:../../core/agent"
         },
-        "@deepseek-ai/dsh-agent-spine-demo": {
-          "specifier": "workspace:^",
-          "version": "link:../../examples/agent-spine-demo"
-        },
         "@deepseek-ai/dsh-app-boot": {
           "specifier": "workspace:^",
           "version": "link:../../boot/app-boot"
@@ -11890,6 +11752,10 @@
           "specifier": "workspace:^",
           "version": "link:../../util/timeout"
         },
+        "@deepseek-ai/dsh-tool-jobs": {
+          "specifier": "workspace:^",
+          "version": "link:../../jobs/tool-jobs"
+        },
         "@deepseek-ai/dsh-tool-subagent": {
           "specifier": "workspace:^",
           "version": "link:../tool-subagent"
@@ -11931,10 +11797,6 @@
         "@deepseek-ai/dsh-agent": {
           "specifier": "workspace:^",
           "version": "link:../../core/agent"
-        },
-        "@deepseek-ai/dsh-agent-spine-demo": {
-          "specifier": "workspace:^",
-          "version": "link:../../examples/agent-spine-demo"
         },
         "@deepseek-ai/dsh-app-boot": {
           "specifier": "workspace:^",
@@ -11984,6 +11846,10 @@
           "specifier": "workspace:^",
           "version": "link:../../util/timeout"
         },
+        "@deepseek-ai/dsh-tool-jobs": {
+          "specifier": "workspace:^",
+          "version": "link:../../jobs/tool-jobs"
+        },
         "@deepseek-ai/dsh-tool-subagent": {
           "specifier": "workspace:^",
           "version": "link:../tool-subagent"
@@ -12021,10 +11887,6 @@
         "@deepseek-ai/dsh-agent-instructions": {
           "specifier": "workspace:^",
           "version": "link:../../context/agent-instructions"
-        },
-        "@deepseek-ai/dsh-agent-spine-demo": {
-          "specifier": "workspace:^",
-          "version": "link:../../examples/agent-spine-demo"
         },
         "@deepseek-ai/dsh-app-boot": {
           "specifier": "workspace:^",
@@ -14030,10 +13892,6 @@
           "specifier": "workspace:^",
           "version": "link:../../packages/core/agent-loop"
         },
-        "@deepseek-ai/dsh-agent-spine-demo": {
-          "specifier": "workspace:^",
-          "version": "link:../../packages/examples/agent-spine-demo"
-        },
         "@deepseek-ai/dsh-agent-tool-presentation": {
           "specifier": "workspace:^",
           "version": "link:../../packages/core/agent-tool-presentation"
@@ -14257,10 +14115,6 @@
         "@deepseek-ai/dsh-session-persistence-jsonl": {
           "specifier": "workspace:^",
           "version": "link:../../packages/session/session-persistence-jsonl"
-        },
-        "@deepseek-ai/dsh-session-persistence-sqlite": {
-          "specifier": "workspace:^",
-          "version": "link:../../packages/session/session-persistence-sqlite"
         },
         "@deepseek-ai/dsh-session-projection": {
           "specifier": "workspace:^",
