@@ -15,13 +15,13 @@ let
 in
 buildDshBundle (finalAttrs: {
   pname = "dsh-notification";
-  version = "0.1.3";
+  version = "0.1.4";
 
   src = fetchFromGitHub {
     owner = "omdsh-dev";
     repo = "dsh-notification";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-L9NkWrcrGpEZwPstvnA7D5Eq7TAKfOrmLl2t5Cy87xU=";
+    hash = "sha256-rs6hWEds6wlH3psDqNPdZLdzhpWcAAqBkrKwJ0hkNXo=";
   };
 
   # The upstream lockfile points at a developer's external DSH checkout. The
@@ -39,45 +39,6 @@ buildDshBundle (finalAttrs: {
       )
     ' pnpm-lock.yaml
 
-    sed -i '/^    schema: z\.object({$/,/^    stateVersion: 1,$/c\
-    stateSchema: z.object({\
-      openTurn: z.object({\
-        turn: z.number().int().nonnegative(),\
-        text: z.string(),\
-        tools: z.array(z.string()),\
-      }).nullable(),\
-      last: z.object({\
-        turn: z.number().int().nonnegative(),\
-        reason: z.string(),\
-        body: z.string(),\
-        tools: z.array(z.string()),\
-      }).nullable(),\
-    }).strict(),\
-    wire: {\
-      viewSchema: z.object({\
-        turn: z.number().int().nonnegative(),\
-        reason: z.string(),\
-        body: z.string(),\
-        tools: z.array(z.string()),\
-      }).strict(),\
-      view: state => state.last ?? EMPTY_PROJECTION,\
-    },\
-    init: () => ({ openTurn: null, last: null }),\
-    apply: (state, event) => applyProjectionEvent(state, event, config.maxBodyChars),\
-    stateVersion: 1,' src/projection.ts
-    substituteInPlace src/projection.ts \
-      --replace-fail \
-        "export function notificationProjection(config: ResolvedConfig): ProjectionDefinition<'notification', NotificationProjectionState> {" \
-        "export function notificationProjection(config: ResolvedConfig): Omit<ProjectionDefinition<'notification', NotificationProjectionState>, 'wire'> & { wire: NonNullable<ProjectionDefinition<'notification', NotificationProjectionState>['wire']> } {"
-
-    sed -i '$i\
-      interface SessionProjectionStateMap {\
-        notification: import("./projection.ts").NotificationProjectionState\
-      }' src/contract.ts
-    substituteInPlace src/client/index.ts \
-      --replace-fail \
-        "const observedTurn = new Map<string, number>()" \
-        "const observedTurn = new Map<SessionId, number>()"
   '';
 
   pnpmDeps = fetchPnpmDeps' {
@@ -91,7 +52,6 @@ buildDshBundle (finalAttrs: {
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
-  patches = [ ./alpha-compat.patch ];
   nativeBuildInputs = [
     pnpm_11
     yq-go
