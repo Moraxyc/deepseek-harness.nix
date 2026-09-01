@@ -10,13 +10,13 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-tui";
-  version = "0.10.0-beta.3";
+  version = "0.9.3";
 
   src = fetchFromGitHub {
     owner = "ccch1mneyyy";
     repo = "dsh-TUI";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-6PndAYMTnsG/5EIjOSGa9VikZwFIddkOHPmQ+TuQFwg=";
+    hash = "sha256-Fu4ujIj8JXS/npYNUUnruFUvI7HPyUGTKzP6qQdH/aQ=";
   };
 
   # dsh 0.1.2-alpha.4 renamed Session.events to snapshotEvents(); dsh-tui
@@ -51,7 +51,7 @@ buildDshBundle (finalAttrs: {
         --frozen-lockfile \
         --registry="$NIX_NPM_REGISTRY"
     '';
-    hash = "sha256-Q33gyQ9KF1RJlnlvhLMn+FyMnKTnrNJi8mRzJJU2s/E=";
+    hash = "sha256-KhiQi6uIG+ftXX9VNR3763xGXFrsxaGXG41ua/ArBF8=";
   };
 
   nativeBuildInputs = [ pnpm_11 ];
