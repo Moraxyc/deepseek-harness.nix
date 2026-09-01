@@ -1,5 +1,6 @@
 {
   lib,
+  stdenv,
   fetchFromGitHub,
   fetchPnpmDeps,
   buildDshBundle,
@@ -43,6 +44,8 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     lockfileJson = ./pnpm-lock.json;
     pnpm = pnpm_11;
     fetcherVersion = 4;
+    targetPlatform =
+      if stdenv.buildPlatform == stdenv.hostPlatform then stdenv.targetPlatform else null;
     patchedDependencySources = {
       "@morlay/ui-conversation-message-actions@0.0.11" =
         "${finalAttrs.src}/patches/@morlay__ui-conversation-message-actions@0.0.11.patch";
