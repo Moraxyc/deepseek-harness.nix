@@ -11,14 +11,14 @@ assert lib.versionAtLeast nodejs.version "24";
 
 buildDshBundle (finalAttrs: {
   pname = "dsh-mneme";
-  version = "0.7.3";
+  version = "0.7.4";
 
   # The runtime package lives under dsh-mneme/ in the upstream repository.
   src = fetchFromGitHub {
     owner = "modusensus";
     repo = "dsh-mneme";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-63tPEYXE28+QiZsyAhaAtNNVOpgTknkbGtuzuMv/L7c=";
+    hash = "sha256-IxAl/ydqXgUK2KL8hZnPB1WhT/SYXXHmrGib6jsDfRg=";
   };
 
   npmDeps = null;
