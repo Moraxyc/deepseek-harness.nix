@@ -11,7 +11,7 @@
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-at-file";
-  version = "0.6.9";
+  version = "0.7.0";
   deployPackage = "dsh-at-file";
   linkKernelNodeModules = dsh-kernel;
 
@@ -19,7 +19,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     owner = "omdsh-dev";
     repo = "dsh-at-file";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-wm67LNPwIKwwLbWZ8gRF/5Tlllq5S+81Riwx1x72IXw=";
+    hash = "sha256-JU8JH9t2+72FW4FyGsOrZebGW0tPC7VzIkZuVfhlLmE=";
   };
 
   pnpmDeps = fetchPnpmDeps {
@@ -32,8 +32,6 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
-
-  patches = [ ./alpha-compat.patch ];
 
   preBuild = ''
     # Build against the alpha.2 client cohort; the kernel carries host/runtime packages only.
