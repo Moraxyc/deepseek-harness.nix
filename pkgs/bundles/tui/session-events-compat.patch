@@ -1,0 +1,35 @@
+--- a/src/dsh-adapter/plugin.ts
++++ b/src/dsh-adapter/plugin.ts
+@@ -1,6 +1,7 @@
+ import { randomUUID } from 'node:crypto'
+ import React from 'react'
+-import { SessionId } from '@deepseek-ai/dsh-session'
++import { Session, SessionId } from '@deepseek-ai/dsh-session'
++import type { SessionEvent } from '@deepseek-ai/dsh-session'
+ import type { Agent, AgentHandle } from '@deepseek-ai/dsh-agent'
+ import UserQuestionService from '@deepseek-ai/dsh-user-questions'
+ import * as toolAskUser from '@deepseek-ai/dsh-tool-ask-user'
+@@ -56,6 +57,23 @@
+ import { DBP, DFE, DISABLE_MOUSE_TRACKING, EXIT_ALT_SCREEN, SHOW_CURSOR } from '../ink/termio/dec.js'
+ import { CLEAR_ITERM2_PROGRESS, CLEAR_TAB_STATUS, supportsTabStatus, wrapForMultiplexer } from '../ink/termio/osc.js'
+ 
++// dsh <= 0.1.2-alpha.3 exposed Session.events; alpha.4 renamed it to
++// snapshotEvents(). dsh-tui 0.10.0-beta.3 still reads the old property across
++// every session path (approve, resume, rewind, recap, mode derive, replay), so
++// restore the alias on the kernel class until a newer TUI adopts the method.
++// Defining it only when absent keeps kernels that already expose `events`
++// (or drop snapshotEvents) from double-installing a stale getter.
++if (Session.prototype && !('events' in Session.prototype)) {
++  Object.defineProperty(Session.prototype, 'events', {
++    configurable: true,
++    // The kernel renamed this method in 0.1.2-alpha.4; the TUI's pinned type
++    // declarations predate it, so call it through a narrow cast.
++    get(this: Session): readonly SessionEvent[] {
++      return (this as unknown as { snapshotEvents(): readonly SessionEvent[] }).snapshotEvents()
++    },
++  })
++}
++
+ /**
+  * Claude Code style interactive TUI front door for DeepSeek Harness agents.
+  *

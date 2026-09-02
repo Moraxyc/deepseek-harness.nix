@@ -19,6 +19,11 @@ buildDshBundle (finalAttrs: {
     hash = "sha256-6PndAYMTnsG/5EIjOSGa9VikZwFIddkOHPmQ+TuQFwg=";
   };
 
+  # dsh 0.1.2-alpha.4 renamed Session.events to snapshotEvents(); dsh-tui
+  # 0.10.0-beta.3 still reads the old property on every session path, so the
+  # bundle restores the alias on the kernel class (see the patch).
+  patches = [ ./session-events-compat.patch ];
+
   postPatch = ''
     rm -rf vendor/dsh-std dsh-ecosystem-spec dsh-auth
     mkdir -p vendor/dsh-std dsh-ecosystem-spec dsh-auth
