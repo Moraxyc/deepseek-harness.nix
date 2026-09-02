@@ -476,6 +476,10 @@
           "specifier": "workspace:^",
           "version": "link:../../packages/experimental/agent-team-profile"
         },
+        "@deepseek-ai/dsh-experimental-code-runtime-python": {
+          "specifier": "workspace:^",
+          "version": "link:../../packages/experimental/code-runtime-python"
+        },
         "@deepseek-ai/dsh-experimental-tool-agent-team": {
           "specifier": "workspace:^",
           "version": "link:../../packages/experimental/tool-agent-team"
@@ -583,10 +587,6 @@
         "@deepseek-ai/dsh-system-prompt": {
           "specifier": "workspace:^",
           "version": "link:../../packages/core/system-prompt"
-        },
-        "@deepseek-ai/dsh-tool-subagent-report": {
-          "specifier": "workspace:^",
-          "version": "link:../../packages/subagent/tool-subagent-report"
         },
         "@deepseek-ai/dsh-tools": {
           "specifier": "workspace:^",
@@ -784,10 +784,6 @@
           "specifier": "workspace:^",
           "version": "link:../../attachment/attachment"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -865,10 +861,6 @@
         "@deepseek-ai/dsh-host-webserver": {
           "specifier": "workspace:^",
           "version": "link:../../host/webserver"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-typert-registry": {
           "specifier": "workspace:^",
@@ -955,10 +947,6 @@
         "@deepseek-ai/dsh-host-plugin-inventory": {
           "specifier": "workspace:^",
           "version": "link:../../host/plugin-inventory"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -1053,10 +1041,6 @@
         "@deepseek-ai/dsh-file-reference": {
           "specifier": "workspace:^",
           "version": "link:../../context/file-reference"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-jobs": {
           "specifier": "workspace:^",
@@ -1172,10 +1156,6 @@
           "specifier": "workspace:^",
           "version": "link:../../credentials/credentials"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-native-command": {
           "specifier": "workspace:^",
           "version": "link:../../util/native-command"
@@ -1226,10 +1206,6 @@
           "specifier": "workspace:^",
           "version": "link:../../host/directory-picker"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
           "version": "link:../../core/session"
@@ -1257,10 +1233,6 @@
         "@deepseek-ai/dsh-brand": {
           "specifier": "workspace:^",
           "version": "link:../../util/brand"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -1287,10 +1259,6 @@
         "@deepseek-ai/dsh-home-paths": {
           "specifier": "workspace:^",
           "version": "link:../../util/home-paths"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -1338,10 +1306,6 @@
           "specifier": "workspace:^",
           "version": "link:../../util/home-paths"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-launch-environment": {
           "specifier": "workspace:^",
           "version": "link:../../util/launch-environment"
@@ -1369,10 +1333,6 @@
         "@deepseek-ai/cordis-plugin-loader": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/loader"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "commander": {
           "specifier": "^15.0.0",
@@ -1403,10 +1363,6 @@
         "@deepseek-ai/cordis-plugin-include": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/include"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -1700,10 +1656,6 @@
           "specifier": "workspace:^",
           "version": "link:../../subagent/tool-subagent-control"
         },
-        "@deepseek-ai/dsh-tool-subagent-report": {
-          "specifier": "workspace:^",
-          "version": "link:../../subagent/tool-subagent-report"
-        },
         "@deepseek-ai/dsh-tool-todo": {
           "specifier": "workspace:^",
           "version": "link:../../todo/tool-todo"
@@ -1757,10 +1709,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -1808,10 +1756,6 @@
           "specifier": "workspace:^",
           "version": "link:../../core/agent-default-model"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -1849,10 +1793,6 @@
         "@deepseek-ai/cordis-plugin-include": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/include"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -2282,10 +2222,6 @@
           "specifier": "workspace:^",
           "version": "link:../../../vendor/loader"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-shell-env": {
           "specifier": "workspace:^",
           "version": "link:../../shell/shell-env"
@@ -2335,10 +2271,6 @@
         "@deepseek-ai/dsh-host-webserver": {
           "specifier": "workspace:^",
           "version": "link:../../host/webserver"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -2436,10 +2368,6 @@
           "specifier": "workspace:^",
           "version": "link:../ui-slots"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-settings": {
           "specifier": "workspace:^",
           "version": "link:../../settings/settings"
@@ -2489,10 +2417,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -2558,10 +2482,6 @@
           "specifier": "workspace:^",
           "version": "link:../ui-workspace"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
           "version": "link:../../core/session"
@@ -2613,10 +2533,6 @@
         "@deepseek-ai/dsh-client-ui-slots": {
           "specifier": "workspace:^",
           "version": "link:../ui-slots"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -2680,10 +2596,6 @@
           "specifier": "workspace:^",
           "version": "link:../ui-trajectory"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@types/react": {
           "specifier": "~18.3.1",
           "version": "18.3.31"
@@ -2719,10 +2631,6 @@
         "@deepseek-ai/dsh-client-ui-sidebar": {
           "specifier": "workspace:^",
           "version": "link:../ui-sidebar"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@testing-library/react": {
           "specifier": "^16.1.0",
@@ -2825,10 +2733,6 @@
         "@deepseek-ai/dsh-compaction": {
           "specifier": "workspace:^",
           "version": "link:../../compaction/compaction"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -2948,10 +2852,6 @@
           "specifier": "workspace:^",
           "version": "link:../../interaction/commands"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
           "version": "link:../../core/session"
@@ -3070,10 +2970,6 @@
           "specifier": "workspace:^",
           "version": "link:../../goal/goal"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -3190,10 +3086,6 @@
           "specifier": "workspace:^",
           "version": "link:../ui-slots"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
           "version": "link:../../core/session"
@@ -3252,10 +3144,6 @@
           "specifier": "workspace:^",
           "version": "link:../ui-workspace"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@testing-library/react": {
           "specifier": "^16.1.0",
           "version": "16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)"
@@ -3287,10 +3175,6 @@
         "@deepseek-ai/dsh-client-ui-workspace": {
           "specifier": "workspace:^",
           "version": "link:../ui-workspace"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@testing-library/react": {
           "specifier": "^16.1.0",
@@ -3363,10 +3247,6 @@
         "@deepseek-ai/dsh-goal": {
           "specifier": "workspace:^",
           "version": "link:../../goal/goal"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
@@ -3446,10 +3326,6 @@
           "specifier": "workspace:^",
           "version": "link:../../context/file-reference"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
           "version": "link:../../core/session"
@@ -3502,10 +3378,6 @@
           "specifier": "workspace:^",
           "version": "link:../ui-slots"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@types/react": {
           "specifier": "~18.3.1",
           "version": "18.3.31"
@@ -3545,10 +3417,6 @@
         "@deepseek-ai/dsh-client-ui-theme": {
           "specifier": "workspace:^",
           "version": "link:../ui-theme"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@types/react": {
           "specifier": "~18.3.1",
@@ -3605,10 +3473,6 @@
         "@deepseek-ai/dsh-client-ui-slots": {
           "specifier": "workspace:^",
           "version": "link:../ui-slots"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-message-feedback": {
           "specifier": "workspace:^",
@@ -3704,10 +3568,6 @@
           "specifier": "workspace:^",
           "version": "link:../ui-slots"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
           "version": "link:../../core/session"
@@ -3780,10 +3640,6 @@
           "specifier": "workspace:^",
           "version": "link:../ui-slots"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-permission-presets": {
           "specifier": "workspace:^",
           "version": "link:../../interaction/permission-presets"
@@ -3835,10 +3691,6 @@
         "@deepseek-ai/dsh-client-ui-slots": {
           "specifier": "workspace:^",
           "version": "link:../ui-slots"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-plan-mode": {
           "specifier": "workspace:^",
@@ -3946,10 +3798,6 @@
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@types/react": {
           "specifier": "~18.3.1",
           "version": "18.3.31"
@@ -4001,10 +3849,6 @@
         "@deepseek-ai/dsh-file-reference": {
           "specifier": "workspace:^",
           "version": "link:../../context/file-reference"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-session-reference": {
           "specifier": "workspace:^",
@@ -4104,10 +3948,6 @@
           "specifier": "workspace:^",
           "version": "link:../ui-slots"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-schedule": {
           "specifier": "workspace:^",
           "version": "link:../../schedule/schedule"
@@ -4160,10 +4000,6 @@
           "specifier": "workspace:^",
           "version": "link:../ui-slots"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
           "version": "link:../../core/session"
@@ -4199,10 +4035,6 @@
         "@deepseek-ai/dsh-client-ui-slots": {
           "specifier": "workspace:^",
           "version": "link:../ui-slots"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-settings": {
           "specifier": "workspace:^",
@@ -4286,10 +4118,6 @@
           "specifier": "workspace:^",
           "version": "link:../ui-slots"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-settings": {
           "specifier": "workspace:^",
           "version": "link:../../settings/settings"
@@ -4341,10 +4169,6 @@
         "@deepseek-ai/dsh-client-ui-slots": {
           "specifier": "workspace:^",
           "version": "link:../ui-slots"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-util-values": {
           "specifier": "workspace:^",
@@ -4401,10 +4225,6 @@
         "@deepseek-ai/dsh-client-ui-slots": {
           "specifier": "workspace:^",
           "version": "link:../ui-slots"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@testing-library/react": {
           "specifier": "^16.1.0",
@@ -4468,10 +4288,6 @@
           "specifier": "workspace:^",
           "version": "link:../ui-slots"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@types/react": {
           "specifier": "~18.3.1",
           "version": "18.3.31"
@@ -4530,10 +4346,6 @@
           "specifier": "workspace:^",
           "version": "link:../ui-workspace"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@types/react": {
           "specifier": "~18.3.1",
           "version": "18.3.31"
@@ -4590,10 +4402,6 @@
           "specifier": "workspace:^",
           "version": "link:../ui-tool"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
           "version": "link:../../core/session"
@@ -4625,10 +4433,6 @@
         "@deepseek-ai/dsh-client-store": {
           "specifier": "workspace:^",
           "version": "link:../store"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@types/react": {
           "specifier": "~18.3.1",
@@ -4681,10 +4485,6 @@
         "@deepseek-ai/dsh-client-ui-slots": {
           "specifier": "workspace:^",
           "version": "link:../ui-slots"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
@@ -4772,10 +4572,6 @@
           "specifier": "workspace:^",
           "version": "link:../../host/webserver"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-settings": {
           "specifier": "workspace:^",
           "version": "link:../../settings/settings"
@@ -4845,10 +4641,6 @@
         "@deepseek-ai/dsh-client-ui-slots": {
           "specifier": "workspace:^",
           "version": "link:../ui-slots"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-util-workspace-path": {
           "specifier": "workspace:^",
@@ -4940,10 +4732,6 @@
           "specifier": "workspace:^",
           "version": "link:../../compaction/compaction"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -5030,10 +4818,6 @@
           "specifier": "workspace:^",
           "version": "link:../ui-slots"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
           "version": "link:../../core/session"
@@ -5109,10 +4893,6 @@
         "@deepseek-ai/dsh-client-ui-slots": {
           "specifier": "workspace:^",
           "version": "link:../ui-slots"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
@@ -5200,10 +4980,6 @@
           "specifier": "workspace:^",
           "version": "link:../ui-slots"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-schedule": {
           "specifier": "workspace:^",
           "version": "link:../../schedule/schedule"
@@ -5260,10 +5036,6 @@
           "specifier": "workspace:^",
           "version": "link:../ui-slots"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@types/react": {
           "specifier": "~18.3.1",
           "version": "18.3.31"
@@ -5291,22 +5063,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        }
-      }
-    },
-    "packages/code-runtime/code-runtime-python": {
-      "devDependencies": {
-        "@deepseek-ai/cordis": {
-          "specifier": "workspace:^",
-          "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -5329,10 +5085,6 @@
         "@deepseek-ai/dsh-code-runtime": {
           "specifier": "workspace:^",
           "version": "link:../code-runtime"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
@@ -5369,10 +5121,6 @@
         "@deepseek-ai/dsh-compaction": {
           "specifier": "workspace:^",
           "version": "link:../compaction"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -5580,10 +5328,6 @@
           "specifier": "workspace:^",
           "version": "link:../../util/home-paths"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -5623,10 +5367,6 @@
         "@deepseek-ai/dsh-agent": {
           "specifier": "workspace:^",
           "version": "link:../../core/agent"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -5649,10 +5389,6 @@
         "@deepseek-ai/dsh-file-reference": {
           "specifier": "workspace:^",
           "version": "link:../file-reference"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-system-prompt": {
           "specifier": "workspace:^",
@@ -5695,10 +5431,6 @@
         "@deepseek-ai/dsh-compaction": {
           "specifier": "workspace:^",
           "version": "link:../../compaction/compaction"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -5836,10 +5568,6 @@
           "specifier": "workspace:^",
           "version": "link:../../core/agent"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -5917,10 +5645,6 @@
         "@deepseek-ai/dsh-agent": {
           "specifier": "workspace:^",
           "version": "link:../agent"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -6021,10 +5745,6 @@
         "@deepseek-ai/dsh-code-runtime": {
           "specifier": "workspace:^",
           "version": "link:../../code-runtime/code-runtime"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-scope": {
           "specifier": "workspace:^",
@@ -6248,10 +5968,6 @@
           "specifier": "workspace:^",
           "version": "link:../../util/home-paths"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-launch-environment": {
           "specifier": "workspace:^",
           "version": "link:../../util/launch-environment"
@@ -6289,10 +6005,6 @@
         "@deepseek-ai/dsh-fs-e2b": {
           "specifier": "workspace:^",
           "version": "link:../fs-e2b"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-loader-smoke": {
           "specifier": "workspace:^",
@@ -6345,10 +6057,6 @@
         "@deepseek-ai/dsh-fs": {
           "specifier": "workspace:^",
           "version": "link:../../fs/fs"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -6367,10 +6075,6 @@
         "@deepseek-ai/dsh-e2b": {
           "specifier": "workspace:^",
           "version": "link:../e2b"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-subprocess": {
           "specifier": "workspace:^",
@@ -6480,10 +6184,6 @@
           "specifier": "workspace:^",
           "version": "link:../../../vendor/include"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "js-yaml": {
           "specifier": "^4.2.0",
           "version": "4.3.1"
@@ -6505,10 +6205,6 @@
         "@deepseek-ai/cordis-plugin-include": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/include"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "js-yaml": {
           "specifier": "^4.2.0",
@@ -6568,10 +6264,6 @@
           "specifier": "workspace:^",
           "version": "link:../agent-team"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
           "version": "link:../../core/session"
@@ -6591,6 +6283,32 @@
         "react-dom": {
           "specifier": "^18.2.0",
           "version": "18.3.1(react@18.3.1)"
+        }
+      }
+    },
+    "packages/experimental/code-runtime-python": {
+      "dependencies": {
+        "@deepseek-ai/schemastery": {
+          "specifier": "link:../../../vendor/schemastery",
+          "version": "link:../../../vendor/schemastery"
+        }
+      },
+      "devDependencies": {
+        "@deepseek-ai/cordis": {
+          "specifier": "workspace:^",
+          "version": "link:../../../vendor/cordis"
+        },
+        "@deepseek-ai/dsh-code-runtime": {
+          "specifier": "workspace:^",
+          "version": "link:../../code-runtime/code-runtime"
+        },
+        "@deepseek-ai/dsh-timeout": {
+          "specifier": "workspace:^",
+          "version": "link:../../util/timeout"
+        },
+        "@deepseek-ai/dsh-util-values": {
+          "specifier": "workspace:^",
+          "version": "link:../../util/values"
         }
       }
     },
@@ -6634,10 +6352,6 @@
           "specifier": "workspace:^",
           "version": "link:../../host/webserver"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@types/ws": {
           "specifier": "^8.18.1",
           "version": "8.18.1"
@@ -6679,10 +6393,6 @@
         "@deepseek-ai/dsh-experimental-agent-team": {
           "specifier": "workspace:^",
           "version": "link:../agent-team"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-scope": {
           "specifier": "workspace:^",
@@ -6758,10 +6468,6 @@
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@types/js-yaml": {
           "specifier": "^4.0.9",
           "version": "4.0.9"
@@ -6831,10 +6537,6 @@
         "@deepseek-ai/dsh-host-webserver": {
           "specifier": "workspace:^",
           "version": "link:../../host/webserver"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-sandbox-local": {
           "specifier": "workspace:^",
@@ -6908,10 +6610,6 @@
           "specifier": "workspace:^",
           "version": "link:../../client/ui-theme"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-util-values": {
           "specifier": "workspace:^",
           "version": "link:../../util/values"
@@ -6958,10 +6656,6 @@
           "specifier": "workspace:^",
           "version": "link:../../util/brand"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -7001,10 +6695,6 @@
         "@deepseek-ai/dsh-cordis-host-runner": {
           "specifier": "workspace:^",
           "version": "link:../cordis-host-runner"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -7078,10 +6768,6 @@
           "specifier": "workspace:^",
           "version": "link:../cordis-client-runner"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
           "version": "link:../../core/session"
@@ -7121,10 +6807,6 @@
         "@deepseek-ai/dsh-commands": {
           "specifier": "workspace:^",
           "version": "link:../../interaction/commands"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -7167,10 +6849,6 @@
         "@deepseek-ai/dsh-brand": {
           "specifier": "workspace:^",
           "version": "link:../../util/brand"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -7250,10 +6928,6 @@
           "specifier": "workspace:^",
           "version": "link:../fs"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -7269,10 +6943,6 @@
         "@deepseek-ai/dsh-fs": {
           "specifier": "workspace:^",
           "version": "link:../fs"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -7293,10 +6963,6 @@
         "@deepseek-ai/dsh-fs-local": {
           "specifier": "workspace:^",
           "version": "link:../fs-local"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-sandbox": {
           "specifier": "workspace:^",
@@ -7356,10 +7022,6 @@
           "specifier": "workspace:^",
           "version": "link:../fs-observation-policy"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -7417,10 +7079,6 @@
         "@deepseek-ai/dsh-agent": {
           "specifier": "workspace:^",
           "version": "link:../../core/agent"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -7492,10 +7150,6 @@
           "specifier": "workspace:^",
           "version": "link:../fs-sandbox"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -7547,10 +7201,6 @@
         "@deepseek-ai/dsh-goal": {
           "specifier": "workspace:^",
           "version": "link:../goal"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -7712,10 +7362,6 @@
           "specifier": "workspace:^",
           "version": "link:../goal"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -7762,10 +7408,6 @@
           "specifier": "workspace:^",
           "version": "link:../../test-support/agent-loop-testkit"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -7789,10 +7431,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -7859,10 +7497,6 @@
         "@deepseek-ai/dsh-hook-protocol": {
           "specifier": "workspace:^",
           "version": "link:../hook-protocol"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -7934,10 +7568,6 @@
           "specifier": "workspace:^",
           "version": "link:../hook-protocol"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -7977,10 +7607,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -8021,10 +7647,6 @@
         "@deepseek-ai/dsh-host-webserver": {
           "specifier": "workspace:^",
           "version": "link:../webserver"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -8043,10 +7665,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -8069,10 +7687,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "tsx": {
           "specifier": "^4.19.2",
@@ -8107,10 +7721,6 @@
         "@deepseek-ai/dsh-host-webserver": {
           "specifier": "workspace:^",
           "version": "link:../webserver"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -8138,10 +7748,6 @@
           "specifier": "workspace:^",
           "version": "link:../../util/brand"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-typert-protocol": {
           "specifier": "workspace:^",
           "version": "link:../../typert/protocol"
@@ -8168,10 +7774,6 @@
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@types/compression": {
           "specifier": "^1.8.1",
           "version": "1.8.1"
@@ -8195,10 +7797,6 @@
         "@deepseek-ai/dsh-home-paths": {
           "specifier": "workspace:^",
           "version": "link:../../util/home-paths"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -8316,10 +7914,6 @@
           "specifier": "workspace:^",
           "version": "link:../../core/agent"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -8390,10 +7984,6 @@
           "specifier": "workspace:^",
           "version": "link:../../core/agent"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -8456,10 +8046,6 @@
           "specifier": "workspace:^",
           "version": "link:../../util/brand"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-jobs": {
           "specifier": "workspace:^",
           "version": "link:../jobs"
@@ -8493,10 +8079,6 @@
         "@deepseek-ai/dsh-agent": {
           "specifier": "workspace:^",
           "version": "link:../../core/agent"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-jobs": {
           "specifier": "workspace:^",
@@ -8533,10 +8115,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -8642,10 +8220,6 @@
           "specifier": "workspace:^",
           "version": "link:../../util/home-paths"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-launch-environment": {
           "specifier": "workspace:^",
           "version": "link:../../util/launch-environment"
@@ -8715,10 +8289,6 @@
         "@deepseek-ai/dsh-fs": {
           "specifier": "workspace:^",
           "version": "link:../../fs/fs"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-launch-environment": {
           "specifier": "workspace:^",
@@ -8860,10 +8430,6 @@
           "specifier": "workspace:^",
           "version": "link:../deepseek-llm-api-extensions"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-scope": {
           "specifier": "workspace:^",
           "version": "link:../../core/scope"
@@ -8902,10 +8468,6 @@
           "specifier": "workspace:^",
           "version": "link:../../compaction/compaction"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../llm"
@@ -8933,10 +8495,6 @@
         "@deepseek-ai/dsh-brand": {
           "specifier": "workspace:^",
           "version": "link:../../util/brand"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -8971,10 +8529,6 @@
         "@deepseek-ai/dsh-fs-local": {
           "specifier": "workspace:^",
           "version": "link:../../fs/fs-local"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -9029,10 +8583,6 @@
         "@deepseek-ai/dsh-fs-local": {
           "specifier": "workspace:^",
           "version": "link:../../fs/fs-local"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -9099,10 +8649,6 @@
         "@deepseek-ai/dsh-attachment-local": {
           "specifier": "workspace:^",
           "version": "link:../../attachment/attachment-local"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -9294,10 +8840,6 @@
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-scope": {
           "specifier": "workspace:^",
           "version": "link:../../core/scope"
@@ -9334,10 +8876,6 @@
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -9371,10 +8909,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -9447,10 +8981,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-pwsh-local": {
           "specifier": "workspace:^",
@@ -9540,10 +9070,6 @@
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -9563,10 +9089,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -9617,10 +9139,6 @@
         "@deepseek-ai/dsh-attachment": {
           "specifier": "workspace:^",
           "version": "link:../../attachment/attachment"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -9728,10 +9246,6 @@
           "specifier": "workspace:^",
           "version": "link:../../interaction/commands"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
           "version": "link:../../core/session"
@@ -9763,10 +9277,6 @@
         "@deepseek-ai/dsh-brand": {
           "specifier": "workspace:^",
           "version": "link:../../util/brand"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -9814,10 +9324,6 @@
           "specifier": "workspace:^",
           "version": "link:../../../vendor/loader"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
           "version": "link:../../core/session"
@@ -9863,10 +9369,6 @@
         "@deepseek-ai/dsh-agent-loop": {
           "specifier": "workspace:^",
           "version": "link:../../core/agent-loop"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -9940,10 +9442,6 @@
           "specifier": "workspace:^",
           "version": "link:../../test-support/agent-loop-testkit"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -9979,6 +9477,10 @@
         "@deepseek-ai/dsh-brand": {
           "specifier": "workspace:^",
           "version": "link:../../util/brand"
+        },
+        "@deepseek-ai/dsh-util-values": {
+          "specifier": "workspace:^",
+          "version": "link:../../util/values"
         },
         "@deepseek-ai/schemastery": {
           "specifier": "link:../../../vendor/schemastery",
@@ -10020,10 +9522,6 @@
           "specifier": "workspace:^",
           "version": "link:../../util/brand"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-scope": {
           "specifier": "workspace:^",
           "version": "link:../../core/scope"
@@ -10054,10 +9552,6 @@
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
           "version": "link:../../core/session"
@@ -10079,10 +9573,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
@@ -10109,10 +9599,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
@@ -10156,10 +9642,6 @@
           "specifier": "workspace:^",
           "version": "link:../../../vendor/loader"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -10183,10 +9665,6 @@
         "@deepseek-ai/dsh-agent": {
           "specifier": "workspace:^",
           "version": "link:../../core/agent"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
@@ -10253,10 +9731,6 @@
         "@deepseek-ai/dsh-command-feedback": {
           "specifier": "workspace:^",
           "version": "link:../../feedback/command-feedback"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -10358,10 +9832,6 @@
           "specifier": "workspace:^",
           "version": "link:../../core/agent-loop"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -10408,10 +9878,6 @@
           "specifier": "workspace:^",
           "version": "link:../../core/agent-loop"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -10454,10 +9920,6 @@
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -10495,10 +9957,6 @@
         "@deepseek-ai/cordis-plugin-loader": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/loader"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -10576,10 +10034,6 @@
           "specifier": "workspace:^",
           "version": "link:../../util/home-paths"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-settings": {
           "specifier": "workspace:^",
           "version": "link:../settings"
@@ -10597,10 +10051,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-settings": {
           "specifier": "workspace:^",
@@ -10633,10 +10083,6 @@
         "@deepseek-ai/dsh-bash-local": {
           "specifier": "workspace:^",
           "version": "link:../bash-local"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-sandbox": {
           "specifier": "workspace:^",
@@ -10680,10 +10126,6 @@
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-settings": {
           "specifier": "workspace:^",
           "version": "link:../../settings/settings"
@@ -10711,10 +10153,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-pwsh-local": {
           "specifier": "workspace:^",
@@ -10752,10 +10190,6 @@
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-sandbox": {
           "specifier": "workspace:^",
           "version": "link:../../sandbox/sandbox"
@@ -10789,10 +10223,6 @@
         "@deepseek-ai/dsh-home-paths": {
           "specifier": "workspace:^",
           "version": "link:../../util/home-paths"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -10839,10 +10269,6 @@
         "@deepseek-ai/dsh-bash-local": {
           "specifier": "workspace:^",
           "version": "link:../bash-local"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-jobs": {
           "specifier": "workspace:^",
@@ -10930,10 +10356,6 @@
           "specifier": "workspace:^",
           "version": "link:../../core/agent"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -11003,10 +10425,6 @@
         "@deepseek-ai/dsh-app-boot": {
           "specifier": "workspace:^",
           "version": "link:../../boot/app-boot"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-jobs": {
           "specifier": "workspace:^",
@@ -11094,10 +10512,6 @@
           "specifier": "workspace:^",
           "version": "link:../../core/agent"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -11164,10 +10578,6 @@
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -11183,10 +10593,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-skill": {
           "specifier": "workspace:^",
@@ -11222,10 +10628,6 @@
           "specifier": "workspace:^",
           "version": "link:../../util/home-paths"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-skill": {
           "specifier": "workspace:^",
           "version": "link:../skill"
@@ -11247,10 +10649,6 @@
         "@deepseek-ai/dsh-agent": {
           "specifier": "workspace:^",
           "version": "link:../../core/agent"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -11288,10 +10686,6 @@
           "specifier": "workspace:^",
           "version": "link:../../util/brand"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -11325,10 +10719,6 @@
         "@deepseek-ai/dsh-brand": {
           "specifier": "workspace:^",
           "version": "link:../../util/brand"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -11364,10 +10754,6 @@
           "specifier": "workspace:^",
           "version": "link:../../code-runtime/code-runtime-worker-thread"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -11395,10 +10781,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -11440,10 +10822,6 @@
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-storage": {
           "specifier": "workspace:^",
           "version": "link:../storage"
@@ -11461,10 +10839,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-storage": {
           "specifier": "workspace:^",
@@ -11614,10 +10988,6 @@
           "specifier": "workspace:^",
           "version": "link:../../boot/app-boot"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -11703,10 +11073,6 @@
         "@deepseek-ai/dsh-app-boot": {
           "specifier": "workspace:^",
           "version": "link:../../boot/app-boot"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -11802,10 +11168,6 @@
           "specifier": "workspace:^",
           "version": "link:../../boot/app-boot"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -11891,10 +11253,6 @@
         "@deepseek-ai/dsh-app-boot": {
           "specifier": "workspace:^",
           "version": "link:../../boot/app-boot"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -12282,10 +11640,6 @@
           "specifier": "workspace:^",
           "version": "link:../../test-support/agent-loop-testkit"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -12314,79 +11668,13 @@
           "specifier": "workspace:^",
           "version": "link:../subagent"
         },
-        "@deepseek-ai/dsh-subagent-spawn-in-process": {
+        "@deepseek-ai/dsh-subagent-fork-in-process": {
           "specifier": "workspace:^",
-          "version": "link:../subagent-spawn-in-process"
-        },
-        "@deepseek-ai/dsh-tools": {
-          "specifier": "workspace:^",
-          "version": "link:../../core/tools"
-        }
-      }
-    },
-    "packages/subagent/tool-subagent-report": {
-      "dependencies": {
-        "@deepseek-ai/schemastery": {
-          "specifier": "link:../../../vendor/schemastery",
-          "version": "link:../../../vendor/schemastery"
-        }
-      },
-      "devDependencies": {
-        "@deepseek-ai/cordis": {
-          "specifier": "workspace:^",
-          "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-agent": {
-          "specifier": "workspace:^",
-          "version": "link:../../core/agent"
-        },
-        "@deepseek-ai/dsh-agent-loop": {
-          "specifier": "workspace:^",
-          "version": "link:../../core/agent-loop"
-        },
-        "@deepseek-ai/dsh-agent-loop-testkit": {
-          "specifier": "workspace:^",
-          "version": "link:../../test-support/agent-loop-testkit"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
-        "@deepseek-ai/dsh-llm": {
-          "specifier": "workspace:^",
-          "version": "link:../../llm/llm"
-        },
-        "@deepseek-ai/dsh-session": {
-          "specifier": "workspace:^",
-          "version": "link:../../core/session"
-        },
-        "@deepseek-ai/dsh-session-persistence": {
-          "specifier": "workspace:^",
-          "version": "link:../../session/session-persistence"
-        },
-        "@deepseek-ai/dsh-session-persistence-jsonl": {
-          "specifier": "workspace:^",
-          "version": "link:../../session/session-persistence-jsonl"
-        },
-        "@deepseek-ai/dsh-session-projection": {
-          "specifier": "workspace:^",
-          "version": "link:../../session/session-projection"
-        },
-        "@deepseek-ai/dsh-subagent": {
-          "specifier": "workspace:^",
-          "version": "link:../subagent"
+          "version": "link:../subagent-fork-in-process"
         },
         "@deepseek-ai/dsh-subagent-spawn-in-process": {
           "specifier": "workspace:^",
           "version": "link:../subagent-spawn-in-process"
-        },
-        "@deepseek-ai/dsh-system-prompt": {
-          "specifier": "workspace:^",
-          "version": "link:../../core/system-prompt"
-        },
-        "@deepseek-ai/dsh-tool-subagent-control": {
-          "specifier": "workspace:^",
-          "version": "link:../tool-subagent-control"
         },
         "@deepseek-ai/dsh-tools": {
           "specifier": "workspace:^",
@@ -12399,10 +11687,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -12421,10 +11705,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-loader-smoke": {
           "specifier": "workspace:^",
@@ -12451,10 +11731,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -12471,10 +11747,6 @@
         "@deepseek-ai/dsh-brand": {
           "specifier": "workspace:^",
           "version": "link:../../util/brand"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
@@ -12509,10 +11781,6 @@
         "@deepseek-ai/dsh-agent": {
           "specifier": "workspace:^",
           "version": "link:../../core/agent"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-sandbox": {
           "specifier": "workspace:^",
@@ -12563,10 +11831,6 @@
         "@deepseek-ai/dsh-agent": {
           "specifier": "workspace:^",
           "version": "link:../../core/agent"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-jobs": {
           "specifier": "workspace:^",
@@ -12639,10 +11903,6 @@
         "@deepseek-ai/dsh-agent-loop": {
           "specifier": "workspace:^",
           "version": "link:../../core/agent-loop"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -12726,10 +11986,6 @@
           "specifier": "workspace:^",
           "version": "link:../../client/ui-slots"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
           "version": "link:../../core/session"
@@ -12765,10 +12021,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -12791,10 +12043,6 @@
         "@deepseek-ai/dsh-deepseek-llm-api-extensions": {
           "specifier": "workspace:^",
           "version": "link:../../llm/deepseek-llm-api-extensions"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -12829,10 +12077,6 @@
         "@deepseek-ai/dsh-app-boot": {
           "specifier": "workspace:^",
           "version": "link:../../boot/app-boot"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -12883,10 +12127,6 @@
         "@deepseek-ai/dsh-compaction": {
           "specifier": "workspace:^",
           "version": "link:../../compaction/compaction"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -13004,10 +12244,6 @@
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-tool-cordis": {
           "specifier": "workspace:^",
           "version": "link:../../extensions/tool-cordis"
@@ -13038,10 +12274,6 @@
           "specifier": "workspace:^",
           "version": "link:../../../vendor/loader"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-typert-registry": {
           "specifier": "workspace:^",
           "version": "link:../registry"
@@ -13057,10 +12289,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -13076,10 +12304,6 @@
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-typert-protocol": {
           "specifier": "workspace:^",
           "version": "link:../protocol"
@@ -13091,10 +12315,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -13103,10 +12323,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -13115,10 +12331,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -13127,10 +12339,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -13139,10 +12347,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -13151,10 +12355,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -13163,10 +12363,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -13175,10 +12371,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -13187,10 +12379,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -13199,10 +12387,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -13211,10 +12395,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -13223,10 +12403,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         }
       }
     },
@@ -13257,10 +12433,6 @@
         "@deepseek-ai/dsh-agent": {
           "specifier": "workspace:^",
           "version": "link:../../core/agent"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
@@ -13320,10 +12492,6 @@
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
           "version": "link:../../llm/llm"
@@ -13349,10 +12517,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-timeout": {
           "specifier": "workspace:^",
@@ -13388,10 +12552,6 @@
           "specifier": "workspace:^",
           "version": "link:../../credentials/credentials-local"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-launch-environment": {
           "specifier": "workspace:^",
           "version": "link:../../util/launch-environment"
@@ -13422,10 +12582,6 @@
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-launch-environment": {
           "specifier": "workspace:^",
           "version": "link:../../util/launch-environment"
@@ -13447,10 +12603,6 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:^",
           "version": "link:../../../vendor/cordis"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-launch-environment": {
           "specifier": "workspace:^",
@@ -13560,10 +12712,6 @@
           "specifier": "workspace:^",
           "version": "link:../../host/webserver"
         },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
-        },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:^",
           "version": "link:../../core/session"
@@ -13601,10 +12749,6 @@
         "@deepseek-ai/dsh-agent-loop-testkit": {
           "specifier": "workspace:^",
           "version": "link:../../test-support/agent-loop-testkit"
-        },
-        "@deepseek-ai/dsh-invariants": {
-          "specifier": "workspace:^",
-          "version": "link:../../runtime-diagnostics/invariants"
         },
         "@deepseek-ai/dsh-llm": {
           "specifier": "workspace:^",
