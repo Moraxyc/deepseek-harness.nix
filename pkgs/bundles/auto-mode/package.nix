@@ -10,20 +10,20 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-auto-mode";
-  version = "0.1.5";
+  version = "0.1.6";
 
   src = fetchFromGitHub {
     owner = "NanmiCoder";
     repo = "dsh-auto-mode";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-QVYlwTW2vmuWObJyWlyl9T5JsCkZWUfuccgKPacw+Fk=";
+    hash = "sha256-cozAsmoy/Knz7AW1UyrLS79/KGuTYK7Mw9TyxKffqE8=";
   };
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-/Ou4vZGl2MJGG845H4mrI6Q5r8gzj40pZrZoSkk7Fo4=";
+    hash = "sha256-asPlSh3vc3qUksHK4mpUu3cFFNksEpPhqcPRZ8s8TCE=";
   };
 
   npmDeps = null;
