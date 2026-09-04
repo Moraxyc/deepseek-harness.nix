@@ -10,21 +10,21 @@
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-mnemon";
-  version = "0.4.6";
+  version = "0.5.0";
   deployPackage = "dsh-mnemon";
 
   src = fetchFromGitHub {
     owner = "omdsh-dev";
     repo = "dsh-mnemon";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-9Q6wJQAMTnjo81RqI982Ge/oHUwYg1aKhGf1o0EF4sQ=";
+    hash = "sha256-53cBhfXlRCn+ydS5Qj68yN5N+ObaGwLkmQRQEbVbLR8=";
   };
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-rhRfhr3MSK1EPZ251KXTwBNTYcBDyzuw3j7eGyh7Ezs=";
+    hash = "sha256-wfxp6h3qiWwTECmOFnuB6nEuojNCd4uYAHPtkoTnupU=";
   };
 
   npmDeps = null;
