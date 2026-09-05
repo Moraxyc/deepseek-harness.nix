@@ -7,16 +7,16 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-chat-import";
-  version = "0.8.3";
+  version = "0.9.0";
 
   src = fetchFromGitHub {
     owner = "Nwflower";
     repo = "dsh-chat-import";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-+QF5FRYznqi4O7BynoXhUhwR6fL6POI1oEHJvACU3qg=";
+    hash = "sha256-OlQihsIcUU617NzrYfc823voDJK60njasREQzqGcVBk=";
   };
 
-  npmDepsHash = "sha256-MrNa0H+IzLWiFGbdwcMfbGQRaqJt/CcYW1QrAZwTYpU=";
+  npmDepsHash = "sha256-W1rnGiB2XsqFW7+yEUoGnGBk27B0M6mF8rbLBjG6fY8=";
   linkKernelNodeModules = dsh-kernel;
 
   passthru.updateScript = nix-update-script {
