@@ -88,9 +88,9 @@ buildNpmPackage (finalAttrs: {
     lockfileJson = ./pnpm-lock.json;
     targetPlatform =
       if stdenv.buildPlatform == stdenv.hostPlatform then stdenv.targetPlatform else null;
-    patchedDependencySources = {
-      "node-pty@1.2.0-beta.15" = "${finalAttrs.src}/patches/node-pty@1.2.0-beta.15.patch";
-    };
+    patchedDependencySources = lib.mapAttrs (_: relPath: "${finalAttrs.src}/${relPath}") (
+      lib.importJSON ./patched-dependencies.json
+    );
   };
 
   nativeBuildInputs = [
