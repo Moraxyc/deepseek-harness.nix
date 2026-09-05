@@ -136,7 +136,8 @@ buildNpmPackage (finalAttrs: {
 
     cp -r apps/cli/config "$appDir/config"
 
-    rm -f "$appDir/node_modules/node-pty/build/"{{binding.,}Makefile,config.gypi,pty.target.mk}
+    find "$appDir/node_modules" -type f \( -name "config.gypi" -o -name "Makefile" -o -name "*.target.mk" -o -name "binding.Makefile" -o -name "*.o" \) -delete
+    find "$appDir/node_modules" -depth -type d \( -name ".deps" -o -name "obj.target" \) -exec rm -rf {} +
     sed -i '1{/^#!/d;}' "$appDir/lib/bin.js"
     ${lib.getExe nodejs-slim} "$appDir/node_modules/@deepseek-ai/dsh-subprocess-local/scripts/ensure-spawn-helper.mjs"
 
@@ -147,6 +148,7 @@ buildNpmPackage (finalAttrs: {
     cp "$appDir/package.json" "$kernelApp/package.json"
     # Keep the public kernel self-contained; do not symlink back into the workspace.
     cp -r "$appDir/node_modules" "$kernelApp/node_modules"
+
     jq '.name = "@deepseek-ai/dsh"' "$kernelApp/package.json" > "$kernelApp/package.json.tmp"
     mv "$kernelApp/package.json.tmp" "$kernelApp/package.json"
 
@@ -210,6 +212,9 @@ buildNpmPackage (finalAttrs: {
     mkdir -p "$workspaceDir/frontends/web"
     cp apps/web/package.json "$workspaceDir/frontends/web/package.json"
     cp -r apps/web/dist "$workspaceDir/frontends/web/dist"
+
+    find "$out" "$kernel" -type f \( -name "config.gypi" -o -name "Makefile" -o -name "*.target.mk" -o -name "binding.Makefile" -o -name "*.o" \) -delete
+    find "$out" "$kernel" -depth -type d \( -name ".deps" -o -name "obj.target" \) -exec rm -rf {} +
 
     runHook postInstall
   '';
