@@ -35,7 +35,7 @@ buildDshBundle (finalAttrs: {
   postPatch = ''
     if jq -e '.pnpm.overrides' package.json >/dev/null 2>&1; then
       jq '.pnpm | {overrides}' package.json > pnpm-workspace.yaml
-      jq 'del(.pnpm)' package.json > package.json.tmp
+      jq 'del(.pnpm, .overrides)' package.json > package.json.tmp
       mv package.json.tmp package.json
     fi
   '';
