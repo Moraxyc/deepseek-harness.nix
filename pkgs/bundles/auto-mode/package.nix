@@ -4,32 +4,49 @@
   fetchPnpmDeps,
   buildDshBundle,
   dsh-kernel,
+  jq,
   pnpmConfigHook,
   pnpm_11,
   nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-auto-mode";
-  version = "0.1.6";
+  version = "0.1.7";
 
   src = fetchFromGitHub {
     owner = "NanmiCoder";
     repo = "dsh-auto-mode";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-cozAsmoy/Knz7AW1UyrLS79/KGuTYK7Mw9TyxKffqE8=";
+    hash = "sha256-fRoJ9B+ZEJl45E1jgCHSu7aXYzqWkgbPLQUUo+NWKzw=";
   };
 
   pnpmDeps = fetchPnpmDeps {
-    inherit (finalAttrs) pname version src;
+    inherit (finalAttrs)
+      pname
+      version
+      src
+      postPatch
+      ;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-asPlSh3vc3qUksHK4mpUu3cFFNksEpPhqcPRZ8s8TCE=";
+    hash = "sha256-yskpj3TKREWF6OYOnADws5YNR9V5y7RdnOrwJfQ3NWQ=";
   };
+
+  postPatch = ''
+    if jq -e '.pnpm.overrides' package.json >/dev/null 2>&1; then
+      jq '.pnpm | {overrides}' package.json > pnpm-workspace.yaml
+      jq 'del(.pnpm)' package.json > package.json.tmp
+      mv package.json.tmp package.json
+    fi
+  '';
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
-  nativeBuildInputs = [ pnpm_11 ];
+  nativeBuildInputs = [
+    jq
+    pnpm_11
+  ];
   disallowedReferences = [ pnpm_11 ];
   linkKernelNodeModules = dsh-kernel;
 
