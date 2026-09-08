@@ -182,7 +182,6 @@ let
     name: profile:
     let
       targetName = profileName name;
-      mode = validateMode (profile.mode or "managed");
       agentPreset = profileAgentPreset name profile;
       # The manifest argument order is the Cordis patch order. Keep the base
       # layer first, then apply profile bundles in their declared order.
@@ -236,35 +235,42 @@ let
         nodeLinker = "hoisted";
         autoInstallPeers = false;
       };
-      fingerprint = builtins.hashString "sha256" (
-        builtins.toJSON {
-          inherit
-            bundleManifests
-            mode
-            patch
-            targetName
-            ;
-          inherit agentPreset;
-        }
-      );
-      marker = ''
-        owner=nix
-        schema=1
-        profile=${targetName}
-        fingerprint=${fingerprint}
-      '';
+      workspaceFile = writers.writeYAML "dsh-profile-${targetName}-pnpm-workspace.yaml" workspace;
     in
     {
       inherit
         agentPreset
-        marker
         packageJson
-        patch
         patchFile
         targetName
-        workspace
+        workspaceFile
         ;
     };
+
+  makeProfileTemplate =
+    spec:
+    runCommand (lib.strings.sanitizeDerivationName "dsh-profile-${spec.targetName}-template")
+      {
+        nativeBuildInputs = [ coreutils ];
+      }
+      ''
+        mkdir -p "$out"
+        cp ${lib.escapeShellArg "${spec.packageJson}/package.json"} "$out/package.json"
+        cp ${lib.escapeShellArg spec.patchFile} "$out/cordis.patch.yml"
+        cp ${lib.escapeShellArg spec.workspaceFile} "$out/pnpm-workspace.yaml"
+        # Fingerprint the rendered files, not the store paths, so a rebuild
+        # that leaves the profile content unchanged stays a no-op.
+        fingerprint=$(
+          cd "$out"
+          sha256sum -- ${lib.concatStringsSep " " managedFiles} | sha256sum | cut -d' ' -f1
+        )
+        {
+          printf 'owner=nix\n'
+          printf 'schema=1\n'
+          printf 'profile=%s\n' ${lib.escapeShellArg spec.targetName}
+          printf 'fingerprint=%s\n' "$fingerprint"
+        } > "$out/.nix-managed"
+      '';
 in
 {
   inherit
@@ -278,18 +284,14 @@ in
   makeProfileTemplates =
     { profiles }:
     linkFarm "deepseek-harness-profiles" (
-      lib.concatMapAttrs (
+      lib.mapAttrsToList (
         name: profile:
         let
           spec = profileSpec name profile;
         in
         {
-          "${spec.targetName}/package.json" = "${spec.packageJson}/package.json";
-          "${spec.targetName}/cordis.patch.yml" = spec.patchFile;
-          "${spec.targetName}/pnpm-workspace.yaml" =
-            writers.writeYAML "${lib.strings.sanitizeDerivationName "dsh-profile-${spec.targetName}-pnpm-workspace.yaml"}" spec.workspace;
-          "${spec.targetName}/.nix-managed" =
-            writeText "${lib.strings.sanitizeDerivationName "dsh-profile-${spec.targetName}-managed"}" spec.marker;
+          name = spec.targetName;
+          path = makeProfileTemplate spec;
         }
       ) profiles
     );
@@ -382,6 +384,48 @@ in
           mv -f "$temporary" "$destination"
         }
 
+        read_fingerprint() {
+          local marker=$1
+          local line value=
+
+          while IFS= read -r line; do
+            case "$line" in
+              fingerprint=*) value=''${line#fingerprint=} ;;
+            esac
+          done < "$marker"
+          printf '%s\n' "$value"
+        }
+
+        # Must match the fingerprint written by makeProfileTemplate.
+        profile_fingerprint() {
+          local directory=$1
+          local file
+
+          for file in ${lib.concatStringsSep " " managedFiles}; do
+            [ -f "$directory/$file" ] || return 1
+          done
+
+          (
+            cd "$directory" || return 1
+            sha256sum -- ${lib.concatStringsSep " " managedFiles} | sha256sum | cut -d' ' -f1
+          )
+        }
+
+        profile_is_current() {
+          local source=$1
+          local destination=$2
+          local declared recorded actual
+
+          # Declared and installed markers must agree, and the installed files
+          # must still hash to the recorded fingerprint.
+          declared=$(read_fingerprint "$source/.nix-managed")
+          [ -n "$declared" ] || die "managed profile source has no fingerprint: $source/.nix-managed"
+          recorded=$(read_fingerprint "$destination/.nix-managed")
+          [ "$declared" = "$recorded" ] || return 1
+          actual=$(profile_fingerprint "$destination") || return 1
+          [ "$actual" = "$recorded" ]
+        }
+
         validate_profile_dir() {
           local profile=$1
           local destination=$2
@@ -455,6 +499,12 @@ in
             map (file: "  validate_owned_file \"$destination/${file}\"") managedFiles
           )}
           validate_owned_file "$destination/.nix-managed"
+
+          if profile_is_current "$source" "$destination"; then
+            return 0
+          fi
+
+          printf 'dsh: updating managed profile: %s\n' "$profile" >&2
 
           ${lib.concatStringsSep "\n" (
             map (file: "  copy_owned_file \"$source/${file}\" \"$destination/${file}\"") managedFiles

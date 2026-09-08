@@ -247,6 +247,15 @@
               "yq -e 'length == 1 and .[0].id == \"agent-presets\" and .[0].config.default == \"web-subagents\"' /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml"
             )
             machine.succeed(
+              "printf '\\n# drift\\n' >> /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml"
+            )
+            machine.succeed(
+              "set +u; . /etc/set-environment; set -u; dsh --profile nix-web --version 2>&1 | grep 'dsh: updating managed profile: nix-web' >/dev/null"
+            )
+            machine.succeed(
+              "! grep -q '# drift' /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml"
+            )
+            machine.succeed(
               "yq -e '.dependencies.\"@deepseek-ai/dsh-subagent-codex\" != null and .dependencies.\"@deepseek-ai/dsh-subagent-claude-code\" != null' $(dirname $(dirname $(readlink -f /run/current-system/sw/bin/dsh)))/lib/deepseek-harness/package.json"
             )
             machine.succeed(
