@@ -10,19 +10,19 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-annotation";
-  version = "1.4.9-preview.1-unstable-2026-09-05";
+  version = "1.4.9-preview.1-unstable-2026-09-07";
 
   src = fetchFromGitHub {
     owner = "omdsh-dev";
     repo = "dsh-annotation";
-    rev = "5e1a468c2bf16b856001e2e311ff3c5313f7f26d";
-    hash = "sha256-WYTEu6C9PBCMQxTb3NVl4vWB0q+W6QbqZbR4PdEY03I=";
+    rev = "789e034df8227fd8ad7f369cf866c00c8d098278";
+    hash = "sha256-BqrDlMTivXtj4BhHc7pl3ozxh0DjxgtTKMHgMqVatgE=";
   };
 
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
-    hash = "sha256-m1c8uo8uS79KxQtcm3XbtpKXeRrvkjRS79GSZK5XoL8=";
+    hash = "sha256-RgVoh91b+Duo8CIvQ1XtwWhwVoTSnGODMuIirLEhulY=";
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
