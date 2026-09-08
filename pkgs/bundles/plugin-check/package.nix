@@ -15,8 +15,8 @@ buildDshBundle (finalAttrs: {
   src = fetchFromGitHub {
     owner = "omdsh-dev";
     repo = "dsh-plugin-check";
-    rev = "57c27b02ad03676ab3064bc83b0aa4ce7c93f66f";
-    hash = "sha256-5pT3I8x8r4NTggwCvcIW7kKD17eC1UBKhiozc4yZTuk=";
+    rev = "9476603a4260ce910b62cad6c6cda35ab80d8b05";
+    hash = "sha256-xAJOLJXfM94d7YSxl4rehMdylu46IC5CYjX7Mjvf4Ao=";
   };
 
   # Upstream commits the generated lib and has no runtime dependencies. Its
