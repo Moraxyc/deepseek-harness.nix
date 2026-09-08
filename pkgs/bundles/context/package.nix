@@ -10,13 +10,13 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-context";
-  version = "0.45.0";
+  version = "0.46.0";
 
   src = fetchFromGitHub {
     owner = "bowenliang123";
     repo = "dsh-context";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-AjsNspe7ncH8UDGgi+Q9CetOHDD2s7eo1LU30Zcrb08=";
+    hash = "sha256-QknDk+NaSa4ibPDfkfkPVWYn2L+Ems/UWdsPzmelOds=";
   };
 
   pnpmDeps = fetchPnpmDeps {
