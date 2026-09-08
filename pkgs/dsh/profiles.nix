@@ -395,8 +395,46 @@ in
               || die "managed marker has an unexpected owner: $destination/.nix-managed"
             grep -Fxq "profile=$profile" "$destination/.nix-managed" \
               || die "managed marker belongs to another profile: $destination/.nix-managed"
-          else
-            mkdir "$destination"
+          fi
+        }
+
+        validate_profile_source() {
+          local source=$1
+          local file
+
+          [ -d "$source" ] || die "managed profile source is missing: $source"
+          for file in ${lib.concatStringsSep " " managedFiles} .nix-managed; do
+            [ -f "$source/$file" ] || die "managed profile source is missing: $source/$file"
+          done
+        }
+
+        install_profile_dir() {
+          local source=$1
+          local destination=$2
+          local parent destination_mode temporary
+
+          parent=$(dirname -- "$destination")
+          destination_mode=$(stat --format='%a' -- "$parent") \
+            || die "failed to inspect profile parent: $parent"
+
+          temporary=$(mktemp -d "$parent/.''${destination##*/}.tmp.XXXXXX") \
+            || die "failed to stage managed profile: $destination"
+          if ! cp -r --dereference --no-preserve=mode "$source"/. "$temporary"/; then
+            rm -rf --one-file-system -- "$temporary"
+            die "failed to stage managed profile: $source"
+          fi
+          if ! chmod "$destination_mode" "$temporary"; then
+            rm -rf --one-file-system -- "$temporary"
+            die "failed to set managed profile mode: $destination"
+          fi
+
+          if [ -e "$destination" ] || [ -L "$destination" ]; then
+            rm -rf --one-file-system -- "$temporary"
+            die "profile appeared during sync: $destination"
+          fi
+          if ! mv --no-copy --update=none-fail -T -- "$temporary" "$destination"; then
+            rm -rf --one-file-system -- "$temporary"
+            die "failed to install managed profile: $destination"
           fi
         }
 
@@ -405,8 +443,13 @@ in
           local source=$2
           local destination=$3
 
-          [ -d "$source" ] || die "managed profile source is missing: $source"
+          validate_profile_source "$source"
           validate_profile_dir "$profile" "$destination"
+
+          if [ ! -e "$destination" ]; then
+            install_profile_dir "$source" "$destination"
+            return 0
+          fi
 
           ${lib.concatStringsSep "\n" (
             map (file: "  validate_owned_file \"$destination/${file}\"") managedFiles
@@ -424,19 +467,14 @@ in
           local source=$2
           local destination=$3
 
-          [ -d "$source" ] || die "managed profile source is missing: $source"
+          validate_profile_source "$source"
 
-          if [ -e "$destination" ]; then
+          if [ -e "$destination" ] || [ -L "$destination" ]; then
             validate_profile_dir "$profile" "$destination"
             return 0
           fi
 
-          mkdir "$destination"
-
-          ${lib.concatStringsSep "\n" (
-            map (file: "  copy_owned_file \"$source/${file}\" \"$destination/${file}\"") managedFiles
-          )}
-          copy_owned_file "$source/.nix-managed" "$destination/.nix-managed"
+          install_profile_dir "$source" "$destination"
         }
 
         validate_agent_preset_dir() {
