@@ -99,7 +99,10 @@ let
 
   profileRequiresWeb = profileFiles.profileNeedsWeb;
 in
-assert defaultProfile == null || lib.elem defaultProfile managedProfileNames;
+assert
+  defaultProfile == null
+  || lib.elem defaultProfile managedProfileNames
+  || throw "dsh: defaultProfile '${defaultProfile}' is not one of the managed profiles: ${lib.concatStringsSep ", " managedProfileNames}";
 assert homePatch == null || lib.isList homePatch;
 
 stdenvNoCC.mkDerivation (finalAttrs: {
