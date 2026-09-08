@@ -15,8 +15,8 @@ buildDshBundle (finalAttrs: {
   src = fetchFromGitHub {
     owner = "omdsh-dev";
     repo = "dsh-security-audit";
-    rev = "9d7eabe9925e80d90d9d7862010f7aa9ce11ca4a";
-    hash = "sha256-1bGbUd7Ah/NAUIrm1ctO2zVjOu6abgnp7s16JaCpur0=";
+    rev = "d19de278a23bb93b5948be8adcb2edb515518d95";
+    hash = "sha256-I7qGPDfRYU84qpeQd0tWrOhsZYAnV7LLOBhUT4hXa1s=";
   };
 
   # Upstream commits the generated lib. The lockfile only contains build-time
