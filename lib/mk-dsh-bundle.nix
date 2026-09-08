@@ -320,7 +320,7 @@ let
             --config.link-workspace-packages=true \
             "$out/lib"
 
-          deployPackagePath="$out/lib/node_modules/${lib.escapeShellArg deployPackage}"
+          deployPackagePath="$out/lib/node_modules/${deployPackage}"
         ''
         + lib.optionalString disableChildBundlePatches suppressChildBundlePatches
         + ''

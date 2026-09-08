@@ -81,11 +81,8 @@ jobs:
           fi
           if [ -z "$attrs" ]; then
             echo "No package attrs changed"
-            echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-
-          echo "changed=true" >> "$GITHUB_OUTPUT"
 
           mapfile -t build_attrs <<< "$attrs"
           printf 'Building %d package attrs\n' "${#build_attrs[@]}"

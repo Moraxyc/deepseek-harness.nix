@@ -1,4 +1,4 @@
 {
   inputs,
 }:
-inputs.nixpkgs.lib.extend (_final: _prev: { })
+inputs.nixpkgs.lib
