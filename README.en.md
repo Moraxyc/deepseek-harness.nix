@@ -10,7 +10,7 @@ and an overlay.
 
 - [Quickstart](#quickstart)
 - [Flake Usage](#flake-usage)
-- [Cachix](#cachix)
+- [Cachix](#cache)
 - [Bundles and Presets](#bundles-and-presets)
 - [NixOS](#nixos)
 - [Home Manager](#home-manager)

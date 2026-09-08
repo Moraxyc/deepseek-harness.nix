@@ -10,7 +10,7 @@ NixOS 模块和 overlay。
 
 - [快速开始](#快速开始)
 - [Flake 用法](#flake-用法)
-- [Cachix](#cachix)
+- [Cachix](#cache)
 - [Bundles 和预设](#bundles-和预设)
 - [NixOS](#nixos)
 - [Home Manager](#home-manager)
