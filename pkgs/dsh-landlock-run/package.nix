@@ -37,7 +37,9 @@ stdenv.mkDerivation (finalAttrs: {
 
   meta = {
     description = "Static Landlock self-restrict-then-exec launcher for dsh";
-    homepage = "https://github.com/deepseek-ai/deepseek-harness/tree/master/native/landlock-run";
+    # Upstream removed native/landlock-run from master; keep the link on the
+    # tag this derivation is built from.
+    homepage = "https://github.com/deepseek-ai/deepseek-harness/tree/dsh-v${dsh-workspace.version}/native/landlock-run";
     license = lib.licenses.bsd3;
     mainProgram = "landlock-run";
     platforms = [
