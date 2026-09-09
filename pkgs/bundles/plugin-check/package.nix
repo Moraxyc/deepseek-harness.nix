@@ -10,13 +10,13 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-plugin-check";
-  version = "0-unstable-2026-09-07";
+  version = "0-unstable-2026-09-09";
 
   src = fetchFromGitHub {
     owner = "omdsh-dev";
     repo = "dsh-plugin-check";
-    rev = "9476603a4260ce910b62cad6c6cda35ab80d8b05";
-    hash = "sha256-xAJOLJXfM94d7YSxl4rehMdylu46IC5CYjX7Mjvf4Ao=";
+    rev = "91efc825aeb8c9641ca7896e5e65960657462f44";
+    hash = "sha256-CUJjOzPuJ+Jdqdc9YrSbR/ZcCjrvaLjJOBxXokb+97Y=";
   };
 
   # Upstream commits the generated lib and has no runtime dependencies. Its
@@ -24,7 +24,7 @@ buildDshBundle (finalAttrs: {
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
-    hash = "sha256-MDNy/4zykK4ViQEH5oOeJNQ0PF7AICsSd3neTawQySs=";
+    hash = "sha256-VkHAiJ6nipJzkhJZiJoF/PwkUN7MP3otgVQpFVkcHKE=";
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
