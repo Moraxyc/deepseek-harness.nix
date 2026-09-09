@@ -59,7 +59,7 @@ let
       writeShellApplication
       writers
       ;
-    inherit pnpmWorkspaceDeploy pnpmWorkspaceDeployMinVersion;
+    inherit fetchPnpmDeps pnpmWorkspaceDeploy pnpmWorkspaceDeployMinVersion;
   };
   dsh = final.lib.makeScope final.newScope (
     self:

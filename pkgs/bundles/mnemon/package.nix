@@ -1,7 +1,6 @@
 {
   lib,
   fetchFromGitHub,
-  fetchPnpmDeps,
   buildDshBundle,
   dsh-kernel,
   pnpmConfigHook,
@@ -19,11 +18,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     hash = "sha256-vVJh9pjAP2csT25gwi+/9LJe7Z9EmABUSx2HhdmcqL0=";
   };
 
-  pnpmDeps = fetchPnpmDeps {
-    inherit (finalAttrs) pname version src;
-    fetcherVersion = 4;
-    hash = "sha256-vJFH1jbAJrh5XomGqGsFiuvgyDx+rBZ0UK4xHSfdctY=";
-  };
+  pnpmDepsHash = "sha256-vJFH1jbAJrh5XomGqGsFiuvgyDx+rBZ0UK4xHSfdctY=";
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;

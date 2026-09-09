@@ -1,7 +1,6 @@
 {
   lib,
   fetchFromGitHub,
-  fetchPnpmDeps,
   buildDshBundle,
   pnpmConfigHook,
   nix-update-script,
@@ -18,11 +17,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     hash = "sha256-ObP8o+HY+/zANO7IFcu1REa2XTgB0noQgHXZrdbheNg=";
   };
 
-  pnpmDeps = fetchPnpmDeps {
-    inherit (finalAttrs) pname version src;
-    fetcherVersion = 4;
-    hash = "sha256-SlMlFDdr/Fm8BndcKXCPzwZzmkSsoFp/6yuj5Y2XYDc=";
-  };
+  pnpmDepsHash = "sha256-SlMlFDdr/Fm8BndcKXCPzwZzmkSsoFp/6yuj5Y2XYDc=";
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;

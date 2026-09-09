@@ -32,7 +32,6 @@ Minimal template:
 {
   lib,
   fetchFromGitHub,
-  fetchPnpmDeps,
   buildDshBundle,
   pnpmConfigHook,
 }:
@@ -50,11 +49,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
   };
 
-  pnpmDeps = fetchPnpmDeps {
-    inherit (finalAttrs) pname version src;
-    fetcherVersion = 4;
-    hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
-  };
+  pnpmDepsHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
@@ -80,12 +75,14 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
    workspaces that use `packages/*` and single-package workspaces that only
    define `packages: ["."]`.
 2. Run `pnpm config set --location=project inject-workspace-packages true`.
-3. `pnpm deploy` with workspace injection needs pnpm 11.22.0 or newer. The DSH
-   package scope's `fetchPnpmDeps` defaults to `pnpmWorkspaceDeploy`, and
-   `fromPnpmWorkspace` uses the same default for deploy, so the template omits
-   `pnpm`. When nixpkgs ships an older `pnpm_11`, `pnpmWorkspaceDeploy` builds
-   11.22.0 from the npm tarball. Override `pnpm` only for a different,
-   still-compatible version.
+3. `fromPnpmWorkspace` builds `pnpmDeps` from `pnpmDepsHash` with the DSH
+   package scope's `fetchPnpmDeps`, which defaults to `pnpmWorkspaceDeploy`.
+   `pnpm deploy` with workspace injection needs pnpm 11.22.0 or newer, and the
+   deploy step uses the same default, so the template only supplies a hash and
+   omits `pnpm`. When nixpkgs ships an older `pnpm_11`, `pnpmWorkspaceDeploy`
+   builds 11.22.0 from the npm tarball. Override `pnpm` only for a different,
+   still-compatible version. Pass `pnpmDeps` instead of `pnpmDepsHash` only
+   when the lockfile needs a custom fetcher, such as `importPnpmLock`.
 4. Run:
 
    ```sh
@@ -125,7 +122,7 @@ mv \
   "$deployPackagePath/"
 ```
 
-Update `src.hash` and `pnpmDeps.hash` with the hashes reported by `nix build`.
+Update `src.hash` and `pnpmDepsHash` with the hashes reported by `nix build`.
 The composed `dsh` package boots every managed profile during `installCheckPhase`
 through `dshBundleCheckHook`; use that to catch duplicate loader entry IDs,
 invalid patches, missing kernel peer imports, and package resolution failures

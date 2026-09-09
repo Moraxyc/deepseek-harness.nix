@@ -29,7 +29,6 @@ Nix 包的 `pname` 仍可保留上游名称。
 {
   lib,
   fetchFromGitHub,
-  fetchPnpmDeps,
   buildDshBundle,
   pnpmConfigHook,
 }:
@@ -47,11 +46,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
   };
 
-  pnpmDeps = fetchPnpmDeps {
-    inherit (finalAttrs) pname version src;
-    fetcherVersion = 4;
-    hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
-  };
+  pnpmDepsHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
@@ -76,11 +71,13 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
    让 pnpm 在部署前跳过源码包重建。该方式同时支持 `packages/*` 多包
    workspace 和只声明 `packages: ["."]` 的单包 workspace。
 2. 运行 `pnpm config set --location=project inject-workspace-packages true`。
-3. `pnpm deploy` 的 workspace 注入要求 pnpm 不低于 11.22.0。DSH package scope
-   的 `fetchPnpmDeps` 默认使用 `pnpmWorkspaceDeploy`，`fromPnpmWorkspace` 的
-   deploy 也用同一个默认值，因此模板不需要写 `pnpm`。当 nixpkgs 的 `pnpm_11`
-   较旧时，`pnpmWorkspaceDeploy` 从 npm tarball 构建 11.22.0。只有需要换成其
-   他仍满足版本要求的 pnpm 时才覆盖 `pnpm`。
+3. `fromPnpmWorkspace` 用 DSH package scope 的 `fetchPnpmDeps` 从
+   `pnpmDepsHash` 构造 `pnpmDeps`，该 fetcher 默认使用
+   `pnpmWorkspaceDeploy`。`pnpm deploy` 的 workspace 注入要求 pnpm 不低于
+   11.22.0，deploy 步骤也用同一个默认值，因此模板只提供哈希，不写 `pnpm`。
+   当 nixpkgs 的 `pnpm_11` 较旧时，`pnpmWorkspaceDeploy` 从 npm tarball 构建
+   11.22.0。只有需要换成其他仍满足版本要求的 pnpm 时才覆盖 `pnpm`。只有当
+   lockfile 需要自定义 fetcher（例如 `importPnpmLock`）时才改用 `pnpmDeps`。
 4. 运行：
 
    ```sh
@@ -116,7 +113,7 @@ mv \
   "$deployPackagePath/"
 ```
 
-更新 `src.hash` 和 `pnpmDeps.hash` 时，以 `nix build` 报告的哈希为准。
+更新 `src.hash` 和 `pnpmDepsHash` 时，以 `nix build` 报告的哈希为准。
 组合后的 `dsh` 在 `installCheckPhase` 通过 `dshBundleCheckHook` 启动每个
 托管 profile，可提前发现重复 loader ID、无效补丁、缺失 kernel peer 和包解析
 失败。交互式终端循环 profile 可设置 `requiresTty = true`；hook 会在伪终端下

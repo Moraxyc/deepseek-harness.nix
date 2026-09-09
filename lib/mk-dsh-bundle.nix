@@ -1,6 +1,7 @@
 {
   lib,
   buildNpmPackage,
+  fetchPnpmDeps,
   jq,
   nodejs,
   nodejs-slim,
@@ -266,6 +267,7 @@ let
       "linkKernelNodeModules"
       "linkKernelNodeModulesKeep"
       "pnpm"
+      "pnpmDepsHash"
       "postDeploy"
       "preDeploy"
       "runtimeDeps"
@@ -275,6 +277,8 @@ let
       finalAttrs:
       {
         deployPackage,
+        pnpmDeps ? null,
+        pnpmDepsHash ? null,
         runtimeDeps ? [ ],
         preDeploy ? "",
         postDeploy ? "",
@@ -293,6 +297,17 @@ let
       }:
       let
         bundleProtocol = validateProtocol { inherit runtimeDeps; };
+        resolvedPnpmDeps =
+          if pnpmDeps != null then
+            pnpmDeps
+          else if pnpmDepsHash != null then
+            fetchPnpmDeps {
+              inherit (finalAttrs) pname version src;
+              fetcherVersion = 4;
+              hash = pnpmDepsHash;
+            }
+          else
+            null;
         defaultInstallPhase = ''
           runHook preInstall
         ''
@@ -330,6 +345,8 @@ let
           runHook postInstall
         '';
       in
+      assert lib.assertMsg (pnpmDeps == null || pnpmDepsHash == null)
+        "buildDshBundle.fromPnpmWorkspace: ${finalAttrs.pname} sets both pnpmDeps and pnpmDepsHash; pass only one.";
       assert lib.assertMsg (lib.versionAtLeast pnpm.version pnpmWorkspaceDeployMinVersion)
         "buildDshBundle.fromPnpmWorkspace: ${finalAttrs.pname} requires pnpm >= ${pnpmWorkspaceDeployMinVersion} for workspace injection, got ${pnpm.version}. Leave `pnpm` unset to use `pnpmWorkspaceDeploy`, or pass `pnpm = pnpmWorkspaceDeploy` explicitly.";
       {
@@ -363,6 +380,9 @@ let
           description =
             meta.description or (throw "buildDshBundle: ${finalAttrs.pname} requires meta.description");
         };
+      }
+      // lib.optionalAttrs (resolvedPnpmDeps != null) {
+        pnpmDeps = resolvedPnpmDeps;
       };
   };
 
