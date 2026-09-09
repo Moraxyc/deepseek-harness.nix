@@ -4,6 +4,10 @@ dshBundleCheckHook() {
   runHook preDshBundleCheck
   echo Executing dshBundleCheckPhase
 
+  print_failure_hint() {
+    echo "dshBundleCheckHook: if this failure is flaky, temporarily set dontDshBundleCheck = true in the derivation to skip this check" >&2
+  }
+
   local cmdProgram="${dshBundleCheckProgram-}"
   if [[ -z "$cmdProgram" ]]; then
     if [[ -n "${outputBin-}" ]]; then
@@ -140,6 +144,7 @@ dshBundleCheckHook() {
     if is_web_profile "$profile"; then
       if ! check_web_profile "$profile"; then
         echo "dshBundleCheckHook: dsh profile $profile failed" >&2
+        print_failure_hint
         return 1
       fi
     elif is_tty_profile "$profile"; then
@@ -156,12 +161,14 @@ dshBundleCheckHook() {
       if [[ "$status" -ne 0 && "$status" -ne 124 ]]; then
         cat "$logFile" >&2
         echo "dshBundleCheckHook: dsh profile $profile failed" >&2
+        print_failure_hint
         return 1
       fi
     elif ! DSH_HOME="$dshBundleCheckHome" DSH_TELEMETRY_DISABLED=1 \
       timeout "$dshBundleCheckTimeout" \
       "$cmdProgram" --profile "$profile" "${checkArgs[@]}"; then
       echo "dshBundleCheckHook: dsh profile $profile failed" >&2
+      print_failure_hint
       return 1
     fi
   done
