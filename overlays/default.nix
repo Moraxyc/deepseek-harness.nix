@@ -52,7 +52,10 @@ let
   dsh = final.lib.makeScope final.newScope (
     self:
     {
-      inherit buildDshBundle;
+      # Only the dsh package set gets the release-age opt-out. Exporting the
+      # wrapped fetcher at the nixpkgs top level would change every unrelated
+      # pnpm package.
+      inherit buildDshBundle fetchPnpmDeps;
       pnpm_11 = compatiblePnpm;
       helpers.buildBundle = buildDshBundle;
       mkDshBundle = buildDshBundle;
@@ -63,8 +66,7 @@ let
       directory = ../pkgs;
     }
   );
-  importPnpmLock = dsh.importPnpmLock;
 in
 {
-  inherit dsh fetchPnpmDeps importPnpmLock;
+  inherit dsh;
 }
