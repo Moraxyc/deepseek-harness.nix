@@ -25,6 +25,10 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   npmConfigHook = pnpmConfigHook;
   dontNpmBuild = true;
 
+  preDeploy = ''
+    pnpm --filter ${lib.escapeShellArg "@changfenhuang/dsh-genui"} build
+  '';
+
   passthru.requiresWeb = true;
   passthru.updateScript = nix-update-script {
     extraArgs = [
