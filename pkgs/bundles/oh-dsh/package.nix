@@ -8,6 +8,7 @@
   pnpmConfigHook,
   pnpm_11,
   pnpmWorkspaceDeploy,
+  tui,
   nix-update-script,
 }:
 
@@ -56,6 +57,7 @@ buildDshBundle (finalAttrs: {
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
+  disableChildBundlePatches = true;
   nativeBuildInputs = [ pnpmWorkspaceDeploy ];
   disallowedReferences = [ pnpmWorkspaceDeploy ];
 
@@ -68,6 +70,7 @@ buildDshBundle (finalAttrs: {
     cp -r ${contextUnstable}/lib/node_modules/dsh-context/. upstream/dsh-context/
     rm -rf upstream/dsh-context/node_modules
     chmod -R u+w upstream/dsh-context
+
   '';
 
   installPhase = ''
@@ -117,11 +120,22 @@ buildDshBundle (finalAttrs: {
     }
 
     deploy_ohdsh_package @oh-dsh/web web
+    deploy_ohdsh_package @oh-dsh/about about
     deploy_ohdsh_package @oh-dsh/better-sidebar-runtime better-sidebar-runtime
+    deploy_ohdsh_package @oh-dsh/liangshen liangshen
     deploy_ohdsh_package @oh-dsh/skins skins
     deploy_ohdsh_package @oh-dsh/sidebar sidebar
     deploy_ohdsh_package @oh-dsh/panel-controls panel-controls
     deploy_ohdsh_package @oh-dsh/pinned-summary pinned-summary
+    deploy_ohdsh_package @oh-dsh/plugin-marketplace plugin-marketplace
+    deploy_ohdsh_package @oh-dsh/save-as-image save-as-image
+
+    rm -rf "$bundleRoot/@deepseek-harness-tui"
+    mkdir -p "$bundleRoot/@deepseek-harness-tui/dsh-auth"
+    # The dsh-auth source repository is TypeScript-only; reuse TUI's compiled runtime payload.
+    cp -rL ${tui}/lib/node_modules/@deepseek-harness-tui/dsh-tui/node_modules/@deepseek-harness-tui/dsh-auth/. \
+      "$bundleRoot/@deepseek-harness-tui/dsh-auth/"
+    chmod -R u+w "$bundleRoot/@deepseek-harness-tui"
 
     mkdir -p "$bundleRoot/dsh-context"
     cp -r upstream/dsh-context/LICENSE \

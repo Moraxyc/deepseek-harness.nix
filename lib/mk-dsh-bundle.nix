@@ -250,6 +250,7 @@ let
   buildDshBundle = lib.extendMkDerivation {
     constructDrv = buildNpmPackage;
     excludeDrvArgNames = [
+      "disableChildBundlePatches"
       "linkKernelNodeModules"
       "linkKernelNodeModulesKeep"
       "runtimeDeps"
@@ -258,6 +259,7 @@ let
       finalAttrs:
       {
         runtimeDeps ? [ ],
+        disableChildBundlePatches ? false,
         linkKernelNodeModules ? null,
         linkKernelNodeModulesKeep ? [ ],
         nativeBuildInputs ? [ ],
@@ -288,10 +290,12 @@ let
           nodejs-slim
           nodejs-slim.npm
         ]
+        ++ lib.optional disableChildBundlePatches jq
         ++ nativeBuildInputs;
         passthru = passthru // bundleValidation.passthru;
         postInstall =
           postInstall
+          + lib.optionalString disableChildBundlePatches suppressChildBundlePatches
           + lib.optionalString (linkKernelNodeModules != null) (
             linkKernelNodeModulesScript linkKernelNodeModules linkKernelNodeModulesKeep
           )
