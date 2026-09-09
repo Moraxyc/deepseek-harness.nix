@@ -1,7 +1,4 @@
-{
-  lib,
-  ...
-}:
+{ ... }:
 {
   perSystem =
     { pkgs, ... }:
@@ -11,8 +8,15 @@
       importPnpmLock = dsh.importPnpmLock;
     in
     {
-      packages = lib.filterAttrs (_: package: lib.isDerivation package && package ? meta) dsh // {
+      # Keep build helpers and runtime dependencies out of the public package set.
+      packages = {
         default = dsh.dsh;
+        inherit (dsh)
+          dsh
+          dsh-desktop
+          dsh-kernel
+          dsh-workspace
+          ;
         inherit docs-site;
       };
 
