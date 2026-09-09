@@ -38,6 +38,16 @@ buildDshBundle (finalAttrs: {
       jq 'del(.pnpm, .overrides)' package.json > package.json.tmp
       mv package.json.tmp package.json
     fi
+
+    # The packaged kernel is the authoritative Harness runtime cohort.
+    jq --arg hostVersion ${lib.escapeShellArg dsh-kernel.version} '
+      .supportedHosts = if any(.supportedHosts[]; .version == $hostVersion)
+        then .supportedHosts
+        else .supportedHosts + [{version: $hostVersion, track: "current"}]
+        end
+      | .recommendedHost = $hostVersion
+    ' compatibility.json > compatibility.json.tmp
+    mv compatibility.json.tmp compatibility.json
   '';
 
   npmDeps = null;
@@ -56,7 +66,7 @@ buildDshBundle (finalAttrs: {
     appDir="$out/lib/node_modules/@nanmicoder/dsh-auto-mode"
     mkdir -p "$appDir"
 
-    cp -r package.json cordis.patch.yml lib "$appDir/"
+    cp -r package.json compatibility.json cordis.patch.yml lib "$appDir/"
 
     runHook postInstall
   '';
