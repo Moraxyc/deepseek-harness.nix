@@ -54,6 +54,14 @@ buildDshBundle (finalAttrs: {
     rm -rf upstream/dsh-context/node_modules
     chmod -R u+w upstream/dsh-context
 
+    substituteInPlace upstream/DSH-better-sidebar/src/index.ts \
+      --replace-fail \
+        "import { SettingsConflictError, settingsNamespace, type SettingsNamespace } from '@deepseek-ai/dsh-settings'" \
+        "import { SettingsConflictError } from '@deepseek-ai/dsh-settings'" \
+      --replace-fail \
+        "const ns: SettingsNamespace = settingsNamespace(SIDEBAR_PREFS_NS)" \
+        "const ns = SIDEBAR_PREFS_NS"
+
   '';
 
   installPhase = ''
