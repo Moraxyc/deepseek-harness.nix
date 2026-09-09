@@ -2,15 +2,6 @@
   scope,
 }:
 let
-  hasSuffix =
-    suffix: string:
-    let
-      stringLength = builtins.stringLength string;
-      suffixLength = builtins.stringLength suffix;
-    in
-    suffixLength <= stringLength
-    && builtins.substring (stringLength - suffixLength) suffixLength string == suffix;
-
   packageNames =
     attrs:
     builtins.sort (a: b: a < b) (
@@ -30,16 +21,12 @@ let
     name: package:
     let
       templateEntries = package.passthru.profileTemplates.entries or { };
-      managedProfiles = builtins.filter (hasSuffix "/.nix-managed") (builtins.attrNames templateEntries);
     in
     {
       inherit name;
       package = package.pname;
       defaultProfile = package.passthru.defaultProfileName or null;
-      profiles = map (
-        entry:
-        builtins.substring 0 (builtins.stringLength entry - builtins.stringLength "/.nix-managed") entry
-      ) managedProfiles;
+      profiles = builtins.attrNames templateEntries;
       bundles = map (bundle: bundle.pname or bundle.name) (package.passthru.composedBundles or [ ]);
       description = package.meta.description or null;
       descriptionZh = package.meta.descriptions.zh-CN or package.meta.description or null;
