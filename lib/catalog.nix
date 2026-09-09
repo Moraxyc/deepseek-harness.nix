@@ -20,13 +20,14 @@ let
   presetInfo =
     name: package:
     let
+      config = package.passthru.config or { };
       templateEntries = package.passthru.profileTemplates.entries or { };
     in
     {
       inherit name;
       package = package.pname;
-      defaultProfile = package.passthru.defaultProfileName or null;
-      profiles = builtins.attrNames templateEntries;
+      defaultProfile = config.defaultProfile or null;
+      profiles = builtins.attrNames (config.profiles or templateEntries);
       bundles = map (bundle: bundle.pname or bundle.name) (package.passthru.composedBundles or [ ]);
       description = package.meta.description or null;
       descriptionZh = package.meta.descriptions.zh-CN or package.meta.description or null;

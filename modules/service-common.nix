@@ -4,29 +4,34 @@
 }:
 let
   profileOptions = import ./profile-options.nix { inherit lib; };
+  mkDsh = import ../lib/mk-dsh.nix;
   profileName = name: "nix-${name}";
 
   mkComposedPackage =
     { cfg, config }:
     let
       managedProfiles = map profileName (lib.attrNames cfg.profiles);
-      servicePackage =
-        if lib.elem cfg.profile managedProfiles then
-          (
-            (config.programs.dsh.package.override {
-              agentPresets = cfg.agentPresets;
-            }).withProfiles
-            cfg.profiles
-          ).override
-            {
-              defaultProfile = cfg.profile;
-            }
+      hasManagedProfile = lib.elem cfg.profile managedProfiles;
+      package = if hasManagedProfile then config.programs.dsh.package else pkgs.dsh.presets.web;
+      packageConfig = package.passthru.config or { };
+      serviceConfig =
+        if hasManagedProfile then
+          packageConfig
+          // {
+            profiles = cfg.profiles;
+            agentPresets = cfg.agentPresets;
+            defaultProfile = cfg.profile;
+          }
         else
-          pkgs.dsh.presets.web;
+          packageConfig;
     in
-    servicePackage.override {
-      homePatch = config.programs.dsh.patch;
-    };
+    mkDsh (
+      serviceConfig
+      // {
+        inherit package;
+        patch = config.programs.dsh.patch;
+      }
+    );
 
   mkExecArgs =
     cfg:

@@ -145,32 +145,51 @@
 
         dsh-agent-presets =
           let
+            homePatch = [
+              {
+                id = "dsh-test-home";
+                config.value = "preserved";
+              }
+            ];
             package =
               (
-                (pkgs.dsh.dsh.withAgentPresets {
-                  first = {
-                    source = "standard";
-                  };
-                }).withProfiles
-                {
-                  first = {
-                    agentPreset = "first";
-                  };
-                  second = {
-                    agentPreset = "second";
-                  };
-                }
+                (
+                  ((pkgs.dsh.dsh.override { inherit homePatch; }).withAgentPresets {
+                    first = {
+                      source = "standard";
+                    };
+                  }).withProfiles
+                  {
+                    first = {
+                      agentPreset = "first";
+                    };
+                    second = {
+                      agentPreset = "second";
+                    };
+                  }
+                ).withBundles
+                [ pkgs.dsh.bundles.base ]
               ).withAgentPresets
                 {
                   second = {
                     source = "ptc";
                   };
                 };
+            config = package.passthru.config;
           in
+          assert config.defaultProfile == null;
+          assert config.patch == homePatch;
+          assert config.agentPresets.first.source == "standard";
+          assert config.agentPresets.second.source == "ptc";
+          assert config.profiles.first.agentPreset == "first";
+          assert config.profiles.second.agentPreset == "second";
+          assert lib.elem pkgs.dsh.bundles.base config.defaultBundles;
+          assert lib.elem pkgs.dsh.bundles.base config.profiles.first.bundles;
           pkgs.runCommand "dsh-agent-presets-composition" { } ''
             testHome=$(mktemp -d)
             DSH_HOME="$testHome" ${package}/bin/dsh --profile nix-first --version
             DSH_HOME="$testHome" ${package}/bin/dsh --profile nix-second --version
+            test -f "$testHome/cordis.patch.yml"
             test -f "$testHome/.agent-presets/first/agent.cordis.yml"
             test -f "$testHome/.agent-presets/second/agent.cordis.yml"
             touch "$out"

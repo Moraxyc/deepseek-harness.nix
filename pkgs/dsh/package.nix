@@ -46,6 +46,7 @@
 
 let
   composition = import ./composition.nix { inherit lib; };
+  mkDsh = import ../../lib/mk-dsh.nix;
   dshBundleResolver = buildDshBundle.dshBundleResolver;
   profileFiles = import ./profiles.nix {
     inherit
@@ -99,6 +100,16 @@ let
     || lib.any (bundle: bundle.passthru.requiresTty or false) (profile.bundles or [ ]);
 
   profileRequiresWeb = profileFiles.profileNeedsWeb;
+  compositionConfig = {
+    package = dsh;
+    inherit
+      agentPresets
+      defaultBundles
+      defaultProfile
+      profiles
+      ;
+    patch = homePatch;
+  };
 in
 assert
   defaultProfile == null
@@ -232,6 +243,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   passthru = {
     inherit bundles defaultBundles;
 
+    config = builtins.removeAttrs compositionConfig [ "package" ];
+
     defaultProfileName = defaultProfile;
 
     composedBundles = composition.composeBundles {
@@ -273,32 +286,31 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     # materializes the profile as nix-tui.
     withProfiles =
       configuredProfiles:
-      dsh.override {
-        inherit agentPresets defaultBundles homePatch;
-        defaultProfile = null;
-        profiles = lib.mapAttrs (
-          _: profile:
-          profile
-          // {
-            bundles = resolveBundles (profile.bundles or [ ]);
-          }
-        ) configuredProfiles;
-      };
+      mkDsh (
+        compositionConfig
+        // {
+          defaultProfile = null;
+          profiles = lib.mapAttrs (
+            _: profile:
+            profile
+            // {
+              bundles = resolveBundles (profile.bundles or [ ]);
+            }
+          ) configuredProfiles;
+        }
+      );
 
     # pkgs.dsh.dsh.withAgentPresets { web-subagents = { source = "standard"; }; }
     # merges definitions by ID; a later definition replaces an earlier one.
     withAgentPresets =
       configuredAgentPresets:
       assert lib.isAttrs configuredAgentPresets;
-      dsh.override {
-        inherit
-          defaultBundles
-          defaultProfile
-          homePatch
-          profiles
-          ;
-        agentPresets = agentPresets // configuredAgentPresets;
-      };
+      mkDsh (
+        compositionConfig
+        // {
+          agentPresets = agentPresets // configuredAgentPresets;
+        }
+      );
 
     # pkgs.dsh.dsh.withBundles (b: with b; [ tui web-app ])
     # pkgs.dsh.dsh.withBundles [ pkgs.dsh.bundles.tui pkgs.dsh.bundles.web-app ]
@@ -317,11 +329,13 @@ stdenvNoCC.mkDerivation (finalAttrs: {
         ) profiles;
       in
       assert lib.isList selectedBundles;
-      dsh.override {
-        inherit agentPresets defaultProfile homePatch;
-        defaultBundles = lib.unique (defaultBundles ++ selectedBundles);
-        profiles = profilesWithBundles;
-      };
+      mkDsh (
+        compositionConfig
+        // {
+          defaultBundles = lib.unique (defaultBundles ++ selectedBundles);
+          profiles = profilesWithBundles;
+        }
+      );
   };
 
   meta = {
