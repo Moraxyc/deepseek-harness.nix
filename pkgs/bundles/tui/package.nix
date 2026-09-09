@@ -35,6 +35,12 @@ buildDshBundle (finalAttrs: {
         "execFileSync('find', ['src', 'scripts', '-type', 'f', '-print0'], { encoding: 'utf8' })"
   '';
 
+  # Static imports initialize i18n before the verification script can set its
+  # process-local language; pin build-time UI assertions in the locale-less Nix sandbox.
+  env = {
+    DSH_TUI_LANG = "en";
+  };
+
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_11;
