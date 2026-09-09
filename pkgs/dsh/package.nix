@@ -139,81 +139,107 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     makeWrapper
   ];
 
-  installPhase = ''
-    kernelApp="${dsh-kernel}/lib/deepseek-harness"
-    appDir="$out/lib/deepseek-harness"
-
-    mkdir -p "$appDir"
-    # Copy lib so the profile heal anchors at this manifest, not the kernel's.
-    cp -r "$kernelApp/lib" "$appDir/lib"
-    ln -s "$kernelApp/config" "$appDir/config"
-    cp "$kernelApp/package.json" "$appDir/package.json"
-    ln -s "${finalAttrs.passthru.nodeModules}" "$appDir/node_modules"
-
-    mkdir -p "$out/nix-support"
-    ${lib.getExe dshBundleResolver} merge \
-      "$out/nix-support/dsh-bundles.json" \
-      ${lib.concatMapStringsSep " " (
-        bundle: lib.escapeShellArg "${bundle}/nix-support/dsh-bundles.json"
-      ) finalAttrs.passthru.composedBundles}
-    jq --slurpfile bundles "$out/nix-support/dsh-bundles.json" \
-      '.dependencies *= ($bundles[0].bundles | map({key: .name, value: .version}) | from_entries)' \
-      "$appDir/package.json" > "$appDir/package.json.tmp"
-    mv "$appDir/package.json.tmp" "$appDir/package.json"
-
-    mkdir -p $out/bin
-    makeWrapper ${lib.getExe nodejs-slim} $out/bin/dsh \
-      ${
-        lib.optionalString (
-          finalAttrs.passthru.runtimeDeps != [ ]
-        ) "--prefix PATH : ${lib.makeBinPath finalAttrs.passthru.runtimeDeps} "
-      }\
-      --add-flags "--expose-internals" \
-      --add-flags "$appDir/lib/bin.js"
-
-    ${lib.optionalString (profiles != { } || validatedHomePatch != null) ''
-      wrapProgram $out/bin/dsh \
-        --run ${lib.escapeShellArg ''
-          requested_profile=
-          has_profile=0
-          wants_profile_value=0
-          for arg in "$@"; do
-            if [ "$wants_profile_value" -eq 1 ]; then
-              requested_profile=$arg
+  installPhase =
+    let
+      dshWrapper = ''
+        makeWrapper ${lib.getExe nodejs-slim} "$out/bin/dsh-real" \
+      ''
+      + lib.optionalString (finalAttrs.passthru.runtimeDeps != [ ]) ''
+        --prefix PATH : ${lib.makeBinPath finalAttrs.passthru.runtimeDeps} \
+      ''
+      + ''
+        --add-flags "--expose-internals" \
+        --add-flags "$appDir/lib/bin.js"
+      '';
+      dshSeedWrapper =
+        if profiles == { } && validatedHomePatch == null then
+          null
+        else
+          writeShellApplication {
+            name = "dsh-seed-profile";
+            runtimeInputs = [ finalAttrs.passthru.seedProfiles ];
+            text = ''
+              requested_profile=
+              has_profile=0
               wants_profile_value=0
-              continue
-            fi
+              for arg in "$@"; do
+                if [ "$wants_profile_value" -eq 1 ]; then
+                  requested_profile=$arg
+                  wants_profile_value=0
+                  continue
+                fi
 
-            case "$arg" in
-              --) break ;;
-              --profile)
-                wants_profile_value=1
-                has_profile=1
-                ;;
-              --profile=*)
-                requested_profile=''${arg#--profile=}
-                has_profile=1
-                ;;
-            esac
-          done
+                case "$arg" in
+                  --) break ;;
+                  --profile)
+                    wants_profile_value=1
+                    has_profile=1
+                    ;;
+                  --profile=*)
+                    requested_profile=''${arg#--profile=}
+                    has_profile=1
+                    ;;
+                esac
+              done
 
-          if [ "$has_profile" -eq 1 ]; then
-            ${lib.escapeShellArg (lib.getExe finalAttrs.passthru.seedProfiles)} "$requested_profile"
-          ${lib.optionalString (validatedDefaultProfile != null) ''
-            else
-              ${lib.escapeShellArg (lib.getExe finalAttrs.passthru.seedProfiles)} ${lib.escapeShellArg validatedDefaultProfile}
-              set -- --profile ${lib.escapeShellArg validatedDefaultProfile} "$@"
-          ''}
-          ${lib.optionalString (validatedDefaultProfile == null) ''
-            else
-              ${lib.escapeShellArg (lib.getExe finalAttrs.passthru.seedProfiles)}
-          ''}
-          fi
-        ''}
-    ''}
+              if [ "$has_profile" -eq 1 ]; then
+                dsh-sync-profiles "$requested_profile"
+            ''
+            + lib.optionalString (validatedDefaultProfile != null) ''
+              else
+                dsh-sync-profiles ${lib.escapeShellArg validatedDefaultProfile}
+                set -- --profile ${lib.escapeShellArg validatedDefaultProfile} "$@"
+            ''
+            + lib.optionalString (validatedDefaultProfile == null) ''
+              else
+                dsh-sync-profiles
+            ''
+            + ''
+              fi
 
-    runHook postInstall
-  '';
+              real_dsh=''${DSH_REAL:?DSH_REAL is not set}
+              exec "$real_dsh" "$@"
+            '';
+          };
+      profileLauncher =
+        if dshSeedWrapper == null then
+          ''
+            mv "$out/bin/dsh-real" "$out/bin/dsh"
+          ''
+        else
+          ''
+            makeWrapper ${dshSeedWrapper}/bin/dsh-seed-profile "$out/bin/dsh" \
+              --set DSH_REAL "$out/bin/dsh-real"
+          '';
+    in
+    ''
+      kernelApp="${dsh-kernel}/lib/deepseek-harness"
+      appDir="$out/lib/deepseek-harness"
+
+      mkdir -p "$appDir"
+      # Copy lib so the profile heal anchors at this manifest, not the kernel's.
+      cp -r "$kernelApp/lib" "$appDir/lib"
+      ln -s "$kernelApp/config" "$appDir/config"
+      cp "$kernelApp/package.json" "$appDir/package.json"
+      ln -s "${finalAttrs.passthru.nodeModules}" "$appDir/node_modules"
+
+      mkdir -p "$out/nix-support"
+      ${lib.getExe dshBundleResolver} merge \
+        "$out/nix-support/dsh-bundles.json" \
+        ${lib.concatMapStringsSep " " (
+          bundle: lib.escapeShellArg "${bundle}/nix-support/dsh-bundles.json"
+        ) finalAttrs.passthru.composedBundles}
+      jq --slurpfile bundles "$out/nix-support/dsh-bundles.json" \
+        '.dependencies *= ($bundles[0].bundles | map({key: .name, value: .version}) | from_entries)' \
+        "$appDir/package.json" > "$appDir/package.json.tmp"
+      mv "$appDir/package.json.tmp" "$appDir/package.json"
+
+      mkdir -p "$out/bin"
+      ${dshWrapper}
+      ${profileLauncher}
+
+      runHook postInstall
+    '';
 
   __darwinAllowLocalNetworking = true;
   doInstallCheck = true;

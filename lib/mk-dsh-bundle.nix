@@ -54,7 +54,7 @@ let
     name = "dsh-resolve-bundles";
     runtimeInputs = [ nodejs-slim ];
     text = ''
-      exec ${lib.getExe nodejs-slim} ${resolveDshBundles} "$@"
+      exec node ${resolveDshBundles} "$@"
     '';
   };
 
