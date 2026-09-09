@@ -253,6 +253,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     config = builtins.removeAttrs compositionConfig [ "package" ];
 
     defaultProfileName = validatedDefaultProfile;
+    profileNames = managedProfileNames;
 
     composedBundles = composition.composeBundles {
       base = baseBundle;

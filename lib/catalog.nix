@@ -21,13 +21,12 @@ let
     name: package:
     let
       config = package.passthru.config or { };
-      templateEntries = package.passthru.profileTemplates.entries or { };
     in
     {
       inherit name;
       package = package.pname;
       defaultProfile = config.defaultProfile or null;
-      profiles = builtins.attrNames (config.profiles or templateEntries);
+      profiles = package.passthru.profileNames or [ ];
       bundles = map (bundle: bundle.pname or bundle.name) (package.passthru.composedBundles or [ ]);
       description = package.meta.description or null;
       descriptionZh = package.meta.descriptions.zh-CN or package.meta.description or null;
