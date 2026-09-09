@@ -65,7 +65,17 @@ buildDshBundle (finalAttrs: {
     mkdir -p web/dist
     cp dist/web/index.js dist/web/client.js dist/web/client.js.map dist/web/cordis.patch.yml web/dist/
 
-    for plugin in better-sidebar-runtime skins sidebar panel-controls pinned-summary; do
+    for plugin in \
+      about \
+      better-sidebar-runtime \
+      liangshen \
+      skins \
+      sidebar \
+      panel-controls \
+      pinned-summary \
+      plugin-marketplace \
+      save-as-image
+    do
       mkdir -p "plugins/$plugin/dist"
       cp "dist/plugins/$plugin/index.js" "plugins/$plugin/dist/index.js"
       if [ -f "dist/plugins/$plugin/client.js" ]; then
