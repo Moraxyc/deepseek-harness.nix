@@ -229,8 +229,22 @@ stdenvNoCC.mkDerivation (finalAttrs: {
         ${lib.concatMapStringsSep " " (
           bundle: lib.escapeShellArg "${bundle}/nix-support/dsh-bundles.json"
         ) finalAttrs.passthru.composedBundles}
+      # Profiles resolve through $DSH_HOME, so advertise every package mounted
+      # by this installation to the profile module fallback.
+      runtimeDependencies="$TMPDIR/dsh-runtime-dependencies.json"
+      printf '{}\n' > "$runtimeDependencies"
+      for packageJson in "$appDir/node_modules"/*/package.json "$appDir/node_modules"/@*/*/package.json; do
+        [ -f "$packageJson" ] || continue
+        packageName=$(jq -r '.name | select(type == "string" and length > 0)' "$packageJson")
+        packageVersion=$(jq -r '.version | select(type == "string" and length > 0)' "$packageJson")
+        [ -n "$packageName" ] && [ -n "$packageVersion" ] || continue
+        jq --arg name "$packageName" --arg version "$packageVersion" \
+          '.[$name] = $version' "$runtimeDependencies" > "$runtimeDependencies.tmp"
+        mv "$runtimeDependencies.tmp" "$runtimeDependencies"
+      done
       jq --slurpfile bundles "$out/nix-support/dsh-bundles.json" \
-        '.dependencies *= ($bundles[0].bundles | map({key: .name, value: .version}) | from_entries)' \
+        --slurpfile runtimeDependencies "$runtimeDependencies" \
+        '.dependencies *= ($bundles[0].bundles | map({key: .name, value: .version}) | from_entries) | .dependencies *= $runtimeDependencies[0]' \
         "$appDir/package.json" > "$appDir/package.json.tmp"
       mv "$appDir/package.json.tmp" "$appDir/package.json"
 
