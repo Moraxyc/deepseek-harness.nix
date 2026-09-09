@@ -55,8 +55,8 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
 
-  postDeploy = ''
-    # Optional bundle-specific layout fixes.
+  postNormalizeDeploy = ''
+    # Optional bundle-specific checks or cleanup.
   '';
 
   meta = {
@@ -100,7 +100,7 @@ the source tree.
 `pnpm deploy --ignore-scripts` does not build source-only workspace packages.
 If the selected package depends on such workspaces, build them in `preDeploy`
 (for example, `pnpm --workspace-concurrency=4 --config.ignore-workspace-cycles=true
--r build`) and validate their runtime entrypoints in `postDeploy`.
+-r build`) and validate their runtime entrypoints in `postNormalizeDeploy`.
 
 For aggregator bundles, set `disableChildBundlePatches = true` so child
 `cordis.patch.yml` files are blanked and only `deployPackage` registers loader
@@ -114,18 +114,11 @@ to shadow it. If a bundle depends on its own version of a package that also
 exists in the kernel, list it in `linkKernelNodeModulesKeep` so the helper keeps
 the bundle-local copy.
 
-`postDeploy` can use `$deployPackagePath`, which points at the deployed package
-inside `$out/lib/node_modules`. A common aggregator layout fix is:
-
-```sh
-rm -rf "$deployPackagePath"
-mkdir -p "$deployPackagePath"
-mv \
-  "$out/lib/package.json" \
-  "$out/lib/cordis.patch.yml" \
-  "$out/lib/lib" \
-  "$deployPackagePath/"
-```
+`postDeploy` runs immediately after `pnpm deploy`, before the builder normalizes
+the output layout. Use `postNormalizeDeploy` for checks or cleanup that require
+the final package at `$deployPackagePath`. The builder moves the deployed
+package files there while keeping the shared `$out/lib/node_modules` tree in
+place.
 
 Update `src.hash` and `pnpmDepsHash` with the hashes reported by `nix build`.
 The composed `dsh` package boots every managed profile during `installCheckPhase`

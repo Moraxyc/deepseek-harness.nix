@@ -70,6 +70,29 @@ let
       "$bundleRoot"
   '';
 
+  normalizeDeployPackageLayout = ''
+    case "$deployPackagePath" in
+      "$out/lib/node_modules"/*)
+        ;;
+      *)
+        printf 'buildDshBundle: invalid deploy package path: %s\n' "$deployPackagePath" >&2
+        exit 1
+        ;;
+    esac
+
+    rm -rf "$deployPackagePath"
+    mkdir -p "$deployPackagePath"
+    for entry in "$out"/lib/*; do
+      [ -e "$entry" ] || [ -L "$entry" ] || continue
+      case "$(basename "$entry")" in
+        node_modules)
+          continue
+          ;;
+      esac
+      mv "$entry" "$deployPackagePath/"
+    done
+  '';
+
   suppressChildBundlePatches = ''
     suppress_patch() {
       [ "$1" = "$deployPackagePath" ] && return 0
@@ -289,6 +312,7 @@ let
       "pnpm"
       "pnpmDepsHash"
       "postDeploy"
+      "postNormalizeDeploy"
       "preDeploy"
       "runtimeDeps"
       "stripPrepareScripts"
@@ -302,6 +326,7 @@ let
         runtimeDeps ? [ ],
         preDeploy ? "",
         postDeploy ? "",
+        postNormalizeDeploy ? "",
         stripPrepareScripts ? false,
         disableChildBundlePatches ? false,
         linkKernelNodeModules ? null,
@@ -350,9 +375,8 @@ let
             mv package.json.tmp package.json
           fi
         ''
+        + preDeploy
         + ''
-          ${preDeploy}
-
           pnpm config set --location=project inject-workspace-packages true
           # Dependencies were installed by npmInstallHook; deploy must only
           # copy them and must not rerun native install scripts.
@@ -366,8 +390,10 @@ let
           deployPackagePath="$out/lib/node_modules/${deployPackage}"
         ''
         + lib.optionalString disableChildBundlePatches suppressChildBundlePatches
+        + postDeploy
+        + normalizeDeployPackageLayout
+        + postNormalizeDeploy
         + ''
-          ${postDeploy}
 
           runHook postInstall
         '';

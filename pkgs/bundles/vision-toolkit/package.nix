@@ -30,18 +30,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   nativeBuildInputs = [ jq ];
   buildInputs = [ python3 ];
 
-  postDeploy = ''
-    rm -rf "$deployPackagePath"
-    mkdir -p "$deployPackagePath"
-    for entry in "$out"/lib/*; do
-      case "$(basename "$entry")" in
-        node_modules)
-          continue
-          ;;
-      esac
-      mv "$entry" "$deployPackagePath/"
-    done
-
+  postNormalizeDeploy = ''
     while IFS= read -r -d $'\0' script; do
       patchShebangs "$script"
     done < <(find "$deployPackagePath/vendor/agent-vision-toolkit" \

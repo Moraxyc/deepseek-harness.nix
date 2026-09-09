@@ -52,8 +52,8 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
 
-  postDeploy = ''
-    # Optional bundle-specific layout fixes.
+  postNormalizeDeploy = ''
+    # Optional bundle-specific checks or cleanup.
   '';
 
   meta = {
@@ -94,7 +94,7 @@ deploy 命令使用上述参数和注入式 workspace 布局，这是受支持�
 `pnpm deploy --ignore-scripts` 不会构建只有源码的 workspace 子包。如果选中的包
 依赖这类子包，应在 `preDeploy` 中显式构建它们（例如
 `pnpm --workspace-concurrency=4 --config.ignore-workspace-cycles=true -r build`），并在
-`postDeploy` 中检查运行时入口文件。
+`postNormalizeDeploy` 中检查运行时入口文件。
 
 聚合 bundle 可设置 `disableChildBundlePatches = true`，让子包
 `cordis.patch.yml` 清空，仅由 `deployPackage` 注册 loader 条目。包需要 kernel
@@ -105,18 +105,9 @@ dsh-kernel`。helper 先移除 bundle 输出中 kernel 持有的包（包括 ker
 提供者。如果 bundle 想保留与 kernel 同名包的自身版本，把该包列入
 `linkKernelNodeModulesKeep`。
 
-`postDeploy` 可使用 `$deployPackagePath`，它指向 `$out/lib/node_modules` 内的
-已部署包。常见的聚合布局调整：
-
-```sh
-rm -rf "$deployPackagePath"
-mkdir -p "$deployPackagePath"
-mv \
-  "$out/lib/package.json" \
-  "$out/lib/cordis.patch.yml" \
-  "$out/lib/lib" \
-  "$deployPackagePath/"
-```
+`postDeploy` 紧跟 `pnpm deploy` 运行，此时输出尚未整理。需要最终包目录的校验
+或清理应放在 `postNormalizeDeploy` 中。builder 会把已部署包的文件移动到
+`$deployPackagePath`，并保留共享的 `$out/lib/node_modules` 树。
 
 更新 `src.hash` 和 `pnpmDepsHash` 时，以 `nix build` 报告的哈希为准。
 组合后的 `dsh` 在 `installCheckPhase` 通过 `dshBundleCheckHook` 启动每个

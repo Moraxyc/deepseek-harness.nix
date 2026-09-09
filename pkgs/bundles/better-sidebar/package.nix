@@ -31,18 +31,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     mv package.json.tmp package.json
   '';
 
-  postDeploy = ''
-    rm -rf "$deployPackagePath"
-    mkdir -p "$deployPackagePath"
-    for entry in "$out"/lib/*; do
-      case "$(basename "$entry")" in
-        node_modules)
-          continue
-          ;;
-      esac
-      mv "$entry" "$deployPackagePath/"
-    done
-
+  postNormalizeDeploy = ''
     find "$out/lib/node_modules" -type f -path '*/build/*' ! -name '*.node' -delete
     find "$out/lib/node_modules" -depth -type d -empty -delete
   '';

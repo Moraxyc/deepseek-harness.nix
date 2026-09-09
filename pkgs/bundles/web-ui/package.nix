@@ -62,15 +62,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     done
   '';
 
-  postDeploy = ''
-    rm -rf "$deployPackagePath"
-    mkdir -p "$deployPackagePath"
-    mv \
-      "$out/lib/package.json" \
-      "$out/lib/cordis.patch.yml" \
-      "$out/lib/lib" \
-      "$deployPackagePath/"
-
+  postNormalizeDeploy = ''
     # Prune
     find "$out/lib/node_modules" -type f -path '*/build/*' ! -name '*.node' -delete
     find "$out/lib/node_modules" -depth -type d -empty -delete

@@ -91,7 +91,7 @@
         dontBuild = true;
 
         preInstall = "pnpm install --offline --frozen-lockfile";
-        postDeploy = ''
+        postNormalizeDeploy = ''
           dependencyPath="$out/lib/node_modules/${workspaceDependencyName}"
           resolvedDependency=$(readlink -f "$dependencyPath")
           case "$resolvedDependency" in
@@ -103,12 +103,9 @@
               ;;
           esac
 
-          mkdir -p "$deployPackagePath"
-          mv \
-            "$out/lib/package.json" \
-            "$out/lib/index.js" \
-            "$out/lib/cordis.patch.yml" \
-            "$deployPackagePath/"
+          test -f "$deployPackagePath/package.json"
+          test -f "$deployPackagePath/index.js"
+          test -f "$deployPackagePath/cordis.patch.yml"
         '';
 
         meta.description = "pnpm workspace bundle helper regression check";

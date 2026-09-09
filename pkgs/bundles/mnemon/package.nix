@@ -31,19 +31,6 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     pnpm --workspace-concurrency=4 --config.ignore-workspace-cycles=true -r build
   '';
 
-  postDeploy = ''
-    rm -rf "$deployPackagePath"
-    mkdir -p "$deployPackagePath"
-    for entry in "$out"/lib/*; do
-      case "$(basename "$entry")" in
-        node_modules)
-          continue
-          ;;
-      esac
-      mv "$entry" "$deployPackagePath/"
-    done
-  '';
-
   passthru.updateScript = nix-update-script {
     extraArgs = [ "--flake" ];
   };
