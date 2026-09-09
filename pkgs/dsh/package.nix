@@ -45,7 +45,10 @@
 }:
 
 let
-  composition = import ./composition.nix { inherit lib; };
+  composition = import ./composition.nix {
+    inherit lib;
+    validateDshBundle = buildDshBundle.validateDshBundle;
+  };
   mkDsh = import ../../lib/mk-dsh.nix;
   dshBundleResolver = buildDshBundle.dshBundleResolver;
   profileFiles = import ./profiles.nix {
@@ -81,8 +84,18 @@ let
     }
   ) profiles;
   managedProfileNames = map profileFiles.profileName (lib.attrNames profiles);
+  validatedDefaultProfile =
+    lib.throwIfNot (defaultProfile == null || lib.elem defaultProfile managedProfileNames)
+      "dsh: defaultProfile '${defaultProfile}' is not one of the managed profiles: ${lib.concatStringsSep ", " managedProfileNames}"
+      defaultProfile;
+  validatedHomePatch = lib.throwIfNot (
+    homePatch == null || lib.isList homePatch
+  ) "dsh: homePatch must be null or a list" homePatch;
   homePatchFile =
-    if homePatch == null then null else writers.writeYAML "dsh-home-cordis.patch.yml" homePatch;
+    if validatedHomePatch == null then
+      null
+    else
+      writers.writeYAML "dsh-home-cordis.patch.yml" validatedHomePatch;
 
   resolveBundles =
     bundlesOrSelector:
@@ -105,18 +118,12 @@ let
     inherit
       agentPresets
       defaultBundles
-      defaultProfile
       profiles
       ;
-    patch = homePatch;
+    defaultProfile = validatedDefaultProfile;
+    patch = validatedHomePatch;
   };
 in
-assert
-  defaultProfile == null
-  || lib.elem defaultProfile managedProfileNames
-  || throw "dsh: defaultProfile '${defaultProfile}' is not one of the managed profiles: ${lib.concatStringsSep ", " managedProfileNames}";
-assert homePatch == null || lib.isList homePatch;
-
 stdenvNoCC.mkDerivation (finalAttrs: {
   inherit pname;
   inherit (dsh-kernel) version;
@@ -164,7 +171,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       --add-flags "--expose-internals" \
       --add-flags "$appDir/lib/bin.js"
 
-    ${lib.optionalString (profiles != { } || homePatch != null) ''
+    ${lib.optionalString (profiles != { } || validatedHomePatch != null) ''
       wrapProgram $out/bin/dsh \
         --run ${lib.escapeShellArg ''
           requested_profile=
@@ -192,12 +199,12 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
           if [ "$has_profile" -eq 1 ]; then
             ${lib.escapeShellArg (lib.getExe finalAttrs.passthru.seedProfiles)} "$requested_profile"
-          ${lib.optionalString (defaultProfile != null) ''
+          ${lib.optionalString (validatedDefaultProfile != null) ''
             else
-              ${lib.escapeShellArg (lib.getExe finalAttrs.passthru.seedProfiles)} ${lib.escapeShellArg defaultProfile}
-              set -- --profile ${lib.escapeShellArg defaultProfile} "$@"
+              ${lib.escapeShellArg (lib.getExe finalAttrs.passthru.seedProfiles)} ${lib.escapeShellArg validatedDefaultProfile}
+              set -- --profile ${lib.escapeShellArg validatedDefaultProfile} "$@"
           ''}
-          ${lib.optionalString (defaultProfile == null) ''
+          ${lib.optionalString (validatedDefaultProfile == null) ''
             else
               ${lib.escapeShellArg (lib.getExe finalAttrs.passthru.seedProfiles)}
           ''}
@@ -245,7 +252,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
     config = builtins.removeAttrs compositionConfig [ "package" ];
 
-    defaultProfileName = defaultProfile;
+    defaultProfileName = validatedDefaultProfile;
 
     composedBundles = composition.composeBundles {
       base = baseBundle;

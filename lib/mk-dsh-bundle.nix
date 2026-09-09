@@ -15,24 +15,40 @@
 let
   resolveDshBundles = ../lib/resolve-dsh-bundles.mjs;
   emptyCordisPatch = writers.writeYAML "empty-cordis.patch.yml" [ ];
-  # Shared protocol required by the composition layer for every bundle.
-  protocol =
-    {
-      runtimeDeps ? [ ],
-    }:
-    {
-      dshBundle = true;
-      dshBundleHelper = "buildDshBundle";
-      inherit runtimeDeps;
-    };
+  packageLabel = bundle: bundle.pname or bundle.name or "<unknown>";
 
-  # Fail early when a package does not implement the public bundle contract.
-  validateProtocol =
+  protocol = runtimeDeps: {
+    dshBundle = true;
+    dshBundleHelper = "buildDshBundle";
+    inherit runtimeDeps;
+  };
+
+  validateDshBundle =
     {
-      runtimeDeps,
+      bundle,
+      context ? "dsh composition",
     }:
-    assert lib.isList runtimeDeps;
-    protocol { inherit runtimeDeps; };
+    let
+      passthru = bundle.passthru or { };
+      label = packageLabel bundle;
+      meta = bundle.meta or { };
+      runtimeDeps = passthru.runtimeDeps or [ ];
+    in
+    lib.throwIfNot (passthru ? dshBundle && passthru.dshBundle == true)
+      "${context}: ${label} is not created by mkDshBundle"
+      (
+        lib.throwIfNot (passthru ? dshBundleHelper && passthru.dshBundleHelper == "buildDshBundle")
+          "${context}: ${label} does not use the buildDshBundle protocol"
+          (
+            lib.throwIfNot (lib.isList runtimeDeps)
+              "${context}: ${label} must expose passthru.runtimeDeps as a list"
+              (
+                lib.throwIfNot (
+                  meta ? description && lib.isString meta.description
+                ) "${context}: ${label} requires meta.description" bundle
+              )
+          )
+      );
 
   dshBundleResolver = writeShellApplication {
     name = "dsh-resolve-bundles";
@@ -230,7 +246,14 @@ let
         ...
       }:
       let
-        bundleProtocol = validateProtocol { inherit runtimeDeps; };
+        bundleValidation = validateDshBundle {
+          bundle = {
+            inherit meta;
+            passthru = protocol runtimeDeps;
+            pname = finalAttrs.pname;
+          };
+          context = "buildDshBundle";
+        };
       in
       {
         nodejs = nodejs-slim;
@@ -243,17 +266,14 @@ let
           nodejs-slim.npm
         ]
         ++ nativeBuildInputs;
-        passthru = passthru // bundleProtocol;
+        passthru = passthru // bundleValidation.passthru;
         postInstall =
           postInstall
           + lib.optionalString (linkKernelNodeModules != null) (
             linkKernelNodeModulesScript linkKernelNodeModules linkKernelNodeModulesKeep
           )
           + validateInstalledBundle;
-        meta = meta // {
-          description =
-            meta.description or (throw "buildDshBundle: ${finalAttrs.pname} requires meta.description");
-        };
+        inherit (bundleValidation) meta;
       };
   };
 
@@ -296,7 +316,14 @@ let
         ...
       }:
       let
-        bundleProtocol = validateProtocol { inherit runtimeDeps; };
+        bundleValidation = validateDshBundle {
+          bundle = {
+            inherit meta;
+            passthru = protocol runtimeDeps;
+            pname = finalAttrs.pname;
+          };
+          context = "buildDshBundle";
+        };
         resolvedPnpmDeps =
           if pnpmDeps != null then
             pnpmDeps
@@ -368,7 +395,7 @@ let
         ]
         ++ lib.optionals (stripPrepareScripts || disableChildBundlePatches) [ jq ]
         ++ nativeBuildInputs;
-        passthru = passthru // bundleProtocol;
+        passthru = passthru // bundleValidation.passthru;
         installPhase = defaultInstallPhase;
         postInstall =
           postInstall
@@ -376,10 +403,7 @@ let
             linkKernelNodeModulesScript linkKernelNodeModules linkKernelNodeModulesKeep
           )
           + validateInstalledBundle;
-        meta = meta // {
-          description =
-            meta.description or (throw "buildDshBundle: ${finalAttrs.pname} requires meta.description");
-        };
+        inherit (bundleValidation) meta;
       }
       // lib.optionalAttrs (resolvedPnpmDeps != null) {
         pnpmDeps = resolvedPnpmDeps;
@@ -419,7 +443,14 @@ let
         ...
       }:
       let
-        bundleProtocol = validateProtocol { inherit runtimeDeps; };
+        bundleValidation = validateDshBundle {
+          bundle = {
+            inherit meta;
+            passthru = protocol runtimeDeps;
+            pname = finalAttrs.pname;
+          };
+          context = "buildDshBundle";
+        };
         bundleSource = "${dsh-workspace}/lib/dsh-workspace/runtime-bundles/${packageName}";
         defaultInstallPhase = ''
           runHook preInstall
@@ -466,15 +497,17 @@ let
             linkKernelNodeModulesScript linkKernelNodeModules linkKernelNodeModulesKeep
           )
           + validateInstalledBundle;
-        passthru = passthru // bundleProtocol;
-        meta = meta // {
-          description =
-            meta.description or (throw "buildDshBundle: ${finalAttrs.pname} requires meta.description");
-        };
+        passthru = passthru // bundleValidation.passthru;
+        inherit (bundleValidation) meta;
       };
   };
 in
 buildDshBundle
 // {
-  inherit dshBundleResolver fromPnpmWorkspace fromWorkspace;
+  inherit
+    dshBundleResolver
+    fromPnpmWorkspace
+    fromWorkspace
+    validateDshBundle
+    ;
 }
