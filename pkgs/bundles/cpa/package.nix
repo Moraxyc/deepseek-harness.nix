@@ -19,6 +19,7 @@ buildDshBundle (finalAttrs: {
   npmDepsHash = "sha256-mWPSsRJKcCsx8yre1V7hfZkCqLHObgVDsa1NJLqqgEI=";
   linkKernelNodeModules = dsh-kernel;
 
+  passthru.requiresWeb = true;
   passthru.updateScript = nix-update-script {
     extraArgs = [ "--flake" ];
   };

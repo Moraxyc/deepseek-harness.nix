@@ -97,6 +97,7 @@ buildDshBundle (finalAttrs: {
     runHook postInstall
   '';
 
+  passthru.requiresWeb = true;
   passthru.updateScript = nix-update-script {
     extraArgs = [ "--flake" ];
   };

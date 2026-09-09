@@ -30,6 +30,8 @@ buildDshBundle (finalAttrs: {
     runHook postInstall
   '';
 
+  passthru.requiresWeb = true;
+
   meta = {
     description = "Branch-based message editing, reroll, retry, and version timeline for DeepSeek Harness";
     descriptions.zh-CN = "为 DeepSeek Harness 提供分支式消息编辑、重掷、重试与版本时间线";

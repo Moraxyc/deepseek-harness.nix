@@ -68,6 +68,7 @@ buildDshBundle (finalAttrs: {
   '';
 
   passthru = {
+    requiresWeb = true;
     packageLock = {
       name = "@zseven-w/dsh-harbor";
       version = finalAttrs.version;

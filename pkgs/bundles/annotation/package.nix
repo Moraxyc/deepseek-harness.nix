@@ -53,6 +53,7 @@ buildDshBundle (finalAttrs: {
   '';
 
   passthru = {
+    requiresWeb = true;
     packageLock = {
       name = "@changfenhuang/dsh-annotation";
       version = finalAttrs.version;

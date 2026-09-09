@@ -78,6 +78,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
       node_modules/@deepseek-ai/dsh-client-ui-settings
   '';
 
+  passthru.requiresWeb = true;
   passthru.updateScript = nix-update-script {
     extraArgs = [ "--flake" ];
   };

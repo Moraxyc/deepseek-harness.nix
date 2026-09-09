@@ -31,6 +31,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     pnpm --workspace-concurrency=4 --config.ignore-workspace-cycles=true -r build
   '';
 
+  passthru.requiresWeb = true;
   passthru.updateScript = nix-update-script {
     extraArgs = [ "--flake" ];
   };

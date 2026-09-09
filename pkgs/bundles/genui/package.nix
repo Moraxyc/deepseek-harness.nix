@@ -25,6 +25,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   npmConfigHook = pnpmConfigHook;
   dontNpmBuild = true;
 
+  passthru.requiresWeb = true;
   passthru.updateScript = nix-update-script {
     extraArgs = [
       "--flake"

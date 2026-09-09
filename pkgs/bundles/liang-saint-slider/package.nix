@@ -52,6 +52,7 @@ buildDshBundle (finalAttrs: {
   '';
 
   passthru = {
+    requiresWeb = true;
     cordisPatch = [
       {
         insert = [

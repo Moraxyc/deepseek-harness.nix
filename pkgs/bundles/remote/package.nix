@@ -23,6 +23,7 @@ buildDshBundle (finalAttrs: {
   # Keep the hard dependency local so a kernel-owned sidebar cannot replace it.
   linkKernelNodeModulesKeep = [ "dsh-better-sidebar" ];
 
+  passthru.requiresWeb = true;
   passthru.updateScript = nix-update-script {
     extraArgs = [ "--flake" ];
   };

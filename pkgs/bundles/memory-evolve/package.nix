@@ -59,6 +59,8 @@ buildDshBundle (finalAttrs: {
     runHook postInstall
   '';
 
+  passthru.requiresWeb = true;
+
   meta = {
     description = "Layered long-term memory, skill evolution, TODOs, and session orchestration for DeepSeek Harness";
     descriptions.zh-CN = "为 DeepSeek Harness 提供分层长期记忆、技能进化、待办管理与会话编排";

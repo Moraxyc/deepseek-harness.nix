@@ -52,6 +52,7 @@ buildDshBundle (finalAttrs: {
   '';
 
   passthru = {
+    requiresWeb = true;
     packageLock = {
       name = "@vlln/dsh-navbar";
       version = finalAttrs.version;

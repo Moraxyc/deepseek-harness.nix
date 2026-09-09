@@ -36,6 +36,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     find "$out/lib/node_modules" -depth -type d -empty -delete
   '';
 
+  passthru.requiresWeb = true;
   passthru.updateScript = nix-update-script {
     extraArgs = [ "--flake" ];
   };

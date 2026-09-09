@@ -54,6 +54,7 @@ buildDshBundle (finalAttrs: {
   '';
 
   passthru = {
+    requiresWeb = true;
     packageLock = {
       name = "@ychris12138/dsh-usage-stats";
       version = finalAttrs.version;
