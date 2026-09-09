@@ -3,6 +3,7 @@
   dsh,
 }:
 dsh.override {
+  pname = "dsh-tui";
   defaultBundles = [ bundles.headless ];
   defaultProfile = "nix-tui";
   meta = {

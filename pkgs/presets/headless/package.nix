@@ -3,6 +3,7 @@
   dsh,
 }:
 dsh.override {
+  pname = "dsh-headless";
   defaultBundles = [ bundles.headless ];
   defaultProfile = "nix-headless";
   meta = {

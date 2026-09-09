@@ -3,6 +3,7 @@
   dsh,
 }:
 dsh.override {
+  pname = "dsh-web";
   defaultBundles = [ bundles.web-app ];
   defaultProfile = "nix-web";
   meta = {

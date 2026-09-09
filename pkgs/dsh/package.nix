@@ -40,6 +40,7 @@
   defaultProfile ? null,
   # Optional home-level Cordis patch managed under $DSH_HOME.
   homePatch ? null,
+  pname ? "dsh",
   meta ? { },
 }:
 
@@ -106,7 +107,7 @@ assert
 assert homePatch == null || lib.isList homePatch;
 
 stdenvNoCC.mkDerivation (finalAttrs: {
-  pname = "dsh";
+  inherit pname;
   inherit (dsh-kernel) version;
 
   src = null;

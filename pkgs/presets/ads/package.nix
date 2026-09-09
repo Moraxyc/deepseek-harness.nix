@@ -3,6 +3,7 @@
   dsh,
 }:
 dsh.override {
+  pname = "dsh-ads";
   defaultBundles = [ bundles.web-app ];
   defaultProfile = "nix-ads";
   meta = {
