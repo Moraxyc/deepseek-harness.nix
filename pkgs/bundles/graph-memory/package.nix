@@ -9,13 +9,13 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-graph-memory";
-  version = "2.0.0-unstable-2026-09-05";
+  version = "2.0.0-unstable-2026-09-09";
 
   src = fetchFromGitHub {
     owner = "adoresever";
     repo = "graph-memory";
-    rev = "38ce29ff1b801d246e60a2947ac10a08e5b56ef3";
-    hash = "sha256-DojUz2AdxjsIoWIbyDnBi/0/GGa2yCQ5WSYBzEuB3dM=";
+    rev = "441018a50236091b757af473c124fda0c584002e";
+    hash = "sha256-HfLLnhsHakSOd7u5b+9d/VB5nB97d1EVJu+pK90rz+o=";
   };
 
   postPatch = ''
@@ -30,7 +30,7 @@ buildDshBundle (finalAttrs: {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
     nativeBuildInputs = [ yq-go ];
-    hash = "sha256-yloOF2fkCSEh/4Jo2SiMuClG/e42S92R9RRysfQpF4s=";
+    hash = "sha256-L0J49mvFcxKPrr++BhyUgUQaOdBAZGJQXY4J9Em6fI4=";
   };
 
   nativeBuildInputs = [
