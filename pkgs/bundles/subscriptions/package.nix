@@ -48,6 +48,12 @@ buildDshBundle (finalAttrs: {
       { print }
     ' pnpm-lock.yaml > pnpm-lock.yaml.tmp
     mv pnpm-lock.yaml.tmp pnpm-lock.yaml
+
+    # dsh 0.1.5 exposes localized command descriptions as lazy functions.
+    substituteInPlace src/client/index.ts \
+      --replace-fail \
+        "description: t('commandFast')" \
+        "description: () => t('commandFast')"
   '';
 
   pnpmDeps = fetchPnpmDeps {
