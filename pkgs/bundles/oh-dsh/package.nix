@@ -6,7 +6,6 @@
   context,
   dsh-kernel,
   pnpmConfigHook,
-  pnpm_11,
   pnpmWorkspaceDeploy,
   tui,
   nix-update-script,
@@ -19,22 +18,6 @@ let
     tag = "v0.9.0";
     hash = "sha256-VQ8lyHNtcTHrOum21Z4dZyZgrxexmUY7yEN8kjao838=";
   };
-  contextUnstable = context.overrideAttrs (old: rec {
-    version = "branch";
-    src = fetchFromGitHub {
-      owner = "bowenliang123";
-      repo = "dsh-context";
-      rev = "7e522ea342ba3a198b1eaa4557301212ae4098c9";
-      hash = "sha256-EK4MHeUABzVBmnCsa8nQzc1j9b75czl/x4Dhatx3oBI=";
-    };
-    pnpmDeps = fetchPnpmDeps {
-      pname = old.pname;
-      inherit version src;
-      pnpm = pnpm_11;
-      fetcherVersion = 4;
-      hash = "sha256-aJ7oBhhvRIZ49EN72jeIGWD+lxkV/XHBi2byM091Dmo=";
-    };
-  });
 in
 buildDshBundle (finalAttrs: {
   pname = "oh-dsh";
@@ -67,7 +50,7 @@ buildDshBundle (finalAttrs: {
     chmod -R u+w upstream/DSH-better-sidebar
 
     mkdir -p upstream/dsh-context
-    cp -r ${contextUnstable}/lib/node_modules/dsh-context/. upstream/dsh-context/
+    cp -r ${context}/lib/node_modules/dsh-context/. upstream/dsh-context/
     rm -rf upstream/dsh-context/node_modules
     chmod -R u+w upstream/dsh-context
 
