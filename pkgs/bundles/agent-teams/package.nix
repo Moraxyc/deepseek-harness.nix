@@ -19,6 +19,8 @@ buildDshBundle (finalAttrs: {
     hash = "sha256-qBrY6c7I4FAEI58I4jRifC4jzKFerQzikZ9AuajjRKo=";
   };
 
+  patches = [ ./current-subagent-runtime.patch ];
+
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_11;
