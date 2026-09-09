@@ -33,6 +33,26 @@ buildDshBundle (finalAttrs: {
   nativeBuildInputs = [ pnpm_11 ];
   disallowedReferences = [ pnpm_11 ];
 
+  postInstall = ''
+    settings="$out/lib/node_modules/@anionex/dsh-turn-rewind/lib/settings.js"
+    substituteInPlace "$settings" \
+      --replace-fail \
+        "import { installSettingsSection, settingsNamespace } from '@deepseek-ai/dsh-settings';" \
+        "" \
+      --replace-fail \
+        "export const TURN_REWIND_SETTINGS_NAMESPACE = settingsNamespace('turn-rewind');" \
+        "export const TURN_REWIND_SETTINGS_NAMESPACE = 'turn-rewind';" \
+      --replace-fail \
+        "installSettingsSection(ctx, TURN_REWIND_SETTINGS_NAMESPACE, TurnRewindSettingsSchema, source(), {" \
+        "ctx.inject(['settings'], (settingsCtx) => settingsCtx.settings.installSection(ctx, TURN_REWIND_SETTINGS_NAMESPACE, TurnRewindSettingsSchema, source(), {"
+    sed -i \
+      -e ':a' \
+      -e '$!N' \
+      -e '$!ba' \
+      -e 's/    });\n}$/    }));\n}/' \
+      "$settings"
+  '';
+
   # The peer and web client packages are supplied by the DSH kernel.
   linkKernelNodeModules = dsh-kernel;
   runtimeDeps = [ git ];
