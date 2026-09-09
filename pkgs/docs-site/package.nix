@@ -9,7 +9,14 @@ let
   catalogSource = builtins.toFile "dsh-nix-docs-catalog.ts" ''
     import type { Catalog } from './catalog';
 
-    export const catalog: Catalog = ${builtins.toJSON (import ../../lib/catalog.nix { scope = dsh; })};
+    export const catalog: Catalog = ${
+      builtins.toJSON (
+        import ../../lib/catalog.nix {
+          inherit lib;
+          scope = dsh;
+        }
+      )
+    };
   '';
 in
 buildNpmPackage (finalAttrs: {

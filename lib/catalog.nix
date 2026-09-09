@@ -1,12 +1,10 @@
 {
+  lib,
   scope,
 }:
 let
   packageNames =
-    attrs:
-    builtins.sort (a: b: a < b) (
-      builtins.filter (name: attrs.${name} ? pname) (builtins.attrNames attrs)
-    );
+    attrs: lib.sort (a: b: a < b) (lib.attrNames (lib.filterAttrs (_: package: package ? pname) attrs));
 
   bundleInfo = name: package: {
     inherit name;

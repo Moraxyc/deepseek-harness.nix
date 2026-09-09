@@ -65,13 +65,13 @@
 
       apps.default = {
         type = "app";
-        program = "${dsh.dsh}/bin/dsh";
+        program = lib.getExe dsh.dsh;
         meta.description = dsh.dsh.meta.description;
       };
 
       apps.dsh-desktop = {
         type = "app";
-        program = "${dsh.dsh-desktop}/bin/dsh-desktop";
+        program = lib.getExe dsh.dsh-desktop;
         meta.description = dsh.dsh-desktop.meta.description;
       };
 
