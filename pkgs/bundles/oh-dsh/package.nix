@@ -36,20 +36,20 @@ let
 in
 buildDshBundle (finalAttrs: {
   pname = "oh-dsh";
-  version = "0.1.12";
+  version = "0.2.0";
 
   src = fetchFromGitHub {
     owner = "hust-open-atom-club";
     repo = "oh-dsh";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-R5hmOxP5+XcGUbjLfP4Z7Njk4COUGDxgJmM3NBTNsdg=";
+    hash = "sha256-rHMMUaA4orEufR75hwCUvvfV6Z5al4YjPI6DRQtlbwI=";
   };
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-XKBF9eXUXBMNRhCU1t3lV+YzwSBlmKQH+xC9VbZH3XU=";
+    hash = "sha256-cc94SWzJ1Aq5MBbsSYu1YA//zprj/2sNXGQIqH4OdY8=";
   };
 
   npmDeps = null;
