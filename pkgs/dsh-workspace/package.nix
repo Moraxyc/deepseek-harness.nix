@@ -11,7 +11,7 @@
   nodejs,
   nodejs-slim,
   pnpmConfigHook,
-  pnpm_11,
+  dshPnpm,
   python3,
   stdenv,
   dsh-system,
@@ -49,7 +49,7 @@ buildNpmPackage (finalAttrs: {
   nodejs = nodejs-slim;
   disallowedReferences = [
     nodejs
-    pnpm_11
+    dshPnpm
     python3
   ];
 
@@ -69,14 +69,6 @@ buildNpmPackage (finalAttrs: {
       --replace-fail \
       "Object.entries(cssExports ?? {})" \
       "Object.entries(cssExports ?? {}).sort(([a], [b]) => a.localeCompare(b))"
-  ''
-  + lib.optionalString (lib.versionOlder pnpm_11.version "11.7.0") ''
-    # pnpm < 11.7 cannot parse file: selectors in allowBuilds.
-    yq -i '
-      .allowBuilds."@deepseek-ai/dsh-subprocess-local" =
-        .allowBuilds."@deepseek-ai/dsh-subprocess-local@file:packages/subprocess/subprocess-local" |
-      del(.allowBuilds."@deepseek-ai/dsh-subprocess-local@file:packages/subprocess/subprocess-local")
-    ' pnpm-workspace.yaml
   ''
   + lib.optionalString (dshSystemIsAvailable && isLinux) ''
     install -Dm755 ${dsh-system}/bin/landlock-run native/system/packages/${platformKey}/bin/landlock-run
@@ -104,7 +96,7 @@ buildNpmPackage (finalAttrs: {
     jq
     makeWrapper
     nodejs-slim.npm
-    pnpm_11
+    dshPnpm
     python3
     dshWorkspacePatchHook
     yq-go

@@ -25,17 +25,26 @@ let
       overrideDerivation = f: wrapFetchPnpmDeps (base.overrideDerivation f);
     };
   fetchPnpmDeps = wrapFetchPnpmDeps prev.fetchPnpmDeps;
-  compatiblePnpm =
-    if prev.lib.versionOlder prev.pnpm_11.version "11.22.0" then
-      prev.pnpm_11.overrideAttrs (_oldAttrs: {
-        version = "11.22.0";
-        src = prev.fetchurl {
-          url = "https://registry.npmjs.org/pnpm/-/pnpm-11.22.0.tgz";
-          hash = "sha256-V6l+byOj+v/AMVOk74x3CgVSYSuGQK6+Ob/dV1TQ69w=";
-        };
-      })
-    else
-      prev.pnpm_11;
+  # `pnpm deploy` injects workspace dependencies only from 11.22.0 on
+  # (pnpm/pnpm#13754); older releases link back into the source workspace and
+  # break the self-contained bundle. nixpkgs pins such as nixos-26.05 can ship
+  # an older pnpm 11, so build the minimum from the npm tarball in that case,
+  # under a dsh-only name so nixpkgs' generic pnpm_11 stays untouched.
+  dshPnpmMinVersion = "11.22.0";
+  dshPnpm =
+    let
+      pnpm =
+        if prev.lib.versionAtLeast prev.pnpm_11.version dshPnpmMinVersion then
+          prev.pnpm_11
+        else
+          prev.pnpm_11.override {
+            version = dshPnpmMinVersion;
+            hash = "sha256-V6l+byOj+v/AMVOk74x3CgVSYSuGQK6+Ob/dV1TQ69w=";
+          };
+    in
+    assert prev.lib.assertMsg (prev.lib.versionAtLeast pnpm.version dshPnpmMinVersion)
+      "dsh: pnpm ${pnpm.version} is older than the required ${dshPnpmMinVersion}";
+    pnpm;
   buildDshBundle = import ../lib/mk-dsh-bundle.nix {
     inherit (final)
       buildNpmPackage
@@ -47,7 +56,7 @@ let
       writeShellApplication
       writers
       ;
-    pnpm_11 = compatiblePnpm;
+    inherit dshPnpm;
   };
   dsh = final.lib.makeScope final.newScope (
     self:
@@ -56,7 +65,7 @@ let
       # wrapped fetcher at the nixpkgs top level would change every unrelated
       # pnpm package.
       inherit buildDshBundle fetchPnpmDeps;
-      pnpm_11 = compatiblePnpm;
+      inherit dshPnpm;
       helpers.buildBundle = buildDshBundle;
       mkDshBundle = buildDshBundle;
     }

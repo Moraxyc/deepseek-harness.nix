@@ -7,7 +7,7 @@
   dsh-workspace,
   jq,
   pnpmConfigHook,
-  pnpm_11,
+  dshPnpm,
   nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
@@ -52,7 +52,7 @@ buildDshBundle (finalAttrs: {
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
-    pnpm = pnpm_11;
+    pnpm = dshPnpm;
     fetcherVersion = 4;
     postPatch = finalAttrs.postPatch;
     nativeBuildInputs = [ jq ];
@@ -64,9 +64,9 @@ buildDshBundle (finalAttrs: {
   npmBuildScript = "build";
   nativeBuildInputs = [
     jq
-    pnpm_11
+    dshPnpm
   ];
-  disallowedReferences = [ pnpm_11 ];
+  disallowedReferences = [ dshPnpm ];
   linkKernelNodeModules = dsh-kernel;
 
   preBuild = ''

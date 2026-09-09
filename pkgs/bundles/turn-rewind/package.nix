@@ -6,7 +6,7 @@
   dsh-kernel,
   git,
   pnpmConfigHook,
-  pnpm_11,
+  dshPnpm,
   nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
@@ -22,7 +22,7 @@ buildDshBundle (finalAttrs: {
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
-    pnpm = pnpm_11;
+    pnpm = dshPnpm;
     fetcherVersion = 4;
     hash = "sha256-t9pQ/CkLntNdTsljBSvfGkel4Y+DrnLGVKn/dR0F9O4=";
   };
@@ -30,8 +30,8 @@ buildDshBundle (finalAttrs: {
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
-  nativeBuildInputs = [ pnpm_11 ];
-  disallowedReferences = [ pnpm_11 ];
+  nativeBuildInputs = [ dshPnpm ];
+  disallowedReferences = [ dshPnpm ];
 
   # The peer and web client packages are supplied by the DSH kernel.
   linkKernelNodeModules = dsh-kernel;

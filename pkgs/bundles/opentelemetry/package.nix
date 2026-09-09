@@ -5,7 +5,7 @@
   buildDshBundle,
   dsh-kernel,
   pnpmConfigHook,
-  pnpm_11,
+  dshPnpm,
   nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
@@ -21,7 +21,7 @@ buildDshBundle (finalAttrs: {
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
-    pnpm = pnpm_11;
+    pnpm = dshPnpm;
     fetcherVersion = 4;
     hash = "sha256-c0g6Gl3rdXDYB2wtMcdICYDZgoCEg7s5mD/RfybHqwI=";
   };
@@ -29,8 +29,8 @@ buildDshBundle (finalAttrs: {
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
-  nativeBuildInputs = [ pnpm_11 ];
-  disallowedReferences = [ pnpm_11 ];
+  nativeBuildInputs = [ dshPnpm ];
+  disallowedReferences = [ dshPnpm ];
 
   linkKernelNodeModules = dsh-kernel;
   linkKernelNodeModulesKeep = [

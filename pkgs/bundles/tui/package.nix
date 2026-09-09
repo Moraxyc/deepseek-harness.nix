@@ -5,7 +5,7 @@
   buildDshBundle,
   dsh-kernel,
   pnpmConfigHook,
-  pnpm_11,
+  dshPnpm,
   nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
@@ -42,7 +42,7 @@ buildDshBundle (finalAttrs: {
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
-    pnpm = pnpm_11;
+    pnpm = dshPnpm;
     fetcherVersion = 4;
     postPatch = finalAttrs.postPatch;
     prePnpmInstall = ''
@@ -54,8 +54,8 @@ buildDshBundle (finalAttrs: {
     hash = "sha256-Q33gyQ9KF1RJlnlvhLMn+FyMnKTnrNJi8mRzJJU2s/E=";
   };
 
-  nativeBuildInputs = [ pnpm_11 ];
-  disallowedReferences = [ pnpm_11 ];
+  nativeBuildInputs = [ dshPnpm ];
+  disallowedReferences = [ dshPnpm ];
   linkKernelNodeModules = dsh-kernel;
   # dsh-tui compiles against React 19, while dsh-kernel carries React 18.
   linkKernelNodeModulesKeep = [

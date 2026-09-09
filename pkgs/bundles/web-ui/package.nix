@@ -7,7 +7,7 @@
   dsh-kernel,
   importPnpmLock,
   pnpmConfigHook,
-  pnpm_11,
+  dshPnpm,
   yq-go,
 }:
 let
@@ -42,7 +42,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     inherit (finalAttrs) pname version;
     fetchPnpmDeps = fetchPnpmDeps';
     lockfileJson = ./pnpm-lock.json;
-    pnpm = pnpm_11;
+    pnpm = dshPnpm;
     fetcherVersion = 4;
     targetPlatform =
       if stdenv.buildPlatform == stdenv.hostPlatform then stdenv.targetPlatform else null;

@@ -6,7 +6,7 @@
   dsh-kernel,
   jq,
   pnpmConfigHook,
-  pnpm_11,
+  dshPnpm,
   nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
@@ -27,7 +27,7 @@ buildDshBundle (finalAttrs: {
       src
       postPatch
       ;
-    pnpm = pnpm_11;
+    pnpm = dshPnpm;
     fetcherVersion = 4;
     hash = "sha256-yskpj3TKREWF6OYOnADws5YNR9V5y7RdnOrwJfQ3NWQ=";
   };
@@ -45,9 +45,9 @@ buildDshBundle (finalAttrs: {
   npmBuildScript = "build";
   nativeBuildInputs = [
     jq
-    pnpm_11
+    dshPnpm
   ];
-  disallowedReferences = [ pnpm_11 ];
+  disallowedReferences = [ dshPnpm ];
   linkKernelNodeModules = dsh-kernel;
 
   installPhase = ''

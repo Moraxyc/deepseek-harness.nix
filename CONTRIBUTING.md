@@ -35,7 +35,7 @@ Minimal template:
   fetchPnpmDeps,
   buildDshBundle,
   pnpmConfigHook,
-  pnpm_11,
+  dshPnpm,
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "example-bundle";
@@ -53,7 +53,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
-    pnpm = pnpm_11;
+    pnpm = dshPnpm;
     fetcherVersion = 4;
     hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
   };
@@ -82,8 +82,9 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
    workspaces that use `packages/*` and single-package workspaces that only
    define `packages: ["."]`.
 2. Run `pnpm config set --location=project inject-workspace-packages true`.
-3. The DSH package scope provides pnpm 11.22.0 when nixpkgs provides an older
-   `pnpm_11`, so dependency fetching and workspace deployment use the same
+3. The DSH package scope exposes `dshPnpm`, which is pnpm 11.22.0 or newer.
+   When nixpkgs ships an older `pnpm_11`, `dshPnpm` builds 11.22.0 from the npm
+   tarball, so dependency fetching and workspace deployment use the same
    compatible package without changing the caller's package set.
 4. Run:
 
@@ -180,9 +181,9 @@ package layout cannot represent the required runtime output; a custom phase
 must place the package under `$out/lib/node_modules`.
 
 If the package needs `pnpmDeps`, `fetchPnpmDeps`, `pnpmConfigHook`, or
-`pnpm_11`, add them to the function arguments just like the pnpm workspace
+`dshPnpm`, add them to the function arguments just like the pnpm workspace
 template. `buildDshBundle` does not add pnpm to the runtime closure
-automatically, so keep `pnpm_11` in `disallowedReferences` when it is used.
+automatically, so keep `dshPnpm` in `disallowedReferences` when it is used.
 
 ## Adding an upstream workspace bundle
 

@@ -32,7 +32,7 @@ Nix 包的 `pname` 仍可保留上游名称。
   fetchPnpmDeps,
   buildDshBundle,
   pnpmConfigHook,
-  pnpm_11,
+  dshPnpm,
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "example-bundle";
@@ -50,7 +50,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
-    pnpm = pnpm_11;
+    pnpm = dshPnpm;
     fetcherVersion = 4;
     hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
   };
@@ -78,9 +78,9 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
    让 pnpm 在部署前跳过源码包重建。该方式同时支持 `packages/*` 多包
    workspace 和只声明 `packages: ["."]` 的单包 workspace。
 2. 运行 `pnpm config set --location=project inject-workspace-packages true`。
-3. 如果 nixpkgs 提供的 `pnpm_11` 较旧，DSH package scope 会提供 pnpm 11.22.0，
-   确保依赖获取和 workspace deploy 使用同一个兼容版本，同时不修改调用方的
-   package set。
+3. DSH package scope 提供 `dshPnpm`，版本不低于 11.22.0。当 nixpkgs 的
+   `pnpm_11` 较旧时，`dshPnpm` 从 npm tarball 构建 11.22.0，确保依赖获取和
+   workspace deploy 使用同一个兼容版本，同时不修改调用方的 package set。
 4. 运行：
 
    ```sh
@@ -141,7 +141,7 @@ mv \
   buildDshBundle,
   dsh-kernel,
   pnpmConfigHook,
-  pnpm_11,
+  dshPnpm,
 }:
 buildDshBundle (finalAttrs: {
   pname = "example-bundle";
@@ -157,13 +157,13 @@ buildDshBundle (finalAttrs: {
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
-    pnpm = pnpm_11;
+    pnpm = dshPnpm;
     fetcherVersion = 4;
     hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
   };
 
-  nativeBuildInputs = [ pnpm_11 ];
-  disallowedReferences = [ pnpm_11 ];
+  nativeBuildInputs = [ dshPnpm ];
+  disallowedReferences = [ dshPnpm ];
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
@@ -188,8 +188,8 @@ buildDshBundle (finalAttrs: {
 })
 ```
 
-包需要 `pnpmDeps`、`fetchPnpmDeps`、`pnpmConfigHook` 或 `pnpm_11` 时，在
-函数参数中补齐。运行时闭包默认不含 pnpm；用到 `pnpm_11` 时，把它写进
+包需要 `pnpmDeps`、`fetchPnpmDeps`、`pnpmConfigHook` 或 `dshPnpm` 时，在
+函数参数中补齐。运行时闭包默认不含 pnpm；用到 `dshPnpm` 时，把它写进
 `disallowedReferences`。
 
 ## 添加上游 workspace bundle
