@@ -14,17 +14,19 @@
   pnpm_11,
   python3,
   stdenv,
-  dsh-landlock-run,
+  dsh-system,
   yq-go,
 }:
 
 let
   platformKey = with stdenv.hostPlatform.node; "${platform}-${arch}";
   fetchPnpmDeps' = fetchPnpmDeps.override { yq = yq-go; };
+  dshSystemIsAvailable = lib.meta.availableOn stdenv.hostPlatform dsh-system;
+  inherit (stdenv.hostPlatform) isLinux isDarwin;
 in
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
-  version = "0.1.3-alpha.2";
+  version = "0.1.5-alpha.1";
 
   __structuredAttrs = true;
   strictDeps = true;
@@ -38,10 +40,10 @@ buildNpmPackage (finalAttrs: {
     owner = "deepseek-ai";
     repo = "deepseek-harness";
     tag = "dsh-v${finalAttrs.version}";
-    hash = "sha256-lORF4FwGFBJlXOsbhILhj4olWJZL+sO2pRKtOYtX8/4=";
+    hash = "sha256-g7nPTD4zbScRU1SL7NiSG/xqDSEogcZly5aYklBbfzA=";
   };
 
-  env.DSH_CLIENT_COMMIT_HASH = "82a5fd61a7cf5c293cec4bdff68f455398d685e9";
+  env.DSH_CLIENT_COMMIT_HASH = "5dda764ed3aa172535a7967b06ff95d9cbfe536a";
   env.PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = "false";
 
   nodejs = nodejs-slim;
@@ -76,8 +78,13 @@ buildNpmPackage (finalAttrs: {
       del(.allowBuilds."@deepseek-ai/dsh-subprocess-local@file:packages/subprocess/subprocess-local")
     ' pnpm-workspace.yaml
   ''
-  + lib.optionalString (lib.meta.availableOn stdenv.hostPlatform dsh-landlock-run) ''
-    install -Dm755 ${dsh-landlock-run}/bin/landlock-run native/landlock-run/packages/${platformKey}/bin/landlock-run
+  + lib.optionalString (dshSystemIsAvailable && isLinux) ''
+    install -Dm755 ${dsh-system}/bin/landlock-run native/system/packages/${platformKey}/bin/landlock-run
+    install -Dm644 ${dsh-system}/bin/glibc/system.node native/system/packages/${platformKey}/bin/glibc/system.node
+    install -Dm644 ${dsh-system}/bin/musl/system.node native/system/packages/${platformKey}/bin/musl/system.node
+  ''
+  + lib.optionalString (dshSystemIsAvailable && isDarwin) ''
+    install -Dm644 ${dsh-system}/bin/system.node native/system/packages/${platformKey}/bin/system.node
   '';
 
   preConfigure = "patchDshWorkspace kernel";

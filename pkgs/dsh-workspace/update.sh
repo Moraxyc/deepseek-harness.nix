@@ -53,13 +53,13 @@ fi
 
 src="$(nix build --no-link --print-out-paths ".#$attr.src")"
 
-landlock_version="$(jq -er '.version | strings' "$src/native/landlock-run/package.json")"
+system_version="$(jq -er '.version | strings' "$src/native/system/package.json")"
 nix-update \
   --flake \
-  --version="$landlock_version" \
+  --version="$system_version" \
   --no-src \
-  --override-filename=pkgs/dsh-landlock-run/package.nix \
-  dsh-landlock-run
+  --override-filename=pkgs/dsh-system/package.nix \
+  dsh-system
 
 yq -o=json . "$src/pnpm-lock.yaml" > "$tmp_dir/pnpm-lock.json"
 mv "$tmp_dir/pnpm-lock.json" "$repo_root/pkgs/dsh-workspace/pnpm-lock.json"
