@@ -6,167 +6,39 @@
 }:
 let
   cfg = config.services.dsh;
+  common = import ./service-common.nix { inherit lib pkgs; };
   unitName = "dsh-web";
-  profileOptions = import ./profile-options.nix { inherit lib; };
-  profileName = name: "nix-${name}";
-  servicePackage =
-    let
-      managedProfiles = map profileName (lib.attrNames cfg.profiles);
-    in
-    if lib.elem cfg.profile managedProfiles then
-      (
-        (config.programs.dsh.package.override {
-          agentPresets = cfg.agentPresets;
-        }).withProfiles
-        cfg.profiles
-      ).override
-        {
-          defaultProfile = cfg.profile;
-        }
-    else
-      pkgs.dsh.presets.web;
-  composedPackage = servicePackage.override {
-    homePatch = config.programs.dsh.patch;
-  };
-  execArgs = [
-    "--profile"
-    cfg.profile
-    "--no-open"
-    "--host"
-    cfg.listenAddress
-    "--port"
-    (toString cfg.port)
-  ]
-  ++ lib.concatMap (host: [
-    "--trusted-host"
-    host
-  ]) cfg.trustedHosts
-  ++ cfg.extraArguments;
 in
 {
   imports = [ ./shared-profile-options.nix ];
 
-  options.services.dsh = {
-    enable = lib.mkEnableOption "the DeepSeek Harness user web service";
-
-    package = lib.mkOption {
-      type = lib.types.package;
-      default = composedPackage;
-      defaultText = lib.literalMD ''
-        The web preset, or a package composed from `programs.dsh.package` and
-        the declared profiles when the served profile is one of them.
-      '';
-      description = ''
-        Composed dsh package used to serve the web profile. By default the
-        unit serves the profile named by `profile` from `programs.dsh.profiles`
-        (or `services.dsh.profiles`) through `programs.dsh.package`, and falls
-        back to the web preset when that profile is not declared.
-      '';
-    };
-
-    profiles = profileOptions.mkProfilesOption {
-      default = config.programs.dsh.profiles;
-      defaultText = lib.literalExpression "config.programs.dsh.profiles";
-      extraDescription = ''
-        This option defaults to `programs.dsh.profiles`, so custom profiles
-        declared there are reused by the service automatically. Assigning
-        `services.dsh.profiles` replaces the inherited profiles.
-      '';
-    };
-
-    agentPresets = profileOptions.mkAgentPresetsOption {
-      default = config.programs.dsh.agentPresets;
-      defaultText = lib.literalExpression "config.programs.dsh.agentPresets";
-      extraDescription = ''
-        This option defaults to `programs.dsh.agentPresets`.
-      '';
-    };
-
-    profile = lib.mkOption {
-      type = lib.types.str;
-      default = "nix-web";
-      description = ''
-        Materialized profile name served by the unit. For a declared profile,
-        use `services.dsh.profiles.web.materializedName`.
-      '';
-    };
-
-    listenAddress = lib.mkOption {
-      type = lib.types.str;
-      default = "127.0.0.1";
-      description = "Address bound by the web server. Keep this on loopback unless the firewall and proxy policy have been reviewed.";
-    };
-
-    port = lib.mkOption {
-      type = lib.types.port;
-      default = 3080;
-      description = "TCP port bound by the web server.";
-    };
-
-    trustedHosts = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [ ];
-      description = "Authorities accepted by the web API browser-trust fence, for example `dsh.example.com`.";
-    };
-
-    extraArguments = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
-      default = [ ];
-      description = "Extra arguments appended to the booted web profile.";
-    };
-
-    dataDir = lib.mkOption {
-      type = lib.types.str;
-      default =
-        if config.programs.dsh.home != null then
-          config.programs.dsh.home
-        else
-          "${config.home.homeDirectory}/.dsh";
-      defaultText = lib.literalExpression ''
-        if config.programs.dsh.home != null then
-          config.programs.dsh.home
-        else
-          "''${config.home.homeDirectory}/.dsh"
-      '';
-      description = "Directory used as `DSH_HOME`; defaults to the same location the dsh CLI uses.";
-    };
-
-    workspace = lib.mkOption {
-      type = lib.types.str;
-      default = "${cfg.dataDir}/workspace";
-      description = "Working directory used by the unit.";
-    };
-
-    environment = lib.mkOption {
-      type = lib.types.attrsOf lib.types.str;
-      default = { };
-      description = "Environment variables passed to the unit. Do not store secrets here.";
-    };
-
-    environmentFile = lib.mkOption {
-      type = lib.types.nullOr lib.types.str;
-      default = null;
-      description = "Path to a systemd EnvironmentFile, usually a runtime secret file.";
-    };
-
-    credentials = lib.mkOption {
-      type = lib.types.attrsOf lib.types.str;
-      default = { };
-      description = "systemd LoadCredential entries; each value is a runtime source path.";
-    };
-
-    autoStart = lib.mkOption {
-      type = lib.types.bool;
-      default = true;
-      description = "Start the service with `default.target`.";
-    };
+  options.services.dsh = common.mkOptions {
+    inherit cfg config;
+    enableName = "the DeepSeek Harness user web service";
+    dataDirDefault =
+      if config.programs.dsh.home != null then
+        config.programs.dsh.home
+      else
+        "${config.home.homeDirectory}/.dsh";
+    dataDirDefaultText = lib.literalExpression ''
+      if config.programs.dsh.home != null then
+        config.programs.dsh.home
+      else
+        "''${config.home.homeDirectory}/.dsh"
+    '';
+    dataDirDescription = "Directory used as `DSH_HOME`; defaults to the same location the dsh CLI uses.";
+    workspaceDescription = "Working directory used by the unit.";
+    autoStartDescription = "Start the service with `default.target`.";
   };
 
   config = lib.mkIf cfg.enable {
-    systemd.user.tmpfiles.rules = [
-      "d ${cfg.dataDir} 0700 - - -"
-      "d ${cfg.workspace} 0700 - - -"
-    ];
+    systemd.user.tmpfiles.rules = common.mkTmpfilesRules {
+      directories = [
+        cfg.dataDir
+        cfg.workspace
+      ];
+      owner = "- -";
+    };
 
     systemd.user.services.${unitName} = {
       Unit = {
@@ -174,25 +46,11 @@ in
         After = [ "network.target" ];
       };
 
-      Service = {
-        Type = "simple";
-        WorkingDirectory = cfg.workspace;
+      Service = common.mkServiceConfig { inherit cfg; } // {
         Environment = [
           "DSH_HOME=${cfg.dataDir}"
         ]
         ++ lib.mapAttrsToList (name: value: "${name}=${value}") cfg.environment;
-        ExecStart = lib.concatStringsSep " " (
-          map lib.escapeShellArg ([ (lib.getExe cfg.package) ] ++ execArgs)
-        );
-        Restart = "on-failure";
-        RestartSec = "2s";
-        PrivateTmp = true;
-      }
-      // lib.optionalAttrs (cfg.environmentFile != null) {
-        EnvironmentFile = cfg.environmentFile;
-      }
-      // lib.optionalAttrs (cfg.credentials != { }) {
-        LoadCredential = lib.mapAttrsToList (name: source: "${name}:${source}") cfg.credentials;
       };
 
       Install = {
