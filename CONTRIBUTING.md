@@ -97,6 +97,11 @@ Do not use `pnpm ... --legacy`. The injected workspace layout is the supported
 protocol. The deploy target is `$out/lib`; do not copy build output back into
 the source tree.
 
+`pnpm deploy --ignore-scripts` does not build source-only workspace packages.
+If the selected package depends on such workspaces, build them in `preDeploy`
+(for example, `pnpm --workspace-concurrency=4 --config.ignore-workspace-cycles=true
+-r build`) and validate their runtime entrypoints in `postDeploy`.
+
 For aggregator bundles, set `disableChildBundlePatches = true` so child
 `cordis.patch.yml` files are blanked and only `deployPackage` registers loader
 entries. If packages need kernel peers such as `@deepseek-ai/dsh-settings`,

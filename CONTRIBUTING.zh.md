@@ -91,6 +91,11 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
 deploy 命令使用上述参数和注入式 workspace 布局，这是受支持的协议。部署目标
 固定为 `$out/lib`，构建产物保留在该目录下。
 
+`pnpm deploy --ignore-scripts` 不会构建只有源码的 workspace 子包。如果选中的包
+依赖这类子包，应在 `preDeploy` 中显式构建它们（例如
+`pnpm --workspace-concurrency=4 --config.ignore-workspace-cycles=true -r build`），并在
+`postDeploy` 中检查运行时入口文件。
+
 聚合 bundle 可设置 `disableChildBundlePatches = true`，让子包
 `cordis.patch.yml` 清空，仅由 `deployPackage` 注册 loader 条目。包需要 kernel
 peer（如 `@deepseek-ai/dsh-settings`）时，传 `linkKernelNodeModules =

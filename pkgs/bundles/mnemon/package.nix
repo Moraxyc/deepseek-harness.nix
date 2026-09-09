@@ -25,6 +25,12 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   npmBuildScript = "build";
   linkKernelNodeModules = dsh-kernel;
 
+  # The root build does not build the source-only plugin workspaces, while
+  # deploy intentionally skips dependency lifecycle scripts.
+  preDeploy = ''
+    pnpm --workspace-concurrency=4 --config.ignore-workspace-cycles=true -r build
+  '';
+
   postDeploy = ''
     rm -rf "$deployPackagePath"
     mkdir -p "$deployPackagePath"
