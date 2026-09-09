@@ -4,6 +4,7 @@
   fetchFromGitHub,
   buildDshBundle,
   dsh-kernel,
+  dsh-workspace,
   pnpmConfigHook,
   python3,
   nix-update-script,
@@ -26,11 +27,35 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
+  disallowedReferences = [ dsh-workspace ];
 
   nativeBuildInputs = [ jq ];
   buildInputs = [ python3 ];
 
   postNormalizeDeploy = ''
+    webRuntime="${dsh-workspace}/lib/dsh-workspace/runtime-bundles/@deepseek-ai/dsh-web-app/node_modules"
+    for clientPackage in \
+      dsh-api-remotes \
+      dsh-client-connection \
+      dsh-client-locale \
+      dsh-client-ui-attachment \
+      dsh-client-ui-conversation \
+      dsh-client-ui-input-trigger \
+      dsh-client-ui-settings \
+      dsh-client-ui-tool \
+      dsh-session-stats \
+      dsh-typert-protocol; do
+      packageDir="$out/lib/node_modules/@deepseek-ai/$clientPackage"
+      source="$webRuntime/@deepseek-ai/$clientPackage"
+      [ -d "$source" ] || {
+        printf 'dsh-vision-toolkit: workspace runtime package is missing: %s\n' "$source" >&2
+        exit 1
+      }
+      rm -rf "$packageDir"
+      cp -rL "$source" "$packageDir"
+      chmod -R u+w "$packageDir"
+    done
+
     while IFS= read -r -d $'\0' script; do
       patchShebangs "$script"
     done < <(find "$deployPackagePath/vendor/agent-vision-toolkit" \
