@@ -32,7 +32,6 @@ Nix 包的 `pname` 仍可保留上游名称。
   fetchPnpmDeps,
   buildDshBundle,
   pnpmConfigHook,
-  dshPnpm,
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "example-bundle";
@@ -50,7 +49,6 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
-    pnpm = dshPnpm;
     fetcherVersion = 4;
     hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
   };
@@ -78,9 +76,11 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
    让 pnpm 在部署前跳过源码包重建。该方式同时支持 `packages/*` 多包
    workspace 和只声明 `packages: ["."]` 的单包 workspace。
 2. 运行 `pnpm config set --location=project inject-workspace-packages true`。
-3. DSH package scope 提供 `dshPnpm`，版本不低于 11.22.0。当 nixpkgs 的
-   `pnpm_11` 较旧时，`dshPnpm` 从 npm tarball 构建 11.22.0，确保依赖获取和
-   workspace deploy 使用同一个兼容版本，同时不修改调用方的 package set。
+3. `pnpm deploy` 的 workspace 注入要求 pnpm 不低于 11.22.0。DSH package scope
+   的 `fetchPnpmDeps` 默认使用 `pnpmWorkspaceDeploy`，`fromPnpmWorkspace` 的
+   deploy 也用同一个默认值，因此模板不需要写 `pnpm`。当 nixpkgs 的 `pnpm_11`
+   较旧时，`pnpmWorkspaceDeploy` 从 npm tarball 构建 11.22.0。只有需要换成其
+   他仍满足版本要求的 pnpm 时才覆盖 `pnpm`。
 4. 运行：
 
    ```sh
@@ -141,7 +141,7 @@ mv \
   buildDshBundle,
   dsh-kernel,
   pnpmConfigHook,
-  dshPnpm,
+  pnpm_11,
 }:
 buildDshBundle (finalAttrs: {
   pname = "example-bundle";
@@ -157,13 +157,13 @@ buildDshBundle (finalAttrs: {
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
-    pnpm = dshPnpm;
+    pnpm = pnpm_11;
     fetcherVersion = 4;
     hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
   };
 
-  nativeBuildInputs = [ dshPnpm ];
-  disallowedReferences = [ dshPnpm ];
+  nativeBuildInputs = [ pnpm_11 ];
+  disallowedReferences = [ pnpm_11 ];
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
@@ -188,9 +188,10 @@ buildDshBundle (finalAttrs: {
 })
 ```
 
-包需要 `pnpmDeps`、`fetchPnpmDeps`、`pnpmConfigHook` 或 `dshPnpm` 时，在
-函数参数中补齐。运行时闭包默认不含 pnpm；用到 `dshPnpm` 时，把它写进
-`disallowedReferences`。
+包需要 `pnpmDeps`、`fetchPnpmDeps`、`pnpmConfigHook` 或 `pnpm_11` 时，在
+函数参数中补齐。scoped `fetchPnpmDeps` 默认使用 deploy 用的 pnpm，所以只做
+fetch 或 build 的独立 bundle 必须传 `pnpm = pnpm_11`。运行时闭包默认不含
+pnpm；用到 `pnpm_11` 时，把它写进 `disallowedReferences`。
 
 ## 添加上游 workspace bundle
 

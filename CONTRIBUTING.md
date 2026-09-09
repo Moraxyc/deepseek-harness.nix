@@ -35,7 +35,6 @@ Minimal template:
   fetchPnpmDeps,
   buildDshBundle,
   pnpmConfigHook,
-  dshPnpm,
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "example-bundle";
@@ -53,7 +52,6 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
-    pnpm = dshPnpm;
     fetcherVersion = 4;
     hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
   };
@@ -82,10 +80,12 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
    workspaces that use `packages/*` and single-package workspaces that only
    define `packages: ["."]`.
 2. Run `pnpm config set --location=project inject-workspace-packages true`.
-3. The DSH package scope exposes `dshPnpm`, which is pnpm 11.22.0 or newer.
-   When nixpkgs ships an older `pnpm_11`, `dshPnpm` builds 11.22.0 from the npm
-   tarball, so dependency fetching and workspace deployment use the same
-   compatible package without changing the caller's package set.
+3. `pnpm deploy` with workspace injection needs pnpm 11.22.0 or newer. The DSH
+   package scope's `fetchPnpmDeps` defaults to `pnpmWorkspaceDeploy`, and
+   `fromPnpmWorkspace` uses the same default for deploy, so the template omits
+   `pnpm`. When nixpkgs ships an older `pnpm_11`, `pnpmWorkspaceDeploy` builds
+   11.22.0 from the npm tarball. Override `pnpm` only for a different,
+   still-compatible version.
 4. Run:
 
    ```sh
@@ -181,9 +181,11 @@ package layout cannot represent the required runtime output; a custom phase
 must place the package under `$out/lib/node_modules`.
 
 If the package needs `pnpmDeps`, `fetchPnpmDeps`, `pnpmConfigHook`, or
-`dshPnpm`, add them to the function arguments just like the pnpm workspace
-template. `buildDshBundle` does not add pnpm to the runtime closure
-automatically, so keep `dshPnpm` in `disallowedReferences` when it is used.
+`pnpm_11`, add them to the function arguments just like the pnpm workspace
+template. The scoped `fetchPnpmDeps` defaults to the deploy pnpm, so a
+standalone bundle that only fetches or builds must pass `pnpm = pnpm_11`.
+`buildDshBundle` does not add pnpm to the runtime closure automatically, so
+keep `pnpm_11` in `disallowedReferences` when it is used.
 
 ## Adding an upstream workspace bundle
 

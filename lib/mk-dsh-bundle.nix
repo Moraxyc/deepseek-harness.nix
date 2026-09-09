@@ -4,7 +4,8 @@
   jq,
   nodejs,
   nodejs-slim,
-  dshPnpm,
+  pnpmWorkspaceDeploy,
+  pnpmWorkspaceDeployMinVersion,
   stdenvNoCC,
   writeShellApplication,
   writers,
@@ -281,7 +282,7 @@ let
         disableChildBundlePatches ? false,
         linkKernelNodeModules ? null,
         linkKernelNodeModulesKeep ? [ ],
-        pnpm ? dshPnpm,
+        pnpm ? pnpmWorkspaceDeploy,
         nativeBuildInputs ? [ ],
         disallowedReferences ? [ ],
         env ? { },
@@ -329,6 +330,8 @@ let
           runHook postInstall
         '';
       in
+      assert lib.assertMsg (lib.versionAtLeast pnpm.version pnpmWorkspaceDeployMinVersion)
+        "buildDshBundle.fromPnpmWorkspace: ${finalAttrs.pname} requires pnpm >= ${pnpmWorkspaceDeployMinVersion} for workspace injection, got ${pnpm.version}. Leave `pnpm` unset to use `pnpmWorkspaceDeploy`, or pass `pnpm = pnpmWorkspaceDeploy` explicitly.";
       {
         nodejs = nodejs-slim;
         env = env // {

@@ -6,7 +6,8 @@
   context,
   dsh-kernel,
   pnpmConfigHook,
-  dshPnpm,
+  pnpm_11,
+  pnpmWorkspaceDeploy,
   nix-update-script,
 }:
 
@@ -28,7 +29,7 @@ let
     pnpmDeps = fetchPnpmDeps {
       pname = old.pname;
       inherit version src;
-      pnpm = dshPnpm;
+      pnpm = pnpm_11;
       fetcherVersion = 4;
       hash = "sha256-aJ7oBhhvRIZ49EN72jeIGWD+lxkV/XHBi2byM091Dmo=";
     };
@@ -47,7 +48,7 @@ buildDshBundle (finalAttrs: {
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
-    pnpm = dshPnpm;
+    pnpm = pnpmWorkspaceDeploy;
     fetcherVersion = 4;
     hash = "sha256-cc94SWzJ1Aq5MBbsSYu1YA//zprj/2sNXGQIqH4OdY8=";
   };
@@ -55,8 +56,8 @@ buildDshBundle (finalAttrs: {
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
-  nativeBuildInputs = [ dshPnpm ];
-  disallowedReferences = [ dshPnpm ];
+  nativeBuildInputs = [ pnpmWorkspaceDeploy ];
+  disallowedReferences = [ pnpmWorkspaceDeploy ];
 
   postPatch = ''
     mkdir -p upstream/DSH-better-sidebar

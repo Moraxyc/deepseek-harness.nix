@@ -5,7 +5,6 @@
   buildDshBundle,
   dsh-kernel,
   pnpmConfigHook,
-  dshPnpm,
   nix-update-script,
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
@@ -23,7 +22,6 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
-    pnpm = dshPnpm;
     fetcherVersion = 4;
     hash = "sha256-IgTpkTt5Js3abke85E8WMSWvuCP4yR8o2I/NqZMLPUM=";
   };

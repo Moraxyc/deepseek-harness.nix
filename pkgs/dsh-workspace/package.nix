@@ -11,7 +11,7 @@
   nodejs,
   nodejs-slim,
   pnpmConfigHook,
-  dshPnpm,
+  pnpmWorkspaceDeploy,
   python3,
   stdenv,
   dsh-system,
@@ -49,7 +49,7 @@ buildNpmPackage (finalAttrs: {
   nodejs = nodejs-slim;
   disallowedReferences = [
     nodejs
-    dshPnpm
+    pnpmWorkspaceDeploy
     python3
   ];
 
@@ -84,6 +84,7 @@ buildNpmPackage (finalAttrs: {
   pnpmDeps = importPnpmLock {
     inherit (finalAttrs) pname version;
     fetchPnpmDeps = fetchPnpmDeps';
+    pnpm = pnpmWorkspaceDeploy;
     lockfileJson = ./pnpm-lock.json;
     targetPlatform =
       if stdenv.buildPlatform == stdenv.hostPlatform then stdenv.targetPlatform else null;
@@ -96,7 +97,7 @@ buildNpmPackage (finalAttrs: {
     jq
     makeWrapper
     nodejs-slim.npm
-    dshPnpm
+    pnpmWorkspaceDeploy
     python3
     dshWorkspacePatchHook
     yq-go
