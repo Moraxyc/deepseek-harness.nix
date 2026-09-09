@@ -5,24 +5,19 @@
   buildDshBundle,
   dsh-kernel,
   pnpmConfigHook,
-  dshPnpm,
+  pnpm_11,
   nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-tui";
-  version = "0.10.0-beta.3";
+  version = "0.10.0";
 
   src = fetchFromGitHub {
     owner = "ccch1mneyyy";
     repo = "dsh-TUI";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-6PndAYMTnsG/5EIjOSGa9VikZwFIddkOHPmQ+TuQFwg=";
+    hash = "sha256-i49UdJ/uHCB1G7Jm7MPy/HDgbrCLUJjY9J1sl0xL6Mw=";
   };
-
-  # dsh 0.1.2-alpha.4 renamed Session.events to snapshotEvents(); dsh-tui
-  # 0.10.0-beta.3 still reads the old property on every session path, so the
-  # bundle restores the alias on the kernel class (see the patch).
-  patches = [ ./session-events-compat.patch ];
 
   postPatch = ''
     rm -rf vendor/dsh-std dsh-ecosystem-spec dsh-auth
@@ -36,13 +31,13 @@ buildDshBundle (finalAttrs: {
     # only needs the source file list for its static scan.
     substituteInPlace scripts/verify-i18n.ts \
       --replace-fail \
-        "execSync('git ls-files src scripts', { encoding: 'utf8' })" \
-        "execSync('find src scripts -type f -print', { encoding: 'utf8' })"
+        "execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard', '--', 'src', 'scripts'], { encoding: 'utf8' })" \
+        "execFileSync('find', ['src', 'scripts', '-type', 'f', '-print0'], { encoding: 'utf8' })"
   '';
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
-    pnpm = dshPnpm;
+    pnpm = pnpm_11;
     fetcherVersion = 4;
     postPatch = finalAttrs.postPatch;
     prePnpmInstall = ''
@@ -51,16 +46,19 @@ buildDshBundle (finalAttrs: {
         --frozen-lockfile \
         --registry="$NIX_NPM_REGISTRY"
     '';
-    hash = "sha256-Q33gyQ9KF1RJlnlvhLMn+FyMnKTnrNJi8mRzJJU2s/E=";
+    hash = "sha256-ZyR80zLuIQw4ZqrCwv/n3QDfqBLzj4MbZdZ0sJKJC9s=";
   };
 
-  nativeBuildInputs = [ dshPnpm ];
-  disallowedReferences = [ dshPnpm ];
+  nativeBuildInputs = [ pnpm_11 ];
+  disallowedReferences = [ pnpm_11 ];
   linkKernelNodeModules = dsh-kernel;
   # dsh-tui compiles against React 19, while dsh-kernel carries React 18.
+  # supports-hyperlinks@3.2.0 needs the supports-color@7 function export,
+  # while dsh-kernel carries 9.x.
   linkKernelNodeModulesKeep = [
     "ansi-styles"
     "react"
+    "supports-color"
   ];
 
   npmDeps = null;
@@ -103,14 +101,14 @@ buildDshBundle (finalAttrs: {
     dshEcosystemSpec = fetchFromGitHub {
       owner = "T-Auto";
       repo = "dsh-ecosystem-spec";
-      rev = "e1b902b0f95f4280a8e68d414ec7a4d25d6ce106";
-      hash = "sha256-LVc7bMUJMI4GYW3IyBWYwFzkibayu6BgZxlO67FPtGk=";
+      rev = "d28c267fe7fd775428ec2dccd65b0b7efd4dacee";
+      hash = "sha256-hhp/UUMo2engw0SyrB0Gq6Xc6BUYgvEmYh0F4OBdZEw=";
     };
     dshAuth = fetchFromGitHub {
       owner = "ccch1mneyyy";
       repo = "dsh-auth";
-      rev = "fba02bcf7fb57e3d9885f73882d5835ccdf526c4";
-      hash = "sha256-ip/jdsm/YiPvVdZ0o2m/thImd+4ZmRjzQKzXvJ9dAK8=";
+      rev = "94fdf81e775e8d884af4dfb64a94b617c3751936";
+      hash = "sha256-gSkDJnjm4N2qOqnEstDU12S4D9FvomrxB9UVwlFN2M4=";
     };
     inherit (finalAttrs) pnpmDeps;
     requiresTui = true;
