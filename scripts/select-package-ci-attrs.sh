@@ -6,27 +6,12 @@ base_ref="${1:-}"
 repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
 
-# shellcheck disable=SC2016
-package_set="$(
-  nix eval --impure --json --expr '
-    let
-      f = import ./default.nix;
-      system = builtins.currentSystem;
-      isDerivation = p: builtins.isAttrs p && (p.type or null) == "derivation";
-      names = set: builtins.filter (name: isDerivation (builtins.getAttr name set)) (builtins.attrNames set);
-      packages = builtins.filter (name: name != "default") (names f.packages.${system});
-      bundles = names f.legacyPackages.${system}.bundles;
-      presets = names f.legacyPackages.${system}.presets;
-    in
-    { inherit packages bundles presets; }
-  '
-)"
+system="$(nix eval --raw --impure --expr 'builtins.currentSystem')"
+package_set="$(nix eval --json ".#legacyPackages.${system}.ciPackageAttrs")"
 
 all_attrs() {
   jq -r '
-    (.packages[] | ".#" + .),
-    (.bundles[] | ".#bundles." + .),
-    (.presets[] | ".#presets." + .)
+    (.packages, .bundles, .presets) | .[]
   ' <<< "$package_set"
 }
 
@@ -84,7 +69,7 @@ while IFS= read -r file; do
 done <<< "$changed_files"
 
 for name in "${changed_unknown_packages[@]}"; do
-  if ! jq -e --arg name "$name" '.packages | index($name)' <<< "$package_set" >/dev/null; then
+  if ! jq -e --arg name "$name" '.packages | has($name)' <<< "$package_set" >/dev/null; then
     global=1
     break
   fi
@@ -97,7 +82,7 @@ if [ "$global" -eq 1 ]; then
 fi
 
 for name in "${changed_bundles[@]}"; do
-  if ! jq -e --arg name "$name" '.bundles | index($name)' <<< "$package_set" >/dev/null; then
+  if ! jq -e --arg name "$name" '.bundles | has($name)' <<< "$package_set" >/dev/null; then
     global=1
     break
   fi
@@ -109,7 +94,7 @@ if [ "$global" -eq 1 ]; then
 fi
 
 for name in "${changed_presets[@]}"; do
-  if ! jq -e --arg name "$name" '.presets | index($name)' <<< "$package_set" >/dev/null; then
+  if ! jq -e --arg name "$name" '.presets | has($name)' <<< "$package_set" >/dev/null; then
     global=1
     break
   fi
@@ -124,57 +109,26 @@ attrs=()
 
 for name in "${changed_packages[@]}"; do
   if [ "$name" = "dsh" ]; then
-    attrs+=(".#dsh" ".#dsh-desktop")
+    attrs+=(
+      "$(jq -r '.packages.dsh' <<< "$package_set")"
+      "$(jq -r '.packages["dsh-desktop"]' <<< "$package_set")"
+    )
     while IFS= read -r preset; do
-      attrs+=(".#presets.$preset")
+      attrs+=("$preset")
     done < <(jq -r '.presets[]' <<< "$package_set")
   else
-    attrs+=(".#$name")
+    attrs+=("$(jq -r --arg name "$name" '.packages[$name]' <<< "$package_set")")
   fi
 done
 
 for name in "${changed_bundles[@]}"; do
-  attrs+=(".#bundles.$name")
-done
-
-if [ "${#changed_bundles[@]}" -gt 0 ]; then
-  changed_json="$(
-    printf '%s\n' "${changed_bundles[@]}" |
-      jq -Rsc 'split("\n") | map(select(. != ""))'
-  )"
-  # shellcheck disable=SC2016
-  affected="$(
-    CHANGED_BUNDLES="$changed_json" nix eval --impure --json --expr '
-      let
-        f = import ./default.nix;
-        system = builtins.currentSystem;
-        changed = builtins.fromJSON (builtins.getEnv "CHANGED_BUNDLES");
-        isDerivation = p: builtins.isAttrs p && (p.type or null) == "derivation";
-        packages = f.packages.${system};
-        legacy = f.legacyPackages.${system};
-        packageNames = builtins.filter (name: name != "default" && isDerivation packages.${name}) (builtins.attrNames packages);
-        presetNames = builtins.filter (name: isDerivation legacy.presets.${name}) (builtins.attrNames legacy.presets);
-        changedPnames = map (name: legacy.bundles.${name}.pname) changed;
-        usesChanged = p: builtins.any (bundle: builtins.elem (bundle.pname or bundle.name or null) changedPnames) (p.passthru.composedBundles or []);
-        affectedPackages = builtins.filter (name: usesChanged packages.${name}) packageNames;
-        affectedPresets = builtins.filter (name: usesChanged legacy.presets.${name}) presetNames;
-      in
-      { inherit affectedPackages affectedPresets; }
-    '
-  )"
   while IFS= read -r attr; do
     attrs+=("$attr")
-  done < <(
-    jq -r '
-      (.affectedPackages[] | ".#" + .),
-      (if (.affectedPackages | index("dsh")) != null then ".#dsh-desktop" else empty end),
-      (.affectedPresets[] | ".#presets." + .)
-    ' <<< "$affected"
-  )
-fi
+  done < <(jq -r --arg name "$name" '.bundles[$name], (.bundleDependents[$name][]?)' <<< "$package_set")
+done
 
 for name in "${changed_presets[@]}"; do
-  attrs+=(".#presets.$name")
+  attrs+=("$(jq -r --arg name "$name" '.presets[$name]' <<< "$package_set")")
 done
 
 if [ "${#attrs[@]}" -gt 0 ]; then
