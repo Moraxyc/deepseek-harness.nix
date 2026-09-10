@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#!nix-shell -i bash -p coreutils git nix nix-update yq-go
+#!nix-shell -i bash -p coreutils git jq nix nix-update yq-go
 # shellcheck shell=bash
 set -euo pipefail
 
@@ -26,3 +26,7 @@ trap 'rm -rf "$tmp_dir"' EXIT
 
 yq -o=json . "$src/pnpm-lock.yaml" > "$tmp_dir/pnpm-lock.json"
 mv "$tmp_dir/pnpm-lock.json" pkgs/bundles/web-ui/pnpm-lock.json
+jq '{name, version, private}' "$src/package.json" > "$tmp_dir/package.json"
+mv "$tmp_dir/package.json" pkgs/bundles/web-ui/package.json
+yq -o=json . "$src/pnpm-workspace.yaml" > "$tmp_dir/pnpm-workspace.json"
+mv "$tmp_dir/pnpm-workspace.json" pkgs/bundles/web-ui/pnpm-workspace.json

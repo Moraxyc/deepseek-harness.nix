@@ -18,6 +18,10 @@ in
   fetcherVersion ? null,
   pname ? null,
   registry ? "https://registry.npmjs.org",
+  # JSON data for the synthetic root package, like importNpmLock's `package`.
+  package ? { },
+  workspaceJson ? { },
+  workspaceRoot ? null,
   # Escape hatch like importNpmLock's packageSourceOverrides. Keys may contain
   # `*` wildcards; exact keys take precedence over the longest matching
   # wildcard key. Values may be source paths or functions receiving
@@ -245,15 +249,28 @@ let
         effectiveTargetPlatform.libc
       ];
 
-  patchedDependencies = lockfile.patchedDependencies or { };
-  patchedDependencyFiles = lib.mapAttrs (
-    id: _:
-    patchedDependencySources.${id} or (throw ''
-      importPnpmLock: patched dependency `${id}` has no patch source.
-      Provide `patchedDependencySources.${id}` with the patch file from the
-      workspace that produced the lockfile.
-    '')
-  ) patchedDependencies;
+  workspacePatchedDependencies = workspaceJson.patchedDependencies or { };
+  patchedDependencies =
+    if lockfile ? patchedDependencies then
+      lockfile.patchedDependencies
+    else
+      workspacePatchedDependencies;
+  patchSource =
+    id:
+    if builtins.hasAttr id patchedDependencySources then
+      patchedDependencySources.${id}
+    else if builtins.hasAttr id workspacePatchedDependencies then
+      if workspaceRoot == null then
+        throw "importPnpmLock: workspaceRoot is required for patched dependency `${id}`"
+      else
+        "${workspaceRoot}/${workspacePatchedDependencies.${id}}"
+    else
+      throw ''
+        importPnpmLock: patched dependency `${id}` has no patch source.
+        Provide `patchedDependencySources.${id}` or pass `workspaceJson` with
+        `workspaceRoot` pointing to the source tree.
+      '';
+  patchedDependencyFiles = lib.mapAttrs (id: _: patchSource id) patchedDependencies;
   patchedDependencyYaml = lib.mapAttrs (id: _: "patches/${id}.patch") patchedDependencies;
 
   packTarball =
@@ -445,6 +462,7 @@ let
       name = effectivePname;
       version = "0.0.0";
     }
+    // package
     // importerDeps (importers."." or { });
 
     workspaces = lib.listToAttrs (
@@ -472,17 +490,18 @@ let
   workspaceFileInputs = lib.listToAttrs (
     map (path: nameValuePair "${path}/package.json" (workspacePackageJson path)) workspacePaths
   );
-  workspaceConfig = {
-    packages = workspacePaths;
-  }
-  // lib.optionalAttrs (lockfile ? settings) lockfile.settings
-  // lib.optionalAttrs (lockfile ? overrides) { overrides = lockfile.overrides; }
-  // lib.optionalAttrs (patchedDependencies != { }) {
-    patchedDependencies = patchedDependencyYaml;
-  };
+  workspaceConfig =
+    workspaceJson
+    // lib.optionalAttrs (!(workspaceJson ? packages)) { packages = workspacePaths; }
+    // lib.optionalAttrs (lockfile ? settings) lockfile.settings
+    // lib.optionalAttrs (lockfile ? overrides) { overrides = lockfile.overrides; }
+    // lib.optionalAttrs (patchedDependencies != { }) {
+      patchedDependencies = patchedDependencyYaml;
+    };
   workspaceYaml =
     if
-      workspacePaths == [ ]
+      workspaceJson == { }
+      && workspacePaths == [ ]
       && !(lockfile ? settings)
       && !(lockfile ? overrides)
       && patchedDependencies == { }

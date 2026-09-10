@@ -14,7 +14,7 @@ let
 in
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-web-ui";
-  version = "0.3.18";
+  version = "0.3.20";
   deployPackage = "@linxin666/dsh-web-all";
   stripPrepareScripts = true;
   disableChildBundlePatches = true;
@@ -24,7 +24,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     owner = "zhu1090093659";
     repo = "dsh-web-ui";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-95o15Z3zIelmYWC5YMQF3Og9Kasyf1pD+AMO6FgBLs8=";
+    hash = "sha256-kjD6HF1O47UrsV8lierw9+zzQCIcdMCQa7WgzsFnTmA=";
   };
 
   postPatch = ''
@@ -40,14 +40,12 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pnpmDeps = importPnpmLock {
     inherit (finalAttrs) pname version;
     fetchPnpmDeps = fetchPnpmDeps';
+    package = lib.importJSON ./package.json;
     lockfileJson = ./pnpm-lock.json;
+    workspaceJson = lib.importJSON ./pnpm-workspace.json;
     fetcherVersion = 4;
     targetPlatform =
       if stdenv.buildPlatform == stdenv.hostPlatform then stdenv.targetPlatform else null;
-    patchedDependencySources = {
-      "@morlay/ui-conversation-message-actions@0.0.11" =
-        "${finalAttrs.src}/patches/@morlay__ui-conversation-message-actions@0.0.11.patch";
-    };
   };
 
   npmDeps = null;
