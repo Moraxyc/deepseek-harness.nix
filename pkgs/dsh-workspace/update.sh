@@ -54,12 +54,21 @@ fi
 src="$(nix build --no-link --print-out-paths ".#$attr.src")"
 
 system_version="$(jq -er '.version | strings' "$src/native/system/package.json")"
-nix-update \
-  --flake \
-  --version="$system_version" \
-  --no-src \
-  --override-filename=pkgs/dsh-system/package.nix \
-  dsh-system
+# dsh-system is an internal package and is not exposed as a flake output.
+case "$system_version" in
+  (''|*[!0-9A-Za-z.+~-]*)
+    printf 'dsh-system: invalid upstream version: %s\n' "$system_version" >&2
+    exit 1
+    ;;
+esac
+sed -i \
+  "s|^  version = \"[^\"]*\";$|  version = \"$system_version\";|" \
+  pkgs/dsh-system/package.nix
+updated_system_version="$(sed -n 's/^  version = "\([^"]*\)";$/\1/p' pkgs/dsh-system/package.nix)"
+if [ "$updated_system_version" != "$system_version" ]; then
+  printf 'dsh-system: failed to update package version to %s\n' "$system_version" >&2
+  exit 1
+fi
 
 yq -o=json . "$src/pnpm-lock.yaml" > "$tmp_dir/pnpm-lock.json"
 mv "$tmp_dir/pnpm-lock.json" "$repo_root/pkgs/dsh-workspace/pnpm-lock.json"
