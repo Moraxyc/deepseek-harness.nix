@@ -26,24 +26,6 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
 
-  postPatch = ''
-    substituteInPlace src/settings.ts \
-      --replace-fail \
-        "import { settingsNamespace } from '@deepseek-ai/dsh-settings'" \
-        "import type {} from '@deepseek-ai/dsh-settings'" \
-      --replace-fail \
-        "export const NOEMA_MEMORY_SETTINGS_NS = settingsNamespace(NOEMA_MEMORY_SETTINGS_NAMESPACE)" \
-        "export const NOEMA_MEMORY_SETTINGS_NS = NOEMA_MEMORY_SETTINGS_NAMESPACE"
-
-    substituteInPlace src/client/index.tsx \
-      --replace-fail \
-        "import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'" \
-        "import type { Context as ClientContext } from '@deepseek-ai/cordis'"
-    sed -i \
-      "/dsh-client-locale\\/client/a import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'" \
-      src/client/index.tsx
-  '';
-
   preBuild = ''
     rm -rf node_modules/@deepseek-ai
     mkdir -p node_modules/@deepseek-ai
