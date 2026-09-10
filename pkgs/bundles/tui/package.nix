@@ -10,21 +10,17 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-tui";
-  version = "0.10.0";
+  version = "0.10.1";
 
   src = fetchFromGitHub {
     owner = "ccch1mneyyy";
     repo = "dsh-TUI";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-i49UdJ/uHCB1G7Jm7MPy/HDgbrCLUJjY9J1sl0xL6Mw=";
+    rev = "refs/tags/v${finalAttrs.version}";
+    fetchSubmodules = true;
+    hash = "sha256-u7I+n6BCntjMGvHpsZ/YAvX/5NoBzhQlF159XZsSELs=";
   };
 
   postPatch = ''
-    rm -rf vendor/dsh-std dsh-ecosystem-spec dsh-auth
-    mkdir -p vendor/dsh-std dsh-ecosystem-spec dsh-auth
-    cp -r ${finalAttrs.passthru.dshStd}/. vendor/dsh-std/
-    cp -r ${finalAttrs.passthru.dshEcosystemSpec}/. dsh-ecosystem-spec/
-    cp -r ${finalAttrs.passthru.dshAuth}/. dsh-auth/
     chmod -R u+w vendor/dsh-std dsh-ecosystem-spec dsh-auth
 
     # fetchFromGitHub provides a tarball without a Git index, but verify:i18n
@@ -33,6 +29,20 @@ buildDshBundle (finalAttrs: {
       --replace-fail \
         "execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard', '--', 'src', 'scripts'], { encoding: 'utf8' })" \
         "execFileSync('find', ['src', 'scripts', '-type', 'f', '-print0'], { encoding: 'utf8' })"
+
+    # Submodules lack a .git directory in the Nix sandbox.
+    substituteInPlace scripts/verify-protocol-single-source.ts \
+      --replace-fail \
+        "const head = execFileSync('git', ['-C', specGitDir, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()" \
+        "const { ECOSYSTEM_SPEC_REVISION: head } = await import('../src/adapter/standard/registry.js')" \
+      --replace-fail \
+        "const status = execFileSync('git', ['-C', specGitDir, 'status', '--short'], { encoding: 'utf8' }).trim()" \
+        "const status = \"\""
+
+    substituteInPlace scripts/verify-plugin-messages.ts \
+      --replace-fail \
+        "await sleep(50)" \
+        "await new Promise<void>((resolve, reject) => { const deadline = Date.now() + 5000; const poll = () => { if (hostCtx.get('tuiPluginHost')?.hostDescriptor().contracts.some(contract => contract.kind === 'MessageObserver')) resolve(); else if (Date.now() >= deadline) reject(new Error('message observer live verification timed out: ' + hostWarnings.join(' | '))); else setTimeout(poll, 10) }; poll() })"
   '';
 
   # Static imports initialize i18n before the verification script can set its
@@ -51,8 +61,12 @@ buildDshBundle (finalAttrs: {
         --ignore-scripts \
         --frozen-lockfile \
         --registry="$NIX_NPM_REGISTRY"
+      pnpm --dir dsh-auth install \
+        --ignore-scripts \
+        --frozen-lockfile \
+        --registry="$NIX_NPM_REGISTRY"
     '';
-    hash = "sha256-ZyR80zLuIQw4ZqrCwv/n3QDfqBLzj4MbZdZ0sJKJC9s=";
+    hash = "sha256-4mofbG3NAH5XG/bOEkiB7msYWmvG04QAO/nxiIV2mww=";
   };
 
   nativeBuildInputs = [ pnpm_11 ];
@@ -98,24 +112,6 @@ buildDshBundle (finalAttrs: {
   '';
 
   passthru = {
-    dshStd = fetchFromGitHub {
-      owner = "Yan-Zero";
-      repo = "dsh-std";
-      rev = "614dfa1ac168db79fcf4577cf0ebb34e2e3b944b";
-      hash = "sha256-aJEykWAXEKTUsNte51+ZEhFAgLT6QNNplNZTNPhgb00=";
-    };
-    dshEcosystemSpec = fetchFromGitHub {
-      owner = "T-Auto";
-      repo = "dsh-ecosystem-spec";
-      rev = "d28c267fe7fd775428ec2dccd65b0b7efd4dacee";
-      hash = "sha256-hhp/UUMo2engw0SyrB0Gq6Xc6BUYgvEmYh0F4OBdZEw=";
-    };
-    dshAuth = fetchFromGitHub {
-      owner = "ccch1mneyyy";
-      repo = "dsh-auth";
-      rev = "94fdf81e775e8d884af4dfb64a94b617c3751936";
-      hash = "sha256-gSkDJnjm4N2qOqnEstDU12S4D9FvomrxB9UVwlFN2M4=";
-    };
     inherit (finalAttrs) pnpmDeps;
     requiresTui = true;
     requiresTty = true;
@@ -123,9 +119,6 @@ buildDshBundle (finalAttrs: {
     updateScript = nix-update-script {
       extraArgs = [
         "--flake"
-        "--subpackage=dshStd"
-        "--subpackage=dshEcosystemSpec"
-        "--subpackage=dshAuth"
         "--override-filename=pkgs/bundles/tui/package.nix"
       ];
     };
