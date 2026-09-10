@@ -40,14 +40,12 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pnpmDeps = importPnpmLock {
     inherit (finalAttrs) pname version;
     fetchPnpmDeps = fetchPnpmDeps';
+    package = lib.importJSON ./package.json;
     lockfileJson = ./pnpm-lock.json;
+    workspaceJson = lib.importJSON ./pnpm-workspace.json;
     fetcherVersion = 4;
     targetPlatform =
       if stdenv.buildPlatform == stdenv.hostPlatform then stdenv.targetPlatform else null;
-    patchedDependencySources = {
-      "@morlay/ui-conversation-message-actions@0.0.11" =
-        "${finalAttrs.src}/patches/@morlay__ui-conversation-message-actions@0.0.11.patch";
-    };
   };
 
   npmDeps = null;

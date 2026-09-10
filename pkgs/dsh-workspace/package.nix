@@ -86,11 +86,10 @@ buildNpmPackage (finalAttrs: {
     fetchPnpmDeps = fetchPnpmDeps';
     pnpm = pnpmWorkspaceDeploy;
     lockfileJson = ./pnpm-lock.json;
+    workspaceJson = lib.importJSON ./pnpm-workspace.json;
+    workspaceRoot = finalAttrs.src;
     targetPlatform =
       if stdenv.buildPlatform == stdenv.hostPlatform then stdenv.targetPlatform else null;
-    patchedDependencySources = lib.mapAttrs (_: relPath: "${finalAttrs.src}/${relPath}") (
-      lib.importJSON ./patched-dependencies.json
-    );
   };
 
   nativeBuildInputs = [

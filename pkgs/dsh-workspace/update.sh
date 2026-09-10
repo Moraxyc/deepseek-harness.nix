@@ -74,13 +74,13 @@ yq -o=json . "$src/pnpm-lock.yaml" > "$tmp_dir/pnpm-lock.json"
 mv "$tmp_dir/pnpm-lock.json" "$repo_root/pkgs/dsh-workspace/pnpm-lock.json"
 
 if [ -f "$src/pnpm-workspace.yaml" ]; then
-  yq -o=json '.patchedDependencies // {}' "$src/pnpm-workspace.yaml" > "$tmp_dir/patched-dependencies.json"
+  yq -o=json . "$src/pnpm-workspace.yaml" > "$tmp_dir/pnpm-workspace.json"
 elif [ -f "$src/package.json" ]; then
-  jq '.pnpm.patchedDependencies // {}' "$src/package.json" > "$tmp_dir/patched-dependencies.json"
+  jq '.pnpm // {}' "$src/package.json" > "$tmp_dir/pnpm-workspace.json"
 else
-  printf '{}\n' > "$tmp_dir/patched-dependencies.json"
+  printf '{}\n' > "$tmp_dir/pnpm-workspace.json"
 fi
-mv "$tmp_dir/patched-dependencies.json" "$repo_root/pkgs/dsh-workspace/patched-dependencies.json"
+mv "$tmp_dir/pnpm-workspace.json" "$repo_root/pkgs/dsh-workspace/pnpm-workspace.json"
 
 new_deps="$(nix build --no-link --print-out-paths ".#$attr.pnpmDeps")"
 new_hash="$(nix hash path --type sha256 "$new_deps")"
