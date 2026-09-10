@@ -7,13 +7,13 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-session-health";
-  version = "0-unstable-2026-09-09";
+  version = "0-unstable-2026-09-10";
 
   src = fetchFromGitHub {
     owner = "omdsh-dev";
     repo = "dsh-session-health";
-    rev = "5b314732fb2b88740b169d3a37ceea1e74c8ec50";
-    hash = "sha256-6yItXkHJrVTu0KKtbhh9ldjQdmIYMM3HhqyFldgEIcs=";
+    rev = "aedcb3db1279554ff3e6d11d2597553b9f131175";
+    hash = "sha256-mHzQnWqAKYxlubZ0I8QKem9zH+049IIQ8y318rOhQMA=";
   };
   npmDepsHash = "sha256-J8l4N+zHM7iogI0osS7cLaS1cgMvYIw1wKGBdeuUuds=";
   npmBuildScript = "build";
