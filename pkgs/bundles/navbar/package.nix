@@ -10,18 +10,18 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-navbar";
-  version = "0.4.0-unstable-2026-08-28";
+  version = "0.4.0-unstable-2026-09-10";
 
   src = fetchFromGitHub {
     owner = "vlln";
     repo = "dsh-navbar";
-    rev = "f41d446f843e575c3291e4926718f9dc6e0f3bea";
-    hash = "sha256-5/3Ey15vVYdYGkMgs2zhH3yh2d7q5Uv+qEvKtYL7gZQ=";
+    rev = "e53adfc8c837ebcb4b6a52c2c4baf7cb6e8b795e";
+    hash = "sha256-aopZU/ey/i+fflOVmIqtoL003Subc42z+U2OZPcboso=";
   };
 
   npmDeps = fetchNpmDeps {
     inherit (finalAttrs) pname src postPatch;
-    hash = "sha256-3GrKJ+RmY2K4iLwpJJptCTz7nCe9V8TPJS4HHQCbIJE=";
+    hash = "sha256-/UxceshohMi2MvIq+QVFKg7LEb8kgykfYc/mqmy3H9A=";
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
