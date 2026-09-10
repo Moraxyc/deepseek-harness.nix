@@ -26,7 +26,7 @@ let
 in
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
-  version = "0.1.5-rc.1";
+  version = "0.1.5-rc.2";
 
   __structuredAttrs = true;
   strictDeps = true;
@@ -40,10 +40,10 @@ buildNpmPackage (finalAttrs: {
     owner = "deepseek-ai";
     repo = "deepseek-harness";
     tag = "dsh-v${finalAttrs.version}";
-    hash = "sha256-UPjEF7R3OCO5o+grTuHXaY9zGOSPSDXKBDtzVliSiPA=";
+    hash = "sha256-CV8At5KlOibYlIW0qTBki05ArJwDrCVYbd6wv3j3JkQ=";
   };
 
-  env.DSH_CLIENT_COMMIT_HASH = "183f08e9c6dde7e36cd2318eaee70b0da08fb35e";
+  env.DSH_CLIENT_COMMIT_HASH = "fb2c4b9e698e30edb738bca4cf0618587db7d203";
   env.PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = "false";
 
   nodejs = nodejs-slim;
