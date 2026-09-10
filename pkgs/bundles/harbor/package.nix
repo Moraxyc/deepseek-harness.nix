@@ -89,6 +89,9 @@ buildDshBundle (finalAttrs: {
   };
 
   meta = {
+    # dsh-workspace 0.1.5-rc.2 omits React DOM runtime peers from the deployed
+    # web bundle. A new workspace version should make CI probe this again.
+    broken = dsh-workspace.version == "0.1.5-rc.2";
     description = "Read-only DSH plugin inventory with capability evidence, conflict detection, and change tracking";
     descriptions.zh-CN = "只读盘点 DSH 插件能力、证据、跨插件冲突与扫描变化";
     homepage = "https://github.com/ZSeven-W/dsh-harbor";

@@ -27,15 +27,16 @@
           inherit bundleDependents;
         };
       };
+      isBuildable = package: lib.isDerivation package && !((package.meta or { }).broken or false);
 
       packageNames = lib.attrNames (
-        lib.filterAttrs (name: package: name != "default" && lib.isDerivation package) packages
+        lib.filterAttrs (name: package: name != "default" && isBuildable package) packages
       );
       bundleNames = lib.attrNames (
-        lib.filterAttrs (_: package: lib.isDerivation package) legacyPackages.bundles
+        lib.filterAttrs (_: package: isBuildable package) legacyPackages.bundles
       );
       presetNames = lib.attrNames (
-        lib.filterAttrs (_: package: lib.isDerivation package) legacyPackages.presets
+        lib.filterAttrs (_: package: isBuildable package) legacyPackages.presets
       );
       packageAttrs = lib.genAttrs packageNames (name: ".#${name}");
       bundleAttrs = lib.genAttrs bundleNames (name: ".#bundles.${name}");
