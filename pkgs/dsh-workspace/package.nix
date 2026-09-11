@@ -2,7 +2,6 @@
   lib,
   bashInteractive,
   buildNpmPackage,
-  fetchPnpmDeps,
   fetchFromGitHub,
   importPnpmLock,
   jq,
@@ -15,12 +14,12 @@
   python3,
   stdenv,
   dsh-system,
+  writers,
   yq-go,
 }:
 
 let
   platformKey = with stdenv.hostPlatform.node; "${platform}-${arch}";
-  fetchPnpmDeps' = fetchPnpmDeps.override { yq = yq-go; };
   dshSystemIsAvailable = lib.meta.availableOn stdenv.hostPlatform dsh-system;
   inherit (stdenv.hostPlatform) isLinux isDarwin;
 in
@@ -45,6 +44,11 @@ buildNpmPackage (finalAttrs: {
 
   env.DSH_CLIENT_COMMIT_HASH = "fb2c4b9e698e30edb738bca4cf0618587db7d203";
   env.PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = "false";
+  # Rendered at evaluation time so the workspace patch hook does not have to
+  # re-parse pnpm-workspace.yaml in the build sandbox.
+  env.DSH_WORKSPACE_OVERRIDES = "${writers.writeJSON "dsh-workspace-overrides.json" (
+    finalAttrs.pnpmDeps.passthru.workspaceConfig.overrides or { }
+  )}";
 
   nodejs = nodejs-slim;
   disallowedReferences = [
@@ -83,7 +87,6 @@ buildNpmPackage (finalAttrs: {
 
   pnpmDeps = importPnpmLock {
     inherit (finalAttrs) pname version;
-    fetchPnpmDeps = fetchPnpmDeps';
     pnpm = pnpmWorkspaceDeploy;
     lockfileJson = ./pnpm-lock.json;
     workspaceJson = lib.importJSON ./pnpm-workspace.json;

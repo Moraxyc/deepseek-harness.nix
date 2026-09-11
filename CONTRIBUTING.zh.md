@@ -78,6 +78,10 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
    当 nixpkgs 的 `pnpm_11` 较旧时，`pnpmWorkspaceDeploy` 从 npm tarball 构建
    11.22.0。只有需要换成其他仍满足版本要求的 pnpm 时才覆盖 `pnpm`。只有当
    lockfile 需要自定义 fetcher（例如 `importPnpmLock`）时才改用 `pnpmDeps`。
+   这类 bundle 在 `package.nix` 旁存放 `pnpm-lock.json`，上游有
+   `pnpm-workspace.yaml` 时一并存放 `pnpm-workspace.json`，分别通过
+   `lockfileJson` 和 `workspaceJson` 传入，并把 `passthru.updateScript`
+   换成每次升级版本时重新生成这两个文件的 `update.sh`。
 4. 运行：
 
    ```sh

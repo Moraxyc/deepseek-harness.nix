@@ -2,16 +2,12 @@
   lib,
   stdenv,
   fetchFromGitHub,
-  fetchPnpmDeps,
   buildDshBundle,
   dsh-kernel,
   importPnpmLock,
   pnpmConfigHook,
   yq-go,
 }:
-let
-  fetchPnpmDeps' = fetchPnpmDeps.override { yq = yq-go; };
-in
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-web-ui";
   version = "0.3.20";
@@ -28,8 +24,6 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   };
 
   postPatch = ''
-    DSH_WEB_UI_LOCK=${./pnpm-lock.json} \
-      yq -i '.overrides = load(strenv(DSH_WEB_UI_LOCK)).overrides' pnpm-workspace.yaml
     yq -o=yaml '.' ${./pnpm-lock.json} > pnpm-lock.yaml
     printf '%s\n' \
       'manage-package-manager-versions=false' \
@@ -39,10 +33,10 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
 
   pnpmDeps = importPnpmLock {
     inherit (finalAttrs) pname version;
-    fetchPnpmDeps = fetchPnpmDeps';
     package = lib.importJSON ./package.json;
     lockfileJson = ./pnpm-lock.json;
     workspaceJson = lib.importJSON ./pnpm-workspace.json;
+    workspaceRoot = finalAttrs.src;
     fetcherVersion = 4;
     targetPlatform =
       if stdenv.buildPlatform == stdenv.hostPlatform then stdenv.targetPlatform else null;

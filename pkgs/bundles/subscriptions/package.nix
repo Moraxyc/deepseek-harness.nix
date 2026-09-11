@@ -1,14 +1,14 @@
 {
   lib,
   fetchFromGitHub,
-  fetchPnpmDeps,
+  importPnpmLock,
   buildDshBundle,
   dsh-kernel,
   dsh-workspace,
   jq,
   pnpmConfigHook,
   pnpm_11,
-  nix-update-script,
+  yq-go,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-plugin-subscriptions";
@@ -37,17 +37,14 @@ buildDshBundle (finalAttrs: {
     ' package.json > package.json.tmp
     mv package.json.tmp package.json
 
-    awk '
-      /^importers:/ { section = "importers" }
-      /^packages:/ { section = "packages" }
-      section == "importers" && substr($0, 1, 6) == "      " && substr($0, 8, 13) == "@deepseek-ai/" && $0 !~ /@deepseek-ai\/(cordis|dsh-attachment|dsh-home-paths|dsh-llm|dsh-tools|schemastery)/ {
-        skip = 2
-        next
-      }
-      skip > 0 { skip--; next }
-      { print }
-    ' pnpm-lock.yaml > pnpm-lock.yaml.tmp
-    mv pnpm-lock.yaml.tmp pnpm-lock.yaml
+    yq -i '
+      .importers.".".devDependencies |= with_entries(
+        select(
+          (.key | test("^@deepseek-ai/") | not)
+          or (.key | test("@deepseek-ai/(cordis|dsh-attachment|dsh-home-paths|dsh-llm|dsh-tools|schemastery)"))
+        )
+      )
+    ' pnpm-lock.yaml
 
     # dsh 0.1.5 exposes localized command descriptions as lazy functions.
     substituteInPlace src/client/index.ts \
@@ -56,13 +53,11 @@ buildDshBundle (finalAttrs: {
         "description: () => t('commandFast')"
   '';
 
-  pnpmDeps = fetchPnpmDeps {
-    inherit (finalAttrs) pname version src;
+  pnpmDeps = importPnpmLock {
+    inherit (finalAttrs) pname version;
     pnpm = pnpm_11;
+    lockfileJson = ./pnpm-lock.json;
     fetcherVersion = 4;
-    postPatch = finalAttrs.postPatch;
-    nativeBuildInputs = [ jq ];
-    hash = "sha256-QpJjPFxfKz36gvW/JAdRHV+lPGICLS8C6F7N1j7nxeQ=";
   };
 
   npmDeps = null;
@@ -71,6 +66,7 @@ buildDshBundle (finalAttrs: {
   nativeBuildInputs = [
     jq
     pnpm_11
+    yq-go
   ];
   disallowedReferences = [ pnpm_11 ];
   linkKernelNodeModules = dsh-kernel;
@@ -118,9 +114,7 @@ buildDshBundle (finalAttrs: {
   '';
 
   passthru.requiresWeb = true;
-  passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
-  };
+  passthru.updateScript = ./update.sh;
 
   meta = {
     description = "Use ChatGPT, Claude, Grok, and GitHub Copilot subscriptions as DSH providers with OAuth login and a web settings UI";

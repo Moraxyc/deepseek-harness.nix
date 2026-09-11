@@ -48,7 +48,8 @@ dshWorkspacePrepareKernel() {
       as $item ireduce ({}; . * $item)
   ' packages/*/*/package.json > "$bundle_names"
 
-  yq -o=json -I=0 '.overrides // {}' pnpm-workspace.yaml > "$workspace_overrides"
+  : "${DSH_WORKSPACE_OVERRIDES:?dsh-workspace: DSH_WORKSPACE_OVERRIDES must point to the workspace overrides JSON}"
+  workspace_overrides="$DSH_WORKSPACE_OVERRIDES"
 
   yq -o=json -I=0 '
     (.peerDependenciesMeta // {}) as $meta

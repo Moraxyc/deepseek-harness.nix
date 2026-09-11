@@ -400,6 +400,25 @@ preset 的默认 profile。
 flake 的 `packages` 展开的是同一 scope，因此 `nix build .#bundles.tui` 和
 `nix run .#presets.web` 仍然可用。
 
+### Helper 范围
+
+本 flake 之外可以使用的 helper 有两类：
+
+- `pkgs.dsh.helpers.buildBundle`，含 `fromPnpmWorkspace`、`fromWorkspace`
+  和 `validateDshBundle`：下文用到的 Bundle 构建器。
+- `legacyPackages.<system>.importPnpmLock`，overlay 下为
+  `pkgs.dsh.importPnpmLock`：为通过 vendored `pnpm-lock.json`（上游提供时还有
+  `pnpm-workspace.json`）取依赖的 Bundle 准备的 fetcher。
+
+scope 里其余 helper，包括 `pkgs.dsh.dshWorkspacePatchHook`，属于构建的内部实现。
+`patchDshWorkspace kernel` 从 `DSH_WORKSPACE_OVERRIDES` 读取 workspace
+overrides，该变量指向对应 JSON 文件；`dsh-workspace` 用
+`pnpmDeps.passthru.workspaceConfig.overrides` 渲染该文件。
+
+`importPnpmLock` 接收 `lockfileJson` 和 `workspaceJson`。它写
+`pnpm-workspace.yaml` 时会丢掉 `workspaceJson.packages` 里等于 `.` 的条目：
+生成的 `%YAML 1.1` 头下，pnpm 会把单独的 `.` 读回成空 package。
+
 ### 打包外部 Bundle
 
 对于本 flake 未收录的独立 bundle，使用 `pkgs.dsh.helpers.buildBundle`：

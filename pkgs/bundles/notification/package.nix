@@ -1,18 +1,14 @@
 {
   lib,
   fetchFromGitHub,
-  fetchPnpmDeps,
+  importPnpmLock,
   buildDshBundle,
   dsh-kernel,
   dsh-workspace,
   pnpmConfigHook,
   pnpm_11,
   yq-go,
-  nix-update-script,
 }:
-let
-  fetchPnpmDeps' = fetchPnpmDeps.override { yq = yq-go; };
-in
 buildDshBundle (finalAttrs: {
   pname = "dsh-notification";
   version = "0.1.4";
@@ -41,12 +37,12 @@ buildDshBundle (finalAttrs: {
 
   '';
 
-  pnpmDeps = fetchPnpmDeps' {
-    inherit (finalAttrs) pname version src;
+  pnpmDeps = importPnpmLock {
+    inherit (finalAttrs) pname version;
     pnpm = pnpm_11;
+    lockfileJson = ./pnpm-lock.json;
+    workspaceJson = lib.importJSON ./pnpm-workspace.json;
     fetcherVersion = 4;
-    postPatch = finalAttrs.postPatch;
-    hash = "sha256-pTHoDj3MwGC4snJ5J8eKW0slfMdcEhvgmLgD+Kqa8eM=";
   };
 
   npmDeps = null;
@@ -98,9 +94,7 @@ buildDshBundle (finalAttrs: {
   '';
 
   passthru.requiresWeb = true;
-  passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
-  };
+  passthru.updateScript = ./update.sh;
 
   meta = {
     description = "Browser desktop notifications for completed DeepSeek Harness turns with outcome and keyword filters";

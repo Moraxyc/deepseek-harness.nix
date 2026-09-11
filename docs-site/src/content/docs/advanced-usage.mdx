@@ -418,6 +418,26 @@ under `pkgs.dsh.helpers.*`, and package outputs such as
 `pkgs.dsh.dsh-desktop`. Flake `packages` expand the same scope, so
 `nix build .#bundles.tui` and `nix run .#presets.web` work the same way.
 
+### Helper Surface
+
+Two kinds of helper are available to consumers outside this flake:
+
+- `pkgs.dsh.helpers.buildBundle`, including `fromPnpmWorkspace`, `fromWorkspace`,
+  and `validateDshBundle`: the bundle builders described below.
+- `legacyPackages.<system>.importPnpmLock`, or `pkgs.dsh.importPnpmLock` from the
+  overlay: the fetcher for bundles that vendor a `pnpm-lock.json`, plus
+  `pnpm-workspace.json` when upstream ships one.
+
+Every other helper in the scope, `pkgs.dsh.dshWorkspacePatchHook` included, is
+an internal build implementation detail. `patchDshWorkspace kernel` reads the
+workspace overrides from `DSH_WORKSPACE_OVERRIDES`, a path to that JSON;
+`dsh-workspace` renders it from
+`pnpmDeps.passthru.workspaceConfig.overrides`.
+
+`importPnpmLock` takes `lockfileJson` and `workspaceJson`. It drops a `.` entry
+from `workspaceJson.packages` when it writes `pnpm-workspace.yaml`, because pnpm
+reads a bare `.` back as an empty package under the emitted `%YAML 1.1` header.
+
 ### Packaging an External Bundle
 
 Use `pkgs.dsh.helpers.buildBundle` for a standalone bundle that is not packaged

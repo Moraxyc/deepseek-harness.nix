@@ -492,7 +492,12 @@ let
   );
   workspaceConfig =
     workspaceJson
-    // lib.optionalAttrs (!(workspaceJson ? packages)) { packages = workspacePaths; }
+    // {
+      # A bare `.` entry is read back as an empty package by pnpm under the
+      # `%YAML 1.1` header writers.writeYAML emits. The workspace root is a
+      # project without being listed, so drop it instead of writing it out.
+      packages = lib.filter (path: path != ".") (workspaceJson.packages or workspacePaths);
+    }
     // lib.optionalAttrs (lockfile ? settings) lockfile.settings
     // lib.optionalAttrs (lockfile ? overrides) { overrides = lockfile.overrides; }
     // lib.optionalAttrs (patchedDependencies != { }) {

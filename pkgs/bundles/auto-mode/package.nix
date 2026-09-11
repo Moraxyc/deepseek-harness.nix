@@ -1,13 +1,12 @@
 {
   lib,
   fetchFromGitHub,
-  fetchPnpmDeps,
+  importPnpmLock,
   buildDshBundle,
   dsh-kernel,
   jq,
   pnpmConfigHook,
   pnpm_11,
-  nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-auto-mode";
@@ -20,16 +19,11 @@ buildDshBundle (finalAttrs: {
     hash = "sha256-fRoJ9B+ZEJl45E1jgCHSu7aXYzqWkgbPLQUUo+NWKzw=";
   };
 
-  pnpmDeps = fetchPnpmDeps {
-    inherit (finalAttrs)
-      pname
-      version
-      src
-      postPatch
-      ;
+  pnpmDeps = importPnpmLock {
+    inherit (finalAttrs) pname version;
     pnpm = pnpm_11;
+    lockfileJson = ./pnpm-lock.json;
     fetcherVersion = 4;
-    hash = "sha256-yskpj3TKREWF6OYOnADws5YNR9V5y7RdnOrwJfQ3NWQ=";
   };
 
   postPatch = ''
@@ -72,9 +66,7 @@ buildDshBundle (finalAttrs: {
   '';
 
   passthru.requiresWeb = true;
-  passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
-  };
+  passthru.updateScript = ./update.sh;
 
   meta = {
     description = "Sandbox-first automatic permission policy for DeepSeek Harness";

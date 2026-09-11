@@ -82,7 +82,11 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
    omits `pnpm`. When nixpkgs ships an older `pnpm_11`, `pnpmWorkspaceDeploy`
    builds 11.22.0 from the npm tarball. Override `pnpm` only for a different,
    still-compatible version. Pass `pnpmDeps` instead of `pnpmDepsHash` only
-   when the lockfile needs a custom fetcher, such as `importPnpmLock`.
+   when the lockfile needs a custom fetcher, such as `importPnpmLock`. Such a
+   bundle vendors `pnpm-lock.json` and, when upstream has one,
+   `pnpm-workspace.json` next to `package.nix`, passes them as `lockfileJson`
+   and `workspaceJson`, and rewrites `passthru.updateScript` to an `update.sh`
+   that regenerates both files on every version bump.
 4. Run:
 
    ```sh
