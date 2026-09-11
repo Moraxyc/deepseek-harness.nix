@@ -7,16 +7,16 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-cpa";
-  version = "0.1.6";
+  version = "0.1.7";
 
   src = fetchFromGitHub {
     owner = "Moraxyc";
     repo = "dsh-cpa";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-saHmvZfD6g26rNvFXAz3Wb28S7/7l/bIzYZw0Oibap4=";
+    hash = "sha256-i66zp14EqGlrf4oIOL0LfuTSS9ISw0WB7Oa3Vc6y/fU=";
   };
 
-  npmDepsHash = "sha256-mWPSsRJKcCsx8yre1V7hfZkCqLHObgVDsa1NJLqqgEI=";
+  npmDepsHash = "sha256-gtdE6YMbErEJb5GavWEm4Kay25BpP8O5C6HRPKUQphU=";
   linkKernelNodeModules = dsh-kernel;
 
   passthru.requiresWeb = true;
