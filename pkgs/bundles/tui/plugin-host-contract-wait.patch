@@ -1,0 +1,32 @@
+diff --git a/scripts/verify-plugin-commands.ts b/scripts/verify-plugin-commands.ts
+--- a/scripts/verify-plugin-commands.ts
++++ b/scripts/verify-plugin-commands.ts
+@@ -175,7 +175,11 @@
+   const attrCtx = new Context()
+   attrCtx.plugin(CommandRuntime)
+   attrCtx.plugin({ name: pluginHostRow.name, apply: pluginHostRow.apply })
+-  await sleep(50)
++  const commandHostDeadline = Date.now() + 5000
++  while (!attrCtx.get('tuiPluginHost')?.hostDescriptor().contracts.some(contract => contract.kind === 'Command')) {
++    if (Date.now() >= commandHostDeadline) throw new Error('plugin-commands: Command contract did not become live within 5000ms')
++    await sleep(10)
++  }
+   const host = attrCtx.get('tuiPluginHost')
+   check1('command live probe is not exposed on the plugin-visible host service',
+     typeof (host as { probeCommandReversible?: unknown } | undefined)?.probeCommandReversible === 'undefined')
+diff --git a/scripts/verify-plugin-ledger.ts b/scripts/verify-plugin-ledger.ts
+--- a/scripts/verify-plugin-ledger.ts
++++ b/scripts/verify-plugin-ledger.ts
+@@ -217,7 +217,11 @@
+   // 生产接线：整行挂载（host → ledger → storage → observer），台账的
+   // generationId 来自 tuiPluginHost 服务而非 fallback。
+   ctx.plugin({ name: pluginHostRow.name, apply: pluginHostRow.apply })
+-  await sleep(50)
++  const storageHostDeadline = Date.now() + 5000
++  while (!ctx.get('tuiPluginHost')?.hostDescriptor().contracts.some(contract => contract.kind === 'LocalStorage')) {
++    if (Date.now() >= storageHostDeadline) throw new Error('plugin-ledger: LocalStorage contract did not become live within 5000ms')
++    await sleep(10)
++  }
+   const ledger = ctx.get('tuiEffectLedger')
+   check1('ledger service mounts via the plugin-host row', ledger !== undefined)
+   const alpha = await namedCtx(ctx, 'alpha', 'com.example.alpha', [

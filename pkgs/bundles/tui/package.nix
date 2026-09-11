@@ -20,6 +20,10 @@ buildDshBundle (finalAttrs: {
     hash = "sha256-u7I+n6BCntjMGvHpsZ/YAvX/5NoBzhQlF159XZsSELs=";
   };
 
+  # The batteries' fixed 50ms sleep races the host-owned live refresh under
+  # load; the patch polls the contract instead.
+  patches = [ ./plugin-host-contract-wait.patch ];
+
   postPatch = ''
     chmod -R u+w vendor/dsh-std dsh-ecosystem-spec dsh-auth
 
