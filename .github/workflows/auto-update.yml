@@ -34,7 +34,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          updatable="$(
+          result="$(
             nix eval --impure --json --expr '
               let
                 f = import ./default.nix;
@@ -46,6 +46,16 @@ jobs:
                 isBuildable = p: !((p.meta or { }).broken or false);
                 packageSet = builtins.getAttr system f.packages;
                 legacyPackages = builtins.getAttr system f.legacyPackages;
+                brokenButUpdatable = pkgSet: builtins.filter (
+                  name:
+                  hasUpdateScript (builtins.getAttr name pkgSet)
+                  && !isBuildable (builtins.getAttr name pkgSet)
+                ) (builtins.attrNames pkgSet);
+                # Report the skips so a package cannot stay out of the matrix
+                # unnoticed.
+                skipped =
+                  map (name: "packages." + name) (brokenButUpdatable packageSet)
+                  ++ map (name: "bundles." + name) (brokenButUpdatable legacyPackages.bundles);
                 packages = builtins.filter (
                   name:
                   name != "pnpmWorkspaceDeploy"
@@ -64,14 +74,21 @@ jobs:
                   version = (builtins.getAttr name pkgSet).version or "";
                 }) names;
               in
-              (toAttrs "" ("packages." + system) packages packageSet)
-              ++ (toAttrs "bundles" ("legacyPackages." + system + ".bundles") bundles legacyPackages.bundles)
+              {
+                inherit skipped;
+                updatable =
+                  (toAttrs "" ("packages." + system) packages packageSet)
+                  ++ (toAttrs "bundles" ("legacyPackages." + system + ".bundles") bundles legacyPackages.bundles);
+              }
             '
           )"
 
+          printf '%s\n' "$result" |
+            jq -r '.skipped[] | "::warning::Skipping broken \(.) in the auto-update matrix"'
+
           matrix="$(
             jq -cn \
-              --argjson updatable "$updatable" \
+              --argjson result "$result" \
               '{
                 include: ([
                   {
@@ -82,7 +99,7 @@ jobs:
                     label: "",
                     version: ""
                   }
-                ] + [ $updatable[] | { name: .name, title: "", attr: .attr, label: .label, version: .version, command: "" } ])
+                ] + [ $result.updatable[] | { name: .name, title: "", attr: .attr, label: .label, version: .version, command: "" } ])
               }'
           )"
 
