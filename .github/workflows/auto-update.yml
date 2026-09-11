@@ -40,10 +40,23 @@ jobs:
                 f = import ./default.nix;
                 system = builtins.currentSystem;
                 hasUpdateScript = p: (p.passthru or { }).updateScript or null != null;
+                # nix-update refuses to evaluate broken packages, and package CI
+                # skips them, so an update could not be validated before
+                # auto-merge.
+                isBuildable = p: !((p.meta or { }).broken or false);
                 packageSet = builtins.getAttr system f.packages;
                 legacyPackages = builtins.getAttr system f.legacyPackages;
-                packages = builtins.filter (name: name != "pnpmWorkspaceDeploy" && hasUpdateScript (builtins.getAttr name packageSet)) (builtins.attrNames packageSet);
-                bundles = builtins.filter (name: hasUpdateScript (builtins.getAttr name legacyPackages.bundles)) (builtins.attrNames legacyPackages.bundles);
+                packages = builtins.filter (
+                  name:
+                  name != "pnpmWorkspaceDeploy"
+                  && isBuildable (builtins.getAttr name packageSet)
+                  && hasUpdateScript (builtins.getAttr name packageSet)
+                ) (builtins.attrNames packageSet);
+                bundles = builtins.filter (
+                  name:
+                  isBuildable (builtins.getAttr name legacyPackages.bundles)
+                  && hasUpdateScript (builtins.getAttr name legacyPackages.bundles)
+                ) (builtins.attrNames legacyPackages.bundles);
                 toAttrs = labelPrefix: attrPrefix: names: pkgSet: map (name: {
                   inherit name;
                   attr = attrPrefix + "." + name;
