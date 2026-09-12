@@ -1,5 +1,7 @@
 {
-  "packages": ["."],
+  "packages": [
+    "."
+  ],
   "autoInstallPeers": false,
   "nodeLinker": "hoisted",
   "allowBuilds": {
