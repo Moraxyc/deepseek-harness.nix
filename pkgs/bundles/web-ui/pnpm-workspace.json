@@ -1,9 +1,5 @@
 {
-  "packages": [
-    "shared",
-    "packages/*",
-    "packages/skins/*"
-  ],
+  "packages": ["shared", "packages/*", "packages/skins/*"],
   "autoInstallPeers": false,
   "linkWorkspacePackages": true,
   "allowBuilds": {

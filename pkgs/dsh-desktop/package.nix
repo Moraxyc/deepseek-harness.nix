@@ -1,6 +1,7 @@
 {
   lib,
   callPackage,
+  stdenv,
   stdenvNoCC,
   electron_43,
   makeWrapper,
@@ -82,7 +83,12 @@ stdenvNoCC.mkDerivation (
       gappsWrapperArgsHook
       makeWrapper "$appDir/DeepSeek Harness" "$out/bin/dsh-desktop" \
         "''${gappsWrapperArgs[@]}" \
-        --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ libGL ]} \
+        --prefix LD_LIBRARY_PATH : ${
+          lib.makeLibraryPath [
+            libGL
+            stdenv.cc.cc.lib
+          ]
+        } \
         ${runtimePathArgs}\
         --set CHROME_DEVEL_SANDBOX "${electron_43.unwrapped}/libexec/electron/chrome-sandbox" \
         --inherit-argv0
