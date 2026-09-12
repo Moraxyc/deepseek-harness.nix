@@ -5,34 +5,32 @@
   buildDshBundle,
   dsh-kernel,
   pnpmConfigHook,
-  pnpm_11,
+  pnpm_10,
   nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-agent-teams";
-  version = "0.1.15";
+  version = "0.1.17";
 
   src = fetchFromGitHub {
     owner = "NanmiCoder";
     repo = "dsh-agent-teams";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-qBrY6c7I4FAEI58I4jRifC4jzKFerQzikZ9AuajjRKo=";
+    hash = "sha256-Kma704LkKLykLlx9B06e3V7Wxmt/ZyECQV80yBtAvO4=";
   };
-
-  patches = [ ./current-subagent-runtime.patch ];
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
-    pnpm = pnpm_11;
+    pnpm = pnpm_10;
     fetcherVersion = 4;
-    hash = "sha256-8GgXKcwa0PyB5guVHwq3CNIjllZY8JrlgNmtM2t5kjs=";
+    hash = "sha256-qpArZpUWzfcacRBOHca7f503ttKg50XdOVgnfdZGVKY=";
   };
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
-  nativeBuildInputs = [ pnpm_11 ];
-  disallowedReferences = [ pnpm_11 ];
+  nativeBuildInputs = [ pnpm_10 ];
+  disallowedReferences = [ pnpm_10 ];
   linkKernelNodeModules = dsh-kernel;
 
   installPhase = ''
