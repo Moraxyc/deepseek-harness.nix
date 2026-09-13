@@ -45,6 +45,10 @@
           "specifier": "~18.3.1",
           "version": "18.3.31"
         },
+        "@types/react-dom": {
+          "specifier": "~18.3.7",
+          "version": "18.3.7(@types/react@18.3.31)"
+        },
         "react": {
           "specifier": "^18.2.0",
           "version": "18.3.1"
@@ -905,6 +909,14 @@
     "@types/prop-types@15.7.15": {
       "resolution": {
         "integrity": "sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw=="
+      }
+    },
+    "@types/react-dom@18.3.7": {
+      "resolution": {
+        "integrity": "sha512-MEe3UeoENYVFXzoXEWsvcpg6ZvlrFNlOQ7EOsvhI3CfAXwzPfO8Qwuxd40nepsYKqyyVQnTdEfv68q91yLcKrQ=="
+      },
+      "peerDependencies": {
+        "@types/react": "^18.0.0"
       }
     },
     "@types/react@18.3.31": {
@@ -2306,6 +2318,11 @@
       }
     },
     "@types/prop-types@15.7.15": {},
+    "@types/react-dom@18.3.7(@types/react@18.3.31)": {
+      "dependencies": {
+        "@types/react": "18.3.31"
+      }
+    },
     "@types/react@18.3.31": {
       "dependencies": {
         "@types/prop-types": "15.7.15",
