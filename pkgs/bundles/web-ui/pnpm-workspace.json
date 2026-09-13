@@ -1,5 +1,9 @@
 {
-  "packages": ["shared", "packages/*", "packages/skins/*"],
+  "packages": [
+    "shared",
+    "packages/*",
+    "packages/skins/*"
+  ],
   "autoInstallPeers": false,
   "linkWorkspacePackages": true,
   "allowBuilds": {
@@ -89,7 +93,7 @@
     "@deepseek-ai/dsh-jobs@0.1.5-rc.1",
     "@deepseek-ai/dsh-typert-protocol@0.1.5-rc.1",
     "@deepseek-ai/dsh-user-questions@0.1.5-rc.1",
-    "dsh-better-sidebar@0.19.0-alpha.1",
+    "dsh-better-sidebar@0.19.0",
     "@mlgbnb/dsh-archive-manager@1.0.7",
     "@deepseek-ai/dsh-agent-presets@0.1.5-rc.1",
     "@deepseek-ai/dsh-api-gateway@0.1.5-rc.1",
