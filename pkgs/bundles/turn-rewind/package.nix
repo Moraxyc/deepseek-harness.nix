@@ -41,8 +41,9 @@ buildDshBundle (finalAttrs: {
     runHook preInstall
 
     appDir="$out/lib/node_modules/@anionex/dsh-turn-rewind"
-    mkdir -p "$appDir"
+    mkdir -p "$appDir/node_modules"
     cp -r package.json cordis.patch.yml lib "$appDir/"
+    cp -rL node_modules/ignore "$appDir/node_modules/"
 
     runHook postInstall
   '';
