@@ -9,7 +9,7 @@
     ".": {
       "dependencies": {
         "@linxin666/dsh-web-all": {
-          "specifier": "0.3.21",
+          "specifier": "0.3.22",
           "version": "link:packages/dsh-web-all"
         }
       },
