@@ -40,6 +40,9 @@
   defaultProfile ? null,
   # Optional home-level Cordis patch managed under $DSH_HOME.
   homePatch ? null,
+  # Optional external profile artifact seeder used by split integrations.
+  profileSeeder ? null,
+  profileDefaultProfile ? null,
   pname ? "dsh",
   meta ? { },
 }:
@@ -51,7 +54,7 @@ let
   };
   mkDsh = import ../../lib/mk-dsh.nix;
   dshBundleResolver = buildDshBundle.dshBundleResolver;
-  profileFiles = import ./profiles.nix {
+  profileSupport = import ./profiles.nix {
     inherit
       baseBundle
       coreutils
@@ -59,7 +62,6 @@ let
       gnugrep
       dshBundleResolver
       dsh-kernel
-      agentPresets
       lib
       linkFarm
       runCommand
@@ -76,26 +78,14 @@ let
   baseBundle = bundles.base;
   tuiBundle = bundles.tui;
   webBundle = bundles.web-app;
-  profilesForComposition = lib.mapAttrs (
-    _: profile:
-    profile
-    // {
-      bundles = profileFiles.profileBundles profile;
-    }
-  ) profiles;
-  managedProfileNames = map profileFiles.profileName (lib.attrNames profiles);
-  validatedDefaultProfile =
-    lib.throwIfNot (defaultProfile == null || lib.elem defaultProfile managedProfileNames)
-      "dsh: defaultProfile '${defaultProfile}' is not one of the managed profiles: ${lib.concatStringsSep ", " managedProfileNames}"
-      defaultProfile;
-  validatedHomePatch = lib.throwIfNot (
-    homePatch == null || lib.isList homePatch
-  ) "dsh: homePatch must be null or a list" homePatch;
-  homePatchFile =
-    if validatedHomePatch == null then
-      null
-    else
-      writers.writeYAML "dsh-home-cordis.patch.yml" validatedHomePatch;
+  profileArtifacts = profileSupport.mkProfileArtifacts {
+    inherit agentPresets defaultBundles profiles;
+    inherit defaultProfile homePatch;
+  };
+  profilesForComposition = profileArtifacts.profilesForComposition;
+  managedProfileNames = map profileSupport.profileName (lib.attrNames profiles);
+  validatedDefaultProfile = profileArtifacts.validatedDefaultProfile;
+  validatedHomePatch = profileArtifacts.validatedHomePatch;
 
   resolveBundles =
     bundlesOrSelector:
@@ -109,10 +99,10 @@ let
   profileRequiresTty =
     profile:
     (profile.requiresTty or false)
-    || profileFiles.profileNeedsTui profile
+    || profileSupport.profileNeedsTui profile
     || lib.any (bundle: bundle.passthru.requiresTty or false) (profile.bundles or [ ]);
 
-  profileRequiresWeb = profileFiles.profileNeedsWeb;
+  profileRequiresWeb = profileSupport.profileNeedsWeb;
   compositionConfig = {
     package = dsh;
     inherit
@@ -152,7 +142,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
         --add-flags "$appDir/lib/bin.js"
       '';
       dshSeedWrapper =
-        if profiles == { } && validatedHomePatch == null then
+        if profileSeeder == null && profiles == { } && validatedHomePatch == null then
           null
         else
           writeShellApplication {
@@ -185,12 +175,12 @@ stdenvNoCC.mkDerivation (finalAttrs: {
               if [ "$has_profile" -eq 1 ]; then
                 dsh-sync-profiles "$requested_profile"
             ''
-            + lib.optionalString (validatedDefaultProfile != null) ''
+            + lib.optionalString (launcherDefaultProfile != null) ''
               else
-                dsh-sync-profiles ${lib.escapeShellArg validatedDefaultProfile}
-                set -- --profile ${lib.escapeShellArg validatedDefaultProfile} "$@"
+                dsh-sync-profiles ${lib.escapeShellArg launcherDefaultProfile}
+                set -- --profile ${lib.escapeShellArg launcherDefaultProfile} "$@"
             ''
-            + lib.optionalString (validatedDefaultProfile == null) ''
+            + lib.optionalString (launcherDefaultProfile == null) ''
               else
                 dsh-sync-profiles
             ''
@@ -201,6 +191,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
               exec "$real_dsh" "$@"
             '';
           };
+      launcherDefaultProfile =
+        if profileSeeder == null then validatedDefaultProfile else profileDefaultProfile;
       profileLauncher =
         if dshSeedWrapper == null then
           ''
@@ -267,7 +259,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   dshBundleCheckWebProfiles = lib.concatStringsSep " " (
     lib.flatten (
       lib.mapAttrsToList (
-        name: profile: lib.optional (profileRequiresWeb profile) (profileFiles.profileName name)
+        name: profile: lib.optional (profileRequiresWeb profile) (profileSupport.profileName name)
       ) profiles
     )
   );
@@ -277,7 +269,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   dshBundleCheckTtyProfiles = lib.concatStringsSep " " (
     lib.flatten (
       lib.mapAttrsToList (
-        name: profile: lib.optional (profileRequiresTty profile) (profileFiles.profileName name)
+        name: profile: lib.optional (profileRequiresTty profile) (profileSupport.profileName name)
       ) profiles
     )
   );
@@ -301,17 +293,20 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       profiles = profilesForComposition;
     };
 
-    profileTemplates = profileFiles.makeProfileTemplates {
-      inherit profiles;
-    };
+    mkProfileArtifacts =
+      args:
+      profileSupport.mkProfileArtifacts (
+        args
+        // {
+          defaultBundles = lib.attrByPath [ "defaultBundles" ] defaultBundles args;
+        }
+      );
 
-    agentPresetTemplates = profileFiles.makeAgentPresetTemplates { };
+    profileTemplates = profileArtifacts.profileTemplates;
 
-    seedProfiles = profileFiles.makeProfileSeeder {
-      inherit homePatchFile profiles;
-      agentPresetTemplates = finalAttrs.passthru.agentPresetTemplates;
-      profileTemplates = finalAttrs.passthru.profileTemplates;
-    };
+    agentPresetTemplates = profileArtifacts.agentPresetTemplates;
+
+    seedProfiles = if profileSeeder == null then profileArtifacts.seedProfiles else profileSeeder;
 
     nodeModules = symlinkJoin {
       name = "dsh-node-modules";

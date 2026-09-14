@@ -5,13 +5,18 @@
 }:
 let
   cfg = config.programs.dsh;
-  mkDsh = import ../lib/mk-dsh.nix;
-  composed = mkDsh {
-    package = cfg.package;
+  mkDshRuntime = import ../lib/mk-dsh-runtime.nix;
+  profileArtifacts = cfg.package.passthru.mkProfileArtifacts {
+    inherit (cfg) agentPresets defaultProfile;
     profiles = cfg.profiles;
-    agentPresets = cfg.agentPresets;
-    defaultProfile = cfg.defaultProfile;
-    patch = cfg.patch;
+    homePatch = cfg.patch;
+  };
+  runtimePackage = mkDshRuntime {
+    package = cfg.package;
+    bundles = profileArtifacts.runtimeBundles;
+    profileSeeder =
+      if cfg.profiles == { } && cfg.patch == null then null else profileArtifacts.seedProfiles;
+    defaultProfile = profileArtifacts.validatedDefaultProfile;
   };
 in
 {
@@ -21,7 +26,7 @@ in
   ];
 
   config = lib.mkIf cfg.enable {
-    home.packages = [ composed ];
+    home.packages = [ runtimePackage ];
 
     home.sessionVariables = lib.mkIf (cfg.home != null) {
       DSH_HOME = cfg.home;
@@ -29,7 +34,7 @@ in
 
     home.activation.dsh = lib.hm.dag.entryAfter [ "writeBoundary" ] (
       lib.optionalString (cfg.home != null) "DSH_HOME=${lib.escapeShellArg cfg.home} "
-      + lib.getExe composed.passthru.seedProfiles
+      + lib.getExe profileArtifacts.seedProfiles
     );
   };
 }

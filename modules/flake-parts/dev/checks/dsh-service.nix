@@ -158,6 +158,9 @@
                     first = {
                       source = "standard";
                     };
+                    unused = {
+                      source = "missing-unused-preset";
+                    };
                   }).withProfiles
                   {
                     first = {
@@ -192,8 +195,69 @@
             test -f "$testHome/cordis.patch.yml"
             test -f "$testHome/.agent-presets/first/agent.cordis.yml"
             test -f "$testHome/.agent-presets/second/agent.cordis.yml"
+            test ! -e "${package.passthru.agentPresetTemplates}/unused"
             touch "$out"
           '';
+
+        dsh-profile-runtime-split =
+          let
+            profiles = {
+              use = {
+                bundles = with pkgs.dsh.bundles; [
+                  web-ui
+                  approve-for-me
+                  plugin-check
+                  cpa
+                ];
+                mode = "managed";
+              };
+            };
+            artifacts = pkgs.dsh.dsh.passthru.mkProfileArtifacts {
+              inherit profiles;
+              defaultProfile = "nix-use";
+            };
+            runtime = import ../../../../lib/mk-dsh-runtime.nix {
+              package = pkgs.dsh.dsh;
+              bundles = artifacts.runtimeBundles;
+              profileSeeder = artifacts.seedProfiles;
+              defaultProfile = artifacts.validatedDefaultProfile;
+            };
+            runtimeBundleManifests = lib.concatMapStringsSep " " (
+              bundle: lib.escapeShellArg "${bundle}/nix-support/dsh-bundles.json"
+            ) artifacts.runtimeBundles;
+          in
+          pkgs.runCommand "dsh-profile-runtime-split"
+            {
+              nativeBuildInputs = [
+                pkgs.gnugrep
+                pkgs.jq
+              ];
+            }
+            ''
+              app="${runtime}/lib/deepseek-harness"
+              for bundleManifest in ${runtimeBundleManifests}; do
+                while IFS= read -r packageName; do
+                  [ -d "$app/node_modules/$packageName" ] || {
+                    printf 'runtime is missing bundle package: %s\n' "$packageName" >&2
+                    exit 1
+                  }
+                  jq -e --arg package "$packageName" \
+                    '.dependencies | has($package)' "$app/package.json" >/dev/null || {
+                    printf 'runtime manifest is missing bundle dependency: %s\n' "$packageName" >&2
+                    exit 1
+                  }
+                done < <(jq -r '.bundles[].name' "$bundleManifest")
+              done
+
+              testHome=$(mktemp -d)
+              DSH_HOME="$testHome" ${lib.getExe runtime} --version
+              test -f "$testHome/profiles/nix-use/package.json"
+              printf '\n# drift\n' >> "$testHome/profiles/nix-use/cordis.patch.yml"
+              DSH_HOME="$testHome" ${lib.getExe runtime} --profile nix-use --version 2>&1 \
+                | grep -F 'dsh: updating managed profile: nix-use' >/dev/null
+              ! grep -q '# drift' "$testHome/profiles/nix-use/cordis.patch.yml"
+              touch "$out"
+            '';
 
         dsh-service = pkgs.testers.runNixOSTest {
           name = "dsh-service";

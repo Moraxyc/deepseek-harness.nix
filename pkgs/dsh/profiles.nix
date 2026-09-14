@@ -5,7 +5,6 @@
   gnugrep,
   dshBundleResolver,
   dsh-kernel,
-  agentPresets,
   lib,
   linkFarm,
   runCommand,
@@ -60,12 +59,8 @@ let
           ;
       };
 
-  presetDefinitions = lib.mapAttrs (
-    id: definition: validatePresetDefinition (validatePresetId "agentPresets id" id) definition
-  ) agentPresets;
-
   profileAgentPreset =
-    name: profile:
+    agentPresets: name: profile:
     let
       configured = profile.agentPreset or null;
     in
@@ -75,12 +70,12 @@ let
       let
         id = validatePresetId "profiles.${name}.agentPreset" configured;
       in
-      if !builtins.hasAttr id presetDefinitions then
+      if !builtins.hasAttr id agentPresets then
         throw "dsh profile: profiles.${name}.agentPreset references undeclared agentPresets.${id}"
       else
         {
           inherit id;
-          definition = builtins.getAttr id presetDefinitions;
+          definition = validatePresetDefinition id (builtins.getAttr id agentPresets);
         };
 
   validateMode =
@@ -179,14 +174,16 @@ let
       '';
 
   profileSpec =
-    name: profile:
+    agentPresets: name: profile:
     let
       targetName = profileName name;
-      agentPreset = profileAgentPreset name profile;
+      agentPreset = profileAgentPreset agentPresets name profile;
+      bundles = profileBundles profile;
+      mode = validateMode (profile.mode or "managed");
       # The manifest argument order is the Cordis patch order. Keep the base
       # layer first, then apply profile bundles in their declared order.
       bundleManifests = map (bundle: "${bundle}/nix-support/dsh-bundles.json") (
-        [ baseBundle ] ++ profileBundles profile
+        [ baseBundle ] ++ bundles
       );
       rawPatch = profile.patch or [ ];
       agentPresetPatch =
@@ -230,20 +227,15 @@ let
           ${lib.escapeShellArg targetName} \
           ${lib.concatStringsSep " " (map lib.escapeShellArg bundleManifests)}
       '';
-      workspace = {
-        packages = [ "." ];
-        nodeLinker = "hoisted";
-        autoInstallPeers = false;
-      };
-      workspaceFile = writers.writeYAML "dsh-profile-${targetName}-pnpm-workspace.yaml" workspace;
     in
     {
       inherit
         agentPreset
+        bundles
+        mode
         packageJson
         patchFile
         targetName
-        workspaceFile
         ;
     };
 
@@ -271,33 +263,19 @@ let
           printf 'fingerprint=%s\n' "$fingerprint"
         } > "$out/.nix-managed"
       '';
-in
-{
-  inherit
-    profileBundles
-    profileNeedsTui
-    profileName
-    profileNeedsWeb
-    renderPatch
-    ;
-
   makeProfileTemplates =
-    { profiles }:
+    {
+      profileSpecs,
+    }:
     linkFarm "deepseek-harness-profiles" (
-      lib.mapAttrsToList (
-        name: profile:
-        let
-          spec = profileSpec name profile;
-        in
-        {
-          name = spec.targetName;
-          path = makeProfileTemplate spec;
-        }
-      ) profiles
+      lib.mapAttrsToList (_: spec: {
+        name = spec.targetName;
+        path = makeProfileTemplate spec;
+      }) profileSpecs
     );
 
   makeAgentPresetTemplates =
-    { }:
+    { presetDefinitions }:
     linkFarm "deepseek-harness-agent-presets" (
       lib.mapAttrsToList (id: definition: {
         name = id;
@@ -310,18 +288,15 @@ in
       agentPresetTemplates,
       homePatchFile ? null,
       profileTemplates,
-      profiles,
+      profileSpecs,
     }:
     let
       seedInvocation =
-        name: profile:
+        spec:
         let
-          spec = profileSpec name profile;
-          targetName = profileName name;
-          mode = validateMode (profile.mode or "managed");
-          seeder = if mode == "managed" then "sync_managed_profile" else "seed_mutable_profile";
+          seeder = if spec.mode == "managed" then "sync_managed_profile" else "seed_mutable_profile";
           agentPresetSeeder =
-            if mode == "managed" then "sync_managed_agent_preset" else "seed_mutable_agent_preset";
+            if spec.mode == "managed" then "sync_managed_agent_preset" else "seed_mutable_agent_preset";
           agentPresetInvocation =
             if spec.agentPreset == null then
               ""
@@ -331,7 +306,7 @@ in
               '';
         in
         ''
-          ${seeder} ${lib.escapeShellArg targetName} ${lib.escapeShellArg "${profileTemplates}/${targetName}"} "$home/profiles/${targetName}"
+          ${seeder} ${lib.escapeShellArg spec.targetName} ${lib.escapeShellArg "${profileTemplates}/${spec.targetName}"} "$home/profiles/${spec.targetName}"
           ${agentPresetInvocation}
         '';
     in
@@ -639,18 +614,111 @@ in
         copy_owned_file ${lib.escapeShellArg "${homePatchFile}"} "$home/cordis.patch.yml"
       ''
       + ''
-        case "$requested_profile" in
+          case "$requested_profile" in
           "")
-            ${lib.concatStringsSep "\n" (lib.mapAttrsToList seedInvocation profiles)}
+            ${lib.concatStringsSep "\n" (map seedInvocation (lib.attrValues profileSpecs))}
             ;;
           ${lib.concatStringsSep "\n" (
-            lib.mapAttrsToList (
-              name: profile: "${lib.escapeShellArg (profileName name)}) ${seedInvocation name profile} ;;"
-            ) profiles
+            map (spec: "${lib.escapeShellArg spec.targetName}) ${seedInvocation spec} ;;") (
+              lib.attrValues profileSpecs
+            )
           )}
           *)
             ;;
         esac
       '';
     };
+
+  mkProfileArtifacts =
+    {
+      agentPresets ? { },
+      defaultBundles ? [ ],
+      defaultProfile ? null,
+      homePatch ? null,
+      profiles ? { },
+    }:
+    let
+      workspace = {
+        packages = [ "." ];
+        nodeLinker = "hoisted";
+        autoInstallPeers = false;
+      };
+      workspaceFile = writers.writeYAML "dsh-profile-pnpm-workspace.yaml" workspace;
+      profileSpecs = lib.mapAttrs (
+        name: profile:
+        (profileSpec agentPresets name profile)
+        // {
+          inherit workspaceFile;
+        }
+      ) profiles;
+      managedProfileNames = map (spec: spec.targetName) (lib.attrValues profileSpecs);
+      validatedDefaultProfile =
+        lib.throwIfNot (defaultProfile == null || lib.elem defaultProfile managedProfileNames)
+          "dsh: defaultProfile '${defaultProfile}' is not one of the managed profiles: ${lib.concatStringsSep ", " managedProfileNames}"
+          defaultProfile;
+      validatedHomePatch = lib.throwIfNot (
+        homePatch == null || lib.isList homePatch
+      ) "dsh: homePatch must be null or a list" homePatch;
+      homePatchFile =
+        if validatedHomePatch == null then
+          null
+        else
+          writers.writeYAML "dsh-home-cordis.patch.yml" validatedHomePatch;
+      usedPresetDefinitions = lib.foldl' (
+        definitions: spec:
+        if spec.agentPreset == null then
+          definitions
+        else
+          definitions
+          // {
+            "${spec.agentPreset.id}" = spec.agentPreset.definition;
+          }
+      ) { } (lib.attrValues profileSpecs);
+      profileTemplates = makeProfileTemplates { inherit profileSpecs; };
+      agentPresetTemplates = makeAgentPresetTemplates {
+        presetDefinitions = usedPresetDefinitions;
+      };
+      seedProfiles = makeProfileSeeder {
+        inherit
+          agentPresetTemplates
+          homePatchFile
+          profileSpecs
+          profileTemplates
+          ;
+      };
+      runtimeBundles = lib.unique (
+        defaultBundles ++ lib.concatMap (spec: spec.bundles) (lib.attrValues profileSpecs)
+      );
+      profilesForComposition = lib.mapAttrs (
+        name: profile:
+        profile
+        // {
+          bundles = (builtins.getAttr name profileSpecs).bundles;
+        }
+      ) profiles;
+    in
+    {
+      inherit
+        agentPresetTemplates
+        homePatchFile
+        profileSpecs
+        profileTemplates
+        profilesForComposition
+        runtimeBundles
+        seedProfiles
+        validatedHomePatch
+        validatedDefaultProfile
+        workspaceFile
+        ;
+    };
+in
+{
+  inherit
+    mkProfileArtifacts
+    profileBundles
+    profileNeedsTui
+    profileName
+    profileNeedsWeb
+    renderPatch
+    ;
 }

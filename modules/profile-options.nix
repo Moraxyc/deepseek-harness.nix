@@ -137,9 +137,9 @@ in
         }
       '';
       description = ''
-        Agent Preset definitions declared in Nix. The build prepares each
-        declared preset and checks that its shipped source exists. Activation
-        copies the selected preset into the user preset root.
+        Agent Preset definitions declared in Nix. The build prepares presets
+        referenced by a profile and checks that their shipped sources exist.
+        Activation copies the selected preset into the user preset root.
         ${extraDescription}
       '';
     };
