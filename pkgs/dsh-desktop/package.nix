@@ -6,6 +6,7 @@
   electron_43,
   makeWrapper,
   wrapGAppsHook3,
+  writeShellScriptBin,
   gsettings-desktop-schemas,
   glib,
   gtk3,
@@ -41,40 +42,21 @@ let
   # gets ELECTRON_RUN_AS_NODE=1; every other systemd-run invocation is
   # untouched.
   useSystemdShim = isLinux && systemd != null;
-  systemdRunShim = stdenvNoCC.mkDerivation {
-    pname = "dsh-systemd-run-shim";
-    version = "1";
-
-    dontUnpack = true;
-    dontConfigure = true;
-    dontBuild = true;
-    dontPatchShebangs = true;
-
-    installPhase = ''
-            runHook preInstall
-            mkdir -p "$out/bin"
-            cat > "$out/bin/systemd-run" <<'EOF'
-      #!${stdenvNoCC.shell}
-      # Every private runner launch needs Electron's Node mode.
-      runner=0
-      if [ -n "''${DSH_SUBPROCESS_RUNNER-}" ]; then
-        case " $* " in
-          *" -- "*"/dsh-subprocess-local/"*"/runner.js "*)
-            runner=1
-            ;;
-        esac
-      fi
-      if [ "$runner" -eq 1 ]; then
-        export ELECTRON_RUN_AS_NODE=1
-      fi
-      exec ${systemd}/bin/systemd-run "$@"
-      EOF
-            chmod +x "$out/bin/systemd-run"
-            runHook postInstall
-    '';
-
-    meta.description = "systemd-run shim that fixes DSH's Linux Electron runner";
-  };
+  systemdRunShim = writeShellScriptBin "systemd-run" ''
+    # Every private runner launch needs Electron's Node mode.
+    runner=0
+    if [ -n "''${DSH_SUBPROCESS_RUNNER-}" ]; then
+      case " $* " in
+        *" -- "*"/dsh-subprocess-local/"*"/runner.js "*)
+          runner=1
+          ;;
+      esac
+    fi
+    if [ "$runner" -eq 1 ]; then
+      export ELECTRON_RUN_AS_NODE=1
+    fi
+    exec ${systemd}/bin/systemd-run "$@"
+  '';
 in
 stdenvNoCC.mkDerivation (
   finalAttrs:
@@ -176,7 +158,7 @@ stdenvNoCC.mkDerivation (
     passthru = {
       shell = callPackage ./shell.nix { };
       runtime = callPackage ./runtime.nix { inherit dshHost; };
-      runtimeDeps = dshHost.passthru.runtimeDeps ++ lib.optionals useSystemdShim [ systemdRunShim ];
+      runtimeDeps = lib.optional useSystemdShim systemdRunShim ++ dshHost.passthru.runtimeDeps;
 
       updateScript = writeShellScript "dsh-desktop-update" ''
         PATH=${
