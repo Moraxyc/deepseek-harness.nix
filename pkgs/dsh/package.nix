@@ -62,6 +62,7 @@ let
       gnugrep
       dshBundleResolver
       dsh-kernel
+      headlessBundle
       lib
       linkFarm
       runCommand
@@ -76,6 +77,7 @@ let
   };
 
   baseBundle = bundles.base;
+  headlessBundle = bundles.headless;
   tuiBundle = bundles.tui;
   webBundle = bundles.web-app;
   profileArtifacts = profileSupport.mkProfileArtifacts {

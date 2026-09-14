@@ -5,6 +5,7 @@
   gnugrep,
   dshBundleResolver,
   dsh-kernel,
+  headlessBundle,
   lib,
   linkFarm,
   runCommand,
@@ -107,9 +108,17 @@ let
 
   profileBundles =
     profile:
+    let
+      needsWeb = profileNeedsWeb profile;
+      needsTui = profileNeedsTui profile;
+    in
     lib.unique (
-      lib.optional (profileNeedsWeb profile) webBundle
-      ++ lib.optional (profileNeedsTui profile) tuiBundle
+      lib.optional needsWeb webBundle
+      ++ lib.optional needsTui tuiBundle
+      # A profile manifest is independent from the runtime defaults. Keep
+      # plain CLI profiles non-interactive instead of letting dsh fall back to
+      # its interactive entrypoint during headless checks and service use.
+      ++ lib.optional (!needsWeb && !needsTui) headlessBundle
       ++ (profile.bundles or [ ])
     );
 

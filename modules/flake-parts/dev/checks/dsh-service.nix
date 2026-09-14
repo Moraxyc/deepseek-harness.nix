@@ -162,16 +162,19 @@
                       source = "missing-unused-preset";
                     };
                   }).withProfiles
-                  {
-                    first = {
-                      agentPreset = "first";
-                    };
-                    second = {
-                      agentPreset = "second";
-                    };
-                  }
+                    {
+                      first = {
+                        agentPreset = "first";
+                      };
+                      second = {
+                        agentPreset = "second";
+                      };
+                      plain = {
+                        bundles = [ pkgs.dsh.bundles.base ];
+                      };
+                    }
                 ).withBundles
-                [ pkgs.dsh.bundles.base ]
+                  [ pkgs.dsh.bundles.base ]
               ).withAgentPresets
                 {
                   second = {
