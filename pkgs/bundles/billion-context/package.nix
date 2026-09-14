@@ -7,16 +7,16 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "billion-context-dsh";
-  version = "0.2.22";
+  version = "0.2.23";
 
   src = fetchFromGitHub {
     owner = "Tyan66666";
     repo = "billion-context-dsh";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-UdVcJEgB7UHc+zXnn1sD0O5Zf3vARz05+SMJdOL+LhA=";
+    hash = "sha256-mohwDZz4Z7D1ySC019EFKC8P0uc9tB+CfOzPZiP0Swo=";
   };
 
-  npmDepsHash = "sha256-ATGt8w3o5tPsEmLqTKCAnMpMMrvxuetQalH9b1n9BHI=";
+  npmDepsHash = "sha256-QTrv+bYyPEi2/jLZ52HrgxqqlAJ4gQ4hnRMvypTWZwE=";
   npmBuildScript = "build";
 
   linkKernelNodeModules = dsh-kernel;
