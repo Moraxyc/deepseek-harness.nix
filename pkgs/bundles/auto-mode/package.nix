@@ -10,13 +10,13 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-auto-mode";
-  version = "0.1.7";
+  version = "0.1.9";
 
   src = fetchFromGitHub {
     owner = "NanmiCoder";
     repo = "dsh-auto-mode";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-fRoJ9B+ZEJl45E1jgCHSu7aXYzqWkgbPLQUUo+NWKzw=";
+    hash = "sha256-/riZqzEqKTLJRHW2LC6KjKLF7vTHzHt3MQi5ad1nUhg=";
   };
 
   pnpmDeps = importPnpmLock {
