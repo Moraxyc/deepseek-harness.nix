@@ -10,7 +10,6 @@
   gsettings-desktop-schemas,
   glib,
   gtk3,
-  gtk4,
   makeDesktopItem,
   copyDesktopItems,
   nix-update,
@@ -88,7 +87,6 @@ stdenvNoCC.mkDerivation (
       gsettings-desktop-schemas
       glib
       gtk3
-      gtk4
     ];
 
     dontWrapGApps = isLinux;
@@ -156,6 +154,7 @@ stdenvNoCC.mkDerivation (
     ];
 
     passthru = {
+      variant = "unofficial";
       shell = callPackage ./shell.nix { };
       runtime = callPackage ./runtime.nix { inherit dshHost; };
       runtimeDeps = lib.optional useSystemdShim systemdRunShim ++ dshHost.passthru.runtimeDeps;
@@ -182,7 +181,7 @@ stdenvNoCC.mkDerivation (
 
         nix-update --flake --version=branch --src-only "$shell_attr"
 
-        src="$(nix build --no-link --print-out-paths .#dsh-desktop.shell.src)"
+        src="$(nix build --no-link --print-out-paths .#dsh-desktop-unofficial.shell.src)"
         mkdir -p "$tmp/source"
         cp -a "$src/." "$tmp/source/"
         chmod -R u+w "$tmp/source"
@@ -194,14 +193,14 @@ stdenvNoCC.mkDerivation (
         ' "$tmp/source/yarn.lock" > "$tmp/yarn.lock"
 
         yarn-berry-fetcher missing-hashes "$tmp/yarn.lock" \
-          > "$PWD/pkgs/dsh-desktop/missing-hashes.json"
+          > "$PWD/pkgs/dsh-desktop-unofficial/missing-hashes.json"
 
         nix-update --flake --version=skip --no-src "$shell_attr"
       '';
     };
 
     meta = {
-      description = "DeepSeek Harness desktop application";
+      description = "Unofficial DeepSeek Harness desktop application";
       homepage = "https://github.com/anywhere-labs/deepseek-harness-desktop";
       license = lib.licenses.mit;
       mainProgram = "dsh-desktop";

@@ -46,6 +46,13 @@ buildDshBundle (finalAttrs: {
       )
     ' pnpm-lock.yaml
 
+    # dsh 0.1.6 types agent/created listeners as returning undefined, while
+    # this release's inferred callback return is void.
+    substituteInPlace src/index.ts \
+      --replace-fail \
+      'if (deny.length) agent.ctx.tools.restrict({ deny })' \
+      'if (deny.length) agent.ctx.tools.restrict({ deny }); return undefined'
+
   '';
 
   pnpmDeps = importPnpmLock {

@@ -11,6 +11,8 @@
         inherit (dsh)
           dsh
           dsh-desktop
+          dsh-desktop-official
+          dsh-desktop-unofficial
           dsh-kernel
           dsh-workspace
           ;
@@ -57,6 +59,8 @@
         in
         (map (name: packageAttrs.${name}) affectedPackages)
         ++ lib.optional (lib.elem "dsh" affectedPackages) packageAttrs.dsh-desktop
+        ++ lib.optional (lib.elem "dsh" affectedPackages) packageAttrs.dsh-desktop-official
+        ++ lib.optional (lib.elem "dsh" affectedPackages) packageAttrs.dsh-desktop-unofficial
         ++ map (name: presetAttrs.${name}) affectedPresets
       );
     in
@@ -74,6 +78,12 @@
         type = "app";
         program = lib.getExe dsh.dsh-desktop;
         meta.description = dsh.dsh-desktop.meta.description;
+      };
+
+      apps.dsh-desktop-official = {
+        type = "app";
+        program = lib.getExe dsh.dsh-desktop-official;
+        meta.description = dsh.dsh-desktop-official.meta.description;
       };
 
     };

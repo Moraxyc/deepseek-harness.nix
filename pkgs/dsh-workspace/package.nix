@@ -25,7 +25,7 @@ let
 in
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
-  version = "0.1.5-rc.2";
+  version = "0.1.6-alpha.1";
 
   __structuredAttrs = true;
   strictDeps = true;
@@ -33,22 +33,35 @@ buildNpmPackage (finalAttrs: {
     "out"
     "cohort"
     "kernel"
+    "desktop"
   ];
 
   src = fetchFromGitHub {
     owner = "deepseek-ai";
     repo = "deepseek-harness";
     tag = "dsh-v${finalAttrs.version}";
-    hash = "sha256-CV8At5KlOibYlIW0qTBki05ArJwDrCVYbd6wv3j3JkQ=";
+    hash = "sha256-vlCnBbaUPtMBs+9do1QQ/71bWkgxOTXlP27CZeCRbCI=";
   };
 
-  env.DSH_CLIENT_COMMIT_HASH = "fb2c4b9e698e30edb738bca4cf0618587db7d203";
-  env.PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = "false";
-  # Rendered at evaluation time so the workspace patch hook does not have to
-  # re-parse pnpm-workspace.yaml in the build sandbox.
-  env.DSH_WORKSPACE_OVERRIDES = "${writers.writeJSON "dsh-workspace-overrides.json" (
-    finalAttrs.pnpmDeps.passthru.workspaceConfig.overrides or { }
-  )}";
+  patches = [
+    # The prebuilt require-builtin addon only accepts upstream Electron builds, so
+    # the desktop host reads Node internals through `--expose-internals` instead.
+    ./expose-internals-loader.patch
+    # Client CSS virtual ids would otherwise carry the build directory, and the
+    # module export map arrives in hash order; the patch rebases ids onto the
+    # build cwd and sorts the export map behind the injected class map.
+    ./client-bundle-determinism.patch
+  ];
+
+  env = {
+    DSH_CLIENT_COMMIT_HASH = "0a15e36e7f82b6ed45af6fa9759f29b40dcd965d";
+    PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = "false";
+    # Rendered at evaluation time so the workspace patch hook does not have to
+    # re-parse pnpm-workspace.yaml in the build sandbox.
+    DSH_WORKSPACE_OVERRIDES = "${writers.writeJSON "dsh-workspace-overrides.json" (
+      finalAttrs.pnpmDeps.passthru.workspaceConfig.overrides or { }
+    )}";
+  };
 
   nodejs = nodejs-slim;
   disallowedReferences = [
@@ -62,17 +75,6 @@ buildNpmPackage (finalAttrs: {
       --replace-fail \
       "export const DEFAULT_BASH_SHELL = '/bin/bash'" \
       "export const DEFAULT_BASH_SHELL = '${lib.getExe bashInteractive}'"
-
-    substituteInPlace packages/client/tsdown.client.ts \
-      --replace-fail \
-      "return CSS_VIRTUAL_PREFIX + abs + CSS_VIRTUAL_SUFFIX" \
-      "return CSS_VIRTUAL_PREFIX + relative(process.cwd(), abs) + CSS_VIRTUAL_SUFFIX" \
-      --replace-fail \
-      "const fileId = virtualId.slice(CSS_VIRTUAL_PREFIX.length, -CSS_VIRTUAL_SUFFIX.length)" \
-      "const fileId = resolvePath(process.cwd(), virtualId.slice(CSS_VIRTUAL_PREFIX.length, -CSS_VIRTUAL_SUFFIX.length))" \
-      --replace-fail \
-      "Object.entries(cssExports ?? {})" \
-      "Object.entries(cssExports ?? {}).sort(([a], [b]) => a.localeCompare(b))"
   ''
   + lib.optionalString (dshSystemIsAvailable && isLinux) ''
     install -Dm755 ${dsh-system}/bin/landlock-run native/system/packages/${platformKey}/bin/landlock-run
@@ -119,6 +121,16 @@ buildNpmPackage (finalAttrs: {
 
   installPhase = ''
     runHook preInstall
+
+    PNPM_CONFIG_OFFLINE=true PNPM_CONFIG_VERIFY_DEPS_BEFORE_RUN=false \
+      pnpm --filter @deepseek-ai/dsh-desktop-host deploy \
+        --prod --config.node-linker=hoisted --config.link-workspace-packages=true \
+        "$desktop/host"
+    PNPM_CONFIG_OFFLINE=true PNPM_CONFIG_VERIFY_DEPS_BEFORE_RUN=false \
+      pnpm --filter @deepseek-ai/dsh-desktop deploy \
+        --prod --config.node-linker=hoisted --config.link-workspace-packages=true \
+        "$desktop/app"
+    cp -r apps/desktop/lib apps/desktop/renderer "$desktop/app/"
 
     PNPM_CONFIG_OFFLINE=true \
       PNPM_CONFIG_VERIFY_DEPS_BEFORE_RUN=false \
@@ -202,15 +214,6 @@ buildNpmPackage (finalAttrs: {
       done
     done
 
-    # External bundles may need client packages that are build-time peers of
-    # the CLI kernel without adding them to the kernel runtime closure.
-    for clientPackage in ui-commands ui-slots; do
-      clientPackagesDir="$workspaceDir/client-packages/@deepseek-ai/dsh-client-$clientPackage"
-      mkdir -p "$clientPackagesDir"
-      cp "packages/client/$clientPackage/package.json" "$clientPackagesDir/package.json"
-      cp -r "packages/client/$clientPackage/lib" "$clientPackagesDir/lib"
-    done
-
     mkdir -p "$workspaceDir/frontends/web"
     cp apps/web/package.json "$workspaceDir/frontends/web/package.json"
     cp -r apps/web/dist "$workspaceDir/frontends/web/dist"
@@ -224,7 +227,6 @@ buildNpmPackage (finalAttrs: {
   passthru = {
     # Used by the update script to compare against importPnpmLock.
     fetchPnpmDeps = finalAttrs.pnpmDeps.passthru.fetchPnpmDeps;
-
     updateScript = ./update.sh;
   };
 

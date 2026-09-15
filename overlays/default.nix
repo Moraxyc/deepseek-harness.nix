@@ -71,6 +71,7 @@ let
       inherit pnpmWorkspaceDeploy;
       helpers.buildBundle = buildDshBundle;
       mkDshBundle = buildDshBundle;
+      dsh-desktop = self.dsh-desktop-unofficial;
     }
     // final.lib.packagesFromDirectoryRecursive {
       callPackage = self.callPackage;

@@ -207,7 +207,7 @@
             profiles = {
               use = {
                 bundles = with pkgs.dsh.bundles; [
-                  web-ui
+                  web-app
                   approve-for-me
                   plugin-check
                   cpa

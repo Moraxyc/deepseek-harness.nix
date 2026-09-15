@@ -1,0 +1,26 @@
+diff --git a/packages/client/tsdown.client.ts b/packages/client/tsdown.client.ts
+--- a/packages/client/tsdown.client.ts
++++ b/packages/client/tsdown.client.ts
+@@ -511,11 +511,11 @@
+       resolveId(source: string, importer: string | undefined) {
+         if (!source.endsWith('.module.css')) return null
+         const abs = importer !== undefined ? sourceAssetPath(source, importer) : source
+-        return CSS_VIRTUAL_PREFIX + abs + CSS_VIRTUAL_SUFFIX
++        return CSS_VIRTUAL_PREFIX + relative(process.cwd(), abs) + CSS_VIRTUAL_SUFFIX
+       },
+       async load(virtualId: string) {
+         if (!virtualId.startsWith(CSS_VIRTUAL_PREFIX)) return null
+-        const fileId = virtualId.slice(CSS_VIRTUAL_PREFIX.length, -CSS_VIRTUAL_SUFFIX.length)
++        const fileId = resolvePath(process.cwd(), virtualId.slice(CSS_VIRTUAL_PREFIX.length, -CSS_VIRTUAL_SUFFIX.length))
+         // The virtual id otherwise hides the physical stylesheet from Rolldown's watch graph.
+         this.addWatchFile(fileId)
+         const source = await readFile(fileId)
+@@ -526,7 +526,7 @@
+           minify: true,
+         })
+         const classMap: Record<string, string> = {}
+-        const exportEntries = Object.entries(cssExports ?? {})
++        const exportEntries = Object.entries(cssExports ?? {}).sort(([a], [b]) => a.localeCompare(b))
+           .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+         for (const [local, exp] of exportEntries) classMap[local] = exp.name
+         return styleInjectionModule(id, fileId, code.toString(), classMap)

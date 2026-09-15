@@ -1,0 +1,60 @@
+diff --git a/apps/desktop/src/host-process.ts b/apps/desktop/src/host-process.ts
+--- a/apps/desktop/src/host-process.ts
++++ b/apps/desktop/src/host-process.ts
+@@ -108,6 +108,8 @@
+     const entry = join(this.runtimeDir, 'node_modules', '@deepseek-ai', 'dsh-desktop-host', 'lib', 'index.js')
+     const child = spawn(this.executable, [
+       ...(this.inspectPort === undefined ? [] : [`--inspect=127.0.0.1:${String(this.inspectPort)}`]),
++      // The packaged Electron runtime reaches Node internals without the native addon.
++      '--expose-internals',
+       entry,
+       this.runtimeDir,
+       this.projectDir,
+diff --git a/packages/boot/app-boot/src/profile-resolution/resolver.ts b/packages/boot/app-boot/src/profile-resolution/resolver.ts
+--- a/packages/boot/app-boot/src/profile-resolution/resolver.ts
++++ b/packages/boot/app-boot/src/profile-resolution/resolver.ts
+@@ -517,20 +517,37 @@
+   }
+ }
+
+-function internalModules(): InternalModules {
++/**
++ * Load one Node internal module through whichever carrier the runtime exposes.
++ *
++ * `--expose-internals` reaches the same modules as the native addon, whose prebuilt
++ * binary only accepts an allowlist of upstream runtimes.
++ * @param moduleId - internal module id, such as `internal/modules/esm/loader`.
++ * @returns the loaded internal module.
++ */
++function requireInternal(moduleId: string): unknown {
+   const require = createRequire(import.meta.url)
+-  const addon = require('node-addon-require-builtin') as { requireBuiltin(moduleId: string): unknown }
+-  const esmModule = addon.requireBuiltin('internal/modules/esm/loader') as {
++  if (process.execArgv.includes('--expose-internals')) {
++    try {
++      return require(moduleId)
++    } catch {}
++  }
++  return (require('node-addon-require-builtin') as { requireBuiltin(id: string): unknown })
++    .requireBuiltin(moduleId)
++}
++
++function internalModules(): InternalModules {
++  const esmModule = requireInternal('internal/modules/esm/loader') as {
+     getOrInitializeCascadedLoader(): ModuleLoaderV1 | ModuleLoaderV2
+   }
+-  const cjsModule = addon.requireBuiltin('internal/modules/cjs/loader') as { Module: CommonJsModule }
+-  const cjsHelpers = addon.requireBuiltin('internal/modules/helpers') as {
++  const cjsModule = requireInternal('internal/modules/cjs/loader') as { Module: CommonJsModule }
++  const cjsHelpers = requireInternal('internal/modules/helpers') as {
+     getCjsConditions(): ReadonlySet<string>
+   }
+-  const esmUtils = addon.requireBuiltin('internal/modules/esm/utils') as {
++  const esmUtils = requireInternal('internal/modules/esm/utils') as {
+     getDefaultConditions(): readonly string[]
+   }
+-  const esmResolve = addon.requireBuiltin('internal/modules/esm/resolve') as {
++  const esmResolve = requireInternal('internal/modules/esm/resolve') as {
+     defaultResolve(
+       specifier: string,
+       context: { parentURL?: string; conditions?: readonly string[] },
