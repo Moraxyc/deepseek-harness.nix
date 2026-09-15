@@ -23,9 +23,12 @@ nix build .#presets.tui
 nix build .#bundles.tui
 nix run .#default -- --version
 nix run .#dsh-desktop
+nix run .#dsh-desktop-official
 ```
 
-`packages` 提供 `dsh`、`dsh-desktop`、`dsh-kernel`、`dsh-workspace`。
+`packages` 提供 `dsh`、`dsh-desktop`、`dsh-desktop-official`、
+`dsh-desktop-unofficial`、`dsh-kernel`、`dsh-workspace`；其中 `dsh-desktop` 是别名，
+当前指向 `dsh-desktop-unofficial`。
 `bundles.*` 和 `presets.*` 通过 `legacyPackages` 暴露，因此
 `nix build .#bundles.tui` 和 `nix run .#presets.tui` 这类引用同样可用。
 `bundleCompositions.*` 也通过 `legacyPackages` 暴露，内容是默认 `dsh` 组合叠加单个

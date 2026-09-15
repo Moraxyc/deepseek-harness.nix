@@ -22,6 +22,7 @@ Run or build individual outputs directly from GitHub:
 nix run github:moraxyc/deepseek-harness.nix#default -- --version
 nix build github:moraxyc/deepseek-harness.nix#dsh
 nix build github:moraxyc/deepseek-harness.nix#dsh-desktop
+nix build github:moraxyc/deepseek-harness.nix#dsh-desktop-official
 nix build github:moraxyc/deepseek-harness.nix#dsh-kernel
 nix build github:moraxyc/deepseek-harness.nix#dsh-workspace
 nix build github:moraxyc/deepseek-harness.nix#bundles.tui
@@ -30,16 +31,22 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui
 
 The main outputs are:
 
-| Output          | Purpose                          |
-| --------------- | -------------------------------- |
-| `dsh`           | CLI package                      |
-| `dsh-desktop`   | Desktop application              |
-| `dsh-kernel`    | Kernel without profile bundles   |
-| `dsh-workspace` | Built workspace artifacts        |
-| `bundles.*`     | Plugin-style extensions          |
-| `presets.*`     | Ready-to-use bundle combinations |
+| Output                   | Purpose                                        |
+| ------------------------ | ---------------------------------------------- |
+| `dsh`                    | CLI package                                    |
+| `dsh-desktop`            | Desktop application                            |
+| `dsh-desktop-official`   | Desktop application from the upstream release  |
+| `dsh-desktop-unofficial` | Desktop application from a third-party project |
+| `dsh-kernel`             | Kernel without profile bundles                 |
+| `dsh-workspace`          | Built workspace artifacts                      |
+| `bundles.*`              | Plugin-style extensions                        |
+| `presets.*`              | Ready-to-use bundle combinations               |
 
 See the [Bundles and Presets](../catalog/) catalog for the complete list.
+
+`dsh-desktop` is an alias and currently resolves to `dsh-desktop-unofficial`.
+See [Advanced Usage](../advanced-usage/) for the variant sources, the
+supported platforms, and the `dshHost` override.
 
 ## Add It to Another Flake
 

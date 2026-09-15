@@ -34,6 +34,7 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui \
 nix run github:moraxyc/deepseek-harness.nix#default -- --version
 nix build github:moraxyc/deepseek-harness.nix#dsh
 nix build github:moraxyc/deepseek-harness.nix#dsh-desktop
+nix build github:moraxyc/deepseek-harness.nix#dsh-desktop-official
 nix build github:moraxyc/deepseek-harness.nix#dsh-kernel
 nix build github:moraxyc/deepseek-harness.nix#dsh-workspace
 nix build github:moraxyc/deepseek-harness.nix#bundles.tui
@@ -43,11 +44,17 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui
 主要输出：
 
 - `dsh`：CLI
-- `dsh-desktop`：桌面应用
+- `dsh-desktop`：桌面应用别名，当前指向 `dsh-desktop-unofficial`
+- `dsh-desktop-official`：由上游 workspace 发布版构建的桌面应用，仅 Linux
+- `dsh-desktop-unofficial`：由 anywhere-labs/deepseek-harness-desktop 构建的第三方
+  桌面应用，支持 Linux 和 Darwin
 - `dsh-kernel`：不带 profile bundle 的 kernel
 - `dsh-workspace`：构建后的 workspace 产物
 - `bundles.*` / `presets.*`：bundle 和 preset，完整目录见
   [Bundles 和预设](https://moraxyc.github.io/deepseek-harness.nix/zh/catalog/)
+
+桌面变体的来源、平台支持和 `dshHost` 覆盖方式见
+[高级用法](https://moraxyc.github.io/deepseek-harness.nix/zh/advanced-usage/)。
 
 也可以把仓库加入使用方 flake 的 inputs，再使用
 `inputs.deepseek-harness.*` 暴露的模块和 overlay：

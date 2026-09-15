@@ -34,6 +34,7 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui \
 nix run github:moraxyc/deepseek-harness.nix#default -- --version
 nix build github:moraxyc/deepseek-harness.nix#dsh
 nix build github:moraxyc/deepseek-harness.nix#dsh-desktop
+nix build github:moraxyc/deepseek-harness.nix#dsh-desktop-official
 nix build github:moraxyc/deepseek-harness.nix#dsh-kernel
 nix build github:moraxyc/deepseek-harness.nix#dsh-workspace
 nix build github:moraxyc/deepseek-harness.nix#bundles.tui
@@ -43,12 +44,20 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui
 Main outputs:
 
 - `dsh`: CLI
-- `dsh-desktop`: desktop application
+- `dsh-desktop`: desktop application alias; currently the same package as
+  `dsh-desktop-unofficial`
+- `dsh-desktop-official`: desktop application from the upstream workspace
+  release; Linux only
+- `dsh-desktop-unofficial`: desktop application from
+  anywhere-labs/deepseek-harness-desktop; Linux and Darwin
 - `dsh-kernel`: kernel without profile bundles
 - `dsh-workspace`: built workspace artifacts
 - `bundles.*` / `presets.*`: bundles and presets; see
   [Bundles and Presets](https://moraxyc.github.io/deepseek-harness.nix/catalog/)
   for the full catalog
+
+Variant sources, supported platforms, and the `dshHost` override are documented
+in [Advanced Usage](https://moraxyc.github.io/deepseek-harness.nix/advanced-usage/).
 
 The flake can also be added to another flake's inputs, then use the modules
 and overlay exposed through `inputs.deepseek-harness.*`:

@@ -22,6 +22,7 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui \
 nix run github:moraxyc/deepseek-harness.nix#default -- --version
 nix build github:moraxyc/deepseek-harness.nix#dsh
 nix build github:moraxyc/deepseek-harness.nix#dsh-desktop
+nix build github:moraxyc/deepseek-harness.nix#dsh-desktop-official
 nix build github:moraxyc/deepseek-harness.nix#dsh-kernel
 nix build github:moraxyc/deepseek-harness.nix#dsh-workspace
 nix build github:moraxyc/deepseek-harness.nix#bundles.tui
@@ -30,16 +31,21 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui
 
 主要输出如下：
 
-| 输出            | 用途                          |
-| --------------- | ----------------------------- |
-| `dsh`           | CLI 包                        |
-| `dsh-desktop`   | 桌面应用                      |
-| `dsh-kernel`    | 不带 profile bundle 的 kernel |
-| `dsh-workspace` | 构建后的 workspace 产物       |
-| `bundles.*`     | 插件式扩展                    |
-| `presets.*`     | 开箱即用的 bundle 组合        |
+| 输出                     | 用途                          |
+| ------------------------ | ----------------------------- |
+| `dsh`                    | CLI 包                        |
+| `dsh-desktop`            | 桌面应用                      |
+| `dsh-desktop-official`   | 上游发布版桌面应用            |
+| `dsh-desktop-unofficial` | 第三方桌面应用                |
+| `dsh-kernel`             | 不带 profile bundle 的 kernel |
+| `dsh-workspace`          | 构建后的 workspace 产物       |
+| `bundles.*`              | 插件式扩展                    |
+| `presets.*`              | 开箱即用的 bundle 组合        |
 
 完整列表见 [Bundles 和预设](../catalog/)目录。
+
+`dsh-desktop` 是别名，当前指向 `dsh-desktop-unofficial`。变体来源、支持平台和
+`dshHost` 覆盖方式见[高级用法](../advanced-usage/)。
 
 ## 加入其他 Flake
 

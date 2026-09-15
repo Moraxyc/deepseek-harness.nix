@@ -41,9 +41,6 @@ while IFS= read -r file; do
     pkgs/dsh/*)
       changed_packages+=("dsh")
       ;;
-    pkgs/dsh-desktop/*)
-      changed_packages+=("dsh-desktop")
-      ;;
     pkgs/bundles/*)
       name="${file#pkgs/bundles/}"
       name="${name%%/*}"
@@ -58,7 +55,7 @@ while IFS= read -r file; do
       name="${file#pkgs/}"
       name="${name%%/*}"
       case "$name" in
-        dsh | dsh-desktop | dsh-kernel | dsh-workspace | dshWorkspacePatchHook)
+        dsh | dsh-kernel | dsh-workspace | dshWorkspacePatchHook)
           ;;
         *)
           changed_unknown_packages+=("$name")
@@ -109,9 +106,11 @@ attrs=()
 
 for name in "${changed_packages[@]}"; do
   if [ "$name" = "dsh" ]; then
+    # Both desktop variants embed the composed dsh as their runtime.
     attrs+=(
       "$(jq -r '.packages.dsh' <<< "$package_set")"
       "$(jq -r '.packages["dsh-desktop"]' <<< "$package_set")"
+      "$(jq -r '.packages["dsh-desktop-official"]' <<< "$package_set")"
     )
     while IFS= read -r preset; do
       attrs+=("$preset")

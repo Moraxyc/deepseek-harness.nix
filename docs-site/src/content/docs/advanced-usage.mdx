@@ -402,6 +402,34 @@ Presets expose `override` for package inputs. Use `withAgentPresets` to merge
 preset definitions, `withBundles` to add bundles, and `withProfiles` to replace
 the package's profiles. `withProfiles` also clears the preset's default profile.
 
+## Desktop Packages
+
+Two desktop applications are packaged:
+
+- `dsh-desktop-official`: built from the desktop application in the pinned
+  `dsh-workspace` release. Linux only.
+- `dsh-desktop-unofficial`: built from
+  [`anywhere-labs/deepseek-harness-desktop`](https://github.com/anywhere-labs/deepseek-harness-desktop).
+  Linux and Darwin.
+
+`dsh-desktop` is an alias that currently resolves to `dsh-desktop-unofficial`.
+Reference the variant you want explicitly:
+
+```sh
+nix build .#dsh-desktop-official
+nix run .#dsh-desktop-official
+```
+
+Both variants accept `dshHost`, the composed `dsh` behind the desktop runtime.
+Point it at a preset or a custom composition to change the bundles the
+application runs:
+
+```nix
+pkgs.dsh.dsh-desktop-official.override {
+  dshHost = pkgs.dsh.presets.tui;
+}
+```
+
 ## Overlay
 
 Add the overlay to Nixpkgs and use the `pkgs.dsh` scope:
@@ -414,8 +442,8 @@ Add the overlay to Nixpkgs and use the `pkgs.dsh` scope:
 ```
 
 The scope includes `pkgs.dsh.bundles.*`, `pkgs.dsh.presets.*`, public helpers
-under `pkgs.dsh.helpers.*`, and package outputs such as
-`pkgs.dsh.dsh-desktop`. Flake `packages` expand the same scope, so
+under `pkgs.dsh.helpers.*`, and package outputs such as `pkgs.dsh.dsh-desktop`
+and `pkgs.dsh.dsh-desktop-official`. Flake `packages` expand the same scope, so
 `nix build .#bundles.tui` and `nix run .#presets.web` work the same way.
 
 ### Helper Surface

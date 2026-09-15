@@ -384,6 +384,32 @@ preset 通过 `override` 设置其他包输入。`withAgentPresets` 按 ID 合�
 定义，`withBundles` 用于添加 Bundle，`withProfiles` 会替换包里的 profiles，并清除
 preset 的默认 profile。
 
+## 桌面包
+
+仓库打包了两个桌面应用：
+
+- `dsh-desktop-official`：由固定版本的 `dsh-workspace` 发布版中的桌面应用构建，
+  仅 Linux。
+- `dsh-desktop-unofficial`：由
+  [`anywhere-labs/deepseek-harness-desktop`](https://github.com/anywhere-labs/deepseek-harness-desktop)
+  构建，支持 Linux 和 Darwin。
+
+`dsh-desktop` 是别名，当前指向 `dsh-desktop-unofficial`。需要哪个变体就显式引用：
+
+```sh
+nix build .#dsh-desktop-official
+nix run .#dsh-desktop-official
+```
+
+两个变体都接受 `dshHost`，即桌面运行时背后的组合后 `dsh`。把它指向 preset 或自定义
+组合，就能改变应用运行的 bundle：
+
+```nix
+pkgs.dsh.dsh-desktop-official.override {
+  dshHost = pkgs.dsh.presets.tui;
+}
+```
+
 ## Overlay
 
 把 overlay 加入 Nixpkgs 后，使用 `pkgs.dsh` scope：
@@ -396,8 +422,9 @@ preset 的默认 profile。
 ```
 
 该 scope 包含 `pkgs.dsh.bundles.*`、`pkgs.dsh.presets.*`、
-`pkgs.dsh.helpers.*` 下的公开 helper，以及 `pkgs.dsh.dsh-desktop` 等包输出。
-flake 的 `packages` 展开的是同一 scope，因此 `nix build .#bundles.tui` 和
+`pkgs.dsh.helpers.*` 下的公开 helper，以及 `pkgs.dsh.dsh-desktop`、
+`pkgs.dsh.dsh-desktop-official` 等包输出。flake 的 `packages` 展开的是同一 scope，
+因此 `nix build .#bundles.tui` 和
 `nix run .#presets.web` 仍然可用。
 
 ### Helper 范围
