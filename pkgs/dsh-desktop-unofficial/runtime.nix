@@ -1,37 +1,12 @@
 {
   lib,
+  copyTree,
+  nodeModulesPrune,
   stdenvNoCC,
   dshHost,
-  jq,
   nodejs-slim,
 }:
 
-let
-  platformDirNames = [
-    "win32*"
-    "win-x64"
-    "win-arm64"
-    "linux*"
-    "darwin*"
-    "macos*"
-    "freebsd*"
-    "openbsd*"
-    "sunos*"
-    "android*"
-  ];
-
-  hostPlatformDirNames =
-    lib.optional stdenvNoCC.hostPlatform.isLinux "linux*"
-    ++ lib.optionals stdenvNoCC.hostPlatform.isDarwin [
-      "darwin*"
-      "macos*"
-    ];
-
-  foreignPlatformDirNames = lib.subtractLists hostPlatformDirNames platformDirNames;
-  foreignPlatformDirs = lib.concatMapStringsSep " " (
-    name: "-o -name '${name}'"
-  ) foreignPlatformDirNames;
-in
 stdenvNoCC.mkDerivation {
   pname = "dsh-desktop-runtime";
   inherit (dshHost) version;
@@ -42,51 +17,34 @@ stdenvNoCC.mkDerivation {
   dontBuild = true;
   dontPatchShebangs = true;
 
-  nativeBuildInputs = [
-    jq
-    nodejs-slim
-  ];
+  nativeBuildInputs = [ nodejs-slim ];
 
   installPhase = ''
     runHook preInstall
 
     appDir="${dshHost}/lib/deepseek-harness"
 
-    # Break kernel symlinks, then strip build/test/foreign artifacts.
-    nm="$out/node_modules"
-    mkdir -p "$nm"
-    cp -rL "$appDir/node_modules/." "$nm/"
+    # The composed tree is flattened once for both desktop packages, and the
+    # result holds no symlinks, so copying it stays a plain copy.
+    ${copyTree.preserve {
+      src = "${dshHost.passthru.flattenedNodeModules}/node_modules";
+      dest = "$out/node_modules";
+    }}
 
-    makeWritable() {
-      find "$1" -type d -exec chmod u+w {} +
-      find "$1" -type f -exec chmod u+w {} +
-    }
-    makeWritable "$nm"
-
-    for bundle in $(jq -r '.bundles[].name' "${dshHost}/nix-support/dsh-bundles.json"); do
-      [ -n "$bundle" ] || continue
-      sourceNodeModules="$appDir/node_modules/$bundle/node_modules"
-      targetNodeModules="$nm/$bundle/node_modules"
-      if [ -L "$sourceNodeModules" ]; then
-        rm -rf "$targetNodeModules"
-        ln -s "$nm" "$targetNodeModules"
-      elif [ -d "$sourceNodeModules" ]; then
-        rm -rf "$targetNodeModules"
-        cp -a "$sourceNodeModules" "$targetNodeModules"
-      fi
-    done
-
-    makeWritable "$nm"
-
-    find "$nm" -type f \( -name '*.map' -o -name '*.d.ts' -o -name '*.ts' -o -name '*.tsx' -o -name '*.mts' -o -name '*.cts' -o -name '*.pdb' -o -iname 'readme*' -o -iname 'changelog*' -o -iname '*.md' -o -iname '*.markdown' -o -name '*.test.js' -o -name '*.test.mjs' -o -name '*.test.cjs' -o -name '*.spec.js' -o -name '*.spec.mjs' -o -name '*.spec.cjs' -o -name '*.target.mk' -o -name 'config.gypi' -o -name 'binding.gyp' -o -name '*.gypi' \) -delete
-    find "$nm" -type d \( -name test -o -name tests -o -name __tests__ -o -name fixtures -o -name example -o -name examples -o -name benchmark -o -name benchmarks -o -name demo -o -name demos -o -name coverage ${foreignPlatformDirs} \) -prune -exec rm -rf {} +
-    rm -rf "$nm/.bin" "$nm/vite" "$nm/vitest" "$nm/@vitest" "$nm/typescript" "$nm/esbuild" "$nm/@esbuild" "$nm/rolldown" "$nm/@rolldown" "$nm/lightningcss" "$nm/lightningcss-linux-x64-gnu" "$nm/tsx" "$nm/@testing-library" "$nm/jsdom"
-    find "$nm" -depth -type d -empty -delete
-    find "$nm" -type l ! -exec test -e {} \; -delete
+    # The production dependency graph already leaves out bundlers and test
+    # runners; what is left to strip is release tarball contents.
+    ${nodeModulesPrune.prune { tree = "$out/node_modules"; }}
+    ${nodeModulesPrune.minify { tree = "$out/node_modules"; }}
 
     mkdir -p "$out/node_modules/@deepseek-ai/dsh"
-    cp -rL "$appDir/lib" "$out/node_modules/@deepseek-ai/dsh/lib"
-    cp -rL "$appDir/config" "$out/node_modules/@deepseek-ai/dsh/config"
+    ${copyTree.followLinks {
+      src = "$appDir/lib";
+      dest = "$out/node_modules/@deepseek-ai/dsh/lib";
+    }}
+    ${copyTree.followLinks {
+      src = "$appDir/config";
+      dest = "$out/node_modules/@deepseek-ai/dsh/config";
+    }}
     cp "$appDir/package.json" "$out/node_modules/@deepseek-ai/dsh/package.json"
     cp "$appDir/package.json" "$out/package.json"
 

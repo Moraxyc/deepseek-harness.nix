@@ -3,6 +3,7 @@
   fetchFromGitHub,
   importPnpmLock,
   buildDshBundle,
+  copyTree,
   dsh-kernel,
   dsh-workspace,
   jq,
@@ -75,8 +76,10 @@ buildDshBundle (finalAttrs: {
 
   preBuild = ''
     rm -rf node_modules/@deepseek-ai
-    mkdir -p node_modules/@deepseek-ai
-    cp -rL ${dsh-kernel}/lib/deepseek-harness/node_modules/@deepseek-ai/. node_modules/@deepseek-ai/
+    ${copyTree.followLinks {
+      src = "${dsh-kernel}/lib/deepseek-harness/node_modules/@deepseek-ai";
+      dest = "node_modules/@deepseek-ai";
+    }}
     for clientPackage in dsh-client-ui-commands dsh-client-ui-slots; do
       rm -rf "node_modules/@deepseek-ai/$clientPackage"
       cp -r "${dsh-workspace}/lib/dsh-workspace/client-packages/@deepseek-ai/$clientPackage" \
@@ -110,7 +113,10 @@ buildDshBundle (finalAttrs: {
     appDir="$out/lib/node_modules/${finalAttrs.pname}"
     mkdir -p "$appDir/node_modules"
     cp -r package.json cordis.patch.yml lib "$appDir/"
-    cp -rL node_modules/undici "$appDir/node_modules/"
+    ${copyTree.followLinks {
+      src = "node_modules/undici";
+      dest = "$appDir/node_modules/undici";
+    }}
 
     runHook postInstall
   '';

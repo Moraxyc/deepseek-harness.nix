@@ -126,9 +126,44 @@ dsh-kernel`。helper 先移除 bundle 输出中 kernel 持有的包（包括 ker
 ## 添加独立 npm bundle
 
 源码属于 pnpm workspace 部署目标时使用 `buildDshBundle.fromPnpmWorkspace`，
-其他情况使用 `buildDshBundle`。独立 bundle 的 derivation 需要自己填充
-`$out/lib/node_modules`，把包 manifest、补丁文件、运行时代码和 bundle 专属
-依赖复制到包根目录。kernel 持有的包由 `linkKernelNodeModules` 提供：
+其他情况使用 `buildDshBundle`。默认安装用 `package.json.name` 决定包目录、
+用 `npm pack` 的文件清单决定运行时产物；kernel 持有的包由
+`linkKernelNodeModules` 提供：
+
+```nix
+{
+  lib,
+  fetchFromGitHub,
+  buildDshBundle,
+  dsh-kernel,
+}:
+buildDshBundle (finalAttrs: {
+  pname = "example-bundle";
+  version = "0.1.0";
+  linkKernelNodeModules = dsh-kernel;
+
+  src = fetchFromGitHub {
+    owner = "example";
+    repo = "example-bundle";
+    rev = "0000000000000000000000000000000000000000";
+    hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+  };
+
+  npmDepsHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+  npmBuildScript = "build";
+
+  meta = {
+    description = "Example standalone DSH bundle";
+    homepage = "https://github.com/example/example-bundle";
+    license = lib.licenses.mit;
+    platforms = lib.platforms.unix;
+  };
+})
+```
+
+包 manifest 必须把 `cordis.patch.yml` 与运行时构建产物纳入 npm 包产物。
+当 npm 包布局无法表达所需运行时产物时（例如产物来自 pnpm workspace），才
+覆盖 `installPhase`；自定义阶段必须把包放到 `$out/lib/node_modules` 下：
 
 ```nix
 {

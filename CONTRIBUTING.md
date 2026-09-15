@@ -177,7 +177,62 @@ buildDshBundle (finalAttrs: {
 The package manifest must include `cordis.patch.yml` and the runtime build
 output in its npm package payload. Override `installPhase` only when the npm
 package layout cannot represent the required runtime output; a custom phase
-must place the package under `$out/lib/node_modules`.
+must place the package under `$out/lib/node_modules`:
+
+```nix
+{
+  lib,
+  fetchFromGitHub,
+  fetchPnpmDeps,
+  buildDshBundle,
+  dsh-kernel,
+  pnpmConfigHook,
+  pnpm_11,
+}:
+buildDshBundle (finalAttrs: {
+  pname = "example-bundle";
+  version = "0.1.0";
+  linkKernelNodeModules = dsh-kernel;
+
+  src = fetchFromGitHub {
+    owner = "example";
+    repo = "example-bundle";
+    rev = "0000000000000000000000000000000000000000";
+    hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+  };
+
+  pnpmDeps = fetchPnpmDeps {
+    inherit (finalAttrs) pname version src;
+    pnpm = pnpm_11;
+    fetcherVersion = 4;
+    hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+  };
+
+  nativeBuildInputs = [ pnpm_11 ];
+  disallowedReferences = [ pnpm_11 ];
+
+  npmDeps = null;
+  npmConfigHook = pnpmConfigHook;
+  npmBuildScript = "build";
+
+  installPhase = ''
+    runHook preInstall
+
+    appDir="$out/lib/node_modules/example-bundle"
+    mkdir -p "$appDir"
+    cp -r package.json cordis.patch.yml lib "$appDir/"
+
+    runHook postInstall
+  '';
+
+  meta = {
+    description = "Example standalone DSH bundle";
+    homepage = "https://github.com/example/example-bundle";
+    license = lib.licenses.mit;
+    platforms = lib.platforms.unix;
+  };
+})
+```
 
 If the package needs `pnpmDeps`, `fetchPnpmDeps`, `pnpmConfigHook`, or
 `pnpm_11`, add them to the function arguments just like the pnpm workspace

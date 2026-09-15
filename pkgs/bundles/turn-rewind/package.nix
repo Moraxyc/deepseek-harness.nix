@@ -3,6 +3,7 @@
   fetchFromGitHub,
   fetchPnpmDeps,
   buildDshBundle,
+  copyTree,
   dsh-kernel,
   git,
   pnpmConfigHook,
@@ -43,7 +44,10 @@ buildDshBundle (finalAttrs: {
     appDir="$out/lib/node_modules/@anionex/dsh-turn-rewind"
     mkdir -p "$appDir/node_modules"
     cp -r package.json cordis.patch.yml lib "$appDir/"
-    cp -rL node_modules/ignore "$appDir/node_modules/"
+    ${copyTree.followLinks {
+      src = "node_modules/ignore";
+      dest = "$appDir/node_modules/ignore";
+    }}
 
     runHook postInstall
   '';

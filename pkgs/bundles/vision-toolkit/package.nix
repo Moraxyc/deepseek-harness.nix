@@ -3,6 +3,7 @@
   jq,
   fetchFromGitHub,
   buildDshBundle,
+  copyTree,
   dsh-kernel,
   dsh-workspace,
   pnpmConfigHook,
@@ -47,13 +48,12 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
       dsh-typert-protocol; do
       packageDir="$out/lib/node_modules/@deepseek-ai/$clientPackage"
       source="$webRuntime/@deepseek-ai/$clientPackage"
-      [ -d "$source" ] || {
-        printf 'dsh-vision-toolkit: workspace runtime package is missing: %s\n' "$source" >&2
-        exit 1
-      }
       rm -rf "$packageDir"
-      cp -rL "$source" "$packageDir"
-      chmod -R u+w "$packageDir"
+      ${copyTree.followLinks {
+        src = "$source";
+        dest = "$packageDir";
+        label = "dsh-vision-toolkit: workspace runtime package is missing";
+      }}
     done
 
     while IFS= read -r -d $'\0' script; do

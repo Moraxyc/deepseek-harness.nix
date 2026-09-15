@@ -3,6 +3,7 @@
   fetchFromGitHub,
   fetchPnpmDeps,
   buildDshBundle,
+  copyTree,
   context,
   dsh-kernel,
   pnpmConfigHook,
@@ -132,11 +133,11 @@ buildDshBundle (finalAttrs: {
     deploy_ohdsh_package @oh-dsh/save-as-image save-as-image
 
     rm -rf "$bundleRoot/@deepseek-harness-tui"
-    mkdir -p "$bundleRoot/@deepseek-harness-tui/dsh-auth"
     # The dsh-auth source repository is TypeScript-only; reuse TUI's compiled runtime payload.
-    cp -rL ${tui}/lib/node_modules/@deepseek-harness-tui/dsh-tui/node_modules/@deepseek-harness-tui/dsh-auth/. \
-      "$bundleRoot/@deepseek-harness-tui/dsh-auth/"
-    chmod -R u+w "$bundleRoot/@deepseek-harness-tui"
+    ${copyTree.followLinks {
+      src = "${tui}/lib/node_modules/@deepseek-harness-tui/dsh-tui/node_modules/@deepseek-harness-tui/dsh-auth";
+      dest = "$bundleRoot/@deepseek-harness-tui/dsh-auth";
+    }}
 
     mkdir -p "$bundleRoot/dsh-context"
     cp -r upstream/dsh-context/LICENSE \

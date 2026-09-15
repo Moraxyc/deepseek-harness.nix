@@ -1,6 +1,7 @@
 {
   lib,
   copyDesktopItems,
+  copyTree,
   dsh,
   dshHost ? dsh,
   dsh-workspace,
@@ -11,6 +12,7 @@
   makeDesktopItem,
   nodejs-slim,
   pnpmWorkspaceDeploy,
+  nodeModulesPrune,
   stdenv,
   stdenvNoCC,
   wrapGAppsHook3,
@@ -18,76 +20,6 @@
   dshDesktopPnpm ? pnpmWorkspaceDeploy,
 }:
 
-let
-  inherit (stdenvNoCC.hostPlatform) isDarwin isLinux parsed;
-
-  # Prebuild directories are named after their target platform, so only the
-  # foreign ones can be dropped. A Linux host still resolves either libc, and
-  # the architecture is only ever a word-size choice for the same shell.
-  hostOs =
-    lib.optionals isLinux [
-      "linux"
-      "musl"
-    ]
-    ++ lib.optionals isDarwin [
-      "darwin"
-      "macos"
-    ];
-  hostArch =
-    {
-      x86_64 = [
-        "x64"
-        "x86_64"
-      ];
-      aarch64 = [
-        "arm64"
-        "aarch64"
-      ];
-    }
-    .${parsed.cpu.name} or null;
-
-  foreignPlatformDirs = lib.concatMapStringsSep " " (name: "-o -name '${name}'") (
-    map (name: "${name}*") (
-      lib.subtractLists hostOs [
-        "win"
-        "android"
-        "darwin"
-        "linux"
-        "macos"
-        "musl"
-        "freebsd"
-        "netbsd"
-        "openbsd"
-        "sunos"
-      ]
-    )
-    ++ lib.optionals (hostArch != null) (
-      lib.concatMap
-        (name: [
-          "*-${name}"
-          "*_${name}"
-        ])
-        (
-          lib.subtractLists hostArch [
-            "x64"
-            "x86_64"
-            "arm64"
-            "aarch64"
-            "arm"
-            "armv7l"
-            "ia32"
-            "i686"
-            "ppc64"
-            "ppc64le"
-            "s390x"
-            "riscv64"
-            "loong64"
-            "wasm32"
-          ]
-        )
-    )
-  );
-in
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "dsh-desktop";
   inherit (dshHost) version;
@@ -115,86 +47,75 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     appDir="$out/lib/dsh-desktop"
     runtimeRoot="$appDir/resources"
     dshRuntime="$runtimeRoot/app/dsh"
-    mkdir -p "$appDir"
-    cp -a ${electron_44.dist}/. "$appDir/"
-    chmod -R u+w "$appDir"
+    ${copyTree.preserve {
+      src = electron_44.dist;
+      dest = "$appDir";
+    }}
     mv "$appDir/electron" "$appDir/DeepSeek Harness"
     rm "$runtimeRoot/default_app.asar"
 
-    mkdir -p "$runtimeRoot/app"
-    cp -rL "$src/app/"{lib,renderer,node_modules,package.json} "$runtimeRoot/app/"
-    chmod -R u+w "$runtimeRoot/app"
+    # The renderer app tree comes from the desktop workspace, which links its
+    # dependencies into the pnpm store.
+    ${lib.concatMapStringsSep "\n"
+      (
+        entry:
+        copyTree.followLinks {
+          src = "$src/app/${entry}";
+          dest = "$runtimeRoot/app/${entry}";
+        }
+      )
+      [
+        "lib"
+        "renderer"
+        "node_modules"
+      ]
+    }
+    cp "$src/app/package.json" "$runtimeRoot/app/package.json"
 
     dshPackage="$dshRuntime/node_modules/@deepseek-ai/dsh"
-    mkdir -p "$dshPackage"
-    cp -rL ${dshHost}/lib/deepseek-harness/{lib,config,package.json} "$dshPackage/"
-    cp -rL ${dshHost}/lib/deepseek-harness/node_modules/. "$dshRuntime/node_modules/"
-    chmod -R u+w "$dshRuntime"
+    ${copyTree.followLinks {
+      src = "${dshHost}/lib/deepseek-harness/lib";
+      dest = "$dshPackage/lib";
+    }}
+    ${copyTree.followLinks {
+      src = "${dshHost}/lib/deepseek-harness/config";
+      dest = "$dshPackage/config";
+    }}
+    cp "${dshHost}/lib/deepseek-harness/package.json" "$dshPackage/package.json"
 
-    cp -rL --update=none "$src/host/node_modules/." "$dshRuntime/node_modules/"
+    # The composed tree is flattened once in dsh.passthru.flattenedNodeModules:
+    # a bundle resolution view that mirrors the shared tree is already dropped,
+    # so this stays one copy of the runtime dependency tree.
+    ${copyTree.preserve {
+      src = "${dshHost.passthru.flattenedNodeModules}/node_modules";
+      dest = "$dshRuntime/node_modules";
+    }}
+
+    # Host dependencies only fill in names the runtime does not ship.
+    ${copyTree.fillMissing {
+      src = "$src/host/node_modules";
+      dest = "$dshRuntime/node_modules";
+    }}
+
+    # Compiled JavaScript is all that runs here. `prune` drops what no runtime
+    # reads; `minify` additionally drops sources, typings, maps and fixtures
+    # from package payloads, which this runtime accepts because nothing loads
+    # them at run time. Both run before the app and host packages are copied in:
+    # their `config` directories hold data the runtime reads, such as agent
+    # preset skills and composition examples.
+    ${nodeModulesPrune.prune { tree = "$dshRuntime/node_modules"; }}
+    ${nodeModulesPrune.minify { tree = "$dshRuntime/node_modules"; }}
+
     hostPackage="$dshRuntime/node_modules/@deepseek-ai/dsh-desktop-host"
-    mkdir -p "$hostPackage"
-    cp -rL "$src/host/lib" "$src/host/config" "$src/host/package.json" "$hostPackage/"
-    chmod -R u+w "$dshRuntime"
-
-    # Every bundle carries a nested resolution view that re-lists the whole
-    # dependency tree, and cp -rL turns four of them into full copies. An entry
-    # resolving to the same package file as the shared tree is reachable one
-    # level up once dropped; one resolving elsewhere is a pinned local copy and
-    # stays. Linking instead would break the runtime descriptor walker.
-    dshNodeModules="${dshHost}/lib/deepseek-harness/node_modules"
-    sharedNodeModules="$dshRuntime/node_modules"
-
-    # Package names in a view, one scope level expanded: find cannot descend
-    # into the symlinked package directories a view is built from.
-    viewNames() {
-      local name sub
-      for name in $(ls -A "$1"); do
-        case "$name" in
-          @*)
-            for sub in $(ls -A "$1/$name"); do
-              echo "$name/$sub"
-            done
-            ;;
-          *) echo "$name" ;;
-        esac
-      done
-    }
-
-    mirrorsShared() {
-      # Bookkeeping entries (.bin, .pnpm, .modules.yaml) are small and may hold
-      # per-install state, so only real package directories are compared.
-      [ -e "$1/package.json" ] && [ -e "$2/package.json" ] \
-        && [ "$(readlink -f "$1/package.json")" = "$(readlink -f "$2/package.json")" ]
-    }
-
-    views=$(find -H "$dshNodeModules" -mindepth 2 -name node_modules)
-    for sourceView in $views; do
-      targetView="$sharedNodeModules/''${sourceView#"$dshNodeModules"/}"
-      [ -e "$targetView" ] || continue
-      for name in $(viewNames "$sourceView"); do
-        if mirrorsShared "$sourceView/$name" "$dshNodeModules/$name"; then
-          rm -rf "$targetView/$name"
-        fi
-      done
-    done
-
-    # Compiled JavaScript is all that runs here: drop sources, typings, maps,
-    # docs, build metadata and test fixtures.
-    find "$dshRuntime/node_modules" -type f \( \
-      -name '*.map' -o -name '*.d.ts' -o -name '*.ts' -o -name '*.tsx' -o -name '*.mts' -o -name '*.cts' \
-      -o -name '*.pdb' -o -iname 'readme*' -o -iname 'changelog*' -o -iname '*.md' \
-      -o -name '*.test.js' -o -name '*.test.mjs' -o -name '*.test.cjs' \
-      -o -name '*.spec.js' -o -name '*.spec.mjs' -o -name '*.spec.cjs' \
-      -o -name '*.target.mk' -o -name 'config.gypi' -o -name 'binding.gyp' -o -name '*.gypi' \
-    \) -delete
-    find "$dshRuntime/node_modules" -type d \( \
-      -name test -o -name tests -o -name __tests__ -o -name fixtures \
-      -o -name example -o -name examples -o -name benchmark -o -name benchmarks \
-      -o -name demo -o -name demos -o -name coverage \
-      ${foreignPlatformDirs} \
-    \) -prune -exec rm -rf {} +
-    find "$dshRuntime/node_modules" -depth -type d -empty -delete
+    ${copyTree.followLinks {
+      src = "$src/host/lib";
+      dest = "$hostPackage/lib";
+    }}
+    ${copyTree.followLinks {
+      src = "$src/host/config";
+      dest = "$hostPackage/config";
+    }}
+    cp "$src/host/package.json" "$hostPackage/package.json"
 
     mkdir -p "$runtimeRoot/runtime"
     ln -s ${dshDesktopPnpm}/libexec/pnpm "$runtimeRoot/runtime/pnpm"

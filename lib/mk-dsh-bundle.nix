@@ -1,6 +1,7 @@
 {
   lib,
   buildNpmPackage,
+  copyTree,
   fetchPnpmDeps,
   jq,
   nodejs,
@@ -485,27 +486,20 @@ let
         defaultInstallPhase = ''
           runHook preInstall
 
-          source="${bundleSource}"
-          destination="$out/lib/node_modules/${packageName}"
-          [ -d "$source" ] || {
-            printf 'buildDshBundle: workspace bundle is missing: %s\n' "$source" >&2
-            exit 1
-          }
-          mkdir -p "$destination"
-          cp -r "$source"/. "$destination"/
-          chmod -R u+w "$destination"
+          ${copyTree.keepLinks {
+            src = bundleSource;
+            dest = "$out/lib/node_modules/${packageName}";
+            label = "buildDshBundle: workspace bundle is missing";
+          }}
 
-          ${lib.concatMapStringsSep "\n" (artifact: ''
-            source="${dsh-workspace}/lib/dsh-workspace/${artifact.source}"
-            destination="$out/${artifact.target}"
-            [ -d "$source" ] || {
-              printf 'buildDshBundle: workspace artifact is missing: %s\n' "$source" >&2
-              exit 1
+          ${lib.concatMapStringsSep "\n" (
+            artifact:
+            copyTree.keepLinks {
+              src = "${dsh-workspace}/lib/dsh-workspace/${artifact.source}";
+              dest = "$out/${artifact.target}";
+              label = "buildDshBundle: workspace artifact is missing";
             }
-            mkdir -p "$destination"
-            cp -r "$source"/. "$destination"/
-            chmod -R u+w "$destination"
-          '') artifacts}
+          ) artifacts}
 
           runHook postInstall
         '';

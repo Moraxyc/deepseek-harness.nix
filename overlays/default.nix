@@ -48,6 +48,10 @@ let
       overrideDerivation = f: wrapFetchPnpmDeps (base.overrideDerivation f);
     };
   fetchPnpmDeps = wrapFetchPnpmDeps prev.fetchPnpmDeps;
+  copyTree = import ../lib/copy-tree.nix { inherit (final) lib; };
+  nodeModulesPrune = import ../lib/node-modules-prune.nix {
+    inherit (final) lib stdenvNoCC;
+  };
   buildDshBundle = import ../lib/mk-dsh-bundle.nix {
     inherit (final)
       buildNpmPackage
@@ -59,7 +63,12 @@ let
       writeShellApplication
       writers
       ;
-    inherit fetchPnpmDeps pnpmWorkspaceDeploy pnpmWorkspaceDeployMinVersion;
+    inherit
+      copyTree
+      fetchPnpmDeps
+      pnpmWorkspaceDeploy
+      pnpmWorkspaceDeployMinVersion
+      ;
   };
   dsh = final.lib.makeScope final.newScope (
     self:
@@ -67,7 +76,12 @@ let
       # Only the dsh package set gets the release-age opt-out. Exporting the
       # wrapped fetcher at the nixpkgs top level would change every unrelated
       # pnpm package.
-      inherit buildDshBundle fetchPnpmDeps;
+      inherit
+        buildDshBundle
+        copyTree
+        fetchPnpmDeps
+        nodeModulesPrune
+        ;
       inherit pnpmWorkspaceDeploy;
       helpers.buildBundle = buildDshBundle;
       mkDshBundle = buildDshBundle;

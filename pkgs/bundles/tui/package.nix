@@ -3,6 +3,7 @@
   fetchFromGitHub,
   fetchPnpmDeps,
   buildDshBundle,
+  copyTree,
   dsh-kernel,
   pnpmConfigHook,
   pnpm_11,
@@ -102,15 +103,18 @@ buildDshBundle (finalAttrs: {
 
     # Workspace links point into vendor/dsh-std, which is not installed.
     rm -rf "$appDir/node_modules/@dsh-std"
-    mkdir -p "$appDir/node_modules/@dsh-std"
-    cp -rL node_modules/@dsh-std/. "$appDir/node_modules/@dsh-std/"
+    ${copyTree.followLinks {
+      src = "node_modules/@dsh-std";
+      dest = "$appDir/node_modules/@dsh-std";
+    }}
 
     # dsh-auth is a workspace link in the source tarball and must be copied
     # into the final bundle instead of leaving a dangling link.
     rm -rf "$appDir/node_modules/@deepseek-harness-tui/dsh-auth"
-    mkdir -p "$appDir/node_modules/@deepseek-harness-tui/dsh-auth"
-    cp -rL node_modules/@deepseek-harness-tui/dsh-auth/. \
-      "$appDir/node_modules/@deepseek-harness-tui/dsh-auth/"
+    ${copyTree.followLinks {
+      src = "node_modules/@deepseek-harness-tui/dsh-auth";
+      dest = "$appDir/node_modules/@deepseek-harness-tui/dsh-auth";
+    }}
 
     runHook postInstall
   '';

@@ -19,6 +19,7 @@
   yq-go,
 
   buildDshBundle,
+  copyTree,
   dsh,
   dshBundleCheckHook,
   dsh-kernel,
@@ -58,6 +59,7 @@ let
     inherit
       baseBundle
       coreutils
+      copyTree
       diffutils
       gnugrep
       dshBundleResolver
@@ -212,7 +214,10 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
       mkdir -p "$appDir"
       # Copy lib so the profile heal anchors at this manifest, not the kernel's.
-      cp -r "$kernelApp/lib" "$appDir/lib"
+      ${copyTree.keepLinks {
+        src = "$kernelApp/lib";
+        dest = "$appDir/lib";
+      }}
       ln -s "$kernelApp/config" "$appDir/config"
       cp "$kernelApp/package.json" "$appDir/package.json"
       ln -s "${finalAttrs.passthru.nodeModules}" "$appDir/node_modules"
@@ -320,6 +325,19 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       ++ (map (bundle: "${bundle}/lib/node_modules") (
         lib.reverseList finalAttrs.passthru.composedBundles
       ));
+    };
+
+    # Desktop packages consume this instead of copying the composed tree
+    # themselves with `cp -rL`, which expands every bundle resolution view into
+    # a full copy of the dependency tree. Flattening once here keeps that copy
+    # out of each of them.
+    flattenedNodeModules = import ./node-modules-flat.nix {
+      inherit
+        copyTree
+        lib
+        stdenvNoCC
+        ;
+      nodeModules = finalAttrs.passthru.nodeModules;
     };
 
     runtimeDeps = lib.unique (

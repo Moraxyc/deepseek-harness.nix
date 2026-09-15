@@ -23,6 +23,7 @@
   imagemagick,
   libGL,
 
+  copyTree,
   dsh,
   # Composed dsh backing resources/host; override with a preset or dsh.override.
   dshHost ? dsh,
@@ -98,12 +99,15 @@ stdenvNoCC.mkDerivation (
     ''
     + lib.optionalString isLinux ''
       appDir="$out/lib/dsh-desktop"
-      mkdir -p "$appDir"
-      cp -a ${finalAttrs.passthru.shell}/. "$appDir/"
-      chmod -R u+w "$appDir"
+      ${copyTree.preserve {
+        src = finalAttrs.passthru.shell;
+        dest = "$appDir";
+      }}
 
-      mkdir -p "$appDir/resources/host"
-      cp -a ${finalAttrs.passthru.runtime}/. "$appDir/resources/host/"
+      ${copyTree.preserve {
+        src = finalAttrs.passthru.runtime;
+        dest = "$appDir/resources/host";
+      }}
 
       gappsWrapperArgsHook
       makeWrapper "$appDir/DeepSeek Harness" "$out/bin/dsh-desktop" \
@@ -127,11 +131,15 @@ stdenvNoCC.mkDerivation (
     + lib.optionalString isDarwin ''
       appBundle="$out/Applications/DeepSeek Harness.app"
       mkdir -p "$out/Applications"
-      cp -a "${finalAttrs.passthru.shell}/DeepSeek Harness.app" "$appBundle"
-      chmod -R u+w "$appBundle"
+      ${copyTree.preserve {
+        src = "${finalAttrs.passthru.shell}/DeepSeek Harness.app";
+        dest = "$appBundle";
+      }}
 
-      mkdir -p "$appBundle/Contents/Resources/host"
-      cp -a "${finalAttrs.passthru.runtime}/." "$appBundle/Contents/Resources/host/"
+      ${copyTree.preserve {
+        src = finalAttrs.passthru.runtime;
+        dest = "$appBundle/Contents/Resources/host";
+      }}
 
       makeWrapper "$appBundle/Contents/MacOS/DeepSeek Harness" "$out/bin/dsh-desktop" \
         ${runtimePathArgs}\

@@ -1,6 +1,7 @@
 {
   baseBundle,
   coreutils,
+  copyTree,
   diffutils,
   gnugrep,
   dshBundleResolver,
@@ -169,8 +170,10 @@ let
           printf 'dsh profile: user Agent Preset shadows a shipped preset: %s\n' ${lib.escapeShellArg id} >&2
           exit 1
         }
-        cp -r ${lib.escapeShellArg sourceDir}/. "$out/"
-        chmod -R u+w "$out"
+        ${copyTree.keepLinks {
+          src = sourceDir;
+          dest = "$out";
+        }}
         [ -f "$out/agent.cordis.yml" ] || {
           printf 'dsh profile: shipped Agent Preset has no agent.cordis.yml: %s\n' ${lib.escapeShellArg definition.source} >&2
           exit 1

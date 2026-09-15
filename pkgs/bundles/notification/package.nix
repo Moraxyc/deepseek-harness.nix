@@ -3,6 +3,7 @@
   fetchFromGitHub,
   importPnpmLock,
   buildDshBundle,
+  copyTree,
   dsh-kernel,
   dsh-workspace,
   pnpmConfigHook,
@@ -57,8 +58,10 @@ buildDshBundle (finalAttrs: {
 
   preBuild = ''
     rm -rf node_modules/@deepseek-ai
-    mkdir -p node_modules/@deepseek-ai
-    cp -rL ${dsh-kernel}/lib/deepseek-harness/node_modules/@deepseek-ai/. node_modules/@deepseek-ai/
+    ${copyTree.followLinks {
+      src = "${dsh-kernel}/lib/deepseek-harness/node_modules/@deepseek-ai";
+      dest = "node_modules/@deepseek-ai";
+    }}
     rm -rf node_modules/@deepseek-ai/dsh-client-ui-slots
     cp -r ${dsh-workspace}/lib/dsh-workspace/client-packages/@deepseek-ai/dsh-client-ui-slots \
       node_modules/@deepseek-ai/dsh-client-ui-slots
@@ -88,7 +91,10 @@ buildDshBundle (finalAttrs: {
     appDir="$out/lib/node_modules/dsh-notification"
     mkdir -p "$appDir/node_modules"
     cp -r package.json cordis.patch.yml dsh.plugin.json README.md README.zh.md LICENSE lib "$appDir/"
-    cp -rL node_modules/zod "$appDir/node_modules/"
+    ${copyTree.followLinks {
+      src = "node_modules/zod";
+      dest = "$appDir/node_modules/zod";
+    }}
 
     runHook postInstall
   '';

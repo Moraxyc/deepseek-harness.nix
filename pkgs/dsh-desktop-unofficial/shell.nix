@@ -7,6 +7,7 @@
   electron_43,
   jq,
   writers,
+  copyTree,
 }:
 
 let
@@ -115,12 +116,17 @@ stdenv.mkDerivation (finalAttrs: {
       appResources="$out/resources"
     fi
 
-    mkdir -p "$appResources/app/node_modules"
-    cp -rL node_modules/. "$appResources/app/node_modules/"
-    chmod -R u+w "$appResources/app/node_modules"
+    # The yarn workspace links its packages into the project tree.
+    ${copyTree.followLinks {
+      src = "node_modules";
+      dest = "$appResources/app/node_modules";
+    }}
 
     rm -rf "$appResources/app/node_modules/dsh-plugin-desktop"
-    cp -rL dsh-plugin-desktop "$appResources/app/node_modules/dsh-plugin-desktop"
+    ${copyTree.followLinks {
+      src = "dsh-plugin-desktop";
+      dest = "$appResources/app/node_modules/dsh-plugin-desktop";
+    }}
     rm -rf "$appResources/app/node_modules/electron"
     find "$appResources/app/node_modules" -type d \
       \( -name 'test' -o -name 'tests' -o -name '__tests__' \) \

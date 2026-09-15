@@ -3,6 +3,7 @@
   fetchFromGitHub,
   fetchPnpmDeps,
   buildDshBundle,
+  copyTree,
   dsh-kernel,
   pnpmConfigHook,
   pnpm_11,
@@ -39,7 +40,14 @@ buildDshBundle (finalAttrs: {
     appDir="$out/lib/node_modules/@liustack/modsearch"
     mkdir -p "$appDir/node_modules"
     cp -r package.json cordis.patch.yml dist dsh docs skills CHANGELOG.md SECURITY.md README.md README.zh-CN.md LICENSE "$appDir/"
-    cp -rL node_modules/commander node_modules/undici "$appDir/node_modules/"
+    ${copyTree.followLinks {
+      src = "node_modules/commander";
+      dest = "$appDir/node_modules/commander";
+    }}
+    ${copyTree.followLinks {
+      src = "node_modules/undici";
+      dest = "$appDir/node_modules/undici";
+    }}
 
     runHook postInstall
   '';

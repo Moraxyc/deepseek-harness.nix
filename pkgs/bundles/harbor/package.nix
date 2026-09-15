@@ -3,6 +3,7 @@
   fetchFromGitHub,
   fetchNpmDeps,
   buildDshBundle,
+  copyTree,
   dsh-kernel,
   dsh-workspace,
   jq,
@@ -59,10 +60,18 @@ buildDshBundle (finalAttrs: {
     # those web runtime peers local so the generated client has no unresolved
     # imports when this bundle is composed on its own.
     webRuntime="${dsh-workspace}/lib/dsh-workspace/runtime-bundles/@deepseek-ai/dsh-web-app/node_modules"
-    cp -rL "$webRuntime/react-dom" "$webRuntime/scheduler" "$appDir/node_modules/"
-    cp -rL \
-      "${dsh-workspace}/lib/dsh-workspace/client-packages/@deepseek-ai/dsh-client-ui-slots" \
-      "$appDir/node_modules/@deepseek-ai/dsh-client-ui-slots"
+    ${copyTree.followLinks {
+      src = "$webRuntime/react-dom";
+      dest = "$appDir/node_modules/react-dom";
+    }}
+    ${copyTree.followLinks {
+      src = "$webRuntime/scheduler";
+      dest = "$appDir/node_modules/scheduler";
+    }}
+    ${copyTree.followLinks {
+      src = "${dsh-workspace}/lib/dsh-workspace/client-packages/@deepseek-ai/dsh-client-ui-slots";
+      dest = "$appDir/node_modules/@deepseek-ai/dsh-client-ui-slots";
+    }}
 
     runHook postInstall
   '';

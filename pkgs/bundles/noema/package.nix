@@ -2,6 +2,7 @@
   lib,
   fetchFromGitHub,
   buildDshBundle,
+  copyTree,
   dsh-kernel,
   dsh-workspace,
   pnpmConfigHook,
@@ -28,19 +29,17 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
 
   preBuild = ''
     rm -rf node_modules/@deepseek-ai
-    mkdir -p node_modules/@deepseek-ai
-    cp -rL ${dsh-kernel}/lib/deepseek-harness/node_modules/@deepseek-ai/. node_modules/@deepseek-ai/
-    rm -rf node_modules/@deepseek-ai/dsh-client-ui-slots
-    cp -r ${dsh-workspace}/lib/dsh-workspace/client-packages/@deepseek-ai/dsh-client-ui-slots \
-      node_modules/@deepseek-ai/dsh-client-ui-slots
-    chmod -R u+w node_modules/@deepseek-ai/dsh-client-ui-slots
-
+    ${copyTree.followLinks {
+      src = "${dsh-kernel}/lib/deepseek-harness/node_modules/@deepseek-ai";
+      dest = "node_modules/@deepseek-ai";
+    }}
     for clientPackage in \
       dsh-api-remotes \
       dsh-client-connection \
       dsh-client-locale \
       dsh-client-ui-renderer \
-      dsh-client-ui-settings; do
+      dsh-client-ui-settings \
+      dsh-client-ui-slots; do
       archive="${dsh-workspace.cohort}/deepseek-ai-$clientPackage-${dsh-workspace.version}.tgz"
       packageDir="node_modules/@deepseek-ai/$clientPackage"
       rm -rf "$packageDir"
