@@ -282,3 +282,51 @@ The optional `artifacts` list is only for additional workspace outputs that do
 not belong to the npm package, such as a built web frontend. Use `runtimeDeps`
 only for executables that must be prepended to `PATH`; npm payloads owned by a
 Bundle stay in its deployed closure.
+
+## Client peers from the release cohort
+
+The kernel ships host and runtime packages only, and `dsh-workspace` no longer
+deploys the `@deepseek-ai/*` client packages. Upstream emits them once per
+release as a cohort: `pnpm run release:pack --family dsh` writes npm tarballs and
+`publish-order.txt` into one directory. The tarball is the npm consumer view, so
+it is what a bundle compiles against; there is no workspace `client-packages`
+tree to copy from.
+
+`pkgs.dsh.dshCohort` (source: `lib/dsh-cohort.nix`) exposes the pack:
+
+- `members`: the unscoped names of the cohort packages this repository consumes.
+  The cohort is a build output, so the list is declared here instead of being
+  read at evaluation time.
+- `select [ ... ]`: a bundle's selection from `members`, returned as scoped npm
+  names. Selecting an undeclared name fails evaluation.
+- `installPackages { dest ? "node_modules", names }`: replace the named packages
+  under `dest` with the published tarball contents.
+- `member name`: the unpacked tarball of one member, with `name` and `version`
+  asserted against the workspace release.
+- `check`: as `checks.dsh-cohort`, fails when a declared member is absent from the
+  pack or from `publish-order.txt`.
+
+A bundle names the peers it compiles against and removes them again when they
+must not reach the output:
+
+```nix
+let
+  clientPackages = dshCohort.select [
+    "dsh-client-ui-slots"
+    "dsh-client-connection"
+  ];
+in
+...
+  preBuild = ''
+    ${dshCohort.installPackages { names = clientPackages; }}
+  '';
+
+  postBuild = ''
+    for clientPackage in ${lib.concatStringsSep " " clientPackages}; do
+      rm -rf "node_modules/$clientPackage"
+    done
+  '';
+```
+
+Add a peer to `members` before selecting it. An upstream rename fails
+`checks.dsh-cohort` instead of every bundle that selected the package.

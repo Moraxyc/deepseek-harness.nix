@@ -3,11 +3,29 @@
   fetchFromGitHub,
   buildDshBundle,
   copyTree,
+  dshCohort,
   dsh-kernel,
-  dsh-workspace,
   pnpmConfigHook,
   nix-update-script,
 }:
+let
+  clientPackages = dshCohort.select [
+    "dsh-client-ui-slots"
+    "dsh-api-remotes"
+    "dsh-api-session-controller"
+    "dsh-api-workspace-controller"
+    "dsh-client-connection"
+    "dsh-client-store"
+    "dsh-client-locale"
+    "dsh-client-ui-conversation"
+    "dsh-client-ui-input-trigger"
+    "dsh-client-ui-primitives"
+    "dsh-client-ui-renderer"
+    "dsh-client-ui-session"
+    "dsh-client-ui-workspace"
+    "dsh-client-ui-settings"
+  ];
+in
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-at-file";
   version = "0.7.0";
@@ -28,53 +46,19 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   npmBuildScript = "build";
 
   preBuild = ''
-    # Build against the alpha.2 client cohort; the kernel carries host/runtime packages only.
     rm -rf node_modules/@deepseek-ai
     ${copyTree.followLinks {
       src = "${dsh-kernel}/lib/deepseek-harness/node_modules/@deepseek-ai";
       dest = "node_modules/@deepseek-ai";
     }}
 
-    for clientPackage in \
-      dsh-api-remotes \
-      dsh-api-session-controller \
-      dsh-api-workspace-controller \
-      dsh-client-connection \
-      dsh-client-locale \
-      dsh-client-store \
-      dsh-client-ui-conversation \
-      dsh-client-ui-input-trigger \
-      dsh-client-ui-primitives \
-      dsh-client-ui-renderer \
-      dsh-client-ui-session \
-      dsh-client-ui-workspace \
-      dsh-client-ui-settings \
-      dsh-client-ui-slots; do
-      archive="${dsh-workspace.cohort}/deepseek-ai-$clientPackage-${dsh-workspace.version}.tgz"
-      packageDir="node_modules/@deepseek-ai/$clientPackage"
-      rm -rf "$packageDir"
-      mkdir -p "$packageDir"
-      tar -xzf "$archive" -C "$packageDir" --strip-components=1
-      chmod -R u+w "$packageDir"
-    done
+    ${dshCohort.installPackages { names = clientPackages; }}
   '';
 
   postBuild = ''
-    rm -rf \
-      node_modules/@deepseek-ai/dsh-client-ui-slots \
-      node_modules/@deepseek-ai/dsh-api-remotes \
-      node_modules/@deepseek-ai/dsh-api-session-controller \
-      node_modules/@deepseek-ai/dsh-api-workspace-controller \
-      node_modules/@deepseek-ai/dsh-client-connection \
-      node_modules/@deepseek-ai/dsh-client-store \
-      node_modules/@deepseek-ai/dsh-client-locale \
-      node_modules/@deepseek-ai/dsh-client-ui-conversation \
-      node_modules/@deepseek-ai/dsh-client-ui-input-trigger \
-      node_modules/@deepseek-ai/dsh-client-ui-primitives \
-      node_modules/@deepseek-ai/dsh-client-ui-renderer \
-      node_modules/@deepseek-ai/dsh-client-ui-session \
-      node_modules/@deepseek-ai/dsh-client-ui-workspace \
-      node_modules/@deepseek-ai/dsh-client-ui-settings
+    for clientPackage in ${lib.concatStringsSep " " clientPackages}; do
+      rm -rf "node_modules/$clientPackage"
+    done
   '';
 
   passthru.requiresWeb = true;

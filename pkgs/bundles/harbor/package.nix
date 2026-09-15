@@ -4,6 +4,7 @@
   fetchNpmDeps,
   buildDshBundle,
   copyTree,
+  dshCohort,
   dsh-kernel,
   dsh-workspace,
   jq,
@@ -56,9 +57,9 @@ buildDshBundle (finalAttrs: {
     cp -r package.json cordis.patch.yml src lib "$appDir/"
 
     # dsh-kernel provides React and the DSH client peers, but its CLI runtime
-    # does not carry react-dom or the workspace-only ui-slots package. Keep
-    # those web runtime peers local so the generated client has no unresolved
-    # imports when this bundle is composed on its own.
+    # does not carry react-dom or the client-only ui-slots package. Keep those
+    # web runtime peers local so the generated client has no unresolved imports
+    # when this bundle is composed on its own.
     webRuntime="${dsh-workspace}/lib/dsh-workspace/runtime-bundles/@deepseek-ai/dsh-web-app/node_modules"
     ${copyTree.followLinks {
       src = "$webRuntime/react-dom";
@@ -68,9 +69,9 @@ buildDshBundle (finalAttrs: {
       src = "$webRuntime/scheduler";
       dest = "$appDir/node_modules/scheduler";
     }}
-    ${copyTree.followLinks {
-      src = "${dsh-workspace}/lib/dsh-workspace/client-packages/@deepseek-ai/dsh-client-ui-slots";
-      dest = "$appDir/node_modules/@deepseek-ai/dsh-client-ui-slots";
+    ${dshCohort.installPackages {
+      dest = "$appDir/node_modules";
+      names = [ "dsh-client-ui-slots" ];
     }}
 
     runHook postInstall

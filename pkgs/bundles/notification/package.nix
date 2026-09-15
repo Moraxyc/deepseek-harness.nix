@@ -4,12 +4,25 @@
   importPnpmLock,
   buildDshBundle,
   copyTree,
+  dshCohort,
   dsh-kernel,
-  dsh-workspace,
   pnpmConfigHook,
   pnpm_11,
   yq-go,
 }:
+let
+  clientPackages = dshCohort.select [
+    "dsh-client-ui-slots"
+    "dsh-api-remotes"
+    "dsh-api-session-controller"
+    "dsh-client-connection"
+    "dsh-client-locale"
+    "dsh-client-store"
+    "dsh-client-ui-renderer"
+    "dsh-client-ui-session"
+    "dsh-client-ui-settings"
+  ];
+in
 buildDshBundle (finalAttrs: {
   pname = "dsh-notification";
   version = "0.1.4";
@@ -62,27 +75,7 @@ buildDshBundle (finalAttrs: {
       src = "${dsh-kernel}/lib/deepseek-harness/node_modules/@deepseek-ai";
       dest = "node_modules/@deepseek-ai";
     }}
-    rm -rf node_modules/@deepseek-ai/dsh-client-ui-slots
-    cp -r ${dsh-workspace}/lib/dsh-workspace/client-packages/@deepseek-ai/dsh-client-ui-slots \
-      node_modules/@deepseek-ai/dsh-client-ui-slots
-    chmod -R u+w node_modules/@deepseek-ai/dsh-client-ui-slots
-
-    for clientPackage in \
-      dsh-api-remotes \
-      dsh-api-session-controller \
-      dsh-client-connection \
-      dsh-client-locale \
-      dsh-client-store \
-      dsh-client-ui-renderer \
-      dsh-client-ui-session \
-      dsh-client-ui-settings; do
-      archive="${dsh-workspace.cohort}/deepseek-ai-$clientPackage-${dsh-workspace.version}.tgz"
-      packageDir="node_modules/@deepseek-ai/$clientPackage"
-      rm -rf "$packageDir"
-      mkdir -p "$packageDir"
-      tar -xzf "$archive" -C "$packageDir" --strip-components=1
-      chmod -R u+w "$packageDir"
-    done
+    ${dshCohort.installPackages { names = clientPackages; }}
   '';
 
   installPhase = ''

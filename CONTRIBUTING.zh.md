@@ -264,3 +264,48 @@ buildDshBundle.fromWorkspace (_finalAttrs: {
 可选的 `artifacts` 只用于 npm 包之外的额外 workspace 产物，例如构建后的 web
 frontend。只有必须预置到 `PATH` 的可执行程序才放入 `runtimeDeps`；Bundle 持有
 的 npm payload 保留在其部署闭包内。
+
+## 客户端 peer 来自发布 cohort
+
+kernel 只提供 host 与 runtime 包，`dsh-workspace` 也不再部署
+`@deepseek-ai/*` 客户端包。上游在每次发布时用
+`pnpm run release:pack --family dsh` 生成 cohort：一个目录，内含各成员的 npm
+tarball 与 `publish-order.txt`。tarball 是 npm 消费端视角的文件，bundle 应对照
+它编译；workspace 中已没有 `client-packages` 目录可复制。
+
+`pkgs.dsh.dshCohort`（实现见 `lib/dsh-cohort.nix`）暴露这组产物：
+
+- `members`：本仓库使用的 cohort 成员名（不带 scope）。cohort 是构建产物，
+  无法在求值期读取，因此这份列表在此声明。
+- `select [ ... ]`：bundle 从 `members` 中选取的 peer，返回带 scope 的 npm
+  包名。选取未声明的包名会直接求值失败。
+- `installPackages { dest ? "node_modules", names }`：用发布的 tarball 内容替换
+  `dest` 下的同名包。
+- `member name`：解包后的单个成员，其 `name` 与 `version` 会与 workspace 发布
+  版本核对。
+- `check`：以 `checks.dsh-cohort` 运行，任一已声明成员不在 cohort 或
+  `publish-order.txt` 中即失败。
+
+bundle 声明自己编译所需的 peer，并在这些 peer 不应进入产物时再次移除：
+
+```nix
+let
+  clientPackages = dshCohort.select [
+    "dsh-client-ui-slots"
+    "dsh-client-connection"
+  ];
+in
+...
+  preBuild = ''
+    ${dshCohort.installPackages { names = clientPackages; }}
+  '';
+
+  postBuild = ''
+    for clientPackage in ${lib.concatStringsSep " " clientPackages}; do
+      rm -rf "node_modules/$clientPackage"
+    done
+  '';
+```
+
+新增 peer 时先把它加入 `members`。上游改名会先让 `checks.dsh-cohort` 失败，
+而不是让所有选中该包的 bundle 失败。

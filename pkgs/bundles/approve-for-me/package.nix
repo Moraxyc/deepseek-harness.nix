@@ -2,8 +2,8 @@
   lib,
   fetchFromGitHub,
   buildDshBundle,
+  dshCohort,
   dsh-kernel,
-  dsh-workspace,
   pnpmConfigHook,
   nix-update-script,
 }:
@@ -29,12 +29,10 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   # The upstream plugin declares this as a peer but imports it from its host
   # module. The CLI kernel intentionally does not ship browser client peers.
   postNormalizeDeploy = ''
-    packageDir="$deployPackagePath/node_modules/@deepseek-ai/dsh-client-connection"
-    archive="${dsh-workspace.cohort}/deepseek-ai-dsh-client-connection-${dsh-workspace.version}.tgz"
-    rm -rf "$packageDir"
-    mkdir -p "$packageDir"
-    tar -xzf "$archive" -C "$packageDir" --strip-components=1
-    chmod -R u+w "$packageDir"
+    ${dshCohort.installPackages {
+      dest = "$deployPackagePath/node_modules";
+      names = [ "dsh-client-connection" ];
+    }}
   '';
 
   passthru.requiresWeb = true;

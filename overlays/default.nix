@@ -82,6 +82,9 @@ let
         fetchPnpmDeps
         nodeModulesPrune
         ;
+      # Client peers of external bundles come from the upstream release pack,
+      # not from the workspace deploy tree.
+      dshCohort = self.callPackage ../lib/dsh-cohort.nix { };
       inherit pnpmWorkspaceDeploy;
       helpers.buildBundle = buildDshBundle;
       mkDshBundle = buildDshBundle;

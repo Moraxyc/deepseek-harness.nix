@@ -3,11 +3,21 @@
   fetchFromGitHub,
   buildDshBundle,
   copyTree,
+  dshCohort,
   dsh-kernel,
-  dsh-workspace,
   pnpmConfigHook,
   nix-update-script,
 }:
+let
+  clientPackages = dshCohort.select [
+    "dsh-client-ui-slots"
+    "dsh-api-remotes"
+    "dsh-client-connection"
+    "dsh-client-locale"
+    "dsh-client-ui-renderer"
+    "dsh-client-ui-settings"
+  ];
+in
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-noema";
   version = "0.1.0-rc.4";
@@ -33,36 +43,15 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
       src = "${dsh-kernel}/lib/deepseek-harness/node_modules/@deepseek-ai";
       dest = "node_modules/@deepseek-ai";
     }}
-    for clientPackage in \
-      dsh-api-remotes \
-      dsh-client-connection \
-      dsh-client-locale \
-      dsh-client-ui-renderer \
-      dsh-client-ui-settings \
-      dsh-client-ui-slots; do
-      archive="${dsh-workspace.cohort}/deepseek-ai-$clientPackage-${dsh-workspace.version}.tgz"
-      packageDir="node_modules/@deepseek-ai/$clientPackage"
-      rm -rf "$packageDir"
-      mkdir -p "$packageDir"
-      tar -xzf "$archive" -C "$packageDir" --strip-components=1
-      chmod -R u+w "$packageDir"
-    done
+    ${dshCohort.installPackages { names = clientPackages; }}
   '';
 
   postNormalizeDeploy = ''
-    rm -rf \
-      "$out/lib/node_modules/@deepseek-ai/dsh-client-ui-slots" \
-      "$out/lib/node_modules/@deepseek-ai/dsh-api-remotes" \
-      "$out/lib/node_modules/@deepseek-ai/dsh-client-connection" \
-      "$out/lib/node_modules/@deepseek-ai/dsh-client-locale" \
-      "$out/lib/node_modules/@deepseek-ai/dsh-client-ui-renderer" \
-      "$out/lib/node_modules/@deepseek-ai/dsh-client-ui-settings" \
-      "$deployPackagePath/node_modules/@deepseek-ai/dsh-client-ui-slots" \
-      "$deployPackagePath/node_modules/@deepseek-ai/dsh-api-remotes" \
-      "$deployPackagePath/node_modules/@deepseek-ai/dsh-client-connection" \
-      "$deployPackagePath/node_modules/@deepseek-ai/dsh-client-locale" \
-      "$deployPackagePath/node_modules/@deepseek-ai/dsh-client-ui-renderer" \
-      "$deployPackagePath/node_modules/@deepseek-ai/dsh-client-ui-settings"
+    for clientPackage in ${lib.concatStringsSep " " clientPackages}; do
+      rm -rf \
+        "$out/lib/node_modules/$clientPackage" \
+        "$deployPackagePath/node_modules/$clientPackage"
+    done
   '';
 
   passthru.requiresWeb = true;
