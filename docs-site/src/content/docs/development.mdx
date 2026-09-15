@@ -27,7 +27,10 @@ nix run .#dsh-desktop
 
 `packages` provides `dsh`, `dsh-desktop`, `dsh-kernel`, and `dsh-workspace`.
 `bundles.*` and `presets.*` are exposed through `legacyPackages`, so refs such
-as `.#bundles.tui` and `.#presets.tui` work directly. See
+as `.#bundles.tui` and `.#presets.tui` work directly. `bundleCompositions.*` is
+exposed the same way: the default `dsh` composition with one bundle layered on
+top, skipped for bundles the default composition already carries. It exists to
+validate bundle layering, not as a package to install. See
 [Bundles and Presets](../catalog/) for the full catalog.
 
 ## Dev Shell

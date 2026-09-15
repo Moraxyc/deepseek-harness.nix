@@ -27,8 +27,10 @@ nix run .#dsh-desktop
 
 `packages` 提供 `dsh`、`dsh-desktop`、`dsh-kernel`、`dsh-workspace`。
 `bundles.*` 和 `presets.*` 通过 `legacyPackages` 暴露，因此
-`nix build .#bundles.tui` 和 `nix run .#presets.tui` 这类引用同样可用。完整
-目录见 [Bundles 和预设](../catalog/)。
+`nix build .#bundles.tui` 和 `nix run .#presets.tui` 这类引用同样可用。
+`bundleCompositions.*` 也通过 `legacyPackages` 暴露，内容是默认 `dsh` 组合叠加单个
+bundle；默认组合已包含的 bundle 不再生成。它用于验证 bundle 叠加是否成立，不是供安装的
+包。完整目录见 [Bundles 和预设](../catalog/)。
 
 ## 开发环境
 

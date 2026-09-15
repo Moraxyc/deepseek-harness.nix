@@ -22,10 +22,12 @@
       legacyPackages = {
         inherit (dsh) bundles presets;
         inherit importPnpmLock;
+        inherit bundleCompositions;
         ciPackageAttrs = {
           packages = packageAttrs;
           bundles = bundleAttrs;
           presets = presetAttrs;
+          bundleCompositions = bundleCompositionAttrs;
           inherit bundleDependents;
         };
       };
@@ -43,18 +45,31 @@
       packageAttrs = lib.genAttrs packageNames (name: ".#${name}");
       bundleAttrs = lib.genAttrs bundleNames (name: ".#bundles.${name}");
       presetAttrs = lib.genAttrs presetNames (name: ".#presets.${name}");
+      bundleKeyOf = bundle: bundle.pname or bundle.name or null;
+      defaultBundleKeys = map bundleKeyOf dsh.dsh.passthru.composedBundles;
+      bundleCompositionNames = lib.filter (
+        name: !(lib.elem (bundleKeyOf legacyPackages.bundles.${name}) defaultBundleKeys)
+      ) bundleNames;
+      bundleCompositionAttrs = lib.genAttrs bundleCompositionNames (name: ".#bundleCompositions.${name}");
+      bundleCompositions = lib.genAttrs bundleCompositionNames (
+        name:
+        (dsh.dsh.withProfiles {
+          test.bundles = b: [ b.${name} ];
+        }).override
+          { defaultProfile = "nix-test"; }
+      );
       usesBundle =
-        package: bundlePname:
-        lib.any (bundle: (bundle.pname or bundle.name or null) == bundlePname) (
+        package: bundleKey:
+        lib.any (bundle: bundleKeyOf bundle == bundleKey) (
           (package.passthru or { }).composedBundles or [ ]
         );
       bundleDependents = lib.genAttrs bundleNames (
         bundleName:
         let
-          bundlePname = legacyPackages.bundles.${bundleName}.pname;
-          affectedPackages = lib.filter (name: usesBundle packages.${name} bundlePname) packageNames;
+          bundleKey = bundleKeyOf legacyPackages.bundles.${bundleName};
+          affectedPackages = lib.filter (name: usesBundle packages.${name} bundleKey) packageNames;
           affectedPresets = lib.filter (
-            name: usesBundle legacyPackages.presets.${name} bundlePname
+            name: usesBundle legacyPackages.presets.${name} bundleKey
           ) presetNames;
         in
         (map (name: packageAttrs.${name}) affectedPackages)

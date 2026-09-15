@@ -26,6 +26,11 @@ Bundle directory names are the flake output names under `bundles.*`, so strip a
 example, `dsh-ads` becomes `pkgs/bundles/ads` and `bundles.ads`; the Nix
 package `pname` can still keep the upstream name.
 
+Every bundle outside the default composition is also exposed as
+`legacyPackages.bundleCompositions.*`: the default `dsh` composition with that
+single bundle layered on top. Use it to check that a new bundle still layers on
+the default stack before a preset or a profile mounts it.
+
 Minimal template:
 
 ```nix
