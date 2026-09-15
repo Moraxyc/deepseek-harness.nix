@@ -3,14 +3,15 @@
   fetchFromGitHub,
   fetchNpmDeps,
   buildDshBundle,
-  copyTree,
   dshCohort,
   dsh-kernel,
-  dsh-workspace,
   jq,
   nix-update-script,
   writers,
 }:
+let
+  clientPackages = dshCohort.select [ "dsh-client-ui-slots" ];
+in
 buildDshBundle (finalAttrs: {
   pname = "dsh-harbor";
   version = "0.1.0-rc.2-unstable-2026-08-24";
@@ -23,9 +24,9 @@ buildDshBundle (finalAttrs: {
   };
 
   # The upstream repository commits both the ESM host source and the generated
-  # React module-loader payload. Its lockfile contains only development-time
-  # tooling; the kernel supplies React and DSH client peers, while the pinned
-  # workspace web runtime supplies the React DOM peer closure.
+  # React module-loader payload, and its lockfile lists development-time tooling
+  # only. The payload's React and React DOM imports resolve against the web
+  # frontend's module-loader seeds, and the kernel supplies the host peers.
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
@@ -35,7 +36,6 @@ buildDshBundle (finalAttrs: {
   };
 
   nativeBuildInputs = [ jq ];
-  disallowedReferences = [ dsh-workspace ];
   linkKernelNodeModules = dsh-kernel;
 
   postPatch = ''
@@ -53,25 +53,14 @@ buildDshBundle (finalAttrs: {
     runHook preInstall
 
     appDir="$out/lib/node_modules/@zseven-w/dsh-harbor"
-    mkdir -p "$appDir/node_modules/@deepseek-ai"
+    mkdir -p "$appDir"
     cp -r package.json cordis.patch.yml src lib "$appDir/"
 
-    # dsh-kernel provides React and the DSH client peers, but its CLI runtime
-    # does not carry react-dom or the client-only ui-slots package. Keep those
-    # web runtime peers local so the generated client has no unresolved imports
-    # when this bundle is composed on its own.
-    webRuntime="${dsh-workspace}/lib/dsh-workspace/runtime-bundles/@deepseek-ai/dsh-web-app/node_modules"
-    ${copyTree.followLinks {
-      src = "$webRuntime/react-dom";
-      dest = "$appDir/node_modules/react-dom";
-    }}
-    ${copyTree.followLinks {
-      src = "$webRuntime/scheduler";
-      dest = "$appDir/node_modules/scheduler";
-    }}
+    # The client manifest injects the client-only ui-slots package, which no
+    # other bundle in this closure carries.
     ${dshCohort.installPackages {
       dest = "$appDir/node_modules";
-      names = [ "dsh-client-ui-slots" ];
+      names = clientPackages;
     }}
 
     runHook postInstall
