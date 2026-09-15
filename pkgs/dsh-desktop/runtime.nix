@@ -56,15 +56,27 @@ stdenvNoCC.mkDerivation {
     nm="$out/node_modules"
     mkdir -p "$nm"
     cp -rL "$appDir/node_modules/." "$nm/"
-    chmod -R u+w "$nm"
+
+    makeWritable() {
+      find "$1" -type d -exec chmod u+w {} +
+      find "$1" -type f -exec chmod u+w {} +
+    }
+    makeWritable "$nm"
 
     for bundle in $(jq -r '.bundles[].name' "${dshHost}/nix-support/dsh-bundles.json"); do
       [ -n "$bundle" ] || continue
-      if [ -L "$appDir/node_modules/$bundle/node_modules" ]; then
-        rm -rf "$nm/$bundle/node_modules"
-        ln -s "$nm" "$nm/$bundle/node_modules"
+      sourceNodeModules="$appDir/node_modules/$bundle/node_modules"
+      targetNodeModules="$nm/$bundle/node_modules"
+      if [ -L "$sourceNodeModules" ]; then
+        rm -rf "$targetNodeModules"
+        ln -s "$nm" "$targetNodeModules"
+      elif [ -d "$sourceNodeModules" ]; then
+        rm -rf "$targetNodeModules"
+        cp -a "$sourceNodeModules" "$targetNodeModules"
       fi
     done
+
+    makeWritable "$nm"
 
     find "$nm" -type f \( -name '*.map' -o -name '*.d.ts' -o -name '*.ts' -o -name '*.tsx' -o -name '*.mts' -o -name '*.cts' -o -name '*.pdb' -o -iname 'readme*' -o -iname 'changelog*' -o -iname '*.md' -o -iname '*.markdown' -o -name '*.test.js' -o -name '*.test.mjs' -o -name '*.test.cjs' -o -name '*.spec.js' -o -name '*.spec.mjs' -o -name '*.spec.cjs' -o -name '*.target.mk' -o -name 'config.gypi' -o -name 'binding.gyp' -o -name '*.gypi' \) -delete
     find "$nm" -type d \( -name test -o -name tests -o -name __tests__ -o -name fixtures -o -name example -o -name examples -o -name benchmark -o -name benchmarks -o -name demo -o -name demos -o -name coverage ${foreignPlatformDirs} \) -prune -exec rm -rf {} +
