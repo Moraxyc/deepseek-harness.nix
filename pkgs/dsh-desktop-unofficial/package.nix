@@ -3,7 +3,8 @@
   callPackage,
   stdenv,
   stdenvNoCC,
-  electron_43,
+  darwin,
+  electron,
   makeWrapper,
   wrapGAppsHook3,
   writeShellScriptBin,
@@ -78,6 +79,9 @@ stdenvNoCC.mkDerivation (
     nativeBuildInputs = [
       makeWrapper
     ]
+    ++ lib.optionals isDarwin [
+      darwin.autoSignDarwinBinariesHook
+    ]
     ++ lib.optionals isLinux [
       wrapGAppsHook3
       copyDesktopItems
@@ -119,7 +123,7 @@ stdenvNoCC.mkDerivation (
           ]
         } \
         ${runtimePathArgs}\
-        --set CHROME_DEVEL_SANDBOX "${electron_43.unwrapped}/libexec/electron/chrome-sandbox" \
+        --set CHROME_DEVEL_SANDBOX "${electron.unwrapped}/libexec/electron/chrome-sandbox" \
         --inherit-argv0
 
       for size in 16 22 24 32 48 64 128 256 512; do
@@ -212,7 +216,7 @@ stdenvNoCC.mkDerivation (
       homepage = "https://github.com/anywhere-labs/deepseek-harness-desktop";
       license = lib.licenses.mit;
       mainProgram = "dsh-desktop";
-      platforms = with lib.platforms; linux ++ darwin;
+      platforms = lib.platforms.linux ++ lib.platforms.darwin;
     };
   }
 )

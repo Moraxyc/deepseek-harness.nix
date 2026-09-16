@@ -407,7 +407,7 @@ the package's profiles. `withProfiles` also clears the preset's default profile.
 Two desktop applications are packaged:
 
 - `dsh-desktop-official`: built from the desktop application in the pinned
-  `dsh-workspace` release. Linux only.
+  `dsh-workspace` release. Linux and Darwin.
 - `dsh-desktop-unofficial`: built from
   [`anywhere-labs/deepseek-harness-desktop`](https://github.com/anywhere-labs/deepseek-harness-desktop).
   Linux and Darwin.
@@ -419,6 +419,9 @@ Reference the variant you want explicitly:
 nix build .#dsh-desktop-official
 nix run .#dsh-desktop-official
 ```
+
+On Darwin the application is installed as
+`Applications/DeepSeek Harness.app`, with `bin/dsh-desktop` as the launcher.
 
 Both variants accept `dshHost`, the composed `dsh` behind the desktop runtime.
 Point it at a preset or a custom composition to change the bundles the

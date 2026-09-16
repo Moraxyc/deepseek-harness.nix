@@ -389,7 +389,7 @@ preset 的默认 profile。
 仓库打包了两个桌面应用：
 
 - `dsh-desktop-official`：由固定版本的 `dsh-workspace` 发布版中的桌面应用构建，
-  仅 Linux。
+  支持 Linux 和 Darwin。
 - `dsh-desktop-unofficial`：由
   [`anywhere-labs/deepseek-harness-desktop`](https://github.com/anywhere-labs/deepseek-harness-desktop)
   构建，支持 Linux 和 Darwin。
@@ -400,6 +400,9 @@ preset 的默认 profile。
 nix build .#dsh-desktop-official
 nix run .#dsh-desktop-official
 ```
+
+Darwin 下应用安装为 `Applications/DeepSeek Harness.app`，启动入口是
+`bin/dsh-desktop`。
 
 两个变体都接受 `dshHost`，即桌面运行时背后的组合后 `dsh`。把它指向 preset 或自定义
 组合，就能改变应用运行的 bundle：

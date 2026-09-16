@@ -45,7 +45,8 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui
 
 - `dsh`：CLI
 - `dsh-desktop`：桌面应用别名，当前指向 `dsh-desktop-unofficial`
-- `dsh-desktop-official`：由上游 workspace 发布版构建的桌面应用，仅 Linux
+- `dsh-desktop-official`：由上游 workspace 发布版构建的桌面应用，支持 Linux 和
+  Darwin
 - `dsh-desktop-unofficial`：由 anywhere-labs/deepseek-harness-desktop 构建的第三方
   桌面应用，支持 Linux 和 Darwin
 - `dsh-kernel`：不带 profile bundle 的 kernel

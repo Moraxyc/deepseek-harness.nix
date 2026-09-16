@@ -47,7 +47,7 @@ Main outputs:
 - `dsh-desktop`: desktop application alias; currently the same package as
   `dsh-desktop-unofficial`
 - `dsh-desktop-official`: desktop application from the upstream workspace
-  release; Linux only
+  release; Linux and Darwin
 - `dsh-desktop-unofficial`: desktop application from
   anywhere-labs/deepseek-harness-desktop; Linux and Darwin
 - `dsh-kernel`: kernel without profile bundles
