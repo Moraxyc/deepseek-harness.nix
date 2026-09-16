@@ -1,0 +1,76 @@
+diff --git a/scripts/verify-btw.tsx b/scripts/verify-btw.tsx
+--- a/scripts/verify-btw.tsx
++++ b/scripts/verify-btw.tsx
+@@ -63,6 +63,14 @@
+ 
+ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+ 
++// The sandbox builds every bundle at once, so a single sleep races the render:
++// the settles below wait for the state the assertions read, while every
++// original delay stays in place to keep the probe's input pacing.
++const settle = async (predicate: () => boolean, timeoutMs = 20000) => {
++  const deadline = Date.now() + timeoutMs
++  while (!predicate() && Date.now() < deadline) await delay(10)
++}
++
+ /** Fake channel in smoke.tsx's shape, plus the btw seams. */
+ function makeChannel() {
+   return {
+@@ -127,11 +135,16 @@
+     <Chat channel={channel as never} questionStore={new QuestionStore()} />,
+     { stdout, stdin, stderr: new FakeStderr(), exitOnCtrlC: false, patchConsole: false },
+   )
++  await settle(() => stdout.frames.length > 0)
+   await delay(400)
+   stdin.write('/btw what is the answer?')
+   await delay(100)
+   stdin.write('\r')
+   await delay(700)
++  await settle(() => {
++    const frames = plainText(stdout.frames)
++    return frames.includes('42') || channel.submitCalls.length > 0 || channel.steerCalls.length > 0
++  })
+   const openedMark = stdout.frames.length
+   const opened = plainText(stdout.frames.slice(0, openedMark)).includes('what is the answer?')
+   const streamed = plainText(stdout.frames.slice(0, openedMark)).includes('42')
+@@ -145,6 +158,7 @@
+   // repaints deltas, so earlier frames still hold the panel text)
+   stdin.write(' ')
+   await delay(250)
++  await settle(() => !plainText(stdout.frames.slice(openedMark)).includes('what is the answer?'))
+   const afterClose = plainText(stdout.frames.slice(openedMark))
+   const closedOk = !afterClose.includes('what is the answer?')
+   channel.working = true
+@@ -153,6 +167,10 @@
+   await delay(100)
+   stdin.write('\r')
+   await delay(700)
++  await settle(() => {
++    const frames = plainText(stdout.frames.slice(workingMark))
++    return (frames.includes('again?') && frames.includes('42')) || channel.steerCalls.length > 0
++  })
+   const working = plainText(stdout.frames.slice(workingMark))
+   const workingOk = working.includes('again?') && working.includes('42')
+   const notSteered = channel.steerCalls.length === 0
+@@ -164,6 +182,7 @@
+   const closeMark = stdout.frames.length
+   stdin.write(' ')
+   await delay(250)
++  await settle(() => !plainText(stdout.frames.slice(closeMark)).includes('again?'))
+   assert.ok(!plainText(stdout.frames.slice(closeMark)).includes('again?'), 'Space must dismiss the overlay')
+   console.log('scenario3 Space dismisses overlay:', !plainText(stdout.frames.slice(closeMark)).includes('again?'))
+ 
+@@ -178,11 +197,13 @@
+     <Chat channel={channel as never} questionStore={new QuestionStore()} />,
+     { stdout, stdin, stderr: new FakeStderr(), exitOnCtrlC: false, patchConsole: false },
+   )
++  await settle(() => stdout.frames.length > 0)
+   await delay(400)
+   stdin.write('/btw')
+   await delay(100)
+   stdin.write('\r')
+   await delay(300)
++  await settle(() => channel.notifyCalls.length > 0)
+   const usageNotified = channel.notifyCalls.some(text => text.includes('用法：/btw'))
+   assert.ok(usageNotified, 'bare command must report usage')
+   console.log('scenario4 bare /btw notifies usage:', usageNotified)
