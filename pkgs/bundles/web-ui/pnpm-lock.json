@@ -9,7 +9,7 @@
     ".": {
       "dependencies": {
         "@linxin666/dsh-web-all": {
-          "specifier": "0.3.22",
+          "specifier": "0.3.23",
           "version": "link:packages/dsh-web-all"
         }
       },
@@ -1997,8 +1997,8 @@
           "version": "link:../dsh-usage"
         },
         "dsh-better-sidebar": {
-          "specifier": "0.19.0",
-          "version": "0.19.0(5d01a0121f53fce90355120f9d87b845)"
+          "specifier": "0.19.1",
+          "version": "0.19.1(5d01a0121f53fce90355120f9d87b845)"
         }
       },
       "devDependencies": {
@@ -5798,9 +5798,9 @@
         "integrity": "sha512-EUBjM+B+lkDE41iE82DDSCfkoPGfXx8IxFxPMjNzm/Uk4xDet77rTN9wqlxlVg71kK7XGuUMv6wUxJUwwv+Xyw=="
       }
     },
-    "dsh-better-sidebar@0.19.0": {
+    "dsh-better-sidebar@0.19.1": {
       "resolution": {
-        "integrity": "sha512-eUNfVfJScUfvBiiB7yqot4UDslTOaDcRxPR9LKWE2Kv/Mp/iSk14whgrVg2RggYLc5aq2c+zpXG6qeQ5+aiHrg=="
+        "integrity": "sha512-Jr0tPJoDKUVkq+fioL6Td+YwXZ+PULx3CnBJ4iktaQGNP5y9hgpz6V7o7f4Yh2czheVKZsewurqCaiN10GQYeQ=="
       },
       "engines": {
         "node": ">=20"
@@ -9869,7 +9869,7 @@
         "@types/trusted-types": "2.0.7"
       }
     },
-    "dsh-better-sidebar@0.19.0(5d01a0121f53fce90355120f9d87b845)": {
+    "dsh-better-sidebar@0.19.1(5d01a0121f53fce90355120f9d87b845)": {
       "dependencies": {
         "@codemirror/commands": "6.11.0",
         "@codemirror/lang-cpp": "6.0.3",
