@@ -11,13 +11,13 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-modsearch";
-  version = "5.10.2";
+  version = "5.10.3";
 
   src = fetchFromGitHub {
     owner = "liustack";
     repo = "modsearch";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-aEkiv24p5Po+cRJNYoqktPk0GeCw7OwxiLlJnwhgGPc=";
+    hash = "sha256-ovZffpPd6wh94a4JIitKM0BcR+G5sGVy6g9vPWNrnAo=";
   };
 
   pnpmDeps = fetchPnpmDeps {
