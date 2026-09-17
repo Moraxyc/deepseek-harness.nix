@@ -36,11 +36,10 @@ buildDshBundle (finalAttrs: {
     runHook preInstall
 
     appDir="$out/lib/node_modules/@modusensus/dsh-mneme"
-    mkdir -p "$appDir/dsh-mneme"
+    mkdir -p "$appDir"
 
-    cp package.json "$appDir/"
-    cp dsh-mneme/package.json dsh-mneme/cordis.patch.yml "$appDir/dsh-mneme/"
-    cp -r dsh-mneme/lib "$appDir/dsh-mneme/"
+    cp dsh-mneme/package.json dsh-mneme/cordis.patch.yml "$appDir/"
+    cp -r dsh-mneme/lib "$appDir/"
 
     runHook postInstall
   '';
