@@ -11,14 +11,14 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-tui";
-  version = "0.10.1";
+  version = "0.10.2";
 
   src = fetchFromGitHub {
     owner = "ccch1mneyyy";
     repo = "dsh-TUI";
     rev = "refs/tags/v${finalAttrs.version}";
     fetchSubmodules = true;
-    hash = "sha256-u7I+n6BCntjMGvHpsZ/YAvX/5NoBzhQlF159XZsSELs=";
+    hash = "sha256-T72vxORTOrHK1O18xSw0OvIw+CFrI4Tm7Hh+PF592Qk=";
   };
 
   # Fixed settle windows race the render while the sandbox builds every bundle
