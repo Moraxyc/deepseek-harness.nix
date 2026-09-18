@@ -15,13 +15,13 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "dsh-desktop-shell";
-  version = "2.0.11-unstable-2026-09-17";
+  version = "2.0.11-unstable-2026-09-18";
 
   src = fetchFromGitHub {
     owner = "anywhere-labs";
     repo = "deepseek-harness-desktop";
-    rev = "b490891e8077704cb65221c5d6c866535a5e486d";
-    hash = "sha256-eA5S2bPFfqFH8lq2n6kxS9Al5ihDxb/ffRmkd5obkWI=";
+    rev = "a934d988610605078001d7c22bbaa2435cbeb385";
+    hash = "sha256-yO9kqHy9QroHoCy2PXKeuACSxnBbKBGe9WM6ztmWRCA=";
   };
 
   postPatch = ''
@@ -46,7 +46,7 @@ stdenv.mkDerivation (finalAttrs: {
   offlineCache =
     (yarn-berry_4.fetchYarnBerryDeps {
       inherit (finalAttrs) src missingHashes postPatch;
-      hash = "sha256-cytc58+CX1M/Xe4KrYCtzC/U1MBBuAo9ZYaPUMZfYl0=";
+      hash = "sha256-DFpczFk1RaHjNtdKp/lCjEzov128YwPkQS+LMkP5ue8=";
     }).overrideAttrs
       (_: {
         buildPhase = ''
