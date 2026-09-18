@@ -29,7 +29,7 @@ in
             id = "agent-default-model";
             config = {
               provider = "deepseek-official";
-              model = "deepseek-v4-flash";
+              model = "deepseek-flash";
             };
           }
         ]

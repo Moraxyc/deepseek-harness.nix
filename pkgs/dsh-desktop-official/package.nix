@@ -1,23 +1,29 @@
 {
   lib,
+  stdenv,
+  stdenvNoCC,
+
   copyDesktopItems,
   copyTree,
   darwin,
   desktopToDarwinBundle,
+  makeDesktopItem,
+  makeWrapper,
+  nodeModulesPrune,
+  wrapGAppsHook3,
+  writers,
+
   dsh,
   dsh-workspace,
   electron,
   gsettings-desktop-schemas,
   gtk3,
   libGL,
-  makeDesktopItem,
-  makeWrapper,
   nodejs-slim,
   pnpmWorkspaceDeploy,
-  nodeModulesPrune,
-  stdenv,
-  stdenvNoCC,
-  wrapGAppsHook3,
+  python3,
+  python3Packages,
+  xcbuild,
 
   dshHost ? dsh,
   dshDesktopPnpm ? pnpmWorkspaceDeploy,
@@ -46,6 +52,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     nodejs-slim
   ]
   ++ lib.optionals isDarwin [
+    xcbuild # for plutil
     darwin.autoSignDarwinBinariesHook
     desktopToDarwinBundle
   ]
@@ -74,16 +81,20 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       label = "dsh-desktop: Electron.app is missing";
     }}
     mv "$appDir/Contents/MacOS/Electron" "$appDir/Contents/MacOS/DeepSeek Harness"
+
     # Use the upstream website logo until the desktop ships its own icon.
     iconTheme=$(mktemp -d)
     install -Dm644 "${dsh-workspace.src}/website/public/favicon.svg" \
       "$iconTheme/icons/hicolor/scalable/apps/dsh.svg"
     convertIconTheme "$runtimeRoot" "$iconTheme" dsh
     rm "$runtimeRoot/electron.icns"
-    substituteInPlace "$appDir/Contents/Info.plist" \
-      --replace-fail '<string>electron.icns</string>' '<string>dsh.icns</string>' \
-      --replace-fail '<string>Electron</string>' '<string>DeepSeek Harness</string>' \
-      --replace-fail '<string>com.github.Electron</string>' '<string>ai.deepseek.harness.desktop</string>'
+
+    plist="$appDir/Contents/Info.plist"
+    plutil -replace CFBundleExecutable  -string "DeepSeek Harness"          "$plist"
+    plutil -replace CFBundleIconFile    -string dsh.icns                    "$plist"
+    plutil -replace CFBundleName        -string "DeepSeek Harness"          "$plist"
+    plutil -replace CFBundleDisplayName -string "DeepSeek Harness"          "$plist"
+    plutil -replace CFBundleIdentifier  -string ai.deepseek.harness.desktop "$plist"
   ''
   + lib.optionalString isLinux ''
     ${copyTree.preserve {
@@ -139,6 +150,14 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       dest = "$dshRuntime/node_modules";
     }}
 
+    # Alpha.2 loads the Office skills from an external resource directory;
+    # copy them before pruning node_modules, which removes Markdown files.
+    ${copyTree.followLinks {
+      src = "$src/host/node_modules/@deepseek-ai/dsh-skill-office/assets";
+      dest = "$runtimeRoot/runtime/office-skills";
+      label = "dsh-desktop: Office skill assets are missing";
+    }}
+
     ${nodeModulesPrune.prune { tree = "$dshRuntime/node_modules"; }}
     ${nodeModulesPrune.minify { tree = "$dshRuntime/node_modules"; }}
 
@@ -147,14 +166,86 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       src = "$src/host/lib";
       dest = "$hostPackage/lib";
     }}
-    ${copyTree.followLinks {
-      src = "$src/host/config";
-      dest = "$hostPackage/config";
-    }}
     cp "$src/host/package.json" "$hostPackage/package.json"
 
     mkdir -p "$runtimeRoot/runtime"
-    ln -s ${dshDesktopPnpm}/libexec/pnpm "$runtimeRoot/runtime/pnpm"
+    ${copyTree.followLinks {
+      src = "${dshDesktopPnpm}/libexec/pnpm";
+      dest = "$runtimeRoot/runtime/pnpm";
+      label = "dsh-desktop: pnpm runtime is missing";
+    }}
+    install -Dm755 "${nodejs-slim}/bin/node" "$runtimeRoot/runtime/bin/node"
+
+    # The Host uses an application-owned primary runtime for Office workflows.
+    # Keep all interpreter and package paths materialized, since installation
+    # rejects symlinked payload entries.
+    primaryRuntime="$runtimeRoot/runtime/primary-runtime"
+    mkdir -p "$primaryRuntime/dependencies/node/bin" "$primaryRuntime/dependencies/node/node_modules"
+    install -Dm755 "${nodejs-slim}/bin/node" "$primaryRuntime/dependencies/node/bin/node"
+    printf '%s\n' 'Reserved for bundled Node packages.' > "$primaryRuntime/dependencies/node/node_modules/README.txt"
+    ${copyTree.followLinks {
+      src = "${dshDesktopPnpm}/libexec/pnpm";
+      dest = "$primaryRuntime/dependencies/pnpm";
+      label = "dsh-desktop: primary pnpm runtime is missing";
+    }}
+    ${copyTree.followLinks {
+      src = python3.withPackages (
+        ps: with ps; [
+          numpy
+          pandas
+          python-docx
+          python-pptx
+          openpyxl
+          pillow
+          lxml
+          xlsxwriter
+          python-dateutil
+          six
+          tzdata
+          typing-extensions
+          et-xmlfile
+        ]
+      );
+      dest = "$primaryRuntime/dependencies/python";
+      label = "dsh-desktop: Python runtime is missing";
+    }}
+    install -Dm644 ${
+      writers.writeJSON "dsh-desktop-primary-runtime.json" {
+        desktopVersion = finalAttrs.version;
+        platform = if isDarwin then "darwin" else "linux";
+        arch = stdenvNoCC.hostPlatform.node.arch;
+        pythonPackages = {
+          numpy = python3Packages.numpy.version;
+          pandas = python3Packages.pandas.version;
+          python-docx = python3Packages.python-docx.version;
+          python-pptx = python3Packages.python-pptx.version;
+          openpyxl = python3Packages.openpyxl.version;
+          Pillow = python3Packages.pillow.version;
+          lxml = python3Packages.lxml.version;
+          XlsxWriter = python3Packages.xlsxwriter.version;
+          python-dateutil = python3Packages.python-dateutil.version;
+          six = python3Packages.six.version;
+          tzdata = python3Packages.tzdata.version;
+          typing_extensions = python3Packages.typing-extensions.version;
+          et_xmlfile = python3Packages.et-xmlfile.version;
+        };
+        components = {
+          python = python3.version;
+          node = nodejs-slim.version;
+          pnpm = dshDesktopPnpm.version;
+          numpy = python3Packages.numpy.version;
+          pandas = python3Packages.pandas.version;
+        };
+      }
+    } "$primaryRuntime/runtime.json"
+    install -Dm644 ${
+      writers.writeJSON "dsh-desktop-runtime-versions.json" {
+        schemaVersion = 1;
+        node = nodejs-slim.version;
+        pnpm = dshDesktopPnpm.version;
+      }
+    } "$runtimeRoot/runtime/versions.json"
+    chmod 755 "$runtimeRoot/runtime/office-skills/scripts/check_office.py"
 
     mkdir -p "$out/bin"
   ''

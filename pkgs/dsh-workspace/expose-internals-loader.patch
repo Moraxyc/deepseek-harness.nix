@@ -1,15 +1,3 @@
-diff --git a/apps/desktop/src/host-process.ts b/apps/desktop/src/host-process.ts
---- a/apps/desktop/src/host-process.ts
-+++ b/apps/desktop/src/host-process.ts
-@@ -108,6 +108,8 @@
-     const entry = join(this.runtimeDir, 'node_modules', '@deepseek-ai', 'dsh-desktop-host', 'lib', 'index.js')
-     const child = spawn(this.executable, [
-       ...(this.inspectPort === undefined ? [] : [`--inspect=127.0.0.1:${String(this.inspectPort)}`]),
-+      // The packaged Electron runtime reaches Node internals without the native addon.
-+      '--expose-internals',
-       entry,
-       this.runtimeDir,
-       this.projectDir,
 diff --git a/packages/boot/app-boot/src/profile-resolution/resolver.ts b/packages/boot/app-boot/src/profile-resolution/resolver.ts
 --- a/packages/boot/app-boot/src/profile-resolution/resolver.ts
 +++ b/packages/boot/app-boot/src/profile-resolution/resolver.ts

@@ -10,6 +10,7 @@
   makeWrapper,
   nodejs,
   nodejs-slim,
+  pnpmWorkspaceDeploy,
   runCommand,
   symlinkJoin,
   util-linux,
@@ -156,6 +157,20 @@ stdenvNoCC.mkDerivation (finalAttrs: {
               requested_profile=
               has_profile=0
               wants_profile_value=0
+
+              # Alpha.2 accepts `dsh <profile>` as shorthand for
+              # `dsh --profile <profile>`. Keep managed profiles in sync
+              # before handing the original argv to the upstream parser.
+              if [ "$#" -gt 0 ]; then
+                case "$1" in
+                  --|-*|plugin) ;;
+                  *)
+                    requested_profile=$1
+                    has_profile=1
+                    ;;
+                esac
+              fi
+
               for arg in "$@"; do
                 if [ "$wants_profile_value" -eq 1 ]; then
                   requested_profile=$arg
@@ -343,6 +358,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     runtimeDeps = lib.unique (
       dsh-kernel.passthru.runtimeDeps
       ++ composition.runtimeDeps (lib.reverseList finalAttrs.passthru.composedBundles)
+      ++ [ pnpmWorkspaceDeploy ]
     );
 
     # pkgs.dsh.dsh.withProfiles { tui.bundles = b: with b; [ tui ]; }

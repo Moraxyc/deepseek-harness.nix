@@ -289,7 +289,7 @@
                   {
                     id = "agent-default-model";
                     config = {
-                      model = "deepseek-v4-flash";
+                      model = "deepseek-flash";
                       provider = "deepseek-official";
                     };
                   }
@@ -324,6 +324,12 @@
               "set +u; . /etc/set-environment; set -u; test \"$DSH_HOME\" = /var/lib/dsh/cli-home; dsh --profile nix-web --version"
             )
             machine.succeed(
+              "set +u; . /etc/set-environment; set -u; dsh nix-web --version"
+            )
+            machine.succeed(
+              "set +u; . /etc/set-environment; set -u; dsh plugin --profile nix-web --version"
+            )
+            machine.succeed(
               "test -f /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml"
             )
             machine.succeed(
@@ -351,7 +357,7 @@
               "yq -e '[.. | select(type == \"!!map\") | select(.id == \"tool-subagent-claude-code\" and .disabled == true)] | length == 1' ${pkgs.dsh.dsh-kernel}/lib/deepseek-harness/config/agent-presets/standard/agent.cordis.yml"
             )
             machine.succeed(
-              "truncate -s 0 /var/lib/dsh/cli-home/cordis.patch.yml; set +u; . /etc/set-environment; set -u; dsh --profile nix-web --version; yq -e '.[0].id == \"agent-default-model\" and .[0].config.model == \"deepseek-v4-flash\" and .[0].config.provider == \"deepseek-official\"' /var/lib/dsh/cli-home/cordis.patch.yml"
+              "truncate -s 0 /var/lib/dsh/cli-home/cordis.patch.yml; set +u; . /etc/set-environment; set -u; dsh --profile nix-web --version; yq -e '.[0].id == \"agent-default-model\" and .[0].config.model == \"deepseek-flash\" and .[0].config.provider == \"deepseek-official\"' /var/lib/dsh/cli-home/cordis.patch.yml"
             )
             machine.wait_for_unit("dsh-web.service")
             machine.succeed(

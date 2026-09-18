@@ -25,7 +25,7 @@ let
 in
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
-  version = "0.1.6-alpha.1";
+  version = "0.1.6-alpha.2";
 
   __structuredAttrs = true;
   strictDeps = true;
@@ -40,10 +40,13 @@ buildNpmPackage (finalAttrs: {
     owner = "deepseek-ai";
     repo = "deepseek-harness";
     tag = "dsh-v${finalAttrs.version}";
-    hash = "sha256-vlCnBbaUPtMBs+9do1QQ/71bWkgxOTXlP27CZeCRbCI=";
+    hash = "sha256-zoO7+AFR5KiNgmA+4agclQm7oPiE+T0WgMCM0j4Vcdw=";
   };
 
   patches = [
+    # The upstream manifest omitted Linux even though its POSIX dependency
+    # layout is supported by the runtime resolver.
+    ./desktop-linux-primary-runtime.patch
     # The prebuilt require-builtin addon only accepts upstream Electron builds, so
     # the desktop host reads Node internals through `--expose-internals` instead.
     ./expose-internals-loader.patch
@@ -54,7 +57,7 @@ buildNpmPackage (finalAttrs: {
   ];
 
   env = {
-    DSH_CLIENT_COMMIT_HASH = "0a15e36e7f82b6ed45af6fa9759f29b40dcd965d";
+    DSH_CLIENT_COMMIT_HASH = "ddefc45fbc7f8e46dd73185e68295696d1297887";
     PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = "false";
     # Rendered at evaluation time so the workspace patch hook does not have to
     # re-parse pnpm-workspace.yaml in the build sandbox.
