@@ -8,15 +8,15 @@
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-ads";
-  version = "0-unstable-2026-08-27";
+  version = "0-unstable-2026-09-18";
   deployPackage = "@dsh-external/dsh-ads";
   linkKernelNodeModules = dsh-kernel;
 
   src = fetchFromGitHub {
     owner = "Nagi-ovo";
     repo = "dsh-ads";
-    rev = "8eef607d2ab15737ec93233094d77aff7e5e8da3";
-    hash = "sha256-iZkC9e4hK3xivf0Xx6LjPO/17dlNpGZ25x91EjllIYs=";
+    rev = "7cbc5e5c937a8eb22c6e0169b61ff3298ab0fb58";
+    hash = "sha256-99eKwCxVq+HrZLIB25OuhTg3L4Ax4ym6xOJnyS4FXXU=";
   };
 
   pnpmDepsHash = "sha256-+jPabCkXJJET99D/WBr34fMVaxwQbudGRA/AjSokAWk=";
