@@ -1,0 +1,31 @@
+diff --git a/src/client/SettingsSection.tsx b/src/client/SettingsSection.tsx
+--- a/src/client/SettingsSection.tsx
++++ b/src/client/SettingsSection.tsx
+@@ -120,6 +120,6 @@
+     snapshot as typeof snapshot & { readonly recentWorkspaceId?: string }
+   ).recentWorkspaceId)
+   const currentCwd = useSessions(snapshot => {
+-    const current = snapshot.current
+-    return current === undefined ? undefined : snapshot.byId[current]?.cwd
++    const current = Object.values(snapshot.byId).find(session => (session.retainedBy.mainView ?? 0) > 0)
++    return current?.cwd
+   })
+   const workspaceOptions = useMemo<WorkspaceOption[]>(() => {
+diff --git a/src/contract.ts b/src/contract.ts
+--- a/src/contract.ts
++++ b/src/contract.ts
+@@ -128,1 +128,1 @@
+-        codec: { mode: 'strict', typeSymbol: '@deepseek-ai/dsh-session/types#SessionId', schema: sessionIdSchema },
++        codec: { mode: 'strict', typeSymbol: '@deepseek-ai/dsh-session/types#SessionId', create: () => sessionIdSchema },
+@@ -135,1 +135,1 @@
+-      schema: z.array(fileEntrySchema),
++      create: () => z.array(fileEntrySchema),
+@@ -148,1 +148,1 @@
+-      schema: atFileSettingsSchema,
++      create: () => atFileSettingsSchema,
+@@ -165,1 +165,1 @@
+-          schema: atFileSettingsUpdateSchema,
++          create: () => atFileSettingsUpdateSchema,
+@@ -172,1 +172,1 @@
+-      schema: atFileSettingsSchema,
++      create: () => atFileSettingsSchema,
