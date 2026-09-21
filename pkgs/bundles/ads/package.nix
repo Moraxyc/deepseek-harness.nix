@@ -9,7 +9,7 @@
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-ads";
   version = "0-unstable-2026-09-18";
-  deployPackage = "@dsh-external/dsh-ads";
+  deployPackage = "@nagi-ovo/dsh-ads";
   linkKernelNodeModules = dsh-kernel;
 
   src = fetchFromGitHub {
