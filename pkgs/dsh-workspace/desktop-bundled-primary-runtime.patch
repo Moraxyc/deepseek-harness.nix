@@ -1,0 +1,16 @@
+diff --git a/apps/desktop-host/src/primary-runtime.ts b/apps/desktop-host/src/primary-runtime.ts
+--- a/apps/desktop-host/src/primary-runtime.ts
++++ b/apps/desktop-host/src/primary-runtime.ts
+@@ -104,6 +104,12 @@
+ export async function installPrimaryRuntime(source: string, root: string): Promise<WorkspaceDependencies> {
+   const manifest = await readPrimaryRuntime(source)
+   if (manifest.platform !== process.platform || manifest.arch !== process.arch) throw new Error('primary runtime: incompatible platform or architecture')
++  // Nix owns the bundled payload; resolve it before any installation writes.
++  if (process.env.DSH_DESKTOP_RUNTIME_MODE === 'bundled') {
++    const paths = workspaceDependencyPaths(source, manifest)
++    for (const path of [paths.python, paths.node, paths.pnpm, paths.pythonPackages, paths.nodePackages]) await stat(path)
++    return paths
++  }
+   await mkdir(dirname(root), { recursive: true })
+   const previous = `${root}.previous`
+   await exists(previous)

@@ -1,5 +1,6 @@
 {
   lib,
+  apple-sdk,
   stdenv,
   stdenvNoCC,
 
@@ -21,6 +22,7 @@
   libGL,
   nodejs-slim,
   pnpmWorkspaceDeploy,
+  removeReferencesTo,
   python3,
   python3Packages,
   xcbuild,
@@ -36,6 +38,31 @@ let
   appExecutable =
     if isDarwin then "${appDir}/Contents/MacOS/DeepSeek Harness" else "${appDir}/DeepSeek Harness";
   runtimeRoot = "${appDir}/${if isDarwin then "Contents/Resources" else "resources"}";
+  pythonEnv = python3.withPackages (
+    ps: with ps; [
+      numpy
+      pandas
+      python-docx
+      python-pptx
+      openpyxl
+      pillow
+      lxml
+      xlsxwriter
+      python-dateutil
+      six
+      tzdata
+      typing-extensions
+      et-xmlfile
+    ]
+  );
+  desktopRuntimeDeps = [ pythonEnv ] ++ lib.remove dshDesktopPnpm dshHost.passthru.runtimeDeps;
+  storeReferencesToStrip = lib.optionals isDarwin [
+    stdenv.cc
+    apple-sdk
+  ];
+  storeReferenceArgs = lib.concatMapStringsSep " " (
+    reference: "-t ${lib.escapeShellArg reference}"
+  ) storeReferencesToStrip;
 in
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "dsh-desktop";
@@ -46,6 +73,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   dontConfigure = true;
   dontBuild = true;
   strictDeps = true;
+  disallowedReferences = storeReferencesToStrip;
 
   nativeBuildInputs = [
     makeWrapper
@@ -53,6 +81,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   ]
   ++ lib.optionals isDarwin [
     xcbuild # for plutil
+    removeReferencesTo
     darwin.autoSignDarwinBinariesHook
     desktopToDarwinBundle
   ]
@@ -168,47 +197,16 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     }}
     cp "$src/host/package.json" "$hostPackage/package.json"
 
-    mkdir -p "$runtimeRoot/runtime"
-    ${copyTree.followLinks {
-      src = "${dshDesktopPnpm}/libexec/pnpm";
-      dest = "$runtimeRoot/runtime/pnpm";
-      label = "dsh-desktop: pnpm runtime is missing";
-    }}
-    install -Dm755 "${nodejs-slim}/bin/node" "$runtimeRoot/runtime/bin/node"
+    mkdir -p "$runtimeRoot/runtime/bin"
+    ln -s "${dshDesktopPnpm}/libexec/pnpm" "$runtimeRoot/runtime/pnpm"
+    ln -s "${nodejs-slim}/bin/node" "$runtimeRoot/runtime/bin/node"
 
-    # The Host uses an application-owned primary runtime for Office workflows.
-    # Keep all interpreter and package paths materialized, since installation
-    # rejects symlinked payload entries.
     primaryRuntime="$runtimeRoot/runtime/primary-runtime"
     mkdir -p "$primaryRuntime/dependencies/node/bin" "$primaryRuntime/dependencies/node/node_modules"
-    install -Dm755 "${nodejs-slim}/bin/node" "$primaryRuntime/dependencies/node/bin/node"
+    ln -s "${nodejs-slim}/bin/node" "$primaryRuntime/dependencies/node/bin/node"
     printf '%s\n' 'Reserved for bundled Node packages.' > "$primaryRuntime/dependencies/node/node_modules/README.txt"
-    ${copyTree.followLinks {
-      src = "${dshDesktopPnpm}/libexec/pnpm";
-      dest = "$primaryRuntime/dependencies/pnpm";
-      label = "dsh-desktop: primary pnpm runtime is missing";
-    }}
-    ${copyTree.followLinks {
-      src = python3.withPackages (
-        ps: with ps; [
-          numpy
-          pandas
-          python-docx
-          python-pptx
-          openpyxl
-          pillow
-          lxml
-          xlsxwriter
-          python-dateutil
-          six
-          tzdata
-          typing-extensions
-          et-xmlfile
-        ]
-      );
-      dest = "$primaryRuntime/dependencies/python";
-      label = "dsh-desktop: Python runtime is missing";
-    }}
+    ln -s "${dshDesktopPnpm}/libexec/pnpm" "$primaryRuntime/dependencies/pnpm"
+    ln -s "${pythonEnv}" "$primaryRuntime/dependencies/python"
     install -Dm644 ${
       writers.writeJSON "dsh-desktop-primary-runtime.json" {
         desktopVersion = finalAttrs.version;
@@ -251,7 +249,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   ''
   + lib.optionalString isDarwin ''
     makeWrapper "${appExecutable}" "$out/bin/dsh-desktop" \
-      --prefix PATH : ${lib.makeBinPath dshHost.passthru.runtimeDeps} \
+      --set DSH_DESKTOP_RUNTIME_MODE bundled \
+      --prefix PATH : "${runtimeRoot}/runtime/bin" \
+      --prefix PATH : ${lib.makeBinPath desktopRuntimeDeps} \
       --inherit-argv0
   ''
   + lib.optionalString isLinux ''
@@ -280,6 +280,15 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     }, sharedNames);
     EOF
     }
+  ''
+  + lib.optionalString isDarwin ''
+    stripRuntimeReferences() {
+      find "$out" -type f -exec ${lib.getExe removeReferencesTo} ${storeReferenceArgs} {} +
+    }
+    # Rewrite binaries before signing, then record their final bytes.
+    postFixupHooks=(stripRuntimeReferences "''${postFixupHooks[@]}")
+  ''
+  + ''
     postFixupHooks+=(sealDesktopRuntime)
   ''
   + lib.optionalString isLinux ''
@@ -290,10 +299,24 @@ stdenvNoCC.mkDerivation (finalAttrs: {
           stdenv.cc.cc.lib
         ]
       }
-      --prefix PATH : ${lib.makeBinPath dshHost.passthru.runtimeDeps}
-      --set CHROME_DEVEL_SANDBOX "${electron.unwrapped}/libexec/electron/chrome-sandbox"
+     --set CHROME_DEVEL_SANDBOX "${appDir}/chrome-sandbox"
+      --set DSH_DESKTOP_RUNTIME_MODE bundled
+      --prefix PATH : "${runtimeRoot}/runtime/bin"
+      --prefix PATH : ${lib.makeBinPath desktopRuntimeDeps}
       --inherit-argv0
     )
+  '';
+
+  doInstallCheck = true;
+  installCheckPhase = ''
+    runHook preInstallCheck
+
+    node --input-type=module <<EOF
+    import { verifyDesktopRuntime } from '$src/app/src/runtime-tree.ts';
+    await verifyDesktopRuntime('${runtimeRoot}/app/dsh', '${finalAttrs.version}');
+    EOF
+
+    runHook postInstallCheck
   '';
 
   desktopItems = lib.optional isLinux (makeDesktopItem {
