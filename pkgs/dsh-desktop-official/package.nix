@@ -28,6 +28,7 @@
   xcbuild,
 
   dshHost ? dsh,
+  desktopProfile ? null,
   dshDesktopPnpm ? pnpmWorkspaceDeploy,
 }:
 
@@ -153,6 +154,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       ]
     }
     cp "$src/app/package.json" "$runtimeRoot/app/package.json"
+    cp ${writers.writeJSON "dsh-desktop-nix-profile.json" desktopProfile} "$runtimeRoot/app/nix-profile.json"
 
     dshPackage="$dshRuntime/node_modules/@deepseek-ai/dsh"
     ${copyTree.followLinks {

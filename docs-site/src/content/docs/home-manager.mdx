@@ -29,7 +29,8 @@ of these setup paths:
   `inputs.deepseek-harness.overlays.default` to `homeManagerConfiguration`;
 - NixOS-managed Home Manager: use `home-manager.useGlobalPkgs = true` and add
   the overlay to the NixOS-level `nixpkgs.overlays`;
-- any setup: set `programs.dsh.package` explicitly.
+- any setup: set `programs.dsh.package` explicitly and, when enabling the desktop,
+  set `programs.dsh.desktop.package` too.
 
 ## Standalone Home Manager
 
@@ -197,3 +198,43 @@ The options mirror the NixOS service except `user`, `group`, and
 - If `dsh` starts but does not use the expected profile, check that
   `programs.dsh.defaultProfile` uses the materialized name (`nix-tui`), not
   the raw profile key (`tui`).
+
+## Desktop Application
+
+After importing the module and configuring the overlay described above, enable
+the official desktop application independently:
+
+```nix
+programs.dsh.desktop.enable = true;
+```
+
+`desktop.enable` defaults to `false` and does not require `programs.dsh.enable`.
+The module adds `pkgs.dsh.dsh-desktop-official` to `home.packages`;
+override it with `programs.dsh.desktop.package`.
+Select a declared profile with `desktop.profile`, independently of the CLI default:
+
+```nix
+programs.dsh = {
+  desktop.enable = true;
+  desktop.profile = "nix-desktop";
+  profiles.desktop = {
+    bundles = [ pkgs.dsh.bundles.notification ];
+    mode = "managed";
+  };
+};
+```
+
+You can also reference `config.programs.dsh.profiles.desktop.materializedName`.
+The module includes the web application dependencies and packages the profile's
+bundles in the official desktop runtime. On command-line or application-menu
+launch, the desktop seeds the selected profile, its referenced `agentPresets`, and
+the home-level `patch` under `programs.dsh.home` before starting the host.
+The CLI does not need to be enabled. `managed` mode restores declared configuration
+on the next launch; `mutable` mode seeds it only once. Disable managed plugins in
+Nix; desktop recovery does not rewrite a managed profile. Restart the desktop
+after changing its configuration.
+
+`desktop.profile` defaults to `null`, preserving the upstream `profiles/desktop`
+behavior. This integration requires `desktop.package` to support the official
+package's `dshHost` and `desktopProfile` arguments.
+`programs.dsh.defaultProfile` still controls only the CLI.

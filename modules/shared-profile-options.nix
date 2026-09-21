@@ -1,10 +1,15 @@
 {
+  config,
   lib,
   pkgs,
   ...
 }:
 let
-  profileOptions = import ./profile-options.nix { inherit lib; };
+  profileOptions = import ./profile-options.nix {
+    inherit lib;
+    desktopProfile =
+      if config.programs.dsh.desktop.enable then config.programs.dsh.desktop.profile else null;
+  };
 in
 
 {
@@ -12,6 +17,21 @@ in
     enable = lib.mkEnableOption "the DeepSeek Harness dsh CLI with declarative profiles";
 
     package = lib.mkPackageOption pkgs.dsh "dsh" { };
+
+    desktop = {
+      enable = lib.mkEnableOption "the DeepSeek Harness desktop application";
+
+      package = lib.mkPackageOption pkgs.dsh "dsh-desktop-official" { };
+
+      profile = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        description = ''
+          Materialized profile from programs.dsh.profiles used by the official
+          desktop. Leave unset to use the upstream desktop profile.
+        '';
+      };
+    };
 
     home = lib.mkOption {
       type = lib.types.nullOr lib.types.str;

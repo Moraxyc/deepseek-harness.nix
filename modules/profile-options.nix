@@ -1,5 +1,6 @@
 {
   lib,
+  desktopProfile ? null,
 }:
 let
   dshPatchOp = lib.types.attrs;
@@ -42,6 +43,13 @@ let
 
   profileSubmodule = { name, ... }: {
     options = {
+      requiresWeb = lib.mkOption {
+        type = lib.types.bool;
+        internal = true;
+        default = desktopProfile == "nix-${name}";
+        description = "Include the web application required by the desktop host.";
+      };
+
       rawName = lib.mkOption {
         type = lib.types.str;
         readOnly = true;

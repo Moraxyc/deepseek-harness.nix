@@ -204,3 +204,39 @@ journalctl -u dsh-web -f
   指向该 pkgs。
 - 如果 `dsh` 启动后没有使用预期 profile，检查 `programs.dsh.defaultProfile`
   是否写的是生成后的名称（`nix-tui`）；原始 profile key 是 `tui`，不能直接使用。
+
+## 桌面应用
+
+导入模块并配置上述 overlay 后，可独立启用官方桌面应用：
+
+```nix
+programs.dsh.desktop.enable = true;
+```
+
+`desktop.enable` 默认关闭，不要求启用 `programs.dsh.enable`。
+模块将 `pkgs.dsh.dsh-desktop-official` 加入 `environment.systemPackages`；
+可通过 `programs.dsh.desktop.package` 覆盖安装包。
+使用 `desktop.profile` 选择现有声明式 profile；桌面与 CLI 的默认选择独立：
+
+```nix
+programs.dsh = {
+  desktop.enable = true;
+  desktop.profile = "nix-desktop";
+  profiles.desktop = {
+    bundles = [ pkgs.dsh.bundles.notification ];
+    mode = "managed";
+  };
+};
+```
+
+也可引用 `config.programs.dsh.profiles.desktop.materializedName`。
+模块自动加入 Web 应用依赖，并将 profile 的 bundles 打包进官方桌面 runtime。
+从命令行或应用菜单启动时，桌面先按 `programs.dsh.home` 初始化选中的 profile、
+其引用的 `agentPresets` 和 home 级 `patch`，再启动 host；不要求启用 CLI。
+`managed` 模式在下次启动时恢复声明配置，`mutable` 模式只初始化一次。
+管理模式下须在 Nix 中禁用插件，桌面的恢复操作不会改写该 profile。
+修改配置后需重新启动桌面应用。
+
+`desktop.profile` 默认为 `null`，此时保留上游 `profiles/desktop` 行为。
+该集成要求 `desktop.package` 支持官方包的 `dshHost` 和 `desktopProfile` 参数。
+`programs.dsh.defaultProfile` 仍只控制 CLI。

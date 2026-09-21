@@ -25,16 +25,21 @@ in
     ./home-manager-service.nix
   ];
 
-  config = lib.mkIf cfg.enable {
-    home.packages = [ runtimePackage ];
+  config = lib.mkMerge [
+    (lib.mkIf cfg.desktop.enable {
+      home.packages = [ (import ../lib/mk-dsh-desktop.nix { inherit lib cfg; }) ];
+    })
+    (lib.mkIf cfg.enable {
+      home.packages = [ runtimePackage ];
 
-    home.sessionVariables = lib.mkIf (cfg.home != null) {
-      DSH_HOME = cfg.home;
-    };
+      home.sessionVariables = lib.mkIf (cfg.home != null) {
+        DSH_HOME = cfg.home;
+      };
 
-    home.activation.dsh = lib.hm.dag.entryAfter [ "writeBoundary" ] (
-      lib.optionalString (cfg.home != null) "DSH_HOME=${lib.escapeShellArg cfg.home} "
-      + lib.getExe profileArtifacts.seedProfiles
-    );
-  };
+      home.activation.dsh = lib.hm.dag.entryAfter [ "writeBoundary" ] (
+        lib.optionalString (cfg.home != null) "DSH_HOME=${lib.escapeShellArg cfg.home} "
+        + lib.getExe profileArtifacts.seedProfiles
+      );
+    })
+  ];
 }

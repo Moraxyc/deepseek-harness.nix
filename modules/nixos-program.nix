@@ -11,19 +11,24 @@ in
 {
   imports = [ ./shared-profile-options.nix ];
 
-  config = lib.mkIf cfg.enable {
-    environment.systemPackages = [
-      (mkDsh {
-        package = cfg.package;
-        profiles = cfg.profiles;
-        agentPresets = cfg.agentPresets;
-        defaultProfile = cfg.defaultProfile;
-        patch = cfg.patch;
-      })
-    ];
+  config = lib.mkMerge [
+    (lib.mkIf cfg.desktop.enable {
+      environment.systemPackages = [ (import ../lib/mk-dsh-desktop.nix { inherit lib cfg; }) ];
+    })
+    (lib.mkIf cfg.enable {
+      environment.systemPackages = [
+        (mkDsh {
+          package = cfg.package;
+          profiles = cfg.profiles;
+          agentPresets = cfg.agentPresets;
+          defaultProfile = cfg.defaultProfile;
+          patch = cfg.patch;
+        })
+      ];
 
-    environment.variables = lib.mkIf (cfg.home != null) {
-      DSH_HOME = cfg.home;
-    };
-  };
+      environment.variables = lib.mkIf (cfg.home != null) {
+        DSH_HOME = cfg.home;
+      };
+    })
+  ];
 }

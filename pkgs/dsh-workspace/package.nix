@@ -44,6 +44,7 @@ buildNpmPackage (finalAttrs: {
   };
 
   patches = [
+    ./desktop-nix-profile.patch
     # The upstream manifest omitted Linux even though its POSIX dependency
     # layout is supported by the runtime resolver.
     ./desktop-linux-primary-runtime.patch
