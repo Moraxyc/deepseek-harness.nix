@@ -9,7 +9,7 @@
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-visualize";
   version = "0-unstable-2026-09-18";
-  deployPackage = "@dsh-external/dsh-visualize";
+  deployPackage = "@nagi-ovo/dsh-visualize";
   linkKernelNodeModules = dsh-kernel;
 
   src = fetchFromGitHub {
