@@ -1,7 +1,6 @@
-diff --git a/apps/desktop-host/src/office.ts b/apps/desktop-host/src/office.ts
 --- a/apps/desktop-host/src/office.ts
 +++ b/apps/desktop-host/src/office.ts
-@@ -10,8 +10,8 @@
+@@ -11,8 +11,8 @@
  export interface Config {
    /** Bundled payload directory. Missing sibling `office-skills` resources fail Host startup. */
    readonly source: string
@@ -10,11 +9,12 @@ diff --git a/apps/desktop-host/src/office.ts b/apps/desktop-host/src/office.ts
 +  /** Optional Harness-home directory; unset keeps dependencies in the immutable payload. */
 +  readonly root?: string
  }
-diff --git a/apps/desktop-host/src/index.ts b/apps/desktop-host/src/index.ts
+ 
+ /**
 --- a/apps/desktop-host/src/index.ts
 +++ b/apps/desktop-host/src/index.ts
-@@ -72,10 +72,16 @@
-   })
+@@ -69,10 +69,13 @@
+   process.once('disconnect', () => { void stop() })
    const { ctx } = await application
    control.updateTasks = installDesktopUpdateTaskControl(ctx)
 -  await ctx.plugin(desktopOffice, {
@@ -28,6 +28,7 @@ diff --git a/apps/desktop-host/src/index.ts b/apps/desktop-host/src/index.ts
 +      ...(configuredRuntime === undefined ? { root: join(resolveDshHome(), 'dsh-runtimes', 'dsh-primary-runtime') } : {}),
 +    })
 +  }
-  installPlatformSessionPublisher(ctx, (session) => {
-    if (process.connected) process.send?.({ type: 'platform-session', session })
-  })
+   installPlatformSessionPublisher(ctx, (session) => {
+     if (process.connected) process.send?.({ type: 'platform-session', session })
+   })
+
