@@ -42,8 +42,15 @@ if [[ "$new_src" == refs/tags/* ]]; then
     "$new_src" | cut -f1)"
 
   sed -i \
-    "s|^  env\\.DSH_CLIENT_COMMIT_HASH = .*;$|  env.DSH_CLIENT_COMMIT_HASH = \"$new_src\";|" \
+    -e "s|^    DSH_CLIENT_COMMIT_HASH = .*;$|    DSH_CLIENT_COMMIT_HASH = \"$new_src\";|" \
+    -e "s|^  env\\.DSH_CLIENT_COMMIT_HASH = .*;$|  env.DSH_CLIENT_COMMIT_HASH = \"$new_src\";|" \
     pkgs/dsh-workspace/package.nix
+
+  grep -Eq '^(    DSH_CLIENT_COMMIT_HASH|  env[.]DSH_CLIENT_COMMIT_HASH) = ' \
+    pkgs/dsh-workspace/package.nix || {
+    printf 'dsh-workspace: failed to update DSH_CLIENT_COMMIT_HASH\n' >&2
+    exit 1
+  }
 fi
 
 if [ "$old_src" = "$new_src" ]; then
