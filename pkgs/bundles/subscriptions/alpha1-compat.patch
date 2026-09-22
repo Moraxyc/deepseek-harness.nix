@@ -1,0 +1,220 @@
+diff --git a/src/auth/rpc.ts b/src/auth/rpc.ts
+index ba2d648..52d9afb 100644
+--- a/src/auth/rpc.ts
++++ b/src/auth/rpc.ts
+@@ -244,7 +244,11 @@ function serverResponse(rpcId: string, result: RpcResult<unknown>): Response {
+  * `rpc.call('/api', 'subscriptions-auth.<endpoint>', payload)` keeps working
+  * unchanged on the browser side.
+  */
+-function fetchRouteFor(endpoint: string, handler: ConnectionRpcHandler): FetchRouteCompat {
++function fetchRouteFor(
++  endpoint: string,
++  handler: ConnectionRpcHandler,
++  peer: Parameters<ConnectionRpcHandler>[3],
++): FetchRouteCompat {
+   const method = `${SUBSCRIPTIONS_AUTH_PREFIX}${endpoint}`
+   return {
+     path: `/api/${method}`,
+@@ -278,7 +282,7 @@ function fetchRouteFor(endpoint: string, handler: ConnectionRpcHandler): FetchRo
+           },
+         })
+       }
+-      return serverResponse(envelope.rpcId, await handler(endpoint, envelope.payload, request.signal))
++      return serverResponse(envelope.rpcId, await handler(endpoint, envelope.payload, request.signal, peer))
+     },
+   }
+ }
+@@ -624,7 +628,7 @@ export function registerAuthRpc(
+     const register = connection.fetch.register as unknown as FetchRegisterCompat
+     for (const endpoint of SUBSCRIPTIONS_AUTH_ENDPOINTS) {
+       ctx.effect(
+-        () => register(fetchRouteFor(endpoint, handler)),
++        () => register(fetchRouteFor(endpoint, handler, connection.operator)),
+         `dsh-plugin-subscriptions: /api/${SUBSCRIPTIONS_AUTH_PREFIX}${endpoint} route`,
+       )
+     }
+diff --git a/src/client/ImageGenerateToolview.tsx b/src/client/ImageGenerateToolview.tsx
+index b09c4f7..6715012 100644
+--- a/src/client/ImageGenerateToolview.tsx
++++ b/src/client/ImageGenerateToolview.tsx
+@@ -16,7 +16,7 @@
+ import type { CSSProperties } from 'react'
+ import type { ConnectionHandle } from '@deepseek-ai/dsh-api-remotes/client'
+ import type { ToolCallBlock } from '@deepseek-ai/dsh-client-ui-conversation/client'
+-import { IconSparkle16 } from '@deepseek-ai/dsh-client-ui-primitives'
++import { IconSparkleRegular } from '@deepseek-ai/dsh-client-ui-primitives'
+ import { ImageGallery } from './ImageGallery.js'
+ import type { ImageAttachmentRef, ImageLoader, MessageImageLabels } from './ImageGallery.js'
+ import { callSubscriptionsAuth } from './subscriptions-rpc.js'
+@@ -182,7 +182,7 @@ export function ImageGenerateToolview(props: ImageGenerateToolviewProps) {
+   return (
+     <div style={styles.container}>
+       <div style={styles.row}>
+-        <span style={styles.icon}><IconSparkle16 size={14} /></span>
++        <span style={styles.icon}><IconSparkleRegular size={14} /></span>
+         <span style={styles.title}>{title}</span>
+       </div>
+       {!settled && <p style={styles.subtle}>{t('generating')}</p>}
+diff --git a/src/client/SubscriptionUsageBadge.tsx b/src/client/SubscriptionUsageBadge.tsx
+index f9afb68..1dc65ef 100644
+--- a/src/client/SubscriptionUsageBadge.tsx
++++ b/src/client/SubscriptionUsageBadge.tsx
+@@ -26,7 +26,7 @@ import type { CSSProperties } from 'react'
+ import { createPortal } from 'react-dom'
+ import type { PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
+ import type { ConnectionHandle } from '@deepseek-ai/dsh-api-remotes/client'
+-import { IconDataOutline16, useAnchoredPosition, useDismissOnOutsidePointer } from '@deepseek-ai/dsh-client-ui-primitives'
++import { IconDataOutlineRegular, useAnchoredPosition, useDismissOnOutsidePointer } from '@deepseek-ai/dsh-client-ui-primitives'
+ import { callSubscriptionsAuth, usageBarColor } from './SubscriptionsSection.js'
+ import type { AccountStatus, ProviderStatus, ProviderUsage, SubscriptionProvider, UsageWindow } from './SubscriptionsSection.js'
+ import type { ModelDirectoriesLike } from './SpeedSelect.js'
+@@ -420,7 +420,7 @@ export function SubscriptionUsageBadge({ rpc, currentModel, t }: SubscriptionUsa
+         onMouseLeave={() => { setHover(false) }}
+         onClick={toggle}
+       >
+-        <IconDataOutline16 />
++        <IconDataOutlineRegular />
+         <span style={styles.label}>{label}</span>
+       </button>
+       {open && createPortal(
+@@ -432,7 +432,7 @@ export function SubscriptionUsageBadge({ rpc, currentModel, t }: SubscriptionUsa
+         >
+           <div style={styles.title}>
+             <span style={styles.titleLabel}>
+-              <IconDataOutline16 />
++              <IconDataOutlineRegular />
+               {title}
+             </span>
+           </div>
+diff --git a/src/client/VideoGenerateToolview.tsx b/src/client/VideoGenerateToolview.tsx
+index 25813ca..b4e4b65 100644
+--- a/src/client/VideoGenerateToolview.tsx
++++ b/src/client/VideoGenerateToolview.tsx
+@@ -17,7 +17,7 @@ import { useEffect, useState } from 'react'
+ import type { CSSProperties } from 'react'
+ import type { ConnectionHandle } from '@deepseek-ai/dsh-api-remotes/client'
+ import type { ToolCallBlock } from '@deepseek-ai/dsh-client-ui-conversation/client'
+-import { IconSparkle16 } from '@deepseek-ai/dsh-client-ui-primitives'
++import { IconSparkleRegular } from '@deepseek-ai/dsh-client-ui-primitives'
+ import { callSubscriptionsAuth } from './subscriptions-rpc.js'
+ import { en } from './locales.js'
+ import type { SubscriptionsKey } from './locales.js'
+@@ -206,7 +206,7 @@ export function VideoGenerateToolview(props: VideoGenerateToolviewProps) {
+   return (
+     <div style={styles.container}>
+       <div style={styles.row}>
+-        <span style={styles.icon}><IconSparkle16 size={14} /></span>
++        <span style={styles.icon}><IconSparkleRegular size={14} /></span>
+         <span style={styles.title}>{title}</span>
+       </div>
+       {!settled && <p style={styles.subtle}>{t('generatingVideo')}</p>}
+diff --git a/src/translate/resolved.ts b/src/translate/resolved.ts
+index fc89ce9..46b9afd 100644
+--- a/src/translate/resolved.ts
++++ b/src/translate/resolved.ts
+@@ -7,7 +7,7 @@
+  */
+ 
+ import { LlmError } from '@deepseek-ai/dsh-llm'
+-import type { ContentBlock, Message, ToolResultBlock } from '@deepseek-ai/dsh-llm'
++import type { ContentBlock, Message, RequestMessage } from '@deepseek-ai/dsh-llm'
+ import type { AttachmentStore } from '@deepseek-ai/dsh-attachment'
+ 
+ /** An image block with its bytes resolved to inline base64 for the wire. */
+@@ -19,14 +19,17 @@ export interface ResolvedImagePart {
+   dataBase64: string
+ }
+ 
+-/** Translator input block: a harness block, with images pre-resolved. */
+-export type TranslatableBlock = Exclude<ContentBlock, ToolResultBlock> | ResolvedImagePart | ResolvedToolResultBlock
+-
+ /** Tool results may themselves carry attachment-backed images. */
+-export interface ResolvedToolResultBlock extends Omit<ToolResultBlock, 'content'> {
++export interface ResolvedToolResultBlock {
++  type: 'tool-result'
++  toolCallId: string
+   content: readonly TranslatableBlock[]
++  isError?: boolean
+ }
+ 
++/** Translator input block: a harness block, with images pre-resolved. */
++export type TranslatableBlock = ContentBlock | ResolvedImagePart | ResolvedToolResultBlock
++
+ /**
+  * Wires with text-only tool outputs receive images in a following user turn.
+  * Defer that turn until all consecutive user messages have been processed:
+@@ -63,6 +66,28 @@ export interface TranslatableMessage {
+   source?: Message['source']
+ }
+ 
++/** Project the 0.1.7 message roles back onto the translator vocabulary. */
++function normalizeMessage(message: RequestMessage): TranslatableMessage {
++  const source = 'source' in message && message.source !== undefined ? { source: message.source } : {}
++  if (message.role === 'tool') {
++    return {
++      role: 'user',
++      ...source,
++      content: [{
++        type: 'tool-result',
++        toolCallId: message.toolCallId,
++        content: message.content,
++        ...message.isError === undefined ? {} : { isError: message.isError },
++      }],
++    }
++  }
++  return {
++    role: message.role === 'assistant' || message.role === 'system' ? message.role : 'user',
++    ...source,
++    content: message.content,
++  }
++}
++
+ /**
+  * Resolve every ImageBlock's attachment reference to inline base64 bytes.
+  * Messages without images pass through unchanged. A request carrying an image
+@@ -74,14 +99,15 @@ export interface TranslatableMessage {
+  * @returns the same messages with image blocks resolved for the translators.
+  */
+ export async function resolveImages(
+-  messages: readonly Message[],
++  messages: readonly RequestMessage[],
+   attachments: AttachmentStore | undefined,
+   signal?: AbortSignal,
+ ): Promise<readonly TranslatableMessage[]> {
+-  const hasImage = (block: ContentBlock): boolean => block.type === 'image'
++  const normalized = messages.map(normalizeMessage)
++  const hasImage = (block: TranslatableBlock): boolean => block.type === 'image'
+     || (block.type === 'tool-result' && block.content.some(hasImage))
+-  if (!messages.some(message => message.content.some(hasImage))) {
+-    return messages
++  if (!normalized.some(message => message.content.some(hasImage))) {
++    return normalized
+   }
+   if (attachments === undefined) {
+     throw new LlmError(
+@@ -90,11 +116,11 @@ export async function resolveImages(
+       'UNSUPPORTED',
+     )
+   }
+-  const resolveBlock = async (block: ContentBlock): Promise<TranslatableBlock[]> => {
++  const resolveBlock = async (block: TranslatableBlock): Promise<TranslatableBlock[]> => {
+     if (block.type === 'tool-result') {
+       return [{ ...block, content: (await Promise.all(block.content.map(resolveBlock))).flat() }]
+     }
+-    if (block.type !== 'image') return [block]
++    if (block.type !== 'image' || !('attachment' in block)) return [block]
+     const stored = await attachments.readImage(block.attachment, signal)
+     const { attachmentId, mediaType, bytes, width, height, name } = stored.ref
+     return [{
+@@ -108,9 +134,9 @@ export async function resolveImages(
+       })}`,
+     }]
+   }
+-  return Promise.all(messages.map(async (message): Promise<TranslatableMessage> => ({
++  return Promise.all(normalized.map(async (message): Promise<TranslatableMessage> => ({
+     role: message.role,
+-    source: message.source,
++    ...message.source === undefined ? {} : { source: message.source },
+     content: (await Promise.all(message.content.map(resolveBlock))).flat(),
+   })))
+ }

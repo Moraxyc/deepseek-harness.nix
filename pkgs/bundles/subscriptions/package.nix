@@ -39,6 +39,8 @@ buildDshBundle (finalAttrs: {
     hash = "sha256-n9QufTiTZiXeMO3BCcdDNnjeQPgNK4W+jCDnsD1xLoQ=";
   };
 
+  patches = [ ./alpha1-compat.patch ];
+
   # The release lockfile contains absolute links to the author's DSH checkout.
   # Replace only those development links; the pinned kernel supplies the same
   # peers for type checking and runtime composition.
