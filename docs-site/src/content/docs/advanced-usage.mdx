@@ -8,6 +8,30 @@ This page covers custom profiles, overrides, and the overlay. See
 for module setup, and the [README](https://github.com/moraxyc/deepseek-harness.nix)
 for quickstart commands.
 
+## Upgrade Notes
+
+Before upgrading the workspace to `0.1.7-alpha.1` or later, back up
+`$DSH_HOME` (or the configured data directory) and review these data and
+configuration changes:
+
+- The official DeepSeek adapter no longer reads `protocol`. Remove that key
+  from existing adapter settings and re-check the adapter's Messages API
+  configuration before the first run.
+- Session logs migrate to V4. The migration changes on-disk session data, so
+  reverting to an older Nix generation restores program files but does not
+  restore the old session format. Restore the backup or use a separate data
+  directory when testing an older generation.
+- The `settings.yaml` import is one-time: startup renames the source to
+  `settings.yaml.imported` before writing the new settings and does not retry
+  it after a later overwrite. In a managed profile, `cordis.patch.yml` is
+  Nix-owned; use the declarative profile patch or choose `mutable` for runtime
+  Settings changes.
+- Voice input downloads its model on first use at runtime. This flake does not
+  add a separate Nix model output or relocate the upstream plugin cache. Keep
+  that cache in a writable, backed-up data location; offline use is available
+  only after the model has been downloaded successfully for the same runtime
+  user.
+
 ## NixOS
 
 Import `nixosModules.default` and enable `programs.dsh`:
