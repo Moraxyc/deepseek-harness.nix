@@ -83,8 +83,9 @@ profile 声明在 `programs.dsh.profiles` 下。名为 `tui` 的 profile 会生�
 每个 profile 支持：
 
 - `bundles`：bundle 包列表，例如 `pkgs.dsh.bundles.tui`；
-- `agentPreset`：`programs.dsh.agentPresets` 中的 ID；引用的 preset 会复制到
-  `$DSH_HOME/.agent-presets`；
+- `agentPreset`：`programs.dsh.agentPresets` 中的 ID；构建时会从指定的上游
+  preset 声明生成 `@deepseek-ai/dsh-agent-preset`，并加入 profile patch，
+  再通过 `agent-preset-registry` 选择该 ID；不会复制 `.agent-presets` 目录；
 - `patch`：一组 Cordis patch 操作或原始 YAML，作为 `cordis.patch.yml`
   在所有 bundle 层之后应用；
 - `mode`：`managed`（默认）或 `mutable`；
@@ -104,9 +105,9 @@ programs.dsh.profiles = {
 };
 ```
 
-Agent Preset 写在 `programs.dsh.agentPresets` 下，再由 profile 引用。
-`enableTools` 只会从列出的 preset 行删除 `disabled`，不会自动安装 provider bundle。
-子 agent 示例见[高级用法](../advanced-usage/)。
+Agent Preset 写在 `programs.dsh.agentPresets` 下，再由 profile 引用。`source`
+选择 web bundle 随附的 preset 插件声明；`enableTools` 只会从生成声明中列出的
+行删除 `disabled`，不会自动安装 provider bundle。子 agent 示例见[高级用法](../advanced-usage/)。
 
 默认 profile 应使用生成后的名称（例如 `nix-tui`）。不要在配置中手写 `nix-` 前缀：
 

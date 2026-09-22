@@ -321,9 +321,9 @@ programs.dsh = {
 };
 ```
 
-构建时会把指定的 preset 复制到
-`$DSH_HOME/.agent-presets/web-subagents`，只从 `enableTools` 列出的行删除
-`disabled`。`managed` profile 会在启动前同步副本；`mutable` profile 只生成一次。
+构建时会从随附的 `standard` 声明生成 `preset-web-subagents` 插件声明，
+只从 `enableTools` 列出的行删除 `disabled`，并将声明加入 profile patch；
+registry 的 `default` 会设为 `web-subagents`。不会创建独立的 preset 目录。
 安装 Bundle 不会开放工具；工具是否可用由 Agent Preset 单独决定。
 
 这些 Bundle 使用 DeepSeek Harness 上游 workspace 固定的版本，不搜索

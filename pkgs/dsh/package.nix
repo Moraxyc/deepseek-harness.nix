@@ -60,11 +60,9 @@ let
     inherit
       baseBundle
       coreutils
-      copyTree
       diffutils
       gnugrep
       dshBundleResolver
-      dsh-kernel
       headlessBundle
       lib
       linkFarm
@@ -325,8 +323,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       );
 
     profileTemplates = profileArtifacts.profileTemplates;
-
-    agentPresetTemplates = profileArtifacts.agentPresetTemplates;
 
     seedProfiles = if profileSeeder == null then profileArtifacts.seedProfiles else profileSeeder;
 

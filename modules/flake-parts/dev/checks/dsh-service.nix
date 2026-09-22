@@ -191,14 +191,16 @@
           assert config.profiles.second.agentPreset == "second";
           assert lib.elem pkgs.dsh.bundles.base config.defaultBundles;
           assert lib.elem pkgs.dsh.bundles.base config.profiles.first.bundles;
-          pkgs.runCommand "dsh-agent-presets-composition" { } ''
+          pkgs.runCommand "dsh-agent-presets-composition" { nativeBuildInputs = [ pkgs.yq-go ]; } ''
             testHome=$(mktemp -d)
             DSH_HOME="$testHome" ${package}/bin/dsh --profile nix-first --version
             DSH_HOME="$testHome" ${package}/bin/dsh --profile nix-second --version
             test -f "$testHome/cordis.patch.yml"
-            test -f "$testHome/.agent-presets/first/agent.cordis.yml"
-            test -f "$testHome/.agent-presets/second/agent.cordis.yml"
-            test ! -e "${package.passthru.agentPresetTemplates}/unused"
+            test ! -e "$testHome/.agent-presets"
+            yq -e '[.[] | .insert[]? | select(.id == "preset-first" and .name == "@deepseek-ai/dsh-agent-preset" and .config.id == "first")] | length == 1' "$testHome/profiles/nix-first/cordis.patch.yml"
+            yq -e '[.[] | .insert[]? | select(.id == "preset-second" and .name == "@deepseek-ai/dsh-agent-preset" and .config.id == "second")] | length == 1' "$testHome/profiles/nix-second/cordis.patch.yml"
+            yq -e '[.[] | select(.id == "agent-preset-registry" and .config.default == "first")] | length == 1' "$testHome/profiles/nix-first/cordis.patch.yml"
+            yq -e '[.[] | select(.id == "agent-preset-registry" and .config.default == "second")] | length == 1' "$testHome/profiles/nix-second/cordis.patch.yml"
             touch "$out"
           '';
 
@@ -333,10 +335,10 @@
               "test -f /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml"
             )
             machine.succeed(
-              "test -f /var/lib/dsh/cli-home/.agent-presets/web-subagents/agent.cordis.yml; yq -e '[.. | select(type == \"!!map\") | select(.id == \"tool-subagent-codex\" and has(\"disabled\"))] | length == 0' /var/lib/dsh/cli-home/.agent-presets/web-subagents/agent.cordis.yml; yq -e '[.. | select(type == \"!!map\") | select(.id == \"tool-subagent-claude-code\" and .disabled == true)] | length == 1' /var/lib/dsh/cli-home/.agent-presets/web-subagents/agent.cordis.yml"
+              "test ! -e /var/lib/dsh/cli-home/.agent-presets; yq -e '[.[] | .insert[]? | select(.id == \"preset-web-subagents\" and .config.id == \"web-subagents\")] | length == 1' /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml; yq -e '[.. | select(type == \"!!map\") | select(.id == \"tool-subagent-codex\" and has(\"disabled\"))] | length == 0' /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml; yq -e '[.. | select(type == \"!!map\") | select(.id == \"tool-subagent-claude-code\" and .disabled == true)] | length == 1' /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml"
             )
             machine.succeed(
-              "yq -e 'length == 1 and .[0].id == \"agent-presets\" and .[0].config.default == \"web-subagents\"' /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml"
+              "yq -e '[.[] | select(.id == \"agent-preset-registry\" and .config.default == \"web-subagents\")] | length == 1' /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml"
             )
             machine.succeed(
               "printf '\\n# drift\\n' >> /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml"
@@ -349,12 +351,6 @@
             )
             machine.succeed(
               "yq -e '.dependencies.\"@deepseek-ai/dsh-subagent-codex\" != null and .dependencies.\"@deepseek-ai/dsh-subagent-claude-code\" != null' $(dirname $(dirname $(readlink -f /run/current-system/sw/bin/dsh)))/lib/deepseek-harness/package.json"
-            )
-            machine.succeed(
-              "yq -e '[.. | select(type == \"!!map\") | select(.id == \"tool-subagent-codex\" and .disabled == true)] | length == 1' ${pkgs.dsh.dsh-kernel}/lib/deepseek-harness/config/agent-presets/standard/agent.cordis.yml"
-            )
-            machine.succeed(
-              "yq -e '[.. | select(type == \"!!map\") | select(.id == \"tool-subagent-claude-code\" and .disabled == true)] | length == 1' ${pkgs.dsh.dsh-kernel}/lib/deepseek-harness/config/agent-presets/standard/agent.cordis.yml"
             )
             machine.succeed(
               "truncate -s 0 /var/lib/dsh/cli-home/cordis.patch.yml; set +u; . /etc/set-environment; set -u; dsh --profile nix-web --version; yq -e '.[0].id == \"agent-default-model\" and .[0].config.model == \"deepseek-flash\" and .[0].config.provider == \"deepseek-official\"' /var/lib/dsh/cli-home/cordis.patch.yml"

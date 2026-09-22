@@ -11,7 +11,8 @@ let
         type = lib.types.str;
         default = "standard";
         description = ''
-          Shipped Agent Preset to copy into the user preset root.
+          Shipped Agent Preset patch whose plugin declaration is used as the
+          source composition.
         '';
       };
 
@@ -19,7 +20,8 @@ let
         type = lib.types.listOf lib.types.str;
         default = [ ];
         description = ''
-          IDs of Agent Preset rows whose `disabled` field is removed.
+          IDs of plugin rows whose `disabled` field is removed from the
+          generated declaration.
         '';
       };
 
@@ -145,9 +147,9 @@ in
         }
       '';
       description = ''
-        Agent Preset definitions declared in Nix. The build prepares presets
-        referenced by a profile and checks that their shipped sources exist.
-        Activation copies the selected preset into the user preset root.
+        Agent Preset definitions declared in Nix. The build derives a plugin
+        declaration from the shipped source referenced by each profile.
+        Activation manages the resulting profile patch.
         ${extraDescription}
       '';
     };

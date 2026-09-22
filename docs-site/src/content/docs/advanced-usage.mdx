@@ -334,11 +334,12 @@ programs.dsh = {
 };
 ```
 
-The build copies the selected preset into
-`$DSH_HOME/.agent-presets/web-subagents` and removes `disabled` only from the
-listed rows. `managed` profiles sync the copy again before launch; `mutable`
-profiles seed it once. Bundle installation and Agent Preset authorization are
-separate: installing a bundle does not authorize its tools.
+The build derives a `preset-web-subagents` plugin declaration from the shipped
+`standard` declaration, removes `disabled` only from the listed rows, and adds
+the declaration to the profile patch. The registry's `default` is set to
+`web-subagents`. No separate preset directory is created. Bundle installation
+and Agent Preset authorization are separate: installing a bundle does not
+authorize its tools.
 
 The Bundles use the versions pinned by the upstream DeepSeek Harness workspace;
 they do not search `PATH`. To use separately packaged binaries from a Nixpkgs

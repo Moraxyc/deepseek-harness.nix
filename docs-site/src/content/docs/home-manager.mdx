@@ -73,8 +73,9 @@ profiles during Home Manager activation.
 
 An individual profile can reference a definition from
 `programs.dsh.agentPresets`: set `agentPreset = "name"` and list the provider
-bundle separately. Home Manager copies the selected preset during activation; see
-[Advanced Usage](../advanced-usage/) for the tool authorization example.
+bundle separately. Home Manager manages the generated preset declaration in the
+profile patch during activation; see [Advanced Usage](../advanced-usage/) for
+the tool authorization example.
 
 Set `programs.dsh.home` to use another `DSH_HOME`:
 

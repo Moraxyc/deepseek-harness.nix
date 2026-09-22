@@ -70,8 +70,8 @@ inputs.home-manager.lib.homeManagerConfiguration {
 同步受管理的 profile。
 
 Profile 可以引用 `programs.dsh.agentPresets` 中的定义：设置
-`agentPreset = "name"`，再单独列出 provider bundle。Home Manager 会在激活时复制
-指定的 preset；工具授权示例见[高级用法](../advanced-usage/)。
+`agentPreset = "name"`，再单独列出 provider bundle。Home Manager 会在激活时管理
+profile patch 中生成的 preset 声明；工具授权示例见[高级用法](../advanced-usage/)。
 
 设置 `programs.dsh.home` 可以改用其他 `DSH_HOME`：
 

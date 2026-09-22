@@ -165,7 +165,6 @@ buildNpmPackage (finalAttrs: {
     mkdir -p "$kernelApp"
     cp -r "$appDir/lib" "$kernelApp/lib"
     cp -r "$appDir/config" "$kernelApp/config"
-    cp -r "$appDir/node_modules/@deepseek-ai/dsh-agent-presets/presets" "$kernelApp/config/agent-presets"
     cp "$appDir/package.json" "$kernelApp/package.json"
     # Keep the public kernel self-contained; do not symlink back into the workspace.
     cp -r "$appDir/node_modules" "$kernelApp/node_modules"
