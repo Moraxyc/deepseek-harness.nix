@@ -75,8 +75,12 @@ in
   prune =
     { tree }:
     ''
-      find "${tree}" -type f \( \
-        -iname 'readme*' -o -iname 'changelog*' -o -iname '*.md' -o -iname '*.markdown' \
+      # Creator reads package README files and the Agent Preset skill provider
+      # reads its Markdown references and templates at runtime.
+      find "${tree}" -type f \
+        ! -path "${tree}/@deepseek-ai/dsh-agent-preset/skills/*" \
+        ! -iname 'readme*' \( \
+        -iname 'changelog*' -o -iname '*.md' -o -iname '*.markdown' \
         -o -name '*.test.js' -o -name '*.test.mjs' -o -name '*.test.cjs' \
         -o -name '*.spec.js' -o -name '*.spec.mjs' -o -name '*.spec.cjs' \
         -o -name 'config.gypi' -o -name 'binding.gyp' -o -name '*.gypi' \
