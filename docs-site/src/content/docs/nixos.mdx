@@ -142,6 +142,14 @@ prefix:
 
 Neither mode takes over an existing unmarked directory with the same name.
 
+Settings ownership follows the mode. The Settings UI writes the active
+profile's `cordis.patch.yml`; in `managed` mode Nix owns that file, so declare
+values through `profiles.<name>.patch` and expect the next activation or launch
+to restore them. Choose `mutable` when runtime Settings or `dsh plugin` changes
+must persist outside Nix. The upstream one-time migration imports an existing
+`settings.yaml`, renames it to `settings.yaml.imported` before writing, and does
+not retry that file after a later overwrite.
+
 ## Run the Web Service
 
 `services.dsh` runs the web profile as a NixOS systemd unit. It binds only to

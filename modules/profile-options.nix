@@ -116,11 +116,14 @@ let
           How Nix treats this profile after it is first materialized.
 
           - `managed`: Nix keeps the profile in sync with the
-            configuration and restores any local change on the next
-            activation or `dsh` run.
+            configuration and restores any local change to `package.json`,
+            `pnpm-workspace.yaml`, or `cordis.patch.yml` on the next
+            activation or `dsh` run. Use `patch` for settings that must
+            remain declarative.
           - `mutable`: Nix only seeds the profile when its directory
             does not exist yet; afterwards the user manages the profile
-            with `dsh` and Nix leaves it untouched.
+            with `dsh`, including runtime Settings writes, and Nix leaves
+            it untouched.
         '';
       };
     };

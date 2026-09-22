@@ -133,6 +133,13 @@ Agent Preset 写在 `programs.dsh.agentPresets` 下，再由 profile 引用。`s
 
 两种模式都不会接管已有但没有 Nix 标记的同名目录。
 
+设置的归属由模式决定。Settings UI 会写入当前 profile 的
+`cordis.patch.yml`；在 `managed` 模式下该文件由 Nix 所有，因此应通过
+`profiles.<name>.patch` 声明，并预期下次激活或启动时恢复。需要让运行时
+Settings 或 `dsh plugin` 的修改持久化时，请选择 `mutable`。上游的一次性迁移
+会导入已有的 `settings.yaml`，在首次写入前将其改名为
+`settings.yaml.imported`；文件之后被覆盖也不会再次自动导入。
+
 ## 运行 Web 服务
 
 `services.dsh` 把 web profile 作为 NixOS systemd 服务运行。默认只监听

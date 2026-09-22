@@ -22,6 +22,8 @@ let
   presetIdPattern = "^[a-z0-9][a-z0-9-]*$";
   managedFiles = [
     "package.json"
+    # Settings and the config editor write this profile-owned file. Managed
+    # mode deliberately restores the Nix declaration on the next launch.
     "cordis.patch.yml"
     "pnpm-workspace.yaml"
   ];
