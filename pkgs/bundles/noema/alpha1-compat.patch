@@ -1,0 +1,207 @@
+diff --git a/src/index.ts b/src/index.ts
+index 82e6351..80d9193 100644
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -18,0 +19 @@ import type WebServer from '@deepseek-ai/dsh-host-webserver'
++import type {} from '@deepseek-ai/cordis-plugin-loader'
+@@ -22,2 +23,2 @@ import {
+-  installNoemaMemorySettings,
+-  resolveNoemaMemorySettings,
++  readNoemaMemorySettings,
++  updateNoemaMemorySettings,
+@@ -24,0 +26 @@ import {
++  type NoemaMemorySettingsConfig,
+@@ -69 +71 @@ interface WebServerContext extends Context {
+-export async function apply(ctx: Context, config?: Partial<NoemaMemorySettings>): Promise<() => Promise<void>> {
++export async function apply(ctx: Context, liveConfig: NoemaMemorySettingsConfig): Promise<() => Promise<void>> {
+@@ -71,16 +73,3 @@ export async function apply(ctx: Context, config?: Partial<NoemaMemorySettings>)
+-  const entry = config ?? {}
+-  let settingsSource = () => resolveNoemaMemorySettings(entry)
+-  let settingsWriter: ((patch: Partial<NoemaMemorySettings>) => Promise<void>) | undefined
+-
+-  installNoemaMemorySettings(ctx, entry, {
+-    setSource: source => {
+-      settingsSource = source
+-    },
+-    setWriter: writer => {
+-      settingsWriter = writer
+-    },
+-    onChange: () => {
+-      // Guidance text and tool defaults read resolved per use, so every
+-      // live-facing aspect reacts without extra work here.
+-    },
+-  })
++  const settingsSource = () => readNoemaMemorySettings(liveConfig)
++  const settingsWriter = (patch: Partial<NoemaMemorySettings>): Promise<void> =>
++    updateNoemaMemorySettings(ctx, patch)
+@@ -117 +106,5 @@ export async function apply(ctx: Context, config?: Partial<NoemaMemorySettings>)
+-      () => settingsWriter,
++      () => (
++        ctx.get('settings') === undefined || ctx.fiber.entry?.id === undefined
++          ? undefined
++          : settingsWriter
++      ),
+diff --git a/src/settings.ts b/src/settings.ts
+index 1213288..438fc1d 100644
+--- a/src/settings.ts
++++ b/src/settings.ts
+@@ -9 +9 @@
+-import type { Context } from '@deepseek-ai/cordis'
++import type { Context, Volatile } from '@deepseek-ai/cordis'
+@@ -11 +11,2 @@ import z from '@deepseek-ai/schemastery'
+-import type { SettingsProvider } from '@deepseek-ai/dsh-settings'
++import type {} from '@deepseek-ai/dsh-settings'
++import type {} from '@deepseek-ai/cordis-plugin-loader'
+@@ -54,0 +56,22 @@ export interface NoemaMemorySettings {
++/** Live configuration fields projected by the host Settings service. */
++export interface NoemaMemorySettingsConfig {
++  enabled: Volatile<boolean>
++  command: Volatile<string>
++  workingDirectory: Volatile<string>
++  noemaRoot: Volatile<string>
++  autoStart: Volatile<boolean>
++  idleTimeoutMs: Volatile<number>
++  keepAlive: Volatile<boolean>
++  keepAliveIntervalMs: Volatile<number>
++  callTimeoutMs: Volatile<number>
++  restartDelayMs: Volatile<number>
++  recallBudgetTokens: Volatile<number>
++  acceptByDefault: Volatile<boolean>
++  guidance: Volatile<boolean>
++  importEnabled: Volatile<boolean>
++  importOnStartup: Volatile<boolean>
++  importWorkspaceFiles: Volatile<boolean>
++  importMaxBytes: Volatile<number>
++  importSources: Volatile<string[]>
++}
++
+@@ -77,6 +100 @@ export const NOEMA_MEMORY_SETTINGS_DEFAULTS: NoemaMemorySettings = {
+-/**
+- * Settings namespace passed to `settings.register`. Since DSH 0.1.5 the
+- * provider takes the plain literal and validates it itself (the exported
+- * `settingsNamespace` brand helper was removed), so this stays a `const`
+- * literal that older hosts accept as-is.
+- */
++/** Stable settings namespace retained for route and API consumers. */
+@@ -85,21 +103,21 @@ export const NOEMA_MEMORY_SETTINGS_NS = NOEMA_MEMORY_SETTINGS_NAMESPACE
+-/** Schemastery schema of the settings section. */
+-export const NOEMA_MEMORY_SETTINGS_SCHEMA: z<NoemaMemorySettings> = z.object({
+-  enabled: z.boolean().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.enabled),
+-  command: z.string().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.command),
+-  workingDirectory: z.string().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.workingDirectory),
+-  noemaRoot: z.string().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.noemaRoot),
+-  autoStart: z.boolean().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.autoStart),
+-  idleTimeoutMs: z.number().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.idleTimeoutMs),
+-  keepAlive: z.boolean().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.keepAlive),
+-  keepAliveIntervalMs: z.number().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.keepAliveIntervalMs),
+-  callTimeoutMs: z.number().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.callTimeoutMs),
+-  restartDelayMs: z.number().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.restartDelayMs),
+-  recallBudgetTokens: z.number().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.recallBudgetTokens),
+-  acceptByDefault: z.boolean().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.acceptByDefault),
+-  guidance: z.boolean().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.guidance),
+-  importEnabled: z.boolean().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.importEnabled),
+-  importOnStartup: z.boolean().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.importOnStartup),
+-  importWorkspaceFiles: z.boolean().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.importWorkspaceFiles),
+-  importMaxBytes: z.number().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.importMaxBytes),
+-  importSources: z.array(z.string()).default(NOEMA_MEMORY_SETTINGS_DEFAULTS.importSources),
+-})
++/** Live fields exposed through the host Settings service. */
++export const NOEMA_MEMORY_SETTINGS_FIELDS = {
++  enabled: z.boolean().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.enabled).volatile(),
++  command: z.string().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.command).volatile(),
++  workingDirectory: z.string().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.workingDirectory).volatile(),
++  noemaRoot: z.string().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.noemaRoot).volatile(),
++  autoStart: z.boolean().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.autoStart).volatile(),
++  idleTimeoutMs: z.number().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.idleTimeoutMs).volatile(),
++  keepAlive: z.boolean().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.keepAlive).volatile(),
++  keepAliveIntervalMs: z.number().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.keepAliveIntervalMs).volatile(),
++  callTimeoutMs: z.number().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.callTimeoutMs).volatile(),
++  restartDelayMs: z.number().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.restartDelayMs).volatile(),
++  recallBudgetTokens: z.number().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.recallBudgetTokens).volatile(),
++  acceptByDefault: z.boolean().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.acceptByDefault).volatile(),
++  guidance: z.boolean().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.guidance).volatile(),
++  importEnabled: z.boolean().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.importEnabled).volatile(),
++  importOnStartup: z.boolean().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.importOnStartup).volatile(),
++  importWorkspaceFiles: z.boolean().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.importWorkspaceFiles).volatile(),
++  importMaxBytes: z.number().default(NOEMA_MEMORY_SETTINGS_DEFAULTS.importMaxBytes).volatile(),
++  importSources: z.array(z.string()).default(NOEMA_MEMORY_SETTINGS_DEFAULTS.importSources).volatile(),
++}
+@@ -108 +126,2 @@ export const NOEMA_MEMORY_SETTINGS_SCHEMA: z<NoemaMemorySettings> = z.object({
+-export const Config: z<NoemaMemorySettings> = NOEMA_MEMORY_SETTINGS_SCHEMA
++export const NOEMA_MEMORY_SETTINGS_SCHEMA = z.object(NOEMA_MEMORY_SETTINGS_FIELDS)
++export const Config = NOEMA_MEMORY_SETTINGS_SCHEMA
+@@ -121,2 +140,2 @@ const NON_NEGATIVE_FIELDS: ReadonlyArray<readonly [NumericSettingField, string]>
+- * persisted (dsh-settings contract). Accepts a partial section because the
+- * settings register hook validates resolved candidates of any shape.
++ * persisted. Accepts a partial section because the settings update path
++ * validates one field at a time.
+@@ -153,7 +172,26 @@ export function validateNoemaMemorySettings(value: Partial<NoemaMemorySettings>)
+-/**
+- * Install the optional-settings wiring. `entry` is the plugin's composition
+- * entry config, used as the `base` layer; `setSource` points the caller's
+- * resolution thunk at the live resolved value and `onChange` fires when it
+- * moves.
+- */
+-export function installNoemaMemorySettings(
++/** Read the current plain settings section from live Config references. */
++export function readNoemaMemorySettings(config: NoemaMemorySettingsConfig): NoemaMemorySettings {
++  return {
++    enabled: config.enabled.get(),
++    command: config.command.get(),
++    workingDirectory: config.workingDirectory.get(),
++    noemaRoot: config.noemaRoot.get(),
++    autoStart: config.autoStart.get(),
++    idleTimeoutMs: config.idleTimeoutMs.get(),
++    keepAlive: config.keepAlive.get(),
++    keepAliveIntervalMs: config.keepAliveIntervalMs.get(),
++    callTimeoutMs: config.callTimeoutMs.get(),
++    restartDelayMs: config.restartDelayMs.get(),
++    recallBudgetTokens: config.recallBudgetTokens.get(),
++    acceptByDefault: config.acceptByDefault.get(),
++    guidance: config.guidance.get(),
++    importEnabled: config.importEnabled.get(),
++    importOnStartup: config.importOnStartup.get(),
++    importWorkspaceFiles: config.importWorkspaceFiles.get(),
++    importMaxBytes: config.importMaxBytes.get(),
++    importSources: [...config.importSources.get()],
++  }
++}
++
++/** Persist one live settings field through the owning profile entry. */
++export async function updateNoemaMemorySettings(
+@@ -161,26 +199,9 @@ export function installNoemaMemorySettings(
+-  entry: Partial<NoemaMemorySettings>,
+-  hooks: {
+-    setSource: (source: () => NoemaMemorySettings) => void
+-    setWriter: (writer: ((patch: Partial<NoemaMemorySettings>) => Promise<void>) | undefined) => void
+-    onChange: () => void
+-  },
+-): void {
+-  const fallback = resolveNoemaMemorySettings(entry)
+-  hooks.setSource(() => fallback)
+-  hooks.setWriter(undefined)
+-  ctx.inject(['settings'], (settingsCtx) => {
+-    const settings = (settingsCtx as Context & { settings: SettingsProvider }).settings
+-    const scope = settings.register(NOEMA_MEMORY_SETTINGS_NS, NOEMA_MEMORY_SETTINGS_SCHEMA, {
+-      base: entry,
+-      validate: validateNoemaMemorySettings,
+-    })
+-    hooks.setSource(() => scope.get())
+-    hooks.setWriter(patch => scope.update(patch))
+-    hooks.onChange()
+-    const unwatch = scope.watch(() => hooks.onChange())
+-    settingsCtx.effect(() => () => {
+-      unwatch()
+-      hooks.setWriter(undefined)
+-      hooks.setSource(() => fallback)
+-    })
+-  })
++  update: Partial<NoemaMemorySettings>,
++): Promise<void> {
++  const entry = ctx.fiber.entry?.id
++  const settings = ctx.get('settings')
++  if (settings === undefined || entry === undefined) {
++    throw new Error('Noema memory settings require the Settings service and a profile entry')
++  }
++  validateNoemaMemorySettings(update)
++  await settings.update(entry, update)
