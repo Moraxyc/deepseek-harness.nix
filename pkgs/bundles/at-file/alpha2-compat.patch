@@ -1,7 +1,7 @@
 diff --git a/src/client/SettingsSection.tsx b/src/client/SettingsSection.tsx
 --- a/src/client/SettingsSection.tsx
 +++ b/src/client/SettingsSection.tsx
-@@ -120,6 +120,6 @@
+@@ -120,8 +120,8 @@
      snapshot as typeof snapshot & { readonly recentWorkspaceId?: string }
    ).recentWorkspaceId)
    const currentCwd = useSessions(snapshot => {
@@ -11,21 +11,250 @@ diff --git a/src/client/SettingsSection.tsx b/src/client/SettingsSection.tsx
 +    return current?.cwd
    })
    const workspaceOptions = useMemo<WorkspaceOption[]>(() => {
+     const rows = workspaces.map(workspace => ({ path: workspace.path, title: workspace.title }))
 diff --git a/src/contract.ts b/src/contract.ts
 --- a/src/contract.ts
 +++ b/src/contract.ts
-@@ -128,1 +128,1 @@
+@@ -125,14 +125,14 @@
+         lookup: 'agent',
+         // The type symbol must equal the agent lookup provider's wire identity
+         // exactly — the gateway's strict path rejects a mismatched symbol.
 -        codec: { mode: 'strict', typeSymbol: '@deepseek-ai/dsh-session/types#SessionId', schema: sessionIdSchema },
 +        codec: { mode: 'strict', typeSymbol: '@deepseek-ai/dsh-session/types#SessionId', create: () => sessionIdSchema },
-@@ -135,1 +135,1 @@
+       },
+     ],
+     cancellation: { parameter: 'signal' },
+     result: {
+       mode: 'strict',
+       typeSymbol: 'dsh-at-file#FileEntry[]',
 -      schema: z.array(fileEntrySchema),
 +      create: () => z.array(fileEntrySchema),
-@@ -148,1 +148,1 @@
+     },
+   },
+   {
+@@ -145,7 +145,7 @@
+     result: {
+       mode: 'strict',
+       typeSymbol: 'dsh-at-file#AtFileSettings',
 -      schema: atFileSettingsSchema,
 +      create: () => atFileSettingsSchema,
-@@ -165,1 +165,1 @@
+     },
+   },
+   {
+@@ -162,14 +162,14 @@
+         codec: {
+           mode: 'strict',
+           typeSymbol: 'dsh-at-file#AtFileSettingsUpdate',
 -          schema: atFileSettingsUpdateSchema,
 +          create: () => atFileSettingsUpdateSchema,
-@@ -172,1 +172,1 @@
+         },
+       },
+     ],
+     result: {
+       mode: 'strict',
+       typeSymbol: 'dsh-at-file#AtFileSettings',
 -      schema: atFileSettingsSchema,
 +      create: () => atFileSettingsSchema,
+     },
+   },
+ ]
+diff --git a/src/settings.ts b/src/settings.ts
+--- a/src/settings.ts
++++ b/src/settings.ts
+@@ -1,22 +1,29 @@
+ /**
+- * The `at-file` settings namespace: the durable enable switch, pasted-mention
+- * policy, and file-name filters managed from the Web settings page. Registered with the settings
+- * provider at plugin load; the runtime reads the owner scope's live value on
+- * every call, so changes take effect without a restart.
++ * The `at-file` live configuration fields managed from the Web settings page.
++ * The Settings service persists volatile fields through the owning profile
++ * entry; the runtime reads their live values on every call.
+  */
+-import type { Context } from '@deepseek-ai/cordis'
++import type { Context, Volatile } from '@deepseek-ai/cordis'
+ import z from '@deepseek-ai/schemastery'
+-import type { SettingsNamespace, SettingsScope } from '@deepseek-ai/dsh-settings'
+-import type { AtFileSettings } from './contract.ts'
+-import type { FileIgnoreRule } from './contract.ts'
+-import { DEFAULT_IGNORE_FILES } from './defaults.ts'
++import type { AtFileSettings, AtFileSettingsUpdate, FileIgnoreRule, FileIgnoreRuleInput, WorkspaceIgnoreFiles } from './contract.ts'
++import {
++  DEFAULT_IGNORE_FILES,
++  normalizeIgnoreFiles,
++  normalizeWorkspaceIgnoreFiles,
++} from './defaults.ts'
+ 
+-/** The branded namespace name (the Web allowlist must list the same string). */
+-export const AT_FILE_NAMESPACE = 'at-file' as SettingsNamespace
++/** Live fields projected into the Settings service's profile form. */
++export interface AtFileSettingsConfig {
++  enabled: Volatile<boolean>
++  ignoreFiles: Volatile<FileIgnoreRuleInput[]>
++  ignoreFilesConfigured: Volatile<boolean>
++  workspaceIgnoreFiles: Volatile<WorkspaceIgnoreFiles[]>
++  ignorePastedMentions: Volatile<boolean>
++}
+ 
+-/** Schemastery schema of the `at-file` namespace section. */
+-export const AtFileSettingsSchema: z<AtFileSettings> = z.object({
+-  enabled: z.boolean().default(true),
++/** Schemastery fields for the live `at-file` configuration. */
++export const AtFileSettingsFields = {
++  enabled: z.boolean().default(true).volatile(),
+   ignoreFiles: z.array(z.union([
+     z.string(),
+     z.object({
+@@ -24,8 +31,8 @@
+       pattern: z.string(),
+       caseSensitive: z.boolean(),
+     }) as z<FileIgnoreRule>,
+-  ])).default([...DEFAULT_IGNORE_FILES]),
+-  ignoreFilesConfigured: z.boolean().default(false),
++  ])).default([...DEFAULT_IGNORE_FILES]).volatile(),
++  ignoreFilesConfigured: z.boolean().default(false).volatile(),
+   workspaceIgnoreFiles: z.array(z.object({
+     workspace: z.string(),
+     ignoreFiles: z.array(z.union([
+@@ -36,15 +43,42 @@
+         caseSensitive: z.boolean(),
+       }) as z<FileIgnoreRule>,
+     ])),
+-  })).default([]),
+-  ignorePastedMentions: z.boolean().default(true),
+-})
++  })).default([]).volatile(),
++  ignorePastedMentions: z.boolean().default(true).volatile(),
++}
+ 
+-/**
+- * Register the namespace with the settings provider and return its owner scope.
+- * @param ctx - the plugin context carrying the settings provider.
+- * @returns the owner scope backing the runtime's live enable check.
+- */
+-export function registerAtFileSettings(ctx: Context): SettingsScope<AtFileSettings> {
+-  return ctx.settings.register(AT_FILE_NAMESPACE, AtFileSettingsSchema, { applies: 'live' })
++/** Read the current plain settings section from live Config references. */
++export function readAtFileSettings(config: AtFileSettingsConfig): AtFileSettings {
++  return {
++    enabled: config.enabled.get(),
++    ignoreFiles: [...config.ignoreFiles.get()],
++    ignoreFilesConfigured: config.ignoreFilesConfigured.get(),
++    workspaceIgnoreFiles: config.workspaceIgnoreFiles.get().map(entry => ({
++      workspace: entry.workspace,
++      ignoreFiles: [...entry.ignoreFiles],
++    })),
++    ignorePastedMentions: config.ignorePastedMentions.get(),
++  }
++}
++
++/** Persist one settings field through the owning profile entry. */
++export async function updateAtFileSettings(
++  ctx: Context,
++  config: AtFileSettingsConfig,
++  update: AtFileSettingsUpdate,
++): Promise<AtFileSettings> {
++  const entry = ctx.fiber.entry?.id
++  const settings = ctx.get('settings')
++  if (settings === undefined || entry === undefined) {
++    throw new Error('at-file settings require the Settings service and a profile entry')
++  }
++  const patch = update.field === 'enabled'
++    ? { enabled: update.value }
++    : update.field === 'ignoreFiles'
++      ? { ignoreFiles: normalizeIgnoreFiles(update.value), ignoreFilesConfigured: true }
++      : update.field === 'workspaceIgnoreFiles'
++        ? { workspaceIgnoreFiles: normalizeWorkspaceIgnoreFiles(update.value) }
++        : { ignorePastedMentions: update.value }
++  await settings.update(entry, patch)
++  return readAtFileSettings(config)
+ }
+diff --git a/src/index.ts b/src/index.ts
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -13,15 +13,14 @@
+ import type {} from '@deepseek-ai/dsh-typert-registry'
+ // Type-only: brings the `ctx.settings` and `ctx.agents` Context merges in.
+ import type {} from '@deepseek-ai/dsh-settings'
++import type {} from '@deepseek-ai/cordis-plugin-loader'
+ import type {} from '@deepseek-ai/dsh-agent'
+ import { AtFileRuntime } from './runtime.ts'
+ import { TYPERT_MANIFEST } from './typert.ts'
+-import { registerAtFileSettings } from './settings.ts'
++import { AtFileSettingsFields, readAtFileSettings, updateAtFileSettings, type AtFileSettingsConfig } from './settings.ts'
+ import { mentionPreStep } from './mention.ts'
+ import {
+   DEFAULT_IGNORE_DIRS,
+-  normalizeIgnoreFiles,
+-  normalizeWorkspaceIgnoreFiles,
+ } from './defaults.ts'
+ import type { AtFileSettingsUpdate } from './contract.ts'
+ import type { ResolvedConfig } from './types.ts'
+@@ -35,7 +34,7 @@
+ export { DEFAULT_IGNORE_DIRS, DEFAULT_IGNORE_FILES } from './defaults.ts'
+ 
+ /** Host plugin configuration, validated at load by the Loader. */
+-export interface Config {
++export interface Config extends AtFileSettingsConfig {
+   /** Hard cap on indexed files per workspace; the walk stops and reports truncation. */
+   maxIndexedFiles: number
+   /** Directory basenames the index walk skips entirely. */
+@@ -51,6 +50,7 @@
+ export const Config = z.object({
+   maxIndexedFiles: z.natural().min(1).default(5000),
+   ignoreDirs: z.array(z.string()).default([...DEFAULT_IGNORE_DIRS]),
++  ...AtFileSettingsFields,
+ })
+ 
+ /**
+@@ -58,29 +58,15 @@
+  * @param ctx - host cordis context.
+  * @param config - validated plugin configuration (schema defaults applied).
+  */
+-export function apply(ctx: Context, config?: Config): void {
+-  const resolved: ResolvedConfig = Config(config ?? {})
++export function apply(ctx: Context, liveConfig: Config): void {
++  const resolved: ResolvedConfig = {
++    maxIndexedFiles: liveConfig.maxIndexedFiles,
++    ignoreDirs: liveConfig.ignoreDirs,
++  }
+   // The durable enable switch: the runtime and the boundary read its live
+   // value per call, so toggling it in the Web settings takes effect immediately.
+-  const settings = registerAtFileSettings(ctx)
+-  const readSettings = () => settings.get()
+-  const writeSettings = async (update: AtFileSettingsUpdate) => {
+-    if (update.field === 'enabled') {
+-      await settings.update({ enabled: update.value })
+-    } else if (update.field === 'ignoreFiles') {
+-      await settings.update({
+-        ignoreFiles: normalizeIgnoreFiles(update.value),
+-        ignoreFilesConfigured: true,
+-      })
+-    } else if (update.field === 'workspaceIgnoreFiles') {
+-      await settings.update({
+-        workspaceIgnoreFiles: normalizeWorkspaceIgnoreFiles(update.value),
+-      })
+-    } else {
+-      await settings.update({ ignorePastedMentions: update.value })
+-    }
+-    return settings.get()
+-  }
++  const readSettings = () => readAtFileSettings(liveConfig)
++  const writeSettings = (update: AtFileSettingsUpdate) => updateAtFileSettings(ctx, liveConfig, update)
+   new AtFileRuntime(ctx, resolved, readSettings, writeSettings)
+   // Strict endpoint registration: the gateway resolves atFile/search from
+   // this manifest, independent of decorator marker state.
+@@ -100,11 +86,11 @@
+       const stop = agent.ctx.on('agent/pre-step', async ({ messages, signal }, next) => {
+         return mentionPreStep(
+           agent,
+-          () => settings.get().enabled,
++          () => readSettings().enabled,
+           messages,
+           signal,
+           next,
+-          () => settings.get().ignorePastedMentions ?? true,
++          () => readSettings().ignorePastedMentions ?? true,
+         )
+       })
+       return () => { stop() }
