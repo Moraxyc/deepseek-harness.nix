@@ -251,7 +251,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   ''
   + lib.optionalString isDarwin ''
     makeWrapper "${appExecutable}" "$out/bin/dsh-desktop" \
-      --set DSH_DESKTOP_RUNTIME_MODE bundled \
+      --set DSH_BUNDLED_PRIMARY_RUNTIME "$primaryRuntime" \
       --prefix PATH : "${runtimeRoot}/runtime/bin" \
       --prefix PATH : ${lib.makeBinPath desktopRuntimeDeps} \
       --inherit-argv0
@@ -302,7 +302,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
         ]
       }
      --set CHROME_DEVEL_SANDBOX "${appDir}/chrome-sandbox"
-      --set DSH_DESKTOP_RUNTIME_MODE bundled
+      --set DSH_BUNDLED_PRIMARY_RUNTIME "${runtimeRoot}/runtime/primary-runtime"
       --prefix PATH : "${runtimeRoot}/runtime/bin"
       --prefix PATH : ${lib.makeBinPath desktopRuntimeDeps}
       --inherit-argv0

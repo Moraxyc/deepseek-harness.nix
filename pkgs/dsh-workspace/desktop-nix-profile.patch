@@ -6,7 +6,7 @@ diff --git a/apps/desktop/src/main.ts b/apps/desktop/src/main.ts
  import { WINDOWS_TITLEBAR_HEIGHT } from './windows-layout.ts'
  /** Electron shell: desktop project ownership, custom protocol, windows, and lifecycle. */
  
-@@ -183,6 +184,7 @@
+@@ -209,6 +210,7 @@
  }
  
  async function main(): Promise<void> {
@@ -39,26 +39,25 @@ diff --git a/apps/desktop/src/project-manager.ts b/apps/desktop/src/project-mana
 +    }
      return this.withLock(() => sanitizeProfile('dsh', this.paths.profile, WEB_PROFILE.bundles))
    }
- 
 @@ -84,6 +87,8 @@
-    * @param production - Remove application-owned profile packages before packaged Host startup.
+    * @param runtime - location of the bundled application runtime.
     */
-   async applyRelease(production = false): Promise<void> {
+   async applyRelease(): Promise<void> {
 +    // Nix seeds this profile before startup and owns its package declarations.
 +    if (process.env.DSH_NIX_DESKTOP_PROFILE !== undefined) return
-     await this.withLock(() => {
-       const descriptor = readDesktopRuntime(this.runtime.dsh)
-       cleanProfileCorePackages(this.paths.profile, descriptor.sharedPackages.map(entry => entry.name), production)
+    await this.withLock(() => {
+      // Validation only: an unreadable or mismatched runtime descriptor stops preparation before the Host starts.
+      readDesktopRuntime(this.runtime.dsh)
 diff --git a/apps/desktop-host/src/index.ts b/apps/desktop-host/src/index.ts
 --- a/apps/desktop-host/src/index.ts
 +++ b/apps/desktop-host/src/index.ts
-@@ -17,7 +17,7 @@
+@@ -18,7 +18,7 @@
+   const installAnchor = join(runtimeDir, 'node_modules', '@deepseek-ai', 'dsh', 'package.json')
    const profile = loadProfileDirectory('dsh', projectDir, installAnchor)
    const application = runProfile({
      environment: loadLayeredEnv('dsh'),
 -    profile: 'desktop',
 +    profile: process.env.DSH_NIX_DESKTOP_PROFILE ?? 'desktop',
-     resolutionMode: process.argv[5] === 'runtime' ? 'runtime' : 'link',
      resolvedProfile: { profile, installAnchor },
      patchFiles: [],
 diff --git a/apps/desktop/src/nix-profile.ts b/apps/desktop/src/nix-profile.ts
