@@ -28,7 +28,7 @@
       workspacePackageName = "dsh-pnpm-workspace-check";
       workspaceDependencyName = "dsh-pnpm-workspace-check-dependency";
       workspaceSrc = pkgs.runCommand "${workspacePackageName}-source" { } ''
-        mkdir -p "$out/packages/app" "$out/packages/dependency"
+        mkdir -p "$out/packages/app/presets" "$out/packages/dependency/presets"
         cp ${
           pkgs.writeText "package.json" (
             builtins.toJSON {
@@ -62,22 +62,32 @@
               name = workspacePackageName;
               version = "1.0.0";
               dependencies.${workspaceDependencyName} = "workspace:*";
-              dsh.bundle.patch = "./cordis.patch.yml";
+              dsh.bundle.patch = [
+                "./cordis.patch.yml"
+                "./presets/extra.patch.yml"
+              ];
             }
           )
         } "$out/packages/app/package.json"
         cp ${pkgs.writeText "index.js" "export default true;\n"} "$out/packages/app/index.js"
-        cp ${pkgs.writeText "cordis.patch.yml" "[]\n"} "$out/packages/app/cordis.patch.yml"
+        cp ${pkgs.writeText "cordis.patch.yml" "app: cordis\n"} "$out/packages/app/cordis.patch.yml"
+        cp ${pkgs.writeText "extra.patch.yml" "app: extra\n"} "$out/packages/app/presets/extra.patch.yml"
         cp ${
           pkgs.writeText "package.json" (
             builtins.toJSON {
               name = workspaceDependencyName;
               version = "1.0.0";
               main = "index.js";
+              dsh.bundle.patch = [
+                "./cordis.patch.yml"
+                "./presets/extra.patch.yml"
+              ];
             }
           )
         } "$out/packages/dependency/package.json"
         cp ${pkgs.writeText "index.js" "export default true;\n"} "$out/packages/dependency/index.js"
+        cp ${pkgs.writeText "cordis.patch.yml" "dependency: cordis\n"} "$out/packages/dependency/cordis.patch.yml"
+        cp ${pkgs.writeText "extra.patch.yml" "dependency: extra\n"} "$out/packages/dependency/presets/extra.patch.yml"
       '';
       workspaceBundle = pkgs.dsh.helpers.buildBundle.fromPnpmWorkspace (_finalAttrs: {
         pname = workspacePackageName;
@@ -89,6 +99,7 @@
         npmConfigHook = pkgs.pnpmConfigHook;
         dontConfigure = true;
         dontBuild = true;
+        disableChildBundlePatches = true;
 
         preInstall = "pnpm install --offline --frozen-lockfile";
         postNormalizeDeploy = ''
@@ -106,10 +117,28 @@
           test -f "$deployPackagePath/package.json"
           test -f "$deployPackagePath/index.js"
           test -f "$deployPackagePath/cordis.patch.yml"
+          test -f "$deployPackagePath/presets/extra.patch.yml"
+          test "$(cat "$deployPackagePath/cordis.patch.yml")" = "app: cordis"
+          test "$(cat "$deployPackagePath/presets/extra.patch.yml")" = "app: extra"
+
+          childPackagePath="$out/lib/node_modules/${workspaceDependencyName}"
+          test "$(tail -n 1 "$childPackagePath/cordis.patch.yml")" = "--- []"
+          test "$(tail -n 1 "$childPackagePath/presets/extra.patch.yml")" = "--- []"
         '';
 
         meta.description = "pnpm workspace bundle helper regression check";
       });
+      workspaceManifestCheck =
+        pkgs.runCommand "${workspacePackageName}-manifest-check"
+          {
+            nativeBuildInputs = [ pkgs.jq ];
+          }
+          ''
+            jq -e --arg name "${workspacePackageName}" \
+              '.bundles[] | select(.name == $name) | .patch == ["./cordis.patch.yml", "./presets/extra.patch.yml"]' \
+              ${workspaceBundle}/nix-support/dsh-bundles.json >/dev/null
+            touch "$out"
+          '';
     in
     {
       checks.dsh-bundle-helper = pkgs.linkFarm "dsh-bundle-helper-checks" [
@@ -120,6 +149,10 @@
         {
           name = "pnpm-workspace";
           path = workspaceBundle;
+        }
+        {
+          name = "pnpm-workspace-manifest";
+          path = workspaceManifestCheck;
         }
       ];
     };

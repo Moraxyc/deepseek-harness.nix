@@ -182,15 +182,31 @@ buildNpmPackage (finalAttrs: {
     for packageJson in packages/*/*/package.json; do
       [ -f "$packageJson" ] || continue
       bundlePatchTag=$(yq -r '.dsh.bundle.patch | tag' "$packageJson")
+      bundlePatches=()
       case "$bundlePatchTag" in
         "!!null")
           continue
           ;;
         "!!str")
-          bundlePatch=$(yq -r '.dsh.bundle.patch' "$packageJson")
+          bundlePatches+=("$(yq -r '.dsh.bundle.patch' "$packageJson")")
+          ;;
+        "!!seq")
+          bundlePatchCount=$(yq -r '.dsh.bundle.patch | length' "$packageJson")
+          [ "$bundlePatchCount" -gt 0 ] || {
+            printf 'dsh-workspace: bundle patch array is empty: %s\n' "$packageJson" >&2
+            exit 1
+          }
+          for ((bundlePatchIndex = 0; bundlePatchIndex < bundlePatchCount; bundlePatchIndex++)); do
+            bundlePatchItemTag=$(yq -r ".dsh.bundle.patch[$bundlePatchIndex] | tag" "$packageJson")
+            [ "$bundlePatchItemTag" = "!!str" ] || {
+              printf 'dsh-workspace: bundle patch array entry must be a string: %s[%s]\n' "$packageJson" "$bundlePatchIndex" >&2
+              exit 1
+            }
+            bundlePatches+=("$(yq -r ".dsh.bundle.patch[$bundlePatchIndex]" "$packageJson")")
+          done
           ;;
         *)
-          printf 'dsh-workspace: bundle patch must be a string: %s\n' "$packageJson" >&2
+          printf 'dsh-workspace: bundle patch must be a string or array: %s\n' "$packageJson" >&2
           exit 1
           ;;
       esac
@@ -200,8 +216,8 @@ buildNpmPackage (finalAttrs: {
         printf 'dsh-workspace: bundle package has no name: %s\n' "$packageJson" >&2
         exit 1
       }
-      [ -n "$bundlePatch" ] || {
-        printf 'dsh-workspace: bundle patch is empty: %s\n' "$packageJson" >&2
+      [ "''${#bundlePatches[@]}" -gt 0 ] || {
+        printf 'dsh-workspace: bundle patch is missing: %s\n' "$packageJson" >&2
         exit 1
       }
 
@@ -213,9 +229,33 @@ buildNpmPackage (finalAttrs: {
         --config.link-workspace-packages=true \
         "$bundleDir"
 
-      for artifact in package.json "$bundlePatch" lib; do
+      for artifact in package.json lib; do
         [ -e "$bundleDir/$artifact" ] || {
           printf 'dsh-workspace: deployed bundle artifact is missing: %s\n' "$bundleDir/$artifact" >&2
+          exit 1
+        }
+      done
+      for bundlePatch in "''${bundlePatches[@]}"; do
+        case "$bundlePatch" in
+          ./*)
+            ;;
+          *)
+            printf "dsh-workspace: bundle patch must be a relative './...' path: %s\n" "$packageJson" >&2
+            exit 1
+            ;;
+        esac
+        case "$bundlePatch" in
+          *\\*)
+            printf 'dsh-workspace: bundle patch must not contain backslashes: %s\n' "$packageJson" >&2
+            exit 1
+            ;;
+        esac
+        [ -n "''${bundlePatch#./}" ] || {
+          printf 'dsh-workspace: bundle patch is empty: %s\n' "$packageJson" >&2
+          exit 1
+        }
+        [ -f "$bundleDir/''${bundlePatch#./}" ] || {
+          printf 'dsh-workspace: deployed bundle patch is missing: %s\n' "$bundleDir/''${bundlePatch#./}" >&2
           exit 1
         }
       done

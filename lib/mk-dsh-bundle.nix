@@ -98,10 +98,29 @@ let
     suppress_patch() {
       [ "$1" = "$deployPackagePath" ] && return 0
 
-      # Aggregators keep child manifests for dependency resolution, even when
-      # a published package omitted its declared canonical patch file.
-      if [ -f "$1/cordis.patch.yml" ] || jq -e '.dsh?.bundle?.patch? == "./cordis.patch.yml"' "$1/package.json" >/dev/null 2>&1; then
+      # Aggregators keep child manifests for dependency resolution, but every
+      # declared child patch must be inert, including array entries.
+      if [ -f "$1/cordis.patch.yml" ]; then
         cp ${emptyCordisPatch} "$1/cordis.patch.yml"
+      fi
+      if [ -f "$1/package.json" ]; then
+        while IFS= read -r patch; do
+          case "$patch" in
+            ./*)
+              patchPath="$1/''${patch#./}"
+              [ -f "$patchPath" ] || continue
+              cp ${emptyCordisPatch} "$patchPath"
+              ;;
+          esac
+        done < <(
+          jq -r '
+            .dsh?.bundle?.patch? // empty
+            | if type == "string" then .
+              elif type == "array" then .[]
+              else empty
+              end
+          ' "$1/package.json"
+        )
       fi
     }
     for entry in "$out"/lib/node_modules/*; do
