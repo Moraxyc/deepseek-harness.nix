@@ -1,0 +1,65 @@
+---
+title: Migration Guide
+description: User actions and compatibility notes for upstream DeepSeek Harness changes.
+---
+
+Read this page before upgrading the upstream workspace version used by this
+flake. It records changes that may require action or affect existing data.
+Routine dependency updates are not listed here.
+
+## Before Upgrading
+
+- Back up `$DSH_HOME` or the configured data directory.
+- If a rollback may be needed, test with a separate data directory. Some
+  migrations rewrite data in place.
+- Check the target upstream version and read its entry below before the first
+  launch.
+
+## `0.1.7-alpha.1`
+
+These notes apply when upgrading to upstream `dsh-v0.1.7-alpha.1`. Keep them in
+mind for later versions unless a newer entry supersedes them.
+
+### Adapter configuration
+
+The official DeepSeek adapter no longer reads `protocol`. Remove this key from
+existing adapter settings and verify the Messages API configuration before the
+first run.
+
+### Session logs
+
+Session logs migrate to V4 on disk. This is an in-place data migration:
+
+- the first launch can change session files;
+- reverting to an older Nix generation restores program files, not the old
+  session format;
+- restore the backup or use a separate `DSH_HOME` when testing an older
+  generation.
+
+### `settings.yaml` and managed profiles
+
+The `settings.yaml` import runs once. Startup renames the source to
+`settings.yaml.imported` before writing the new settings and does not retry the
+source after a later overwrite. Keep a backup before the first launch.
+
+In a `managed` profile, Nix owns `cordis.patch.yml`. Declare persistent values
+through `programs.dsh.profiles.<name>.patch`, or use `mode = "mutable"` when
+runtime Settings or `dsh plugin` changes must persist outside Nix.
+
+### Agent Presets
+
+For Nix-managed presets, alpha1 generates an
+`@deepseek-ai/dsh-agent-preset` plugin declaration in the profile patch. It no
+longer copies a separate preset directory to `$DSH_HOME/.agent-presets`.
+
+If you previously edited files in that directory, move the intended
+configuration to `programs.dsh.agentPresets`, `profiles.<name>.agentPreset`, or
+the profile patch. Do not depend on the old directory being populated by Nix.
+
+### Voice input
+
+Voice input downloads its model at runtime on first use. This flake does not
+provide a separate Nix model output or relocate the upstream plugin cache.
+Keep that cache writable and include it in backups if it must survive a fresh
+profile or data-directory setup. Offline use is available only after the model
+has been downloaded successfully for the same runtime user.

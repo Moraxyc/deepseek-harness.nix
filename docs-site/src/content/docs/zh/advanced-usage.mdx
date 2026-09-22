@@ -6,24 +6,7 @@ description: 自定义 profile、包覆盖、服务和反向代理配置。
 本文覆盖自定义 profile、覆盖方式和 Overlay。模块接入见
 [NixOS 集成](../nixos/) 和 [Home Manager 集成](../home-manager/)；
 快速开始与常用命令见 [README](https://github.com/moraxyc/deepseek-harness.nix)。
-
-## 升级说明
-
-升级到 `0.1.7-alpha.1` 或更高版本前，请备份 `$DSH_HOME`（或配置的数据目录），
-并检查以下数据与配置变化：
-
-- 官方 DeepSeek adapter 不再读取 `protocol`。首次运行前，从现有 adapter 配置中
-  删除该键，并重新检查 Messages API 的配置。
-- Session 日志会迁移到 V4。迁移会改写磁盘上的会话数据；回退到旧 Nix generation
-  只能恢复程序文件，不能恢复旧的会话格式。测试旧 generation 时，请恢复备份或
-  使用独立的数据目录。
-- `settings.yaml` 只导入一次：启动时会先把源文件改名为
-  `settings.yaml.imported`，再写入新设置；之后文件被覆盖也不会再次导入。managed
-  profile 中的 `cordis.patch.yml` 由 Nix 所有；需要使用声明式 profile patch，或选择
-  `mutable` 保存运行时 Settings 修改。
-- 语音输入会在首次使用时于运行时下载模型。本 flake 没有新增独立的 Nix 模型输出，
-  也不会重定位上游插件的缓存目录。请保证该缓存位于可写且已备份的数据目录中；同一
-  运行用户成功下载模型后，才可按缓存实现离线使用。
+上游变更需要用户操作时，请查看[迁移说明](../migration/)。
 
 ## NixOS
 

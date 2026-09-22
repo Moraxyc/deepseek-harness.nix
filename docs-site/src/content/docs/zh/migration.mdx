@@ -1,0 +1,57 @@
+---
+title: 迁移说明
+description: 上游 DeepSeek Harness 变更带来的用户操作与兼容性注意事项。
+---
+
+升级这个 flake 使用的上游 workspace 版本前，请先阅读本文。本文只记录可能需要
+用户操作，或会影响现有数据的变更；普通依赖更新不在此列出。
+
+## 升级前
+
+- 备份 `$DSH_HOME` 或配置的数据目录。
+- 如果可能需要回滚，请使用独立的数据目录测试。部分迁移会原地改写数据。
+- 确认目标上游版本，并在首次启动前阅读对应条目。
+
+## `0.1.7-alpha.1`
+
+以下内容适用于升级到上游 `dsh-v0.1.7-alpha.1`。后续版本如果没有新的条目覆盖，
+也请继续注意这些行为。
+
+### Adapter 配置
+
+官方 DeepSeek adapter 不再读取 `protocol`。首次运行前，从现有 adapter 配置中删除
+这个键，并重新检查 Messages API 配置。
+
+### Session 日志
+
+Session 日志会在磁盘上迁移到 V4。这是一次原地数据迁移：
+
+- 首次启动可能会改写会话文件；
+- 回退到旧 Nix generation 只能恢复程序文件，不能恢复旧的会话格式；
+- 测试旧 generation 时，请恢复备份或使用独立的 `DSH_HOME`。
+
+### `settings.yaml` 与 managed profile
+
+`settings.yaml` 只导入一次。启动时会先把源文件改名为
+`settings.yaml.imported`，再写入新设置；之后即使源文件被覆盖，也不会再次导入。
+首次启动前请保留备份。
+
+在 `managed` profile 中，`cordis.patch.yml` 由 Nix 所有。需要持久化的值应通过
+`programs.dsh.profiles.<name>.patch` 声明；如果运行时 Settings 或 `dsh plugin` 的
+修改需要在 Nix 之外保留，请使用 `mode = "mutable"`。
+
+### Agent Preset
+
+对于 Nix 管理的 preset，alpha1 会在 profile patch 中生成
+`@deepseek-ai/dsh-agent-preset` 插件声明，不再把独立的 preset 目录复制到
+`$DSH_HOME/.agent-presets`。
+
+如果之前直接修改过这个目录，请将需要保留的配置迁移到
+`programs.dsh.agentPresets`、`profiles.<name>.agentPreset` 或 profile patch。不要再
+依赖 Nix 填充旧目录。
+
+### 语音输入
+
+语音输入会在首次使用时于运行时下载模型。本 flake 没有提供独立的 Nix 模型输出，
+也不会重定位上游插件的缓存目录。如果需要在重新生成 profile 或数据目录后保留模型，
+请保证缓存可写并纳入备份。只有同一运行用户成功下载模型后，才能按缓存实现离线使用。

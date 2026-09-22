@@ -3,6 +3,7 @@
   "pages": [
     "index",
     "getting-started",
+    "migration",
     "catalog",
     "nixos",
     "home-manager",
