@@ -150,7 +150,7 @@ let
             | .id = strenv(DSH_PRESET_ROW)
             | .config.id = strenv(DSH_PRESET_ID)
             | del(.config.name, .config.description, .config.order)
-            | [{insert: [ . ]}]
+            | [{"insert": [ . ]}]
           ' ${lib.escapeShellArg sourcePatch} > "$out"
         ${lib.optionalString (definition.name != null) ''
           DSH_PRESET_NAME=${lib.escapeShellArg definition.name} \
