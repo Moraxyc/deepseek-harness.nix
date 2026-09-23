@@ -30,13 +30,13 @@ let
 in
 buildDshBundle (finalAttrs: {
   pname = "dsh-plugin-subscriptions";
-  version = "0.9.3";
+  version = "0.9.4";
 
   src = fetchFromGitHub {
     owner = "V1ki";
     repo = "dsh-plugin-subscriptions";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-0PZeD1QjOuHEYV7hY1DPNN2CjaLWGZY5ykNmg7tBgt4=";
+    hash = "sha256-/VPBcmmN6/3hOBz2ASu84cIY0cNhnX6H/pZ+BxMmYLM=";
   };
 
   patches = [ ./alpha1-compat.patch ];
