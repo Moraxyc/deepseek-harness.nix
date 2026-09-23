@@ -6,6 +6,7 @@
     let
       bundleName = "dsh-bundle-helper-check";
       bundleSource = ./fixtures/bundle-helper-npm;
+      emptyCordisPatch = pkgs.writers.writeYAML "empty-cordis.patch.yml" [ ];
       bundle = pkgs.dsh.helpers.buildBundle (_finalAttrs: {
         pname = bundleName;
         version = "1.0.0";
@@ -122,8 +123,8 @@
           test "$(cat "$deployPackagePath/presets/extra.patch.yml")" = "app: extra"
 
           childPackagePath="$out/lib/node_modules/${workspaceDependencyName}"
-          test "$(tail -n 1 "$childPackagePath/cordis.patch.yml")" = "--- []"
-          test "$(tail -n 1 "$childPackagePath/presets/extra.patch.yml")" = "--- []"
+          cmp -- "$childPackagePath/cordis.patch.yml" ${emptyCordisPatch}
+          cmp -- "$childPackagePath/presets/extra.patch.yml" ${emptyCordisPatch}
         '';
 
         meta.description = "pnpm workspace bundle helper regression check";

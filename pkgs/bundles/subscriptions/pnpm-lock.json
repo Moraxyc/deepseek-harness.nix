@@ -33,6 +33,10 @@
           "specifier": "0.1.2-alpha.3",
           "version": "0.1.2-alpha.3(9856107a6511bd37694bb5d55ebb619c)"
         },
+        "@deepseek-ai/dsh-web": {
+          "specifier": "0.1.2-alpha.3",
+          "version": "0.1.2-alpha.3(@deepseek-ai/cordis@4.0.2)(@deepseek-ai/dsh-invariants@0.1.2-alpha.3(@deepseek-ai/cordis@4.0.2))(@deepseek-ai/dsh-llm@0.1.2-alpha.3(@deepseek-ai/cordis@4.0.2)(@deepseek-ai/dsh-invariants@0.1.2-alpha.3(@deepseek-ai/cordis@4.0.2)))"
+        },
         "@deepseek-ai/schemastery": {
           "specifier": "^3.18.1",
           "version": "3.18.2"
@@ -52,6 +56,10 @@
         "react": {
           "specifier": "^18.2.0",
           "version": "18.3.1"
+        },
+        "react-dom": {
+          "specifier": "^18.2.0",
+          "version": "18.3.1(react@18.3.1)"
         },
         "tsdown": {
           "specifier": "^0.15.0",
@@ -394,6 +402,16 @@
         "@deepseek-ai/dsh-invariants": "^0.1.2-alpha.3"
       }
     },
+    "@deepseek-ai/dsh-web@0.1.2-alpha.3": {
+      "resolution": {
+        "integrity": "sha512-+wiE4l1FtVMmMyq8ktILcib3SyhsZcmJmcUpdbPEt2inVMrMdBQO7cMJM8PkfxZFp1a4DniHs/l2kbLlBnSWRw=="
+      },
+      "peerDependencies": {
+        "@deepseek-ai/cordis": "^4.0.2",
+        "@deepseek-ai/dsh-invariants": "^0.1.2-alpha.3",
+        "@deepseek-ai/dsh-llm": "^0.1.2-alpha.3"
+      }
+    },
     "@deepseek-ai/schemastery@3.18.2": {
       "resolution": {
         "integrity": "sha512-njDtZsznjYxok7KLLlHOPyuv2efdWVbSflAHgztSfbMsg+CVraEoRe2DjOCgClYv3ZCSm7WXoaUkbB/+RY7tWQ=="
@@ -689,9 +707,6 @@
       ],
       "os": [
         "linux"
-      ],
-      "libc": [
-        "glibc"
       ]
     },
     "@rolldown/binding-linux-arm64-musl@1.0.0-beta.45": {
@@ -706,9 +721,6 @@
       ],
       "os": [
         "linux"
-      ],
-      "libc": [
-        "musl"
       ]
     },
     "@rolldown/binding-linux-x64-gnu@1.0.0-beta.45": {
@@ -723,9 +735,6 @@
       ],
       "os": [
         "linux"
-      ],
-      "libc": [
-        "glibc"
       ]
     },
     "@rolldown/binding-linux-x64-musl@1.0.0-beta.45": {
@@ -740,9 +749,6 @@
       ],
       "os": [
         "linux"
-      ],
-      "libc": [
-        "musl"
       ]
     },
     "@rolldown/binding-openharmony-arm64@1.0.0-beta.45": {
@@ -2033,6 +2039,14 @@
       "dependencies": {
         "@deepseek-ai/cordis": "4.0.2",
         "@deepseek-ai/dsh-invariants": "0.1.2-alpha.3(@deepseek-ai/cordis@4.0.2)"
+      }
+    },
+    "@deepseek-ai/dsh-web@0.1.2-alpha.3(@deepseek-ai/cordis@4.0.2)(@deepseek-ai/dsh-invariants@0.1.2-alpha.3(@deepseek-ai/cordis@4.0.2))(@deepseek-ai/dsh-llm@0.1.2-alpha.3(@deepseek-ai/cordis@4.0.2)(@deepseek-ai/dsh-invariants@0.1.2-alpha.3(@deepseek-ai/cordis@4.0.2)))": {
+      "dependencies": {
+        "@deepseek-ai/cordis": "4.0.2",
+        "@deepseek-ai/dsh-invariants": "0.1.2-alpha.3(@deepseek-ai/cordis@4.0.2)",
+        "@deepseek-ai/dsh-llm": "0.1.2-alpha.3(@deepseek-ai/cordis@4.0.2)(@deepseek-ai/dsh-invariants@0.1.2-alpha.3(@deepseek-ai/cordis@4.0.2))",
+        "@deepseek-ai/schemastery": "3.18.2"
       }
     },
     "@deepseek-ai/schemastery@3.18.2": {
