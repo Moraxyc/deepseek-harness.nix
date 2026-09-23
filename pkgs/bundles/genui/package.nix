@@ -15,8 +15,8 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   src = fetchFromGitHub {
     owner = "omdsh-dev";
     repo = "dsh-genui";
-    rev = "05aa8226409f6e9a585b2cb3a1ce57175a7331d7";
-    hash = "sha256-XUYZe34H1h5OlD2OENoM9Nkddmkr1S0rc5VwItCSEJU=";
+    rev = "6a30de34200ed559646fff27bc2872d9b40a914c";
+    hash = "sha256-qsx4Yz4BWdiiHX/jabSqAQ26zFNTnH1S4OI5Xfw6dL0=";
   };
 
   pnpmDepsHash = "sha256-lSEwqBCB0x7Hyoqz4HIzprJniO9rGUJum8VzpYkpfOo=";
