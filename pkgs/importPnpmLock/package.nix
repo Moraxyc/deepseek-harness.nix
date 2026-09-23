@@ -567,6 +567,12 @@ lib.extendMkDerivation {
       name = "${finalAttrs.pname}-${finalAttrs.version}";
 
       inherit (upstream) installPhase fixupPhase;
+      inherit (upstream)
+        fetcherVersion
+        pnpm
+        pnpmInstallFlags
+        prePnpmInstall
+        ;
       nativeBuildInputs = nativeBuildInputs';
 
       src = source;

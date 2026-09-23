@@ -89,8 +89,33 @@ else
 fi
 mv "$tmp_dir/pnpm-workspace.json" "$repo_root/pkgs/dsh-workspace/pnpm-workspace.json"
 
-new_deps="$(nix build --no-link --print-out-paths ".#$attr.pnpmDeps")"
-new_hash="$(nix hash path --type sha256 "$new_deps")"
+fetch_output=""
+fetch_status=0
+fetch_output="$(
+  nix build --impure --no-link --print-out-paths --expr '
+    let
+      flake = builtins.getFlake (toString ./.);
+      package = flake.packages.${builtins.currentSystem}.dsh-workspace;
+    in
+    package.passthru.fetchPnpmDeps
+  ' 2>&1
+)" || fetch_status=$?
+
+if [ "$fetch_status" -eq 0 ]; then
+  fetch_path="$(printf '%s\n' "$fetch_output" | tail -n1)"
+  new_hash="$(nix hash path --type sha256 "$fetch_path")"
+else
+  new_hash="$(
+    printf '%s\n' "$fetch_output" |
+      sed -n 's/.*got:[[:space:]]*\(sha256-[A-Za-z0-9+/=]*\).*/\1/p' |
+      tail -n1
+  )"
+  if [ -z "$new_hash" ]; then
+    printf '%s\n' "$fetch_output" >&2
+    printf 'dsh-workspace: could not determine fetchPnpmDeps output hash\n' >&2
+    exit 1
+  fi
+fi
 
 EXPECTED_PNPM_HASH="$new_hash" nix build --impure --no-link --print-out-paths --expr '
   let
@@ -102,4 +127,4 @@ EXPECTED_PNPM_HASH="$new_hash" nix build --impure --no-link --print-out-paths --
   })
 ' >/dev/null
 
-printf 'dsh-workspace: pnpmDeps matches fetchPnpmDeps (%s)\n' "$new_hash"
+printf 'dsh-workspace: fetchPnpmDeps verified (%s)\n' "$new_hash"
