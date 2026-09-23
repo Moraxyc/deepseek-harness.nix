@@ -33,6 +33,10 @@
           "specifier": "0.1.2-alpha.3",
           "version": "0.1.2-alpha.3(9856107a6511bd37694bb5d55ebb619c)"
         },
+        "@deepseek-ai/dsh-web": {
+          "specifier": "0.1.2-alpha.3",
+          "version": "0.1.2-alpha.3(@deepseek-ai/cordis@4.0.2)(@deepseek-ai/dsh-invariants@0.1.2-alpha.3(@deepseek-ai/cordis@4.0.2))(@deepseek-ai/dsh-llm@0.1.2-alpha.3(@deepseek-ai/cordis@4.0.2)(@deepseek-ai/dsh-invariants@0.1.2-alpha.3(@deepseek-ai/cordis@4.0.2)))"
+        },
         "@deepseek-ai/schemastery": {
           "specifier": "^3.18.1",
           "version": "3.18.2"

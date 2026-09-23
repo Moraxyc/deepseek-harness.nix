@@ -31,7 +31,7 @@ yq -o=json '
   .importers.".".devDependencies |= with_entries(
     select(
       (.key | test("^@deepseek-ai/") | not)
-      or (.key | test("@deepseek-ai/(cordis|dsh-attachment|dsh-home-paths|dsh-llm|dsh-tools|schemastery)"))
+      or (.key | test("@deepseek-ai/(cordis|dsh-attachment|dsh-home-paths|dsh-llm|dsh-tools|dsh-web|schemastery)"))
     )
   )
 ' "$src/pnpm-lock.yaml" > "$tmp_dir/pnpm-lock.json"
