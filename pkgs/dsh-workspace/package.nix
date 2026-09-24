@@ -45,9 +45,6 @@ buildNpmPackage (finalAttrs: {
 
   patches = [
     ./desktop-nix-profile.patch
-    # Nix carries the primary runtime in the application resources; use it
-    # directly instead of copying it into the user's Harness home.
-    ./desktop-office-runtime.patch
     # The prebuilt require-builtin addon only accepts upstream Electron builds, so
     # the desktop host reads Node internals through `--expose-internals` instead.
     ./expose-internals-loader.patch
