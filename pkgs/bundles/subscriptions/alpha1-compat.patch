@@ -1,8 +1,8 @@
 diff --git a/src/auth/rpc.ts b/src/auth/rpc.ts
-index ba2d648..52d9afb 100644
+index de37f04..75e4866 100644
 --- a/src/auth/rpc.ts
 +++ b/src/auth/rpc.ts
-@@ -244,7 +244,11 @@ function serverResponse(rpcId: string, result: RpcResult<unknown>): Response {
+@@ -253,7 +253,11 @@ function serverResponse(rpcId: string, result: RpcResult<unknown>): Response {
   * `rpc.call('/api', 'subscriptions-auth.<endpoint>', payload)` keeps working
   * unchanged on the browser side.
   */
@@ -15,7 +15,7 @@ index ba2d648..52d9afb 100644
    const method = `${SUBSCRIPTIONS_AUTH_PREFIX}${endpoint}`
    return {
      path: `/api/${method}`,
-@@ -278,7 +282,7 @@ function fetchRouteFor(endpoint: string, handler: ConnectionRpcHandler): FetchRo
+@@ -287,7 +291,7 @@ function fetchRouteFor(endpoint: string, handler: ConnectionRpcHandler): FetchRo
            },
          })
        }
@@ -24,7 +24,7 @@ index ba2d648..52d9afb 100644
      },
    }
  }
-@@ -624,7 +628,7 @@ export function registerAuthRpc(
+@@ -633,7 +637,7 @@ export function registerAuthRpc(
      const register = connection.fetch.register as unknown as FetchRegisterCompat
      for (const endpoint of SUBSCRIPTIONS_AUTH_ENDPOINTS) {
        ctx.effect(
@@ -34,7 +34,7 @@ index ba2d648..52d9afb 100644
        )
      }
 diff --git a/src/client/ImageGenerateToolview.tsx b/src/client/ImageGenerateToolview.tsx
-index b09c4f7..6715012 100644
+index b09c4f7..fa27e45 100644
 --- a/src/client/ImageGenerateToolview.tsx
 +++ b/src/client/ImageGenerateToolview.tsx
 @@ -16,7 +16,7 @@
@@ -46,7 +46,18 @@ index b09c4f7..6715012 100644
  import { ImageGallery } from './ImageGallery.js'
  import type { ImageAttachmentRef, ImageLoader, MessageImageLabels } from './ImageGallery.js'
  import { callSubscriptionsAuth } from './subscriptions-rpc.js'
-@@ -182,7 +182,7 @@ export function ImageGenerateToolview(props: ImageGenerateToolviewProps) {
+@@ -162,7 +162,9 @@ export function ImageGenerateToolview(props: ImageGenerateToolviewProps) {
+   const t = props.t ?? fallbackTranslate
+   if (block === undefined) return null
+   const settled = 'kind' in block
+-  const argsRaw = (settled ? block.call?.argsRaw : block.argsRaw) ?? ''
++  const argsRaw = 'kind' in block
++    ? (block.call?.argsRaw ?? '')
++    : ('argsRaw' in block ? block.argsRaw : '')
+   let references = 0
+   try {
+     const args = JSON.parse(argsRaw)
+@@ -182,7 +184,7 @@ export function ImageGenerateToolview(props: ImageGenerateToolviewProps) {
    return (
      <div style={styles.container}>
        <div style={styles.row}>
@@ -87,7 +98,7 @@ index f9afb68..1dc65ef 100644
              </span>
            </div>
 diff --git a/src/client/VideoGenerateToolview.tsx b/src/client/VideoGenerateToolview.tsx
-index 25813ca..b4e4b65 100644
+index 25813ca..51ce281 100644
 --- a/src/client/VideoGenerateToolview.tsx
 +++ b/src/client/VideoGenerateToolview.tsx
 @@ -17,7 +17,7 @@ import { useEffect, useState } from 'react'
@@ -99,7 +110,16 @@ index 25813ca..b4e4b65 100644
  import { callSubscriptionsAuth } from './subscriptions-rpc.js'
  import { en } from './locales.js'
  import type { SubscriptionsKey } from './locales.js'
-@@ -206,7 +206,7 @@ export function VideoGenerateToolview(props: VideoGenerateToolviewProps) {
+@@ -200,13 +200,15 @@ export function VideoGenerateToolview(props: VideoGenerateToolviewProps) {
+   }, [fileName, loadVideo])
+ 
+   if (block === undefined) return null
+-  const argsRaw = (settled ? block.call?.argsRaw : block.argsRaw) ?? ''
++  const argsRaw = 'kind' in block
++    ? (block.call?.argsRaw ?? '')
++    : ('argsRaw' in block ? block.argsRaw : '')
+   const title = `video_generate: ${derivePrompt(argsRaw)}`
+   const text = settled ? resultText(block) : ''
    return (
      <div style={styles.container}>
        <div style={styles.row}>
