@@ -25,7 +25,7 @@ let
 in
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
-  version = "0.1.7-alpha.2";
+  version = "0.1.7-rc.1";
 
   __structuredAttrs = true;
   strictDeps = true;
@@ -40,14 +40,11 @@ buildNpmPackage (finalAttrs: {
     owner = "deepseek-ai";
     repo = "deepseek-harness";
     tag = "dsh-v${finalAttrs.version}";
-    hash = "sha256-Fgc2qYdmMghr6f1zqIjTSNETjJ1PtLhVCBoqrNhuJsA=";
+    hash = "sha256-jMeqaZciPJJtZ4n/pxKZ/VkCpB+F8NpolQxv7VSki6U=";
   };
 
   patches = [
     ./desktop-nix-profile.patch
-    # Nix carries the primary runtime in the application resources; use it
-    # directly instead of copying it into the user's Harness home.
-    ./desktop-office-runtime.patch
     # The prebuilt require-builtin addon only accepts upstream Electron builds, so
     # the desktop host reads Node internals through `--expose-internals` instead.
     ./expose-internals-loader.patch
@@ -58,7 +55,7 @@ buildNpmPackage (finalAttrs: {
   ];
 
   env = {
-    DSH_CLIENT_COMMIT_HASH = "00102833dfaee1da9f48a3a8eae9d34005a75218";
+    DSH_CLIENT_COMMIT_HASH = "46a7f68b0922371ce7144b668b90e377d8e799f4";
     PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = "false";
     # Rendered at evaluation time so the workspace patch hook does not have to
     # re-parse pnpm-workspace.yaml in the build sandbox.

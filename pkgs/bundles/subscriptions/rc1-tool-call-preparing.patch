@@ -1,0 +1,26 @@
+diff --git a/src/client/ImageGenerateToolview.tsx b/src/client/ImageGenerateToolview.tsx
+--- a/src/client/ImageGenerateToolview.tsx
++++ b/src/client/ImageGenerateToolview.tsx
+@@ -162,7 +162,9 @@ export function ImageGenerateToolview(props: ImageGenerateToolviewProps) {
+   if (block === undefined) return null
+   const settled = 'kind' in block
+-  const argsRaw = (settled ? block.call?.argsRaw : block.argsRaw) ?? ''
++  const argsRaw = 'kind' in block
++    ? (block.call?.argsRaw ?? '')
++    : ('argsRaw' in block ? block.argsRaw : '')
+   let references = 0
+   try {
+     const args = JSON.parse(argsRaw)
+diff --git a/src/client/VideoGenerateToolview.tsx b/src/client/VideoGenerateToolview.tsx
+--- a/src/client/VideoGenerateToolview.tsx
++++ b/src/client/VideoGenerateToolview.tsx
+@@ -200,7 +200,9 @@ export function VideoGenerateToolview(props: VideoGenerateToolviewProps) {
+ 
+   if (block === undefined) return null
+-  const argsRaw = (settled ? block.call?.argsRaw : block.argsRaw) ?? ''
++  const argsRaw = 'kind' in block
++    ? (block.call?.argsRaw ?? '')
++    : ('argsRaw' in block ? block.argsRaw : '')
+   const title = `video_generate: ${derivePrompt(argsRaw)}`
+   const text = settled ? resultText(block) : ''
+   return (
