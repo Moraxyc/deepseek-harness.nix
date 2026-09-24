@@ -114,6 +114,14 @@ buildNpmPackage (finalAttrs: {
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build:official";
 
+  # build:lib:host bundles all workspace packages in one concurrent tsdown pass,
+  # so the desktop main bundle resolves its workspace devDependencies before
+  # their lib/index.js exists and leaves them as imports that the --prod deploy
+  # does not ship. Rebuild it with the same config once those outputs exist.
+  postBuild = ''
+    pnpm exec tsdown --env.DSH_BUILD_FACE host --filter @deepseek-ai/dsh-desktop
+  '';
+
   # node-pty's postinstall can't run before deploy assembles the composition.
   preInstall = ''
     pnpm config set --location=project inject-workspace-packages true
