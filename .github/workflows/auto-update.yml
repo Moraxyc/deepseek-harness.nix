@@ -59,6 +59,7 @@ jobs:
                 packages = builtins.filter (
                   name:
                   name != "pnpmWorkspaceDeploy"
+                  && name != "dsh-desktop"
                   && isBuildable (builtins.getAttr name packageSet)
                   && hasUpdateScript (builtins.getAttr name packageSet)
                 ) (builtins.attrNames packageSet);
