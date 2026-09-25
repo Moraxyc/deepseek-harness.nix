@@ -32,12 +32,12 @@
     "msgpackr-extract": false
   },
   "minimumReleaseAgeExclude": [
-    "@deepseek-ai/libreoffice-kit@0.1.0",
-    "@deepseek-ai/libreoffice-kit-darwin-arm64@0.1.0",
-    "@deepseek-ai/libreoffice-kit-darwin-x64@0.1.0",
-    "@deepseek-ai/libreoffice-kit-win32-arm64@0.1.0",
-    "@deepseek-ai/libreoffice-kit-win32-x64@0.1.0",
-    "@deepseek-ai/libreoffice-kit-wasm@0.1.0",
+    "@deepseek-ai/libreoffice-kit@0.1.1",
+    "@deepseek-ai/libreoffice-kit-darwin-arm64@0.1.1",
+    "@deepseek-ai/libreoffice-kit-darwin-x64@0.1.1",
+    "@deepseek-ai/libreoffice-kit-win32-arm64@0.1.1",
+    "@deepseek-ai/libreoffice-kit-win32-x64@0.1.1",
+    "@deepseek-ai/libreoffice-kit-wasm@0.1.1",
     "@earendil-works/pi-ai@0.85.1",
     "@earendil-works/pi-telemetry@0.85.1",
     "node-addon-native-custom-loader@0.1.6",
