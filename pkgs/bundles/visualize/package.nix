@@ -8,18 +8,18 @@
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-visualize";
-  version = "0-unstable-2026-09-18";
+  version = "0-unstable-2026-09-25";
   deployPackage = "@nagi-ovo/dsh-visualize";
   linkKernelNodeModules = dsh-kernel;
 
   src = fetchFromGitHub {
     owner = "Nagi-ovo";
     repo = "dsh-visualize";
-    rev = "51ac8abcf4e9c60aa1d7c6b066b3aa0040c8b17d";
-    hash = "sha256-8g712v/ODu8z7tQkEluiezcKu14gg5ytgFTpCPG7t3M=";
+    rev = "d9039f1de5f5015a1597d028c0d799534429d9e6";
+    hash = "sha256-yaqp+LFNkMsEieh3id3zDf/wnDHACX2PetYHEMuir+g=";
   };
 
-  pnpmDepsHash = "sha256-I6NFypU/IfZ9ZWPxjP/rjh7qaXpKjfAaA/WnGFZ7xpo=";
+  pnpmDepsHash = "sha256-0Y4KiZrZM8cpYX7jlfdc6HccuAeT0u00cJOq5sMmqpE=";
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
