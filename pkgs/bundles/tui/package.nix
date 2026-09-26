@@ -11,22 +11,18 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-tui";
-  version = "0.10.2";
+  version = "0.11.0";
 
   src = fetchFromGitHub {
     owner = "ccch1mneyyy";
     repo = "dsh-TUI";
     rev = "refs/tags/v${finalAttrs.version}";
     fetchSubmodules = true;
-    hash = "sha256-T72vxORTOrHK1O18xSw0OvIw+CFrI4Tm7Hh+PF592Qk=";
+    hash = "sha256-yEFk4s3Q4AjB6I/DtBTJnabB5Qeof4nL3vE0PZkRfl0=";
   };
 
-  # Fixed settle windows race the render while the sandbox builds every bundle
-  # at once; both patches wait for the state the probes read.
-  patches = [
-    ./plugin-host-contract-wait.patch
-    ./btw-side-question-settle.patch
-  ];
+  # The side-question probe still needs its render-settle patch.
+  patches = [ ./btw-side-question-settle.patch ];
 
   postPatch = ''
     chmod -R u+w vendor/dsh-std dsh-ecosystem-spec dsh-auth
@@ -47,10 +43,6 @@ buildDshBundle (finalAttrs: {
         "const status = execFileSync('git', ['-C', specGitDir, 'status', '--short'], { encoding: 'utf8' }).trim()" \
         "const status = \"\""
 
-    substituteInPlace scripts/verify-plugin-messages.ts \
-      --replace-fail \
-        "await sleep(50)" \
-        "await new Promise<void>((resolve, reject) => { const deadline = Date.now() + 5000; const poll = () => { if (hostCtx.get('tuiPluginHost')?.hostDescriptor().contracts.some(contract => contract.kind === 'MessageObserver')) resolve(); else if (Date.now() >= deadline) reject(new Error('message observer live verification timed out: ' + hostWarnings.join(' | '))); else setTimeout(poll, 10) }; poll() })"
   '';
 
   # Static imports initialize i18n before the verification script can set its
@@ -74,7 +66,7 @@ buildDshBundle (finalAttrs: {
         --frozen-lockfile \
         --registry="$NIX_NPM_REGISTRY"
     '';
-    hash = "sha256-4mofbG3NAH5XG/bOEkiB7msYWmvG04QAO/nxiIV2mww=";
+    hash = "sha256-Ksdvr35vAN8bcUNhStCanShtirXuFGg55BjlmP2IQA8=";
   };
 
   nativeBuildInputs = [ pnpm_11 ];
