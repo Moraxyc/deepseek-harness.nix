@@ -8,18 +8,18 @@
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-ads";
-  version = "0-unstable-2026-09-18";
+  version = "0-unstable-2026-09-25";
   deployPackage = "@nagi-ovo/dsh-ads";
   linkKernelNodeModules = dsh-kernel;
 
   src = fetchFromGitHub {
     owner = "Nagi-ovo";
     repo = "dsh-ads";
-    rev = "7cbc5e5c937a8eb22c6e0169b61ff3298ab0fb58";
-    hash = "sha256-99eKwCxVq+HrZLIB25OuhTg3L4Ax4ym6xOJnyS4FXXU=";
+    rev = "86b1340c9ec3db32cc33a3cebfb8c9aa8a717ee0";
+    hash = "sha256-7bw/L/EjXT6xuvxuNnO+C75LPv8wAib4MelJlXp1s/8=";
   };
 
-  pnpmDepsHash = "sha256-+jPabCkXJJET99D/WBr34fMVaxwQbudGRA/AjSokAWk=";
+  pnpmDepsHash = "sha256-OqSxOpr6jrmIQ/t1x2+sHbAWkuzyJMofnN2AaUt4P1E=";
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
