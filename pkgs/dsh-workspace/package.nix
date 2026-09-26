@@ -25,7 +25,7 @@ let
 in
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
-  version = "0.1.7-rc.1";
+  version = "0.1.7-rc.2";
 
   __structuredAttrs = true;
   strictDeps = true;
@@ -40,7 +40,7 @@ buildNpmPackage (finalAttrs: {
     owner = "deepseek-ai";
     repo = "deepseek-harness";
     tag = "dsh-v${finalAttrs.version}";
-    hash = "sha256-jMeqaZciPJJtZ4n/pxKZ/VkCpB+F8NpolQxv7VSki6U=";
+    hash = "sha256-bWeyipPsY5KclNGJPIttZ9CKRXCqkNIoKmK8VKN7FnI=";
   };
 
   patches = [
@@ -55,7 +55,7 @@ buildNpmPackage (finalAttrs: {
   ];
 
   env = {
-    DSH_CLIENT_COMMIT_HASH = "46a7f68b0922371ce7144b668b90e377d8e799f4";
+    DSH_CLIENT_COMMIT_HASH = "477b4f420553e8a52c2fbccc464d7561b239c443";
     PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = "false";
     # Rendered at evaluation time so the workspace patch hook does not have to
     # re-parse pnpm-workspace.yaml in the build sandbox.
@@ -113,14 +113,6 @@ buildNpmPackage (finalAttrs: {
   npmInstallFlags = finalAttrs.pnpmDeps.passthru.pnpmInstallFlags;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build:official";
-
-  # build:lib:host bundles all workspace packages in one concurrent tsdown pass,
-  # so the desktop main bundle resolves its workspace devDependencies before
-  # their lib/index.js exists and leaves them as imports that the --prod deploy
-  # does not ship. Rebuild it with the same config once those outputs exist.
-  postBuild = ''
-    pnpm exec tsdown --env.DSH_BUILD_FACE host --filter @deepseek-ai/dsh-desktop
-  '';
 
   # node-pty's postinstall can't run before deploy assembles the composition.
   preInstall = ''

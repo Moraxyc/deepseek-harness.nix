@@ -82,7 +82,9 @@ stdenv.mkDerivation (finalAttrs: {
   buildPhase = ''
     runHook preBuild
 
-    yarn build
+    # The root build resolves dshmarket@latest from npm, outside the lockfile.
+    yarn workspace dsh-community-market build
+    yarn workspace dsh-plugin-desktop build
 
     jq '.workspaces = ["dsh-plugin-desktop", "dsh-community-market"]' \
       package.json > package.json.tmp
