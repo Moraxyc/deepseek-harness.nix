@@ -10,7 +10,7 @@
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-web-ui";
-  version = "0.4.2";
+  version = "0.4.3";
   deployPackage = "@linxin666/dsh-web-all";
   stripPrepareScripts = true;
   disableChildBundlePatches = true;
@@ -20,7 +20,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     owner = "zhu1090093659";
     repo = "dsh-web-ui";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-TD4FoxdSvPwhumLoYD/ewY+tUNMBnOhnZCXwSQVwaz8=";
+    hash = "sha256-OcBjPojImeDw/VHfoRSldP3hRfOEf5BnMG7DWVZlrH8=";
   };
 
   postPatch = ''
