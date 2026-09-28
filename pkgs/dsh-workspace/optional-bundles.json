@@ -1,0 +1,30 @@
+{
+  "@deepseek-ai/dsh-experimental-agent-team-profile": {
+    "attr": "experimental-agent-team-profile",
+    "pname": "dsh-experimental-agent-team-profile",
+    "description": "Enable team collaboration, team tools, the member roster, and the shared task board.",
+    "descriptionZh": "启用团队协作、团队工具、成员列表和共享任务看板。",
+    "requiresWeb": true
+  },
+  "@deepseek-ai/dsh-experimental-auto-review": {
+    "attr": "experimental-auto-review",
+    "pname": "dsh-experimental-auto-review",
+    "description": "Add an Auto review permission mode that uses the model to assess authorization before each tool call.",
+    "descriptionZh": "提供自动审查权限模式，由模型在每次工具调用前判断是否授权。",
+    "requiresWeb": false
+  },
+  "@deepseek-ai/dsh-experimental-schedule-bundle": {
+    "attr": "experimental-schedule-bundle",
+    "pname": "dsh-experimental-schedule-bundle",
+    "description": "Run tasks in your sessions at a set time or on a repeating schedule.",
+    "descriptionZh": "按设定的时间或周期，在会话中自动执行任务。",
+    "requiresWeb": true
+  },
+  "@deepseek-ai/dsh-experimental-voice-input-bundle": {
+    "attr": "experimental-voice-input-bundle",
+    "pname": "dsh-experimental-voice-input-bundle",
+    "description": "Transcribe recordings locally with SenseVoice; first use requires installing dependencies",
+    "descriptionZh": "在本机使用 SenseVoice 转写录音，首次使用需安装依赖。",
+    "requiresWeb": true
+  }
+}

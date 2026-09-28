@@ -379,6 +379,15 @@ pkgs.dsh.dsh.withBundles (b: with b; [
 因此生成的 profile 会随这次组合同步。所有 bundle 按列表顺序应用，后面的
 bundle 会覆盖前面 bundle 的 Cordis 配置；基础层固定在最前面。
 
+### 随包携带但默认关闭的 Bundle
+
+每个组合都会像 npm 安装一样携带上游的 `OPTIONAL_BUNDLES`，即
+`pkgs.dsh.bundles.experimental-*`。没有 profile 选中它们，但每个 profile 都能
+解析，插件管理页在官方分组中列出它们，由使用者自行启用。这份集合由固定的上游
+源码决定，无法通过 Nix 删减或扩充，因此每个安装都包含它们的闭包。
+
+把其中某个写进 profile 的 `bundles`，则由 Nix 直接参与组合。
+
 ## 覆盖
 
 preset 通过 `override` 设置其他包输入。`withAgentPresets` 按 ID 合并 preset

@@ -89,6 +89,9 @@ else
 fi
 mv "$tmp_dir/pnpm-workspace.json" "$repo_root/pkgs/dsh-workspace/pnpm-workspace.json"
 
+# The optional bundle set tracks the source; nothing per-bundle to maintain.
+"$repo_root/scripts/generate-optional-bundles.sh" "$src"
+
 fetch_output=""
 fetch_status=0
 fetch_output="$(

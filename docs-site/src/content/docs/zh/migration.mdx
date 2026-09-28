@@ -25,8 +25,8 @@ description: 上游 DeepSeek Harness 变更带来的用户操作与兼容性注�
 ### Schedule
 
 上游把 Schedule、其任务页面和时间上下文从默认 Web 组合移出，改为可选 bundle
-`@deepseek-ai/dsh-experimental-schedule-bundle`。本 flake 不提供上游的可选 bundle，
-因此这里没有 Schedule。
+`@deepseek-ai/dsh-experimental-schedule-bundle`。每个组合都随包携带它且默认关闭，
+在插件管理页启用即可恢复 Schedule。
 
 ### Session 日志上传
 

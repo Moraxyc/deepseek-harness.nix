@@ -72,6 +72,34 @@ let
   };
   dsh = final.lib.makeScope final.newScope (
     self:
+    let
+      # packagesFromDirectoryRecursive returns its own scope, which pkgs/ resolve
+      # arguments from, so upstream's switched-off bundles join `bundles` there.
+      directoryPackages =
+        (final.lib.packagesFromDirectoryRecursive {
+          callPackage = self.callPackage;
+          newScope = self.newScope;
+          directory = ../pkgs;
+        }).overrideScope
+          (
+            dirFinal: dirPrev: {
+              bundles = dirPrev.bundles.overrideScope (
+                _: prev:
+                let
+                  generated = import ../lib/dsh-optional-bundles.nix {
+                    inherit (final) lib;
+                    inherit buildDshBundle;
+                    inherit (dirFinal) dsh-kernel dsh-workspace;
+                  };
+                  collisions = final.lib.attrNames (final.lib.intersectAttrs generated prev);
+                in
+                final.lib.throwIf (collisions != [ ])
+                  "dsh optional bundles collide with pkgs/bundles: ${final.lib.concatStringsSep ", " collisions}"
+                  generated
+              );
+            }
+          );
+    in
     {
       # Only the dsh package set gets the release-age opt-out. Exporting the
       # wrapped fetcher at the nixpkgs top level would change every unrelated
@@ -90,11 +118,7 @@ let
       mkDshBundle = buildDshBundle;
       dsh-desktop = self.dsh-desktop-unofficial;
     }
-    // final.lib.packagesFromDirectoryRecursive {
-      callPackage = self.callPackage;
-      newScope = self.newScope;
-      directory = ../pkgs;
-    }
+    // directoryPackages
   );
 in
 {

@@ -81,6 +81,14 @@ let
   headlessBundle = bundles.headless;
   tuiBundle = bundles.tui;
   webBundle = bundles.web-app;
+  # Upstream's OPTIONAL_BUNDLES ship in every composition, switched off: every
+  # profile resolves them, none selects them, and only the user enables them in
+  # the plugin manager. Like upstream, the set is fixed and cannot be removed.
+  validatedOptionalBundles = composition.validateBundles (
+    map (entry: bundles.${entry.attr}) (
+      lib.attrValues (lib.importJSON ../dsh-workspace/optional-bundles.json)
+    )
+  );
   profileArtifacts = profileSupport.mkProfileArtifacts {
     inherit agentPresets defaultBundles profiles;
     inherit defaultProfile homePatch;
@@ -241,6 +249,18 @@ stdenvNoCC.mkDerivation (finalAttrs: {
         ${lib.concatMapStringsSep " " (
           bundle: lib.escapeShellArg "${bundle}/nix-support/dsh-bundles.json"
         ) finalAttrs.passthru.composedBundles}
+      # Switched-off bundles join the app manifest, not the composed one.
+      optionalBundleManifest="$TMPDIR/dsh-optional-bundles.json"
+      printf '{"schema":1,"bundles":[]}\n' > "$optionalBundleManifest"
+    ''
+    + lib.optionalString (finalAttrs.passthru.switchedOffBundles != [ ]) ''
+      ${lib.getExe dshBundleResolver} merge \
+        "$optionalBundleManifest" \
+        ${lib.concatMapStringsSep " " (
+          bundle: lib.escapeShellArg "${bundle}/nix-support/dsh-bundles.json"
+        ) finalAttrs.passthru.switchedOffBundles}
+    ''
+    + ''
       # Profiles resolve through $DSH_HOME, so advertise every package mounted
       # by this installation to the profile module fallback.
       runtimeDependencies="$TMPDIR/dsh-runtime-dependencies.json"
@@ -255,8 +275,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
         mv "$runtimeDependencies.tmp" "$runtimeDependencies"
       done
       jq --slurpfile bundles "$out/nix-support/dsh-bundles.json" \
+        --slurpfile optionalBundles "$optionalBundleManifest" \
         --slurpfile runtimeDependencies "$runtimeDependencies" \
-        '.dependencies *= ($bundles[0].bundles | map({key: .name, value: .version}) | from_entries) | .dependencies *= $runtimeDependencies[0]' \
+        '.dependencies *= ([$optionalBundles[0].bundles, $bundles[0].bundles] | add | map({key: .name, value: .version}) | from_entries) | .dependencies *= $runtimeDependencies[0]' \
         "$appDir/package.json" > "$appDir/package.json.tmp"
       mv "$appDir/package.json.tmp" "$appDir/package.json"
 
@@ -302,6 +323,11 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   passthru = {
     inherit bundles defaultBundles;
 
+    optionalBundles = validatedOptionalBundles;
+
+    # Optional bundles a composition does not already select.
+    switchedOffBundles = lib.subtractLists finalAttrs.passthru.composedBundles finalAttrs.passthru.optionalBundles;
+
     config = builtins.removeAttrs compositionConfig [ "package" ];
 
     defaultProfileName = validatedDefaultProfile;
@@ -335,6 +361,10 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       # paths so a later Cordis layer also wins for overlapping runtime files.
       ++ (map (bundle: "${bundle}/lib/node_modules") (
         lib.reverseList finalAttrs.passthru.composedBundles
+      ))
+      # Switched-off bundles lose every name conflict to a selected bundle.
+      ++ (map (bundle: "${bundle}/lib/node_modules") (
+        lib.reverseList finalAttrs.passthru.switchedOffBundles
       ));
     };
 
@@ -354,6 +384,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     runtimeDeps = lib.unique (
       dsh-kernel.passthru.runtimeDeps
       ++ composition.runtimeDeps (lib.reverseList finalAttrs.passthru.composedBundles)
+      ++ composition.runtimeDeps (lib.reverseList finalAttrs.passthru.switchedOffBundles)
       ++ [ pnpmWorkspaceDeploy ]
     );
 

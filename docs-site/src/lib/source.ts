@@ -3,6 +3,7 @@ import { defineI18n } from "fumadocs-core/i18n";
 import { structure, type StructuredData } from "fumadocs-core/mdx-plugins";
 import { loader, type StaticSource } from "fumadocs-core/source";
 import * as path from "node:path";
+import { catalog } from "@/data/catalog";
 
 export type Locale = "en" | "zh";
 
@@ -26,10 +27,77 @@ export const source = loader({
   },
 });
 
+/** The page whose tables are rendered from generated data instead of its body. */
+const catalogSlug = "catalog";
+
+/**
+ * Search rows for one page: its MDX body, plus the catalog entries that the
+ * page renders from generated data, which the body never carries.
+ * @param entry - the page's content entry.
+ * @param locale - the page's locale, which selects the description language.
+ * @returns the page's structured data for the search index.
+ */
 export function getStructuredData(
   entry: CollectionEntry<"docs">,
+  locale: Locale,
 ): StructuredData {
-  return structure(entry.body ?? "");
+  const body = structure(entry.body ?? "");
+  if (entry.id.split("/").pop() !== catalogSlug) return body;
+  return {
+    headings: body.headings,
+    contents: [
+      ...body.contents,
+      ...structure(catalogParagraphs(locale).join("\n\n")).contents,
+    ],
+  };
+}
+
+/** One paragraph per catalog row, in the order the page lists them. */
+function catalogParagraphs(locale: Locale): string[] {
+  const descriptionOf = (item: {
+    description: string | null;
+    descriptionZh: string | null;
+  }): string =>
+    (locale === "zh"
+      ? (item.descriptionZh ?? item.description)
+      : item.description) ?? "";
+
+  const row = (
+    identity: string,
+    detail: string,
+    description: string,
+    extra = "",
+  ): string =>
+    `${identity} (${detail})${description === "" ? "" : `: ${description}`}${extra}`;
+
+  return [
+    ...catalog.bundles.map((bundle) =>
+      row(
+        `bundles.${bundle.name}`,
+        [bundle.package, bundle.version]
+          .filter((part) => part !== null)
+          .join(" "),
+        descriptionOf(bundle),
+      ),
+    ),
+    ...catalog.presets.map((preset) =>
+      row(
+        `presets.${preset.name}`,
+        [
+          preset.package,
+          preset.defaultProfile === null
+            ? ""
+            : `default profile ${preset.defaultProfile}`,
+        ]
+          .filter((part) => part !== "")
+          .join(", "),
+        descriptionOf(preset),
+        preset.bundles.length === 0
+          ? ""
+          : ` Bundles: ${preset.bundles.join(" ")}`,
+      ),
+    ),
+  ];
 }
 
 async function createSource() {

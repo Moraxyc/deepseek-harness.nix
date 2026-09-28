@@ -398,6 +398,17 @@ with the runnable composition. Bundles are applied in list order, so a later
 bundle overrides an earlier bundle's Cordis configuration; the base layer is
 always first.
 
+### Bundles Shipped Switched Off
+
+Every composition ships upstream's `OPTIONAL_BUNDLES`, the
+`pkgs.dsh.bundles.experimental-*` entries, the same way an npm installation
+does. No profile selects them; every profile resolves them, and the plugin
+manager lists them in its official group for a person to switch on. The set is
+fixed by the pinned source and cannot be removed or extended from Nix, so every
+installation carries their closure.
+
+Listing one in a profile's `bundles` composes it as usual instead.
+
 ## Overrides
 
 Presets expose `override` for package inputs. Use `withAgentPresets` to merge
