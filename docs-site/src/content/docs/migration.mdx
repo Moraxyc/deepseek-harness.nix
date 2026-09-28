@@ -15,6 +15,38 @@ Routine dependency updates are not listed here.
 - Check the target upstream version and read its entry below before the first
   launch.
 
+## `0.2.0-rc.1`
+
+These notes apply when upgrading to upstream `dsh-v0.2.0-rc.1`. This is the
+first preview release of the 0.2 line, and upstream states that both product
+features and the plugin API keep changing. The `0.1.7-alpha.1` notes below still
+apply.
+
+### Preview notice
+
+The first Web launch after the upgrade shows the preview notice again, because
+upstream bumped its acknowledgement version to `2026-09-28.1`. The dialog is
+expected and does not indicate a failed upgrade.
+
+### Schedule
+
+Upstream moved Schedule, its task page, and the time context out of the default
+Web composition into the optional bundle
+`@deepseek-ai/dsh-experimental-schedule-bundle`. This flake does not ship
+optional bundles, so Schedule is unavailable here.
+
+### Session-log upload
+
+The official DeepSeek request field `dsh_session_log` now uploads through a
+byte-bounded OTLP channel whose endpoint is
+`dsh-otel-collector.deepseeksvc.com`, and its `enabled` flag became
+runtime-mutable instead of fixed at startup. It stays enabled by default.
+
+`DSH_TELEMETRY_DISABLED` still only disables the `session-telemetry-otel` row,
+so it does not stop this upload. Use the **Upload Session Log when using the
+official model API** switch in **Settings → General**, or set `enabled: false`
+in the plugin configuration.
+
 ## `0.1.7-alpha.1`
 
 These notes apply when upgrading to upstream `dsh-v0.1.7-alpha.1`. Keep them in

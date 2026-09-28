@@ -12,6 +12,32 @@ description: 上游 DeepSeek Harness 变更带来的用户操作与兼容性注�
 - 如果可能需要回滚，请使用独立的数据目录测试。部分迁移会原地改写数据。
 - 确认目标上游版本，并在首次启动前阅读对应条目。
 
+## `0.2.0-rc.1`
+
+以下内容适用于升级到上游 `dsh-v0.2.0-rc.1`。这是 0.2 系列的首个预览版，上游说明
+产品功能和插件 API 都会继续变化。下方 `0.1.7-alpha.1` 的内容同样适用。
+
+### 预览版说明
+
+升级后首次打开 Web 端会再次显示预览版说明，因为上游把确认版本提升到
+`2026-09-28.1`。该弹窗属于预期行为，不代表升级失败。
+
+### Schedule
+
+上游把 Schedule、其任务页面和时间上下文从默认 Web 组合移出，改为可选 bundle
+`@deepseek-ai/dsh-experimental-schedule-bundle`。本 flake 不提供上游的可选 bundle，
+因此这里没有 Schedule。
+
+### Session 日志上传
+
+官方 DeepSeek 请求字段 `dsh_session_log` 改为通过有字节上限的 OTLP 通道上传，端点为
+`dsh-otel-collector.deepseeksvc.com`；`enabled` 也从启动时固定改为运行时可变更。
+默认仍然开启。
+
+`DSH_TELEMETRY_DISABLED` 依旧只关闭 `session-telemetry-otel` 这一行，不会停止该上传。
+如需停止，请使用**设置 → 通用**中的**在使用官方模型 API 时上传 Session Log**开关，
+或在插件配置中设置 `enabled: false`。
+
 ## `0.1.7-alpha.1`
 
 以下内容适用于升级到上游 `dsh-v0.1.7-alpha.1`。后续版本如果没有新的条目覆盖，

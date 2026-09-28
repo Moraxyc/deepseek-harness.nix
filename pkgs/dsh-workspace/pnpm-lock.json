@@ -321,6 +321,10 @@
           "specifier": "workspace:*",
           "version": "link:../../packages/experimental/auto-review"
         },
+        "@deepseek-ai/dsh-experimental-schedule-bundle": {
+          "specifier": "workspace:*",
+          "version": "link:../../packages/experimental/schedule-bundle"
+        },
         "@deepseek-ai/dsh-experimental-voice-input-bundle": {
           "specifier": "workspace:*",
           "version": "link:../../packages/experimental/voice-input-bundle"
@@ -785,6 +789,10 @@
           "specifier": "workspace:*",
           "version": "link:../../packages/util/atomic-write"
         },
+        "@deepseek-ai/dsh-client-product-analytics": {
+          "specifier": "workspace:*",
+          "version": "link:../../packages/client/product-analytics"
+        },
         "@deepseek-ai/dsh-client-shortcuts": {
           "specifier": "workspace:*",
           "version": "link:../../packages/client/shortcuts"
@@ -874,7 +882,7 @@
           "version": "4.3.1"
         },
         "koffi": {
-          "specifier": "^3.1.0",
+          "specifier": "3.1.1",
           "version": "3.1.1"
         },
         "pnpm": {
@@ -1036,6 +1044,10 @@
         "@deepseek-ai/dsh-launch-environment": {
           "specifier": "workspace:*",
           "version": "link:../../packages/util/launch-environment"
+        },
+        "@deepseek-ai/dsh-llm-mock-server": {
+          "specifier": "workspace:*",
+          "version": "link:../../packages/test-support/llm-mock-server"
         },
         "@deepseek-ai/dsh-pwsh-local": {
           "specifier": "workspace:*",
@@ -1566,6 +1578,10 @@
         "@deepseek-ai/dsh-client-file-upload": {
           "specifier": "workspace:*",
           "version": "link:../../client/file-upload"
+        },
+        "@deepseek-ai/dsh-client-product-analytics": {
+          "specifier": "workspace:*",
+          "version": "link:../../client/product-analytics"
         },
         "@deepseek-ai/dsh-client-ui-plugin-manager": {
           "specifier": "workspace:*",
@@ -2641,6 +2657,10 @@
           "specifier": "workspace:*",
           "version": "link:../../mcp/mcp-resources"
         },
+        "@deepseek-ai/dsh-otel": {
+          "specifier": "workspace:*",
+          "version": "link:../../telemetry/otel"
+        },
         "@deepseek-ai/dsh-permission-presets": {
           "specifier": "workspace:*",
           "version": "link:../../interaction/permission-presets"
@@ -3185,6 +3205,10 @@
           "specifier": "workspace:*",
           "version": "link:../../client/modules"
         },
+        "@deepseek-ai/dsh-client-product-analytics": {
+          "specifier": "workspace:*",
+          "version": "link:../../client/product-analytics"
+        },
         "@deepseek-ai/dsh-client-resources": {
           "specifier": "workspace:*",
           "version": "link:../../client/resources"
@@ -3285,10 +3309,6 @@
           "specifier": "workspace:*",
           "version": "link:../../client/ui-renderer"
         },
-        "@deepseek-ai/dsh-client-ui-schedule": {
-          "specifier": "workspace:*",
-          "version": "link:../../client/ui-schedule"
-        },
         "@deepseek-ai/dsh-client-ui-session": {
           "specifier": "workspace:*",
           "version": "link:../../client/ui-session"
@@ -3320,6 +3340,10 @@
         "@deepseek-ai/dsh-client-ui-settings-plugins": {
           "specifier": "workspace:*",
           "version": "link:../../client/ui-settings-plugins"
+        },
+        "@deepseek-ai/dsh-client-ui-settings-session-log": {
+          "specifier": "workspace:*",
+          "version": "link:../../client/ui-settings-session-log"
         },
         "@deepseek-ai/dsh-client-ui-settings-shell": {
           "specifier": "workspace:*",
@@ -3453,6 +3477,10 @@
           "specifier": "workspace:*",
           "version": "link:../../host/plugin-inventory"
         },
+        "@deepseek-ai/dsh-host-product-telemetry-otel": {
+          "specifier": "workspace:*",
+          "version": "link:../../host/product-telemetry-otel"
+        },
         "@deepseek-ai/dsh-host-webserver": {
           "specifier": "workspace:*",
           "version": "link:../../host/webserver"
@@ -3480,10 +3508,6 @@
         "@deepseek-ai/dsh-plugin-manager": {
           "specifier": "workspace:*",
           "version": "link:../../boot/plugin-manager"
-        },
-        "@deepseek-ai/dsh-schedule": {
-          "specifier": "workspace:*",
-          "version": "link:../../schedule/schedule"
         },
         "@deepseek-ai/dsh-session-log-export": {
           "specifier": "workspace:*",
@@ -3516,10 +3540,6 @@
         "@deepseek-ai/dsh-terminal-bash": {
           "specifier": "workspace:*",
           "version": "link:../../terminal/terminal-bash"
-        },
-        "@deepseek-ai/dsh-time-context": {
-          "specifier": "workspace:*",
-          "version": "link:../../context/time-context"
         },
         "@deepseek-ai/dsh-tool-ask-user": {
           "specifier": "workspace:*",
@@ -3642,6 +3662,10 @@
         "@deepseek-ai/dsh-fs-local": {
           "specifier": "workspace:*",
           "version": "link:../../fs/fs-local"
+        },
+        "@deepseek-ai/dsh-otel": {
+          "specifier": "workspace:*",
+          "version": "link:../../telemetry/otel"
         },
         "@deepseek-ai/dsh-sandbox-policy": {
           "specifier": "workspace:*",
@@ -3894,6 +3918,68 @@
         "@deepseek-ai/dsh-package-manifest": {
           "specifier": "workspace:*",
           "version": "link:../../util/package-manifest"
+        }
+      }
+    },
+    "packages/client/product-analytics": {
+      "dependencies": {
+        "@deepseek-ai/dsh-typert-protocol": {
+          "specifier": "workspace:*",
+          "version": "link:../../typert/protocol"
+        },
+        "@deepseek-ai/schemastery": {
+          "specifier": "link:../../../vendor/schemastery",
+          "version": "link:../../../vendor/schemastery"
+        },
+        "zod": {
+          "specifier": "^4.4.3",
+          "version": "4.4.3"
+        }
+      },
+      "devDependencies": {
+        "@deepseek-ai/cordis": {
+          "specifier": "workspace:~",
+          "version": "link:../../../vendor/cordis"
+        },
+        "@deepseek-ai/cordis-plugin-loader": {
+          "specifier": "workspace:~",
+          "version": "link:../../../vendor/loader"
+        },
+        "@deepseek-ai/dsh-api-gateway": {
+          "specifier": "workspace:*",
+          "version": "link:../../api/gateway"
+        },
+        "@deepseek-ai/dsh-compaction": {
+          "specifier": "workspace:*",
+          "version": "link:../../compaction/compaction"
+        },
+        "@deepseek-ai/dsh-deepseek-account": {
+          "specifier": "workspace:*",
+          "version": "link:../../credentials/deepseek-account"
+        },
+        "@deepseek-ai/dsh-host-product-telemetry-otel": {
+          "specifier": "workspace:*",
+          "version": "link:../../host/product-telemetry-otel"
+        },
+        "@deepseek-ai/dsh-host-webserver": {
+          "specifier": "workspace:*",
+          "version": "link:../../host/webserver"
+        },
+        "@deepseek-ai/dsh-llm": {
+          "specifier": "workspace:*",
+          "version": "link:../../llm/llm"
+        },
+        "@deepseek-ai/dsh-otel": {
+          "specifier": "workspace:*",
+          "version": "link:../../telemetry/otel"
+        },
+        "@deepseek-ai/dsh-session": {
+          "specifier": "workspace:*",
+          "version": "link:../../core/session"
+        },
+        "@deepseek-ai/dsh-settings": {
+          "specifier": "workspace:*",
+          "version": "link:../../settings/settings"
         }
       }
     },
@@ -4271,6 +4357,10 @@
           "specifier": "workspace:*",
           "version": "link:../locale"
         },
+        "@deepseek-ai/dsh-client-product-analytics": {
+          "specifier": "workspace:*",
+          "version": "link:../product-analytics"
+        },
         "@deepseek-ai/dsh-client-store": {
           "specifier": "workspace:*",
           "version": "link:../store"
@@ -4524,6 +4614,10 @@
         "@deepseek-ai/dsh-client-locale": {
           "specifier": "workspace:*",
           "version": "link:../locale"
+        },
+        "@deepseek-ai/dsh-client-product-analytics": {
+          "specifier": "workspace:*",
+          "version": "link:../product-analytics"
         },
         "@deepseek-ai/dsh-client-shortcuts": {
           "specifier": "workspace:*",
@@ -5299,6 +5393,10 @@
           "specifier": "workspace:*",
           "version": "link:../locale"
         },
+        "@deepseek-ai/dsh-client-product-analytics": {
+          "specifier": "workspace:*",
+          "version": "link:../product-analytics"
+        },
         "@deepseek-ai/dsh-client-store": {
           "specifier": "workspace:*",
           "version": "link:../store"
@@ -5668,6 +5766,10 @@
         "@deepseek-ai/dsh-client-locale": {
           "specifier": "workspace:*",
           "version": "link:../locale"
+        },
+        "@deepseek-ai/dsh-client-product-analytics": {
+          "specifier": "workspace:*",
+          "version": "link:../product-analytics"
         },
         "@deepseek-ai/dsh-client-store": {
           "specifier": "workspace:*",
@@ -6185,6 +6287,10 @@
           "specifier": "workspace:*",
           "version": "link:../locale"
         },
+        "@deepseek-ai/dsh-client-product-analytics": {
+          "specifier": "workspace:*",
+          "version": "link:../product-analytics"
+        },
         "@deepseek-ai/dsh-client-store": {
           "specifier": "workspace:*",
           "version": "link:../store"
@@ -6429,6 +6535,10 @@
           "specifier": "workspace:*",
           "version": "link:../locale"
         },
+        "@deepseek-ai/dsh-client-product-analytics": {
+          "specifier": "workspace:*",
+          "version": "link:../product-analytics"
+        },
         "@deepseek-ai/dsh-client-store": {
           "specifier": "workspace:*",
           "version": "link:../store"
@@ -6584,6 +6694,66 @@
         "react": {
           "specifier": "^18.2.0",
           "version": "18.3.1"
+        }
+      }
+    },
+    "packages/client/ui-settings-session-log": {
+      "devDependencies": {
+        "@deepseek-ai/cordis": {
+          "specifier": "workspace:~",
+          "version": "link:../../../vendor/cordis"
+        },
+        "@deepseek-ai/dsh-api-remotes": {
+          "specifier": "workspace:*",
+          "version": "link:../../api/remotes"
+        },
+        "@deepseek-ai/dsh-client-locale": {
+          "specifier": "workspace:*",
+          "version": "link:../locale"
+        },
+        "@deepseek-ai/dsh-client-store": {
+          "specifier": "workspace:*",
+          "version": "link:../store"
+        },
+        "@deepseek-ai/dsh-client-test-runtime": {
+          "specifier": "workspace:*",
+          "version": "link:../../test-support/client-runtime"
+        },
+        "@deepseek-ai/dsh-client-ui-layout": {
+          "specifier": "workspace:*",
+          "version": "link:../ui-layout"
+        },
+        "@deepseek-ai/dsh-client-ui-primitives": {
+          "specifier": "workspace:*",
+          "version": "link:../ui-primitives"
+        },
+        "@deepseek-ai/dsh-client-ui-renderer": {
+          "specifier": "workspace:*",
+          "version": "link:../ui-renderer"
+        },
+        "@deepseek-ai/dsh-client-ui-settings": {
+          "specifier": "workspace:*",
+          "version": "link:../ui-settings"
+        },
+        "@deepseek-ai/dsh-client-ui-slots": {
+          "specifier": "workspace:*",
+          "version": "link:../ui-slots"
+        },
+        "@types/react": {
+          "specifier": "~18.3.1",
+          "version": "18.3.31"
+        },
+        "@types/react-dom": {
+          "specifier": "~18.3.0",
+          "version": "18.3.7(@types/react@18.3.31)"
+        },
+        "react": {
+          "specifier": "^18.2.0",
+          "version": "18.3.1"
+        },
+        "react-dom": {
+          "specifier": "^18.2.0",
+          "version": "18.3.1(react@18.3.1)"
         }
       }
     },
@@ -6816,6 +6986,10 @@
         "@deepseek-ai/dsh-client-locale": {
           "specifier": "workspace:*",
           "version": "link:../locale"
+        },
+        "@deepseek-ai/dsh-client-product-analytics": {
+          "specifier": "workspace:*",
+          "version": "link:../product-analytics"
         },
         "@deepseek-ai/dsh-client-shortcuts": {
           "specifier": "workspace:*",
@@ -8064,6 +8238,10 @@
         "@deepseek-ai/dsh-client-locale": {
           "specifier": "workspace:*",
           "version": "link:../locale"
+        },
+        "@deepseek-ai/dsh-client-product-analytics": {
+          "specifier": "workspace:*",
+          "version": "link:../product-analytics"
         },
         "@deepseek-ai/dsh-client-shortcuts": {
           "specifier": "workspace:*",
@@ -10391,6 +10569,36 @@
         }
       }
     },
+    "packages/experimental/schedule-bundle": {
+      "dependencies": {
+        "@deepseek-ai/dsh-client-ui-schedule": {
+          "specifier": "workspace:*",
+          "version": "link:../../client/ui-schedule"
+        },
+        "@deepseek-ai/dsh-schedule": {
+          "specifier": "workspace:*",
+          "version": "link:../../schedule/schedule"
+        },
+        "@deepseek-ai/dsh-time-context": {
+          "specifier": "workspace:*",
+          "version": "link:../../context/time-context"
+        }
+      },
+      "devDependencies": {
+        "@deepseek-ai/cordis": {
+          "specifier": "workspace:~",
+          "version": "link:../../../vendor/cordis"
+        },
+        "@deepseek-ai/cordis-plugin-include": {
+          "specifier": "workspace:~",
+          "version": "link:../../../vendor/include"
+        },
+        "js-yaml": {
+          "specifier": "^4.2.0",
+          "version": "4.3.1"
+        }
+      }
+    },
     "packages/experimental/speech-to-text": {
       "dependencies": {
         "@deepseek-ai/dsh-brand": {
@@ -11084,7 +11292,7 @@
           "version": "4.0.3"
         },
         "koffi": {
-          "specifier": "^3.1.0",
+          "specifier": "3.1.1",
           "version": "3.1.1"
         }
       },
@@ -11894,7 +12102,7 @@
           "version": "link:../../util/native-command"
         },
         "koffi": {
-          "specifier": "^3.1.0",
+          "specifier": "3.1.1",
           "version": "3.1.1"
         }
       },
@@ -12017,29 +12225,13 @@
           "specifier": "link:../../../vendor/schemastery",
           "version": "link:../../../vendor/schemastery"
         },
-        "@opentelemetry/api": {
-          "specifier": "^1.9.1",
-          "version": "1.9.1"
-        },
         "@opentelemetry/api-logs": {
           "specifier": "^0.220.0",
           "version": "0.220.0"
         },
-        "@opentelemetry/core": {
-          "specifier": "2.9.0",
-          "version": "2.9.0(@opentelemetry/api@1.9.1)"
-        },
         "@opentelemetry/otlp-exporter-base": {
           "specifier": "^0.220.0",
           "version": "0.220.0(@opentelemetry/api@1.9.1)"
-        },
-        "@opentelemetry/otlp-transformer": {
-          "specifier": "^0.220.0",
-          "version": "0.220.0(@opentelemetry/api@1.9.1)"
-        },
-        "@opentelemetry/resources": {
-          "specifier": "^2.9.0",
-          "version": "2.10.0(@opentelemetry/api@1.9.1)"
         },
         "@opentelemetry/sdk-logs": {
           "specifier": "^0.220.0",
@@ -12062,6 +12254,10 @@
         "@deepseek-ai/dsh-loader-smoke": {
           "specifier": "workspace:*",
           "version": "link:../../test-support/loader-smoke"
+        },
+        "@deepseek-ai/dsh-otel": {
+          "specifier": "workspace:*",
+          "version": "link:../../telemetry/otel"
         }
       }
     },
@@ -13301,6 +13497,10 @@
           "specifier": "workspace:*",
           "version": "link:../../skill/skill"
         },
+        "@deepseek-ai/dsh-skill-filesystem": {
+          "specifier": "workspace:*",
+          "version": "link:../../skill/skill-filesystem"
+        },
         "@types/js-yaml": {
           "specifier": "^4.0.9",
           "version": "4.0.9"
@@ -13644,14 +13844,26 @@
           "version": "link:../../subprocess/win32-process"
         },
         "koffi": {
-          "specifier": "^3.1.0",
+          "specifier": "3.1.1",
           "version": "3.1.1"
+        },
+        "yaml": {
+          "specifier": "^2.4.2",
+          "version": "2.9.0"
         }
       },
       "devDependencies": {
         "@deepseek-ai/cordis": {
           "specifier": "workspace:~",
           "version": "link:../../../vendor/cordis"
+        },
+        "@deepseek-ai/cordis-plugin-include": {
+          "specifier": "workspace:~",
+          "version": "link:../../../vendor/include"
+        },
+        "@deepseek-ai/cordis-plugin-loader": {
+          "specifier": "workspace:~",
+          "version": "link:../../../vendor/loader"
         },
         "@deepseek-ai/dsh-pwsh-local": {
           "specifier": "workspace:*",
@@ -13660,6 +13872,10 @@
         "@deepseek-ai/dsh-sandbox-local": {
           "specifier": "workspace:*",
           "version": "link:../sandbox-local"
+        },
+        "@deepseek-ai/dsh-skill": {
+          "specifier": "workspace:*",
+          "version": "link:../../skill/skill"
         },
         "@deepseek-ai/dsh-subprocess": {
           "specifier": "workspace:*",
@@ -14468,7 +14684,7 @@
           "version": "link:../../../vendor/schemastery"
         },
         "koffi": {
-          "specifier": "^3.1.0",
+          "specifier": "3.1.1",
           "version": "3.1.1"
         }
       },
@@ -14607,25 +14823,13 @@
           "specifier": "link:../../../vendor/schemastery",
           "version": "link:../../../vendor/schemastery"
         },
-        "@opentelemetry/api": {
-          "specifier": "^1.9.1",
-          "version": "1.9.1"
-        },
         "@opentelemetry/api-logs": {
           "specifier": "^0.220.0",
           "version": "0.220.0"
         },
-        "@opentelemetry/exporter-logs-otlp-http": {
-          "specifier": "^0.220.0",
-          "version": "0.220.0(@opentelemetry/api@1.9.1)"
-        },
         "@opentelemetry/otlp-exporter-base": {
           "specifier": "^0.220.0",
           "version": "0.220.0(@opentelemetry/api@1.9.1)"
-        },
-        "@opentelemetry/resources": {
-          "specifier": "^2.9.0",
-          "version": "2.10.0(@opentelemetry/api@1.9.1)"
         },
         "@opentelemetry/sdk-logs": {
           "specifier": "^0.220.0",
@@ -14676,6 +14880,10 @@
         "@deepseek-ai/dsh-message-feedback": {
           "specifier": "workspace:*",
           "version": "link:../../feedback/message-feedback"
+        },
+        "@deepseek-ai/dsh-otel": {
+          "specifier": "workspace:*",
+          "version": "link:../../telemetry/otel"
         },
         "@deepseek-ai/dsh-session": {
           "specifier": "workspace:*",
@@ -16980,7 +17188,7 @@
           "version": "link:../win32-process"
         },
         "koffi": {
-          "specifier": "^3.1.0",
+          "specifier": "3.1.1",
           "version": "3.1.1"
         },
         "node-pty": {
@@ -17014,7 +17222,7 @@
           "version": "link:../../util/lazy-require"
         },
         "koffi": {
-          "specifier": "^3.1.0",
+          "specifier": "3.1.1",
           "version": "3.1.1"
         }
       },
@@ -17022,6 +17230,52 @@
         "@deepseek-ai/cordis": {
           "specifier": "workspace:~",
           "version": "link:../../../vendor/cordis"
+        }
+      }
+    },
+    "packages/telemetry/otel": {
+      "dependencies": {
+        "@opentelemetry/api": {
+          "specifier": "^1.9.1",
+          "version": "1.9.1"
+        },
+        "@opentelemetry/api-logs": {
+          "specifier": "^0.220.0",
+          "version": "0.220.0"
+        },
+        "@opentelemetry/core": {
+          "specifier": "2.9.0",
+          "version": "2.9.0(@opentelemetry/api@1.9.1)"
+        },
+        "@opentelemetry/otlp-exporter-base": {
+          "specifier": "^0.220.0",
+          "version": "0.220.0(@opentelemetry/api@1.9.1)"
+        },
+        "@opentelemetry/otlp-transformer": {
+          "specifier": "^0.220.0",
+          "version": "0.220.0(@opentelemetry/api@1.9.1)"
+        },
+        "@opentelemetry/resources": {
+          "specifier": "^2.9.0",
+          "version": "2.10.0(@opentelemetry/api@1.9.1)"
+        },
+        "@opentelemetry/sdk-logs": {
+          "specifier": "^0.220.0",
+          "version": "0.220.0(@opentelemetry/api@1.9.1)"
+        },
+        "got": {
+          "specifier": "^14.6.6",
+          "version": "14.6.6"
+        }
+      },
+      "devDependencies": {
+        "@deepseek-ai/cordis": {
+          "specifier": "workspace:~",
+          "version": "link:../../../vendor/cordis"
+        },
+        "@deepseek-ai/dsh-session": {
+          "specifier": "workspace:*",
+          "version": "link:../../core/session"
         }
       }
     },
@@ -18051,6 +18305,10 @@
           "specifier": "workspace:*",
           "version": "link:../../credentials/credentials-local"
         },
+        "@deepseek-ai/dsh-deepseek-account": {
+          "specifier": "workspace:*",
+          "version": "link:../../credentials/deepseek-account"
+        },
         "@deepseek-ai/dsh-http-proxy": {
           "specifier": "workspace:*",
           "version": "link:../../util/http-proxy"
@@ -18798,6 +19056,10 @@
         "@deepseek-ai/dsh-message-feedback": {
           "specifier": "workspace:*",
           "version": "link:../../packages/feedback/message-feedback"
+        },
+        "@deepseek-ai/dsh-otel": {
+          "specifier": "workspace:*",
+          "version": "link:../../packages/telemetry/otel"
         },
         "@deepseek-ai/dsh-output-retention": {
           "specifier": "workspace:*",
@@ -22118,6 +22380,11 @@
         "node": ">=12"
       }
     },
+    "@keyv/serialize@1.1.1": {
+      "resolution": {
+        "integrity": "sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA=="
+      }
+    },
     "@koromix/koffi-darwin-arm64@3.1.1": {
       "resolution": {
         "integrity": "sha512-+Dl0zQDh1Wb55AWOn9hp7K30qgkODvrvN+ZNkFOh81Q0oFX/rpJQtocgjAuYk2zFAcajSeVDumkcHMPwnKSXzA=="
@@ -22920,17 +23187,6 @@
       },
       "peerDependencies": {
         "@opentelemetry/api": ">=1.0.0 <1.10.0"
-      }
-    },
-    "@opentelemetry/exporter-logs-otlp-http@0.220.0": {
-      "resolution": {
-        "integrity": "sha512-8186thl+pTw64iz/qEEen5oJZoZ/gO73XruChdaGlYdWOdBIQ42r+vHLf6a7vIDqTD4b8ZOoMlyxptanECaI9A=="
-      },
-      "engines": {
-        "node": "^18.19.0 || >=20.6.0"
-      },
-      "peerDependencies": {
-        "@opentelemetry/api": "^1.3.0"
       }
     },
     "@opentelemetry/otlp-exporter-base@0.220.0": {
@@ -24641,6 +24897,14 @@
       },
       "engines": {
         "node": ">=10"
+      }
+    },
+    "@sindresorhus/is@7.2.0": {
+      "resolution": {
+        "integrity": "sha512-P1Cz1dWaFfR4IR+U13mqqiGsLFf1KbayybWwdd2vfctdV6hDpUkgCY0nKOLLTMSoRd/jJNjtbqzf13K8DCCXQw=="
+      },
+      "engines": {
+        "node": ">=18"
       }
     },
     "@sindresorhus/merge-streams@4.0.0": {
@@ -26515,6 +26779,14 @@
         "node": ">=18"
       }
     },
+    "byte-counter@0.1.0": {
+      "resolution": {
+        "integrity": "sha512-jheRLVMeUKrDBjVw2O5+k4EvR4t9wtxHL+bo/LxfkxsVeuGMy3a5SEGgXdAFA4FSzTrU8rQXQIrsZ3oBq5a0pQ=="
+      },
+      "engines": {
+        "node": ">=20"
+      }
+    },
     "bytes@3.1.2": {
       "resolution": {
         "integrity": "sha512-/Nf7TyzTx6S3yRJObOAV7956r8cr2+Oj8AC5dt8wSP3BQAoeX58NoHyCU8P8zGkNXStjTSi6fzO6F0pBdcYbEg=="
@@ -26545,6 +26817,22 @@
       },
       "engines": {
         "node": ">=10.6.0"
+      }
+    },
+    "cacheable-lookup@7.0.0": {
+      "resolution": {
+        "integrity": "sha512-+qJyx4xiKra8mZrcwhjMRMUhD5NR1R8esPkzIYxX96JiecFoxAXFuz/GpR3+ev4PE1WamHip78wV0vcmPQtp8w=="
+      },
+      "engines": {
+        "node": ">=14.16"
+      }
+    },
+    "cacheable-request@13.0.19": {
+      "resolution": {
+        "integrity": "sha512-SVXGH037+Mo1aIMO5B2UcleR43FGjFdN+M8JObSyEoQ2Mn4CODRWx28gN5jiTF0n5ItsgtIZfyargMNs8GX4kg=="
+      },
+      "engines": {
+        "node": ">=18"
       }
     },
     "cacheable-request@7.0.4": {
@@ -27362,6 +27650,14 @@
     "decode-named-character-reference@1.3.0": {
       "resolution": {
         "integrity": "sha512-GtpQYB283KrPp6nRw50q3U9/VfOutZOe103qlN7BPP6Ad27xYnOIWv4lPzo8HCAL+mMZofJ9KEy30fq6MfaK6Q=="
+      }
+    },
+    "decompress-response@10.0.0": {
+      "resolution": {
+        "integrity": "sha512-oj7KWToJuuxlPr7VV0vabvxEIiqNMo+q0NueIiL3XhtwC6FVOX7Hr1c0C4eD0bmf7Zr+S/dSf2xvkH3Ad6sU3Q=="
+      },
+      "engines": {
+        "node": ">=20"
       }
     },
     "decompress-response@6.0.0": {
@@ -28270,6 +28566,14 @@
         "integrity": "sha512-qfqtYan3rxrnCk1VYaA4H+Ms9xdpPqvLZa6xmMgFvhO32x7/3J/ExcTd6qpxM0vH2GdMI+poehyBZvqfMTto8A=="
       }
     },
+    "form-data-encoder@4.1.0": {
+      "resolution": {
+        "integrity": "sha512-G6NsmEW15s0Uw9XnCg+33H3ViYRyiM0hMrMhhqQOR8NFc5GhYrI+6I3u7OTw7b91J2g8rtvMBZJDbcGb2YUniw=="
+      },
+      "engines": {
+        "node": ">= 18"
+      }
+    },
     "form-data@2.5.6": {
       "resolution": {
         "integrity": "sha512-Ogz/E85h9tlfJzpI6TuFpGcHZFhLrb9Gw8wq9v40CxSCPnv7ahKr6Xgtkn0KYCDQJ8DNn5VoMO8EXr9V5PadyA=="
@@ -28589,6 +28893,14 @@
         "node": ">=10.19.0"
       }
     },
+    "got@14.6.6": {
+      "resolution": {
+        "integrity": "sha512-QLV1qeYSo5l13mQzWgP/y0LbMr5Plr5fJilgAIwgnwseproEbtNym8xpLsDzeZ6MWXgNE6kdWGBjdh3zT/Qerg=="
+      },
+      "engines": {
+        "node": ">=20"
+      }
+    },
     "graceful-fs@4.2.11": {
       "resolution": {
         "integrity": "sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ=="
@@ -28762,6 +29074,14 @@
     "http2-wrapper@1.0.3": {
       "resolution": {
         "integrity": "sha512-V+23sDMr12Wnz7iTcDeJr3O6AIxlnvT/bmaAAAP/Xda35C90p9599p0F1eHR/N1KILWSoWVAiOMFjBBXaXSMxg=="
+      },
+      "engines": {
+        "node": ">=10.19.0"
+      }
+    },
+    "http2-wrapper@2.2.1": {
+      "resolution": {
+        "integrity": "sha512-V5nVw1PAOgfI3Lmeaj2Exmeg7fenjhRUgz1lPSezy1CuhPYbgQtbQj4jZfEAEMlaL+vupsvhjqCyjzob0yxsmQ=="
       },
       "engines": {
         "node": ">=10.19.0"
@@ -29383,6 +29703,11 @@
         "integrity": "sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw=="
       }
     },
+    "keyv@5.6.0": {
+      "resolution": {
+        "integrity": "sha512-CYDD3SOtsHtyXeEORYRx2qBtpDJFjRTGXUtmNEMGyzYOKj1TE3tycdlho7kA1Ufx9OYWZzg52QFBGALTirzDSw=="
+      }
+    },
     "khroma@2.1.0": {
       "resolution": {
         "integrity": "sha512-Ls993zuzfayK269Svk9hzpeGUKob/sIgZzyHYdjQoAdQetRKpOLj+k/QQQ/6Qi0Yz65mlROrfd+Ev+1+7dz9Kw=="
@@ -29850,6 +30175,14 @@
         "node": ">=8"
       }
     },
+    "lowercase-keys@3.0.0": {
+      "resolution": {
+        "integrity": "sha512-ozCC6gdQ+glXOQsveKD0YsDy8DSQFjDTz4zyzEHNV5+JP5D62LmfDZ6o1cycFx9ouG940M5dE8C8CTewdj2YWQ=="
+      },
+      "engines": {
+        "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
+      }
+    },
     "lru-cache@10.4.3": {
       "resolution": {
         "integrity": "sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ=="
@@ -30237,6 +30570,14 @@
         "node": ">=10"
       }
     },
+    "mimic-response@4.0.0": {
+      "resolution": {
+        "integrity": "sha512-e5ISH9xMYU0DzrT+jl8q2ze9D6eWBto+I8CNpe+VI+K2J/F/k3PdkdTdz4wvGVH4NTpo+NRYTVIuMQEMMcsLqg=="
+      },
+      "engines": {
+        "node": "^12.20.0 || ^14.13.1 || >=16.0.0"
+      }
+    },
     "minimatch@10.2.5": {
       "resolution": {
         "integrity": "sha512-MULkVLfKGYDFYejP07QOurDLLQpcjk7Fw+7jXS2R2czRQzR56yHRveU5NDJEOviH+hETZKSkIk5c+T23GjFUMg=="
@@ -30610,6 +30951,14 @@
         "node": ">=10"
       }
     },
+    "normalize-url@8.1.1": {
+      "resolution": {
+        "integrity": "sha512-JYc0DPlpGWB40kH5g07gGTrYuMqV653k3uBKY6uITPWds3M0ov3GaWGp9lbE3Bzngx8+XkfzgvASb9vk9JDFXQ=="
+      },
+      "engines": {
+        "node": ">=14.16"
+      }
+    },
     "npm-run-path@6.0.0": {
       "resolution": {
         "integrity": "sha512-9qny7Z9DsQU8Ou39ERsPU4OZQlSTP47ShQzuKZ6PRXpYLtIFgl/DEBYEXKlvcEa+9tHVcK8CF81Y2V72qaZhWA=="
@@ -30773,6 +31122,14 @@
       },
       "engines": {
         "node": ">=8"
+      }
+    },
+    "p-cancelable@4.0.1": {
+      "resolution": {
+        "integrity": "sha512-wBowNApzd45EIKdO1LaU+LrMBwAcjfPaYtVzV3lmfM3gf8Z4CHZsiIqlM8TZZ8okYvh5A1cP6gTfCRQtwUpaUg=="
+      },
+      "engines": {
+        "node": ">=14.16"
       }
     },
     "p-limit@3.1.0": {
@@ -31467,6 +31824,14 @@
     "responselike@2.0.1": {
       "resolution": {
         "integrity": "sha512-4gl03wn3hj1HP3yzgdI7d3lCkF95F21Pz4BPGvKHinyQzALR5CapwC8yIi0Rh58DEMQ/SguC03wFj2k0M/mHhw=="
+      }
+    },
+    "responselike@4.0.2": {
+      "resolution": {
+        "integrity": "sha512-cGk8IbWEAnaCpdAt1BHzJ3Ahz5ewDJa0KseTsE3qIRMJ3C698W8psM7byCeWVpd/Ha7FUYzuRVzXoKoM6nRUbA=="
+      },
+      "engines": {
+        "node": ">=20"
       }
     },
     "restructure@3.0.2": {
@@ -32527,6 +32892,14 @@
       },
       "engines": {
         "node": ">=10"
+      }
+    },
+    "type-fest@4.41.0": {
+      "resolution": {
+        "integrity": "sha512-TeTSQ6H5YHvpqVwBRcnLDCBnDOHWYu7IvGbHT6N8AOymcr9PJGjc1GTtiWZTYg0NCgYwvnYWEkVChQAr9bjfwA=="
+      },
+      "engines": {
+        "node": ">=16"
       }
     },
     "type-is@2.1.0": {
@@ -34925,6 +35298,7 @@
         "jsbi": "4.3.2"
       }
     },
+    "@keyv/serialize@1.1.1": {},
     "@koromix/koffi-darwin-arm64@3.1.1": {
       "optional": true
     },
@@ -35347,16 +35721,6 @@
       "dependencies": {
         "@opentelemetry/api": "1.9.1",
         "@opentelemetry/semantic-conventions": "1.43.0"
-      }
-    },
-    "@opentelemetry/exporter-logs-otlp-http@0.220.0(@opentelemetry/api@1.9.1)": {
-      "dependencies": {
-        "@opentelemetry/api": "1.9.1",
-        "@opentelemetry/api-logs": "0.220.0",
-        "@opentelemetry/core": "2.9.0(@opentelemetry/api@1.9.1)",
-        "@opentelemetry/otlp-exporter-base": "0.220.0(@opentelemetry/api@1.9.1)",
-        "@opentelemetry/otlp-transformer": "0.220.0(@opentelemetry/api@1.9.1)",
-        "@opentelemetry/sdk-logs": "0.220.0(@opentelemetry/api@1.9.1)"
       }
     },
     "@opentelemetry/otlp-exporter-base@0.220.0(@opentelemetry/api@1.9.1)": {
@@ -35891,6 +36255,7 @@
     },
     "@shikijs/vscode-textmate@10.0.2": {},
     "@sindresorhus/is@4.6.0": {},
+    "@sindresorhus/is@7.2.0": {},
     "@sindresorhus/merge-streams@4.0.0": {},
     "@smithy/core@3.24.7": {
       "dependencies": {
@@ -37140,10 +37505,23 @@
         "run-applescript": "7.1.0"
       }
     },
+    "byte-counter@0.1.0": {},
     "bytes@3.1.2": {},
     "bytestreamjs@2.0.1": {},
     "cac@7.0.0": {},
     "cacheable-lookup@5.0.4": {},
+    "cacheable-lookup@7.0.0": {},
+    "cacheable-request@13.0.19": {
+      "dependencies": {
+        "@types/http-cache-semantics": "4.2.0",
+        "get-stream": "9.0.1",
+        "http-cache-semantics": "4.2.0",
+        "keyv": "5.6.0",
+        "mimic-response": "4.0.0",
+        "normalize-url": "8.1.1",
+        "responselike": "4.0.2"
+      }
+    },
     "cacheable-request@7.0.4": {
       "dependencies": {
         "clone-response": "1.0.3",
@@ -37595,6 +37973,11 @@
     "decode-named-character-reference@1.3.0": {
       "dependencies": {
         "character-entities": "2.0.2"
+      }
+    },
+    "decompress-response@10.0.0": {
+      "dependencies": {
+        "mimic-response": "4.0.0"
       }
     },
     "decompress-response@6.0.0": {
@@ -38259,6 +38642,7 @@
     },
     "forever-agent@0.6.1": {},
     "form-data-encoder@1.7.2": {},
+    "form-data-encoder@4.1.0": {},
     "form-data@2.5.6": {
       "dependencies": {
         "asynckit": "0.4.0",
@@ -38492,6 +38876,22 @@
         "responselike": "2.0.1"
       }
     },
+    "got@14.6.6": {
+      "dependencies": {
+        "@sindresorhus/is": "7.2.0",
+        "byte-counter": "0.1.0",
+        "cacheable-lookup": "7.0.0",
+        "cacheable-request": "13.0.19",
+        "decompress-response": "10.0.0",
+        "form-data-encoder": "4.1.0",
+        "http2-wrapper": "2.2.1",
+        "keyv": "5.6.0",
+        "lowercase-keys": "3.0.0",
+        "p-cancelable": "4.0.1",
+        "responselike": "4.0.2",
+        "type-fest": "4.41.0"
+      }
+    },
     "graceful-fs@4.2.11": {},
     "hachure-fill@0.5.2": {},
     "happy-dom@20.11.6": {
@@ -38629,6 +39029,12 @@
       }
     },
     "http2-wrapper@1.0.3": {
+      "dependencies": {
+        "quick-lru": "5.1.1",
+        "resolve-alpn": "1.2.1"
+      }
+    },
+    "http2-wrapper@2.2.1": {
       "dependencies": {
         "quick-lru": "5.1.1",
         "resolve-alpn": "1.2.1"
@@ -38895,6 +39301,11 @@
         "json-buffer": "3.0.1"
       }
     },
+    "keyv@5.6.0": {
+      "dependencies": {
+        "@keyv/serialize": "1.1.1"
+      }
+    },
     "khroma@2.1.0": {},
     "koffi@3.1.1": {
       "optionalDependencies": {
@@ -39067,6 +39478,7 @@
       }
     },
     "lowercase-keys@2.0.0": {},
+    "lowercase-keys@3.0.0": {},
     "lru-cache@10.4.3": {},
     "lru-cache@11.5.1": {},
     "lru-cache@5.1.1": {
@@ -39520,6 +39932,7 @@
     "mime@2.6.0": {},
     "mimic-response@1.0.1": {},
     "mimic-response@3.1.0": {},
+    "mimic-response@4.0.0": {},
     "minimatch@10.2.5": {
       "dependencies": {
         "brace-expansion": "5.0.6"
@@ -39691,6 +40104,7 @@
     },
     "normalize-path@3.0.0": {},
     "normalize-url@6.1.0": {},
+    "normalize-url@8.1.1": {},
     "npm-run-path@6.0.0": {
       "dependencies": {
         "path-key": "4.0.0",
@@ -39817,6 +40231,7 @@
       }
     },
     "p-cancelable@2.1.1": {},
+    "p-cancelable@4.0.1": {},
     "p-limit@3.1.0": {
       "dependencies": {
         "yocto-queue": "0.1.0"
@@ -40160,6 +40575,11 @@
     "responselike@2.0.1": {
       "dependencies": {
         "lowercase-keys": "2.0.0"
+      }
+    },
+    "responselike@4.0.2": {
+      "dependencies": {
+        "lowercase-keys": "3.0.0"
       }
     },
     "restructure@3.0.2": {},
@@ -40888,6 +41308,7 @@
     "type-fest@0.13.1": {
       "optional": true
     },
+    "type-fest@4.41.0": {},
     "type-is@2.1.0": {
       "dependencies": {
         "content-type": "2.1.0",
