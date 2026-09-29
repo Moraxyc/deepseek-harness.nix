@@ -1,0 +1,40 @@
+--- a/apps/desktop/src/main.ts
++++ b/apps/desktop/src/main.ts
+@@ -89,6 +89,15 @@
+ function quitWithoutConfirmation(): void {
+   skipQuitConfirmation = true
+   app.quit()
++}
++if (process.platform === 'linux') {
++  const quitFromSignal = (): void => {
++    if (shuttingDown) return
++    shuttingDown = true
++    quitWithoutConfirmation()
++  }
++  process.on('SIGINT', quitFromSignal)
++  process.on('SIGTERM', quitFromSignal)
+ }
+ const recovery = new DesktopFatalRecovery({
+   messages: () => currentDesktopLocale().messages,
+@@ -1335,7 +1344,9 @@
+ 
+ const ownsDesktopInstance = claimDesktopSingleInstance(app, () => { focusPrimaryWindow() })
+ 
+-if (ownsDesktopInstance) void app.whenReady().then(main).catch(async (error: unknown) => {
++if (ownsDesktopInstance) void app.whenReady().then(async () => {
++  if (!shuttingDown) await main()
++}).catch(async (error: unknown) => {
+   const message = error instanceof Error ? error.message : String(error)
+   console.error(error)
+   const diagnosticFile = process.env.DSH_DESKTOP_DIAGNOSTIC_FILE
+--- a/apps/desktop/src/host-process.ts
++++ b/apps/desktop/src/host-process.ts
+@@ -195,6 +195,8 @@
+       this.primaryRuntime ?? join(this.runtimeDir, '..', 'runtime', 'primary-runtime'),
+       ...this.packageManager === undefined ? [] : [this.packageManager.pnpm, this.packageManager.nodeBin],
+     ], {
++      // Terminal signals belong to the shell; the Host shuts down through IPC.
++      detached: process.platform === 'linux',
+       cwd: this.projectDir,
+       env: desktopNodeEnvironment(this.node, undefined, this.environment),
+       stdio: ['ignore', 'pipe', 'pipe', 'ipc'],

@@ -59,6 +59,8 @@ buildNpmPackage (finalAttrs: {
     # the wrapper PATH that carries the bundled node and office runtimes.
     # https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.0-rc.2/apps/desktop/src/login-shell-environment.ts#L176
     ./desktop-login-shell-macos-only.patch
+    # Remove when upstream routes Linux terminal signals through graceful shutdown and isolates the Host process group.
+    ./desktop-signal-shutdown.patch
   ];
 
   env = {
