@@ -1,0 +1,25 @@
+diff --git a/apps/desktop/src/main.ts b/apps/desktop/src/main.ts
+--- a/apps/desktop/src/main.ts
++++ b/apps/desktop/src/main.ts
+@@ -328,12 +328,15 @@
+   const loginShellRead = new AbortController()
+   // The probe runs in its own process group, which outlives Desktop unless the read is aborted.
+   app.on('will-quit', () => { loginShellRead.abort() })
+-  const loginShell = readDesktopLoginShellEnvironment(process.env, resolveDesktopLoginShellConfig(process.env), {
+-    signal: loginShellRead.signal,
+-  }).then((result) => {
+-    for (const failure of result.failures) console.warn(`desktop login shell: ${failure.shell} failed (${failure.reason})`)
+-    return result.environment
+-  })
++  // Linux inherits the desktop launcher's environment, so the login-shell read stays macOS-only.
++  const loginShell = process.platform === 'darwin'
++    ? readDesktopLoginShellEnvironment(process.env, resolveDesktopLoginShellConfig(process.env), {
++      signal: loginShellRead.signal,
++    }).then((result) => {
++      for (const failure of result.failures) console.warn(`desktop login shell: ${failure.shell} failed (${failure.reason})`)
++      return result.environment
++    })
++    : Promise.resolve(process.env)
+   let hostEnvironment: NodeJS.ProcessEnv = process.env
+   const prepareHostEnvironment = async (): Promise<void> => { hostEnvironment = await loginShell }
+   let quitting = false

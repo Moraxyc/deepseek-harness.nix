@@ -25,7 +25,7 @@ let
 in
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
-  version = "0.2.0-rc.1";
+  version = "0.2.0-rc.2";
 
   __structuredAttrs = true;
   strictDeps = true;
@@ -40,7 +40,7 @@ buildNpmPackage (finalAttrs: {
     owner = "deepseek-ai";
     repo = "deepseek-harness";
     tag = "dsh-v${finalAttrs.version}";
-    hash = "sha256-J1uuMfQe9wWKCDNV3h3VimS9xcNbzdKC8qzeSfYJdGo=";
+    hash = "sha256-ZtO+bdoYbIkIgLTge5Eh7KYwTVh8FpFAAvx58dSY1PI=";
   };
 
   patches = [
@@ -52,10 +52,14 @@ buildNpmPackage (finalAttrs: {
     # module export map arrives in hash order; the patch rebases ids onto the
     # build cwd and sorts the export map behind the injected class map.
     ./client-bundle-determinism.patch
+    # The login-shell read only skips win32 upstream, so on Linux it would replace
+    # the wrapper PATH that carries the bundled node and office runtimes.
+    # https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.0-rc.2/apps/desktop/src/login-shell-environment.ts#L176
+    ./desktop-login-shell-macos-only.patch
   ];
 
   env = {
-    DSH_CLIENT_COMMIT_HASH = "4878cdabd87d4041bdaff61d04c966883b9fd07a";
+    DSH_CLIENT_COMMIT_HASH = "639ed015397290b3745d163aafe02ffee4aa3f84";
     PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = "false";
     # Rendered at evaluation time so the workspace patch hook does not have to
     # re-parse pnpm-workspace.yaml in the build sandbox.
