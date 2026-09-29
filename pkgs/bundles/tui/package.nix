@@ -11,14 +11,14 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-tui";
-  version = "0.11.1";
+  version = "0.11.2";
 
   src = fetchFromGitHub {
     owner = "ccch1mneyyy";
     repo = "dsh-TUI";
     rev = "refs/tags/v${finalAttrs.version}";
     fetchSubmodules = true;
-    hash = "sha256-ZQ03CKIPdDclQg/P7ZXcBb1OLwZn47xu4B/BRwx/swg=";
+    hash = "sha256-7jwH9i4rGBWMc3nGHgx9gnkd3XxAB0xcSc1wCZniVOU=";
   };
 
   # The side-question probe still needs its render-settle patch.
@@ -66,7 +66,7 @@ buildDshBundle (finalAttrs: {
         --frozen-lockfile \
         --registry="$NIX_NPM_REGISTRY"
     '';
-    hash = "sha256-cN6c07aWC6VRMHkWL1LtW6rJXejTFYncq6jMwoJUWdM=";
+    hash = "sha256-Ux0KNj8mukbkA9atlc74fR1k4dwXNio8OqsTyNZkXMw=";
   };
 
   nativeBuildInputs = [ pnpm_11 ];
