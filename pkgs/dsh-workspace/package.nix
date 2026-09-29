@@ -3,15 +3,18 @@
   bashInteractive,
   buildNpmPackage,
   fetchFromGitHub,
+  fontconfig,
   importPnpmLock,
   jq,
   dshWorkspacePatchHook,
   makeWrapper,
   nodejs,
   nodejs-slim,
+  patch,
   pnpmConfigHook,
   pnpmWorkspaceDeploy,
   python3,
+  runCommand,
   stdenv,
   dsh-system,
   writers,
@@ -90,7 +93,18 @@ buildNpmPackage (finalAttrs: {
     install -Dm644 ${dsh-system}/bin/system.node native/system/packages/${platformKey}/bin/system.node
   '';
 
-  preConfigure = "patchDshWorkspace kernel";
+  preConfigure = ''
+    patchDshWorkspace kernel
+  ''
+  + lib.optionalString isLinux ''
+    # Match the patched tarball used to populate the offline dependency store.
+    yq -i '
+      .packages."@deepseek-ai/libreoffice-kit@0.1.1".resolution = load("${
+        writers.writeJSON "libreoffice-kit-resolution.json"
+          finalAttrs.pnpmDeps.passthru.rewrittenLockfileData.packages."@deepseek-ai/libreoffice-kit@0.1.1".resolution
+      }")
+    ' pnpm-lock.yaml
+  '';
 
   pnpmDeps = importPnpmLock {
     inherit (finalAttrs) pname version;
@@ -98,6 +112,23 @@ buildNpmPackage (finalAttrs: {
     lockfileJson = ./pnpm-lock.json;
     workspaceJson = lib.importJSON ./pnpm-workspace.json;
     workspaceRoot = finalAttrs.src;
+    packageSourceOverrides = lib.optionalAttrs isLinux {
+      "@deepseek-ai/libreoffice-kit@0.1.1" =
+        { previousSource, ... }:
+        runCommand "libreoffice-kit-0.1.1-fontconfig.tgz"
+          {
+            src = previousSource;
+            nativeBuildInputs = [ patch ];
+          }
+          ''
+            tar -xzf "$src"
+            patch -d package -p1 < ${./libreoffice-kit-fontconfig.patch}
+            substituteInPlace package/lib/index.js package/lib/cli.js \
+              --replace-fail '@fc-list@' '${lib.getExe' fontconfig "fc-list"}'
+            tar --sort=name --mtime=@1 --owner=0 --group=0 --numeric-owner \
+              -czf "$out" package
+          '';
+    };
     targetPlatform =
       if stdenv.buildPlatform == stdenv.hostPlatform then stdenv.targetPlatform else null;
   };
