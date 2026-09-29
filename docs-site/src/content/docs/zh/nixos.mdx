@@ -88,7 +88,8 @@ profile 声明在 `programs.dsh.profiles` 下。名为 `tui` 的 profile 会生�
   再通过 `agent-preset-registry` 选择该 ID；不会复制 `.agent-presets` 目录；
 - `patch`：一组 Cordis patch 操作或原始 YAML，作为 `cordis.patch.yml`
   在所有 bundle 层之后应用；
-- `mode`：`managed`（默认）或 `mutable`；
+- `mode`：默认为 `managed`，也可设为 `mutable`；Desktop profile 使用
+  `managed` 模式时会声明引导已完成且已跳过；
 - 只读的 `rawName` 和 `materializedName`。
 
 示例：
@@ -130,6 +131,10 @@ Agent Preset 写在 `programs.dsh.agentPresets` 下，再由 profile 引用。`s
   管理的 `package.json` 和 `cordis.patch.yml` 的本地修改会被还原。
 - `mutable`：仅在 profile 目录不存在时由 Nix 初始化一次；之后用户通过
   `dsh plugin` 管理，Nix 不再改动。
+
+Desktop profile 使用 `managed` 模式时，Nix 会在 `cordis.patch.yml` 中声明引导已完成且已跳过，
+因此每次启动后引导页都会保持隐藏。若用户需要完成引导并保留运行时 Settings，请使用
+`mutable`；其他 managed 设置仍由 Nix 声明管理。
 
 两种模式都不会接管已有但没有 Nix 标记的同名目录。
 
@@ -241,8 +246,9 @@ programs.dsh = {
 模块自动加入 Web 应用依赖，并将 profile 的 bundles 打包进官方桌面 runtime。
 从命令行或应用菜单启动时，桌面先按 `programs.dsh.home` 初始化选中的 profile、
 其引用的 `agentPresets` 和 home 级 `patch`，再启动 host；不要求启用 CLI。
-`managed` 模式在下次启动时恢复声明配置，`mutable` 模式只初始化一次。
-管理模式下须在 Nix 中禁用插件，桌面的恢复操作不会改写该 profile。
+`managed` 模式下，Nix 会将 `ui-settings-account.step` 设为 `done`、将
+`completion` 设为 `skipped`，引导页不会在重启后再次出现；`mutable` 模式只初始化一次，
+用户可完成引导并保留运行时 Settings。管理模式下须在 Nix 中禁用插件，桌面的恢复操作不会改写该 profile。
 修改配置后需重新启动桌面应用。
 
 `desktop.profile` 默认为 `null`，此时保留上游 `profiles/desktop` 行为。

@@ -3,6 +3,7 @@ let
   selected = lib.filterAttrs (name: _: "nix-${name}" == cfg.desktop.profile) cfg.profiles;
   artifacts = cfg.package.passthru.mkProfileArtifacts {
     inherit (cfg) profiles agentPresets;
+    desktopProfile = cfg.desktop.profile;
     defaultProfile = cfg.desktop.profile;
     homePatch = cfg.patch;
   };

@@ -8,6 +8,7 @@ let
   mkDshRuntime = import ../lib/mk-dsh-runtime.nix;
   profileArtifacts = cfg.package.passthru.mkProfileArtifacts {
     inherit (cfg) agentPresets defaultProfile;
+    desktopProfile = if cfg.desktop.enable then cfg.desktop.profile else null;
     profiles = cfg.profiles;
     homePatch = cfg.patch;
   };

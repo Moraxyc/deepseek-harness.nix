@@ -9,6 +9,7 @@ package.override {
   profiles = { };
   agentPresets = { };
   defaultProfile = null;
+  desktopProfile = null;
   homePatch = null;
   inherit profileSeeder;
   profileDefaultProfile = if profileSeeder == null then null else defaultProfile;

@@ -93,7 +93,8 @@ Each profile supports:
   `agent-preset-registry`; no `.agent-presets` directory is copied;
 - `patch`: a list of Cordis patch operations or raw YAML applied after all
   bundle layers as `cordis.patch.yml`;
-- `mode`: `managed` (default) or `mutable`;
+- `mode`: `managed` by default, or `mutable`; a Desktop profile in `managed`
+  mode declares onboarding as done and skipped;
 - read-only `rawName` and `materializedName`.
 
 Example:
@@ -139,6 +140,11 @@ prefix:
   `cordis.patch.yml` are restored.
 - `mutable`: Nix seeds the profile only when the directory does not exist;
   afterwards the user manages it with `dsh plugin` and Nix leaves it alone.
+
+For a Desktop profile in `managed` mode, Nix declares onboarding as done and
+skipped in `cordis.patch.yml`, so the wizard stays hidden after each launch.
+Choose `mutable` when users should complete onboarding and retain runtime
+Settings; other managed settings remain declarative.
 
 Neither mode takes over an existing unmarked directory with the same name.
 
@@ -262,10 +268,12 @@ The module includes the web application dependencies and packages the profile's
 bundles in the official desktop runtime. On command-line or application-menu
 launch, the desktop seeds the selected profile, its referenced `agentPresets`, and
 the home-level `patch` under `programs.dsh.home` before starting the host.
-The CLI does not need to be enabled. `managed` mode restores declared configuration
-on the next launch; `mutable` mode seeds it only once. Disable managed plugins in
-Nix; desktop recovery does not rewrite a managed profile. Restart the desktop
-after changing its configuration.
+The CLI does not need to be enabled. In `managed` mode, Nix sets
+`ui-settings-account.step` to `done` and `completion` to `skipped`, so the
+onboarding wizard does not reappear. Choose `mutable` when users should complete
+the wizard and keep runtime Settings. Disable managed plugins in Nix; desktop
+recovery does not rewrite a managed profile. Restart the desktop after changing
+its configuration.
 
 `desktop.profile` defaults to `null`, preserving the upstream `profiles/desktop`
 behavior. This integration requires `desktop.package` to support the official

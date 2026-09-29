@@ -204,6 +204,37 @@
             touch "$out"
           '';
 
+        dsh-managed-desktop-onboarding =
+          let
+            managedArtifacts = pkgs.dsh.dsh.passthru.mkProfileArtifacts {
+              desktopProfile = "nix-desktop";
+              profiles = {
+                desktop.mode = "managed";
+                cli.mode = "managed";
+              };
+            };
+            mutableArtifacts = pkgs.dsh.dsh.passthru.mkProfileArtifacts {
+              desktopProfile = "nix-desktop";
+              profiles.desktop.mode = "mutable";
+            };
+          in
+          pkgs.runCommand "dsh-managed-desktop-onboarding" { nativeBuildInputs = [ pkgs.yq-go ]; } ''
+            yq -e '[.[] | select(.id == "ui-settings-account" and .config.step == "done" and .config.completion == "skipped")] | length == 1' \
+              ${managedArtifacts.profileSpecs.desktop.patchFile}
+            yq -e '[.[] | select(.id == "ui-settings-account")] | length == 0' \
+              ${managedArtifacts.profileSpecs.cli.patchFile}
+            yq -e '[.[] | select(.id == "ui-settings-account")] | length == 0' \
+              ${mutableArtifacts.profileSpecs.desktop.patchFile}
+            managedHome=$(mktemp -d)
+            DSH_HOME="$managedHome" ${lib.getExe managedArtifacts.seedProfiles} nix-desktop
+            managedPatch="$managedHome/profiles/nix-desktop/cordis.patch.yml"
+            printf '[]\n' > "$managedPatch"
+            DSH_HOME="$managedHome" ${lib.getExe managedArtifacts.seedProfiles} nix-desktop
+            yq -e '[.[] | select(.id == "ui-settings-account" and .config.step == "done" and .config.completion == "skipped")] | length == 1' \
+              "$managedPatch"
+            touch "$out"
+          '';
+
         dsh-profile-runtime-split =
           let
             profiles = {

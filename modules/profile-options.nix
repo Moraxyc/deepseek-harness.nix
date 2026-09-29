@@ -113,7 +113,9 @@ let
         ];
         default = "managed";
         description = ''
-          How Nix treats this profile after it is first materialized.
+          How Nix treats this profile after it is first materialized. Desktop
+          onboarding is skipped automatically for the selected profile when it
+          uses managed mode; other managed settings remain declarative.
 
           - `managed`: Nix keeps the profile in sync with the
             configuration and restores any local change to `package.json`,

@@ -22,6 +22,7 @@ in
           profiles = cfg.profiles;
           agentPresets = cfg.agentPresets;
           defaultProfile = cfg.defaultProfile;
+          desktopProfile = if cfg.desktop.enable then cfg.desktop.profile else null;
           patch = cfg.patch;
         })
       ];

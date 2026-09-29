@@ -173,12 +173,25 @@ let
       '';
 
   profileSpec =
-    agentPresets: name: profile:
+    agentPresets: desktopProfile: name: profile:
     let
       targetName = profileName name;
       agentPreset = profileAgentPreset agentPresets name profile;
       bundles = profileBundles profile;
       mode = validateMode (profile.mode or "managed");
+      managedDesktopOnboardingPatchFile =
+        if targetName == desktopProfile && mode == "managed" then
+          writers.writeYAML "dsh-profile-${targetName}-managed-onboarding.patch.yml" [
+            {
+              id = "ui-settings-account";
+              config = {
+                step = "done";
+                completion = "skipped";
+              };
+            }
+          ]
+        else
+          null;
       # The manifest argument order is the Cordis patch order. Keep the base
       # layer first, then apply profile bundles in their declared order.
       bundleManifests = map (bundle: "${bundle}/nix-support/dsh-bundles.json") (
@@ -202,19 +215,23 @@ let
           writers.writeYAML "dsh-profile-${targetName}-raw-cordis.patch.yml" rawPatch
         else
           writeText "dsh-profile-${targetName}-raw-cordis.patch.yml" rawPatch;
+      patchLayers =
+        lib.optional (agentPreset != null) agentPresetPatchFile
+        ++ lib.optional (agentPreset != null) agentPresetRegistryPatchFile
+        # Nix resets managed cordis.patch.yml on every Desktop launch. Declare
+        # onboarding complete in that file so the runtime wizard stays hidden.
+        ++ lib.optional (managedDesktopOnboardingPatchFile != null) managedDesktopOnboardingPatchFile;
       patchFile =
-        if agentPreset == null then
+        if patchLayers == [ ] then
           rawPatchFile
         else
           runCommand "dsh-profile-${targetName}-cordis.patch.yml" { nativeBuildInputs = [ yq-go ]; } ''
             cp ${lib.escapeShellArg rawPatchFile} "$out"
             chmod u+w "$out"
-            DSH_AGENT_PRESET_PATCH=${lib.escapeShellArg agentPresetPatchFile} \
-              DSH_AGENT_PRESET_REGISTRY_PATCH=${lib.escapeShellArg agentPresetRegistryPatchFile} \
-              yq -i '
-                . += load(strenv(DSH_AGENT_PRESET_PATCH))
-                | . += load(strenv(DSH_AGENT_PRESET_REGISTRY_PATCH))
-              ' "$out"
+            ${lib.concatMapStringsSep "\n" (patchLayer: ''
+              DSH_PROFILE_PATCH_LAYER=${lib.escapeShellArg patchLayer} \
+                yq -i '. += load(strenv(DSH_PROFILE_PATCH_LAYER))' "$out"
+            '') patchLayers}
           '';
       packageJson = runCommand "dsh-profile-${targetName}-package.json" { } ''
         mkdir -p "$out"
@@ -502,6 +519,7 @@ let
       agentPresets ? { },
       defaultBundles ? [ ],
       defaultProfile ? null,
+      desktopProfile ? null,
       homePatch ? null,
       profiles ? { },
     }:
@@ -514,7 +532,7 @@ let
       workspaceFile = writers.writeYAML "dsh-profile-pnpm-workspace.yaml" workspace;
       profileSpecs = lib.mapAttrs (
         name: profile:
-        (profileSpec agentPresets name profile)
+        (profileSpec agentPresets desktopProfile name profile)
         // {
           inherit workspaceFile;
         }

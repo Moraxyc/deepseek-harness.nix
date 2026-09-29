@@ -40,6 +40,7 @@
   agentPresets ? { },
   # Optional profile used when the caller does not pass --profile.
   defaultProfile ? null,
+  desktopProfile ? null,
   # Optional home-level Cordis patch managed under $DSH_HOME.
   homePatch ? null,
   # Optional external profile artifact seeder used by split integrations.
@@ -91,7 +92,7 @@ let
   );
   profileArtifacts = profileSupport.mkProfileArtifacts {
     inherit agentPresets defaultBundles profiles;
-    inherit defaultProfile homePatch;
+    inherit defaultProfile desktopProfile homePatch;
   };
   profilesForComposition = profileArtifacts.profilesForComposition;
   managedProfileNames = map profileSupport.profileName (lib.attrNames profiles);
@@ -119,6 +120,7 @@ let
     inherit
       agentPresets
       defaultBundles
+      desktopProfile
       profiles
       ;
     defaultProfile = validatedDefaultProfile;
