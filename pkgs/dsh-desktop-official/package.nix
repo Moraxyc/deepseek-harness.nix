@@ -11,6 +11,7 @@
   makeDesktopItem,
   makeWrapper,
   nodeModulesPrune,
+  runCommand,
   wrapGAppsHook3,
   writers,
 
@@ -21,10 +22,12 @@
   gtk3,
   libGL,
   nodejs-slim,
+  patchelf,
   pnpmWorkspaceDeploy,
   removeReferencesTo,
   python3,
   python3Packages,
+  vips,
   xcbuild,
 
   dshHost ? dsh,
@@ -39,24 +42,7 @@ let
   appExecutable =
     if isDarwin then "${appDir}/Contents/MacOS/DeepSeek Harness" else "${appDir}/DeepSeek Harness";
   runtimeRoot = "${appDir}/${if isDarwin then "Contents/Resources" else "resources"}";
-  pythonEnv = python3.withPackages (
-    ps: with ps; [
-      numpy
-      pandas
-      python-docx
-      python-pptx
-      openpyxl
-      pillow
-      lxml
-      xlsxwriter
-      python-dateutil
-      six
-      tzdata
-      typing-extensions
-      et-xmlfile
-    ]
-  );
-  desktopRuntimeDeps = [ pythonEnv ] ++ lib.remove dshDesktopPnpm dshHost.passthru.runtimeDeps;
+  vipsLib = lib.getLib vips;
   storeReferencesToStrip = lib.optionals isDarwin [
     stdenv.cc
     apple-sdk
@@ -208,7 +194,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     ln -s "${nodejs-slim}/bin/node" "$primaryRuntime/dependencies/node/bin/node"
     printf '%s\n' 'Reserved for bundled Node packages.' > "$primaryRuntime/dependencies/node/node_modules/README.txt"
     ln -s "${dshDesktopPnpm}/libexec/pnpm" "$primaryRuntime/dependencies/pnpm"
-    ln -s "${pythonEnv}" "$primaryRuntime/dependencies/python"
+    ln -s "${finalAttrs.passthru.pythonEnv}" "$primaryRuntime/dependencies/python"
     install -Dm644 ${
       writers.writeJSON "dsh-desktop-primary-runtime.json" {
         desktopVersion = finalAttrs.version;
@@ -253,7 +239,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     makeWrapper "${appExecutable}" "$out/bin/dsh-desktop" \
       --set DSH_BUNDLED_PRIMARY_RUNTIME "$primaryRuntime" \
       --prefix PATH : "${runtimeRoot}/runtime/bin" \
-      --prefix PATH : ${lib.makeBinPath desktopRuntimeDeps} \
+      --prefix PATH : ${lib.makeBinPath finalAttrs.passthru.desktopRuntimeDeps} \
       --inherit-argv0
   ''
   + lib.optionalString isLinux ''
@@ -295,6 +281,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   ''
   + lib.optionalString isLinux ''
     gappsWrapperArgs+=(
+      --prefix LD_LIBRARY_PATH : "${finalAttrs.passthru.sharpLibvips}/lib"
       --suffix LD_LIBRARY_PATH : ${
         lib.makeLibraryPath [
           libGL
@@ -304,7 +291,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
      --set CHROME_DEVEL_SANDBOX "${appDir}/chrome-sandbox"
       --set DSH_BUNDLED_PRIMARY_RUNTIME "${runtimeRoot}/runtime/primary-runtime"
       --prefix PATH : "${runtimeRoot}/runtime/bin"
-      --prefix PATH : ${lib.makeBinPath desktopRuntimeDeps}
+      --prefix PATH : ${lib.makeBinPath finalAttrs.passthru.desktopRuntimeDeps}
       --inherit-argv0
     )
   '';
@@ -329,6 +316,65 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     startupWMClass = "DeepSeek Harness";
     categories = [ "Development" ];
   });
+
+  passthru = {
+    desktopRuntimeDeps = [
+      finalAttrs.passthru.pythonEnv
+    ]
+    ++ lib.remove dshDesktopPnpm dshHost.passthru.runtimeDeps;
+    sharpLibvips =
+      runCommand "dsh-desktop-sharp-libvips-${dshHost.version}"
+        {
+          nativeBuildInputs = [ patchelf ];
+        }
+        ''
+          addon="$(find ${dsh-workspace.desktop} -name 'sharp-linux-*.node' | head -n 1)"
+          if [ -z "$addon" ]; then
+            echo "dsh-desktop: could not find sharp-linux-*.node under dsh-workspace.desktop" >&2
+            exit 1
+          fi
+
+          soname="$(patchelf --print-needed "$addon" | grep -E '^libvips-cpp[.]so[.]' | head -n 1 || true)"
+          if [ -z "$soname" ]; then
+            echo "dsh-desktop: expected one libvips-cpp DT_NEEDED entry in $addon" >&2
+            exit 1
+          fi
+
+          addon_series="''${soname#libvips-cpp.so.}"
+          addon_series="''${addon_series%.*}"
+          vips_series="${lib.versions.majorMinor vips.version}"
+          if [ "$addon_series" != "$vips_series" ]; then
+            echo "dsh-desktop: sharp addon requires $soname (series $addon_series), but nixpkgs links vips ${vips.version} (series $vips_series)" >&2
+            exit 1
+          fi
+
+          set -- $(find ${vipsLib}/lib -maxdepth 1 -type f -name 'libvips-cpp.so.*')
+          if [ "$#" -ne 1 ]; then
+            echo "dsh-desktop: expected one libvips-cpp.so.* in ${vipsLib}/lib, found $#" >&2
+            exit 1
+          fi
+          mkdir -p "$out/lib"
+          ln -s "$1" "$out/lib/$soname"
+          test -e "$out/lib/$soname"
+        '';
+    pythonEnv = python3.withPackages (
+      ps: with ps; [
+        numpy
+        pandas
+        python-docx
+        python-pptx
+        openpyxl
+        pillow
+        lxml
+        xlsxwriter
+        python-dateutil
+        six
+        tzdata
+        typing-extensions
+        et-xmlfile
+      ]
+    );
+  };
 
   meta = {
     inherit (dsh-workspace.meta) homepage license;
