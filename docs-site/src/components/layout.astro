@@ -12,6 +12,36 @@ const { lang = "en" } = Astro.props;
   <head>
     <meta charset="utf-8" />
     <ClientRouter fallback="swap" />
+    <script is:inline>
+      // The router replaces the <html> attributes with the incoming document,
+      // which is server-rendered without a theme class, so reapply it before
+      // the swap to keep dark mode from flashing.
+      (() => {
+        const root = document.documentElement;
+        const resolve = () => {
+          try {
+            const stored = localStorage.getItem("theme");
+            if (stored === "dark" || stored === "light") return stored;
+          } catch {
+            // Storage can be unavailable; fall back to the system preference.
+          }
+          return window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+        };
+        const apply = (element) => {
+          const theme = resolve();
+          element.classList.remove("light", "dark");
+          element.classList.add(theme);
+          element.style.colorScheme = theme;
+        };
+
+        apply(root);
+        document.addEventListener("astro:before-swap", (event) => {
+          apply(event.newDocument.documentElement);
+        });
+      })();
+    </script>
   </head>
   <body class="flex min-h-screen flex-col">
     <slot />
