@@ -11,25 +11,25 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-tui";
-  version = "0.11.2";
+  version = "0.12.0";
 
   src = fetchFromGitHub {
     owner = "ccch1mneyyy";
     repo = "dsh-TUI";
     rev = "refs/tags/v${finalAttrs.version}";
     fetchSubmodules = true;
-    hash = "sha256-7jwH9i4rGBWMc3nGHgx9gnkd3XxAB0xcSc1wCZniVOU=";
+    hash = "sha256-19XGm5spsmeo7leLKosxJiBxrMhBn2Cfy/CGYN6Q2os=";
   };
 
   # The side-question probe still needs its render-settle patch.
   patches = [ ./btw-side-question-settle.patch ];
 
   postPatch = ''
-    chmod -R u+w vendor/dsh-std dsh-ecosystem-spec dsh-auth
+    chmod -R u+w vendor/dsh-std dsh-ecosystem-spec
 
-    # fetchFromGitHub provides a tarball without a Git index, but verify:i18n
-    # only needs the source file list for its static scan.
-    substituteInPlace scripts/verify-i18n.ts \
+    # fetchFromGitHub provides a tarball without a Git index, but the static
+    # verification scans only need the source file list.
+    substituteInPlace scripts/verify-i18n.ts scripts/verify-minimal-ui-naming.ts \
       --replace-fail \
         "execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard', '--', 'src', 'scripts'], { encoding: 'utf8' })" \
         "execFileSync('find', ['src', 'scripts', '-type', 'f', '-print0'], { encoding: 'utf8' })"
@@ -61,12 +61,8 @@ buildDshBundle (finalAttrs: {
         --ignore-scripts \
         --frozen-lockfile \
         --registry="$NIX_NPM_REGISTRY"
-      pnpm --dir dsh-auth install \
-        --ignore-scripts \
-        --frozen-lockfile \
-        --registry="$NIX_NPM_REGISTRY"
     '';
-    hash = "sha256-Ux0KNj8mukbkA9atlc74fR1k4dwXNio8OqsTyNZkXMw=";
+    hash = "sha256-wb6r6Lh7dLRZNWD5w/B/azRqV4mlr9QrgEbftx1nwr4=";
   };
 
   nativeBuildInputs = [ pnpm_11 ];
@@ -91,7 +87,7 @@ buildDshBundle (finalAttrs: {
     appDir="$out/lib/node_modules/@deepseek-harness-tui/dsh-tui"
     mkdir -p "$appDir"
 
-    cp -r package.json cordis.patch.yml cordis.yml dsh-ecosystem-spec presets lib "$appDir/"
+    cp -r package.json cordis.patch.yml cordis.yml dsh-ecosystem-spec presets lib bin assets guide "$appDir/"
     # Bundle-private deps such as auto-bind and dsh-working-activity are not in
     # the kernel; linkKernelNodeModules merges the kernel peers into this tree.
     cp -r node_modules "$appDir/node_modules"
@@ -103,12 +99,10 @@ buildDshBundle (finalAttrs: {
       dest = "$appDir/node_modules/@dsh-std";
     }}
 
-    # dsh-auth is a workspace link in the source tarball and must be copied
-    # into the final bundle instead of leaving a dangling link.
-    rm -rf "$appDir/node_modules/@deepseek-harness-tui/dsh-auth"
+    rm -rf "$appDir/node_modules/@dsh-tui-vendor"
     ${copyTree.followLinks {
-      src = "node_modules/@deepseek-harness-tui/dsh-auth";
-      dest = "$appDir/node_modules/@deepseek-harness-tui/dsh-auth";
+      src = "node_modules/@dsh-tui-vendor";
+      dest = "$appDir/node_modules/@dsh-tui-vendor";
     }}
 
     runHook postInstall
