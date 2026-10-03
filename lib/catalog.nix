@@ -38,6 +38,8 @@ let
 
 in
 {
-  bundles = map (name: bundleInfo name scope.bundles.${name}) (packageNames scope.bundles);
+  bundles = map (name: bundleInfo name scope.bundles.${name}) (
+    packageNames (builtins.removeAttrs scope.bundles (builtins.attrNames scope.removedBundles))
+  );
   presets = map (name: presetInfo name scope.presets.${name}) (packageNames scope.presets);
 }

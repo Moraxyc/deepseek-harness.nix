@@ -6,10 +6,10 @@
  import { Worker } from "node:worker_threads";
 -import { spawn } from "node:child_process";
 +import { execFileSync, spawn } from "node:child_process";
- import { createHash, randomUUID } from "node:crypto";
- import { createInterface } from "node:readline";
- import { zlibSync } from "fflate";
-@@ -989,6 +989,14 @@
+ import { EventEmitter } from "node:events";
+ import { Readable } from "node:stream";
+ import { finished } from "node:stream/promises";
+@@ -1241,6 +1241,14 @@
  		posix.join(home, "Library/Fonts"),
  		...mobileAssetFontDirectories("/System/Library/AssetsV2")
  	];
@@ -24,7 +24,7 @@
  	const shared = (env.XDG_DATA_DIRS ?? "/usr/local/share:/usr/share").split(":").filter(Boolean);
  	return [.../* @__PURE__ */ new Set([
  		...shared.map((path) => posix.join(path, "fonts")),
-@@ -1178,7 +1186,7 @@
+@@ -1430,7 +1438,7 @@
  	if (callerOptions === null || typeof callerOptions !== "object" || Array.isArray(callerOptions)) throw new TypeError("Converter options must be an object.");
  	const merged = {
  		...DEFAULT_LIMITS,
@@ -36,15 +36,15 @@
 --- a/lib/cli.js
 +++ b/lib/cli.js
 @@ -6,7 +6,7 @@
- import { lstat, mkdir, mkdtemp, open, readFile, rm, stat, unlink, writeFile } from "node:fs/promises";
+ import { copyFile, lstat, mkdir, mkdtemp, open, readFile, rm, stat, symlink, unlink, writeFile } from "node:fs/promises";
  import { homedir, tmpdir } from "node:os";
  import { Worker } from "node:worker_threads";
 -import { spawn } from "node:child_process";
 +import { execFileSync, spawn } from "node:child_process";
- import { createHash, randomUUID } from "node:crypto";
- import { createInterface } from "node:readline";
- import { zlibSync } from "fflate";
-@@ -991,6 +991,14 @@
+ import { EventEmitter } from "node:events";
+ import { Readable } from "node:stream";
+ import { finished } from "node:stream/promises";
+@@ -1243,6 +1243,14 @@
  		posix.join(home, "Library/Fonts"),
  		...mobileAssetFontDirectories("/System/Library/AssetsV2")
  	];
@@ -59,7 +59,7 @@
  	const shared = (env.XDG_DATA_DIRS ?? "/usr/local/share:/usr/share").split(":").filter(Boolean);
  	return [.../* @__PURE__ */ new Set([
  		...shared.map((path) => posix.join(path, "fonts")),
-@@ -1180,7 +1188,7 @@
+@@ -1432,7 +1440,7 @@
  	if (callerOptions === null || typeof callerOptions !== "object" || Array.isArray(callerOptions)) throw new TypeError("Converter options must be an object.");
  	const merged = {
  		...DEFAULT_LIMITS,

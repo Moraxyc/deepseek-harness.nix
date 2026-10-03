@@ -49,15 +49,15 @@
        readDesktopRuntime(this.runtime.dsh)
 --- a/apps/desktop-host/src/index.ts
 +++ b/apps/desktop-host/src/index.ts
-@@ -21,7 +21,7 @@
-   const profile = loadProfileDirectory('dsh', projectDir, installAnchor)
+@@ -24,7 +24,7 @@
+   reportSkippedBundles('dsh', profile)
    const application = runProfile({
      environment: loadLayeredEnv('dsh'),
 -    profile: 'desktop',
 +    profile: process.env.DSH_NIX_DESKTOP_PROFILE ?? 'desktop',
      resolvedProfile: { profile, installAnchor },
      patchFiles: [],
-     args: ['--no-open', '--port', '19387'],
+     args: ['--no-open', '--port', '0'],
 --- /dev/null
 +++ b/apps/desktop/src/nix-profile.ts
 @@ -0,0 +1,20 @@

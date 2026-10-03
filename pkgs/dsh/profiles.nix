@@ -96,6 +96,32 @@ let
     else
       throw "dsh profile: patch must be a YAML string or a list of patch operations";
 
+  warnPatchMigrations =
+    location: patch:
+    if !lib.isList patch then
+      patch
+    else
+      lib.foldr (
+        operation: result:
+        let
+          id = operation.id or null;
+        in
+        lib.warnIf (id == "time-context")
+          "dsh: ${location} targets top-level time-context, which moved into agent presets in 0.2.1-alpha.1. Remove the old override or configure the preset's time-context row."
+          (
+            lib.warnIf
+              (lib.elem id [
+                "invariants"
+                "session-invariant"
+                "agent-invariant"
+                "scope-invariant"
+                "agent-loop-invariant"
+              ])
+              "dsh: ${location} targets ${toString id}, which upstream removed in 0.2.1-alpha.1. Remove this override and any @deepseek-ai/dsh-invariants or /invariant plugin declarations."
+              result
+          )
+      ) patch (lib.filter lib.isAttrs patch);
+
   profileNeedsWeb =
     profile:
     (profile.requiresWeb or false)
@@ -197,7 +223,7 @@ let
       bundleManifests = map (bundle: "${bundle}/nix-support/dsh-bundles.json") (
         [ baseBundle ] ++ bundles
       );
-      rawPatch = profile.patch or [ ];
+      rawPatch = warnPatchMigrations "profiles.${name}.patch" (profile.patch or [ ]);
       agentPresetPatchFile =
         if agentPreset == null then null else makeAgentPresetPatch agentPreset.id agentPreset.definition;
       agentPresetRegistryPatchFile =
@@ -542,9 +568,9 @@ let
         lib.throwIfNot (defaultProfile == null || lib.elem defaultProfile managedProfileNames)
           "dsh: defaultProfile '${defaultProfile}' is not one of the managed profiles: ${lib.concatStringsSep ", " managedProfileNames}"
           defaultProfile;
-      validatedHomePatch = lib.throwIfNot (
-        homePatch == null || lib.isList homePatch
-      ) "dsh: homePatch must be null or a list" homePatch;
+      validatedHomePatch =
+        lib.throwIfNot (homePatch == null || lib.isList homePatch) "dsh: homePatch must be null or a list"
+          (warnPatchMigrations "homePatch (programs.dsh.patch)" homePatch);
       homePatchFile =
         if validatedHomePatch == null then
           null

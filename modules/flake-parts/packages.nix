@@ -37,7 +37,9 @@
         lib.filterAttrs (name: package: name != "default" && isBuildable package) packages
       );
       bundleNames = lib.attrNames (
-        lib.filterAttrs (_: package: isBuildable package) legacyPackages.bundles
+        lib.filterAttrs (_: package: isBuildable package) (
+          builtins.removeAttrs legacyPackages.bundles (builtins.attrNames dsh.removedBundles)
+        )
       );
       presetNames = lib.attrNames (
         lib.filterAttrs (_: package: isBuildable package) legacyPackages.presets

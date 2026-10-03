@@ -15,6 +15,44 @@ Routine dependency updates are not listed here.
 - Check the target upstream version and read its entry below before the first
   launch.
 
+## `0.2.1-alpha.1`
+
+These notes apply when upgrading from `0.2.0-rc.2` and supersede the earlier
+Schedule instructions.
+
+### Schedule
+
+The Web composition now mounts Schedule and its task page directly. The
+`standard`, `cordis`, and `ptc` presets include the time context and Schedule
+tools; `minimal` includes neither.
+
+Upstream removes `@deepseek-ai/dsh-experimental-schedule-bundle` from a profile's
+bundle list on startup, rewriting its `package.json`. Stored tasks and delivery
+records are retained. Remove any explicit Nix reference to
+`bundles.experimental-schedule-bundle`; evaluating it now fails with a migration
+message directing you to `bundles.web-app`.
+
+Keep overrides for `schedule` and `ui-schedule`. Remove top-level `time-context`
+patches: that row now belongs to the agent preset. For managed profiles, make
+these changes in `programs.dsh.profiles.<name>.patch`.
+
+Nix warns when a structured profile or home-level patch targets the old
+top-level `time-context` or invariant IDs listed below. Raw YAML strings and
+runtime-managed files still need manual review.
+
+### Plugin API
+
+Upstream removed `@deepseek-ai/dsh-invariants` and every package's `/invariant`
+export. Remove their imports and configuration rows, along with patches targeting
+the old `sdk-minimal` IDs: `invariants`, `session-invariant`, `agent-invariant`,
+`scope-invariant`, and `agent-loop-invariant`. Plugins using these APIs need an
+update before they can load.
+
+Subpath plugins no longer read display metadata from `<subpath>/package.json`.
+Plugin authors must move titles and descriptions to locale `meta.title` and
+`meta.description`, and export icons through `<subpath>/icon`. Package-root
+metadata remains supported.
+
 ## `0.2.0-rc.1`
 
 These notes apply when upgrading to upstream `dsh-v0.2.0-rc.1`. This is the

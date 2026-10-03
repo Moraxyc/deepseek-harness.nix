@@ -12,6 +12,39 @@ description: 上游 DeepSeek Harness 变更带来的用户操作与兼容性注�
 - 如果可能需要回滚，请使用独立的数据目录测试。部分迁移会原地改写数据。
 - 确认目标上游版本，并在首次启动前阅读对应条目。
 
+## `0.2.1-alpha.1`
+
+以下内容适用于从 `0.2.0-rc.2` 升级，并覆盖此前的 Schedule 说明。
+
+### Schedule
+
+Web 组合现在直接挂载 Schedule 和任务页面。`standard`、`cordis` 和 `ptc` preset
+包含时间上下文与 Schedule 工具；`minimal` 两者都不包含。
+
+上游会在启动时从 profile 的 bundle 列表中删除
+`@deepseek-ai/dsh-experimental-schedule-bundle`，并重写其 `package.json`。
+已保存的任务和投递记录会保留。请删除 Nix 配置中显式引用的
+`bundles.experimental-schedule-bundle`；求值该属性会报出迁移错误，并提示改用
+`bundles.web-app`。
+
+保留对 `schedule` 和 `ui-schedule` 的覆盖，删除顶层的 `time-context` patch：
+该行现在属于 agent preset。managed profile 请在
+`programs.dsh.profiles.<name>.patch` 中修改。
+
+结构化的 profile 或 home-level patch 若指向旧的顶层 `time-context` 或下方列出的
+invariant ID，Nix 会发出警告。原始 YAML 字符串和运行时管理的文件仍需手动检查。
+
+### 插件 API
+
+上游移除了 `@deepseek-ai/dsh-invariants` 和各包的 `/invariant` 导出。请删除相关
+导入、配置行，以及指向旧 `sdk-minimal` ID 的 patch：`invariants`、
+`session-invariant`、`agent-invariant`、`scope-invariant` 和 `agent-loop-invariant`。
+使用这些 API 的插件需要更新后才能加载。
+
+子路径插件不再从 `<子路径>/package.json` 读取展示信息。插件作者需要将标题和描述
+移至 locale 的 `meta.title`、`meta.description`，并通过 `<子路径>/icon` 导出图标。
+包根级别的元数据仍受支持。
+
 ## `0.2.0-rc.1`
 
 以下内容适用于升级到上游 `dsh-v0.2.0-rc.1`。这是 0.2 系列的首个预览版，上游说明

@@ -28,7 +28,7 @@ let
 in
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
-  version = "0.2.0-rc.2";
+  version = "0.2.1-alpha.1";
 
   __structuredAttrs = true;
   strictDeps = true;
@@ -43,7 +43,7 @@ buildNpmPackage (finalAttrs: {
     owner = "deepseek-ai";
     repo = "deepseek-harness";
     tag = "dsh-v${finalAttrs.version}";
-    hash = "sha256-ZtO+bdoYbIkIgLTge5Eh7KYwTVh8FpFAAvx58dSY1PI=";
+    hash = "sha256-/mScgSeh7/1HdIeWGAnxkzlXTjZsxscpnWkwnhR8hsU=";
   };
 
   patches = [
@@ -64,7 +64,7 @@ buildNpmPackage (finalAttrs: {
   ];
 
   env = {
-    DSH_CLIENT_COMMIT_HASH = "639ed015397290b3745d163aafe02ffee4aa3f84";
+    DSH_CLIENT_COMMIT_HASH = "5badb15009ae1756c3afe0ae0cef1faafc290ccc";
     PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = "false";
     # Rendered at evaluation time so the workspace patch hook does not have to
     # re-parse pnpm-workspace.yaml in the build sandbox.
@@ -101,9 +101,9 @@ buildNpmPackage (finalAttrs: {
   + lib.optionalString isLinux ''
     # Match the patched tarball used to populate the offline dependency store.
     yq -i '
-      .packages."@deepseek-ai/libreoffice-kit@0.1.1".resolution = load("${
+      .packages."@deepseek-ai/libreoffice-kit@0.1.5".resolution = load("${
         writers.writeJSON "libreoffice-kit-resolution.json"
-          finalAttrs.pnpmDeps.passthru.rewrittenLockfileData.packages."@deepseek-ai/libreoffice-kit@0.1.1".resolution
+          finalAttrs.pnpmDeps.passthru.rewrittenLockfileData.packages."@deepseek-ai/libreoffice-kit@0.1.5".resolution
       }")
     ' pnpm-lock.yaml
   '';
@@ -115,9 +115,9 @@ buildNpmPackage (finalAttrs: {
     workspaceJson = lib.importJSON ./pnpm-workspace.json;
     workspaceRoot = finalAttrs.src;
     packageSourceOverrides = lib.optionalAttrs isLinux {
-      "@deepseek-ai/libreoffice-kit@0.1.1" =
+      "@deepseek-ai/libreoffice-kit@0.1.5" =
         { previousSource, ... }:
-        runCommand "libreoffice-kit-0.1.1-fontconfig.tgz"
+        runCommand "libreoffice-kit-0.1.5-fontconfig.tgz"
           {
             src = previousSource;
             nativeBuildInputs = [ patch ];
