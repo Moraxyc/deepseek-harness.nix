@@ -46,3 +46,17 @@ diff --git a/packages/boot/app-boot/src/profile-resolution/resolver.ts b/package
      defaultResolve(
        specifier: string,
        context: { parentURL?: string; conditions?: readonly string[] },
+--- a/packages/boot/hmr/src/package-manifest.ts
++++ b/packages/boot/hmr/src/package-manifest.ts
+@@ -84,7 +84,10 @@
+ }
+
+ function loadNodeInternals(): NativeAccess {
+-  const realm = requireInternal('internal/bootstrap/realm') as { internalBinding(id: 'modules'): PackageBinding }
++  // bootstrap/realm stays private under --expose-internals, but test/binding exposes the same binding.
++  const bindingModule = process.execArgv.includes('--expose-internals')
++    ? 'internal/test/binding' : 'internal/bootstrap/realm'
++  const realm = requireInternal(bindingModule) as { internalBinding(id: 'modules'): PackageBinding }
+   const esm = requireInternal('internal/modules/esm/loader') as {
+     getOrInitializeCascadedLoader(): NativeAccess['esmLoader']
+   }
