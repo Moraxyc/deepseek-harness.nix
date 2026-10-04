@@ -38,6 +38,7 @@
 let
   inherit (stdenvNoCC.hostPlatform) isDarwin isLinux;
 
+  desktopId = "deepseek-ai-dsh-desktop";
   appDir = if isDarwin then "$out/Applications/DeepSeek Harness.app" else "$out/lib/dsh-desktop";
   appExecutable =
     if isDarwin then "${appDir}/Contents/MacOS/DeepSeek Harness" else "${appDir}/DeepSeek Harness";
@@ -119,6 +120,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       label = "dsh-desktop: Electron distribution is missing";
     }}
     mv "$appDir/electron" "$appDir/DeepSeek Harness"
+    install -Dm644 "${dsh-workspace.src}/website/public/favicon.svg" \
+      "$out/share/icons/hicolor/scalable/apps/${desktopId}.svg"
   ''
   + ''
     rm "$runtimeRoot/default_app.asar"
@@ -309,11 +312,12 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   '';
 
   desktopItems = lib.optional isLinux (makeDesktopItem {
-    name = "deepseek-harness";
+    name = desktopId;
     desktopName = "DeepSeek Harness";
     exec = "dsh-desktop %U";
     terminal = false;
-    startupWMClass = "DeepSeek Harness";
+    icon = desktopId;
+    startupWMClass = desktopId;
     categories = [ "Development" ];
   });
 
