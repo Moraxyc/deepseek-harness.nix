@@ -1,16 +1,40 @@
 ---
 title: 迁移说明
-description: 上游 DeepSeek Harness 变更带来的用户操作与兼容性注意事项。
+description: 仓库包移除与上游 DeepSeek Harness 变更的迁移说明。
 ---
 
-升级这个 flake 使用的上游 workspace 版本前，请先阅读本文。本文只记录可能需要
-用户操作，或会影响现有数据的变更；普通依赖更新不在此列出。
+更新这个 flake 或其上游 workspace 版本前，请先阅读本文。本文记录包移除，以及
+可能需要用户操作或影响现有数据的变更。
 
 ## 升级前
 
 - 备份 `$DSH_HOME` 或配置的数据目录。
 - 如果可能需要回滚，请使用独立的数据目录测试。部分迁移会原地改写数据。
 - 确认目标上游版本，并在首次启动前阅读对应条目。
+
+## 已移除的 Bundle
+
+已移除的 `bundles.*` 属性作为迁移入口保留，求值时通过 `throw` 告知原因与处理方法。
+统一名单位于 `lib/removed-bundles.nix`。受支持的包目录和 CI 构建目标选择由本仓库
+维护的属性。请在配置中显式选择替代 bundle。
+
+### `bundles.oh-dsh`
+
+本仓库不再维护 Oh-DSH。请从 bundle 选择中删除 `bundles.oh-dsh`，包括
+`withBundles` 和 `programs.dsh.profiles.<name>.bundles` 中的引用。
+
+如需本仓库维护的 Web 界面，请使用 `presets.web` 或选择 `bundles.web-app`。
+它们提供本仓库维护的标准 Web 组合。Oh-DSH 发行版及其插件组合请从
+[上游项目](https://github.com/hust-open-atom-club/oh-dsh) 获取。
+
+移除该 bundle 后，已有数据保留在原位置。切换发行版前，请备份数据并确认目标发行版的
+兼容性；如需迁移数据，请自行完成。
+
+### `bundles.experimental-schedule-bundle`
+
+该属性已在上游 `0.2.1-alpha.1` 中移除。请从 bundle 选择中删除它；
+`bundles.web-app` 现在直接包含 Schedule。profile 和 patch 的调整方法见下方
+`0.2.1-alpha.1` 条目的 Schedule 说明。
 
 ## `0.2.1-alpha.1`
 

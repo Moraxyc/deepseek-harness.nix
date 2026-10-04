@@ -62,6 +62,16 @@ nix flake update
 nix flake update --flake ./modules/flake-parts/dev
 ```
 
+## 移除 Bundle
+
+删除包实现后，在 `lib/removed-bundles.nix` 中保留其属性名。每个条目必须说明
+移除原因、用户需要执行的操作，以及迁移说明链接。已移除的属性保留迁移错误，由用户
+显式选择替代 bundle。
+
+overlay 将名单中的条目转换为 `throw` 错误。包 CI 和目录生成根据同一份名单
+选择由本仓库维护的属性进行求值。迁移步骤同步写入中英文
+[迁移说明](../migration/)。
+
 ## 文档
 
 所有用户可见文档保持中英双语，分别位于

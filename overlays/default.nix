@@ -1,8 +1,6 @@
 final: prev:
 let
-  removedBundles = {
-    experimental-schedule-bundle = "dsh: bundles.experimental-schedule-bundle was removed in 0.2.1-alpha.1. Remove it from your bundle list; bundles.web-app now includes Schedule. See https://moraxyc.github.io/deepseek-harness.nix/migration/";
-  };
+  removedBundles = import ../lib/removed-bundles.nix;
   # `pnpm deploy` injects workspace dependencies only from 11.22.0 on
   # (pnpm/pnpm#13754); older releases link back into the source workspace and
   # break the self-contained bundle. This is a requirement of the deploy step,

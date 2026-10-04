@@ -63,6 +63,18 @@ nix flake update
 nix flake update --flake ./modules/flake-parts/dev
 ```
 
+## Removing Bundles
+
+Remove the package implementation and keep its attribute name in
+`lib/removed-bundles.nix`. Each entry must state the removal reason, the
+user action, and the Migration Guide link. Keep the migration error on the
+removed attribute; users select replacement bundles explicitly.
+
+The overlay turns registry entries into `throw` errors. Package CI and catalog
+generation use the same registry to select maintained attributes for evaluation.
+Add the migration steps to both language versions of the
+[Migration Guide](../migration/).
+
 ## Documentation
 
 User-facing docs are maintained in English and Chinese under

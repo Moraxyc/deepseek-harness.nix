@@ -1,11 +1,11 @@
 ---
 title: Migration Guide
-description: User actions and compatibility notes for upstream DeepSeek Harness changes.
+description: Repository package removals and upstream DeepSeek Harness migration notes.
 ---
 
-Read this page before upgrading the upstream workspace version used by this
-flake. It records changes that may require action or affect existing data.
-Routine dependency updates are not listed here.
+Read this page before updating this flake or its upstream workspace version.
+It focuses on package removals and changes that may require action or affect
+existing data.
 
 ## Before Upgrading
 
@@ -14,6 +14,34 @@ Routine dependency updates are not listed here.
   migrations rewrite data in place.
 - Check the target upstream version and read its entry below before the first
   launch.
+
+## Removed Bundles
+
+Removed `bundles.*` attributes serve as migration entries that throw an error
+when evaluated. The shared registry is `lib/removed-bundles.nix`. The supported
+package catalog and CI build targets select maintained attributes. Select
+replacement bundles explicitly in your configuration.
+
+### `bundles.oh-dsh`
+
+Oh-DSH is no longer maintained in this repository. Remove `bundles.oh-dsh`
+from your bundle selections, including `withBundles` and
+`programs.dsh.profiles.<name>.bundles`.
+
+For the repository-maintained Web interface, use `presets.web` or select
+`bundles.web-app`. These provide the standard Web composition maintained here.
+Obtain the Oh-DSH distribution and its plugin set from the
+[upstream project](https://github.com/hust-open-atom-club/oh-dsh).
+
+Removing this bundle leaves existing data in place. Before switching
+distributions, back up your data and check compatibility with the target
+distribution. Carry out any required data migration yourself.
+
+### `bundles.experimental-schedule-bundle`
+
+This attribute was removed in upstream `0.2.1-alpha.1`. Remove it from your
+bundle selections; `bundles.web-app` now includes Schedule. Follow the Schedule
+instructions in the `0.2.1-alpha.1` entry below for profile and patch changes.
 
 ## `0.2.1-alpha.1`
 
