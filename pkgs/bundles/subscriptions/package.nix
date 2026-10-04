@@ -30,23 +30,21 @@ let
 in
 buildDshBundle (finalAttrs: {
   pname = "dsh-plugin-subscriptions";
-  version = "0.9.6";
+  version = "0.9.7";
 
   src = fetchFromGitHub {
     owner = "V1ki";
     repo = "dsh-plugin-subscriptions";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-F/RtOHFShtVveP3PSRDDtEGdqszk7CHEOAzAnUdbdgs=";
+    hash = "sha256-OkzD/fkrBI9+yJuEKxY5eLdtANT4y/xIOkyub4WlyAc=";
   };
-
-  patches = [
-    ./alpha1-compat.patch
-  ];
 
   # The release lockfile contains absolute links to the author's DSH checkout.
   # Replace only those development links; the pinned kernel supplies the same
   # peers for type checking and runtime composition.
   postPatch = ''
+    yq -o=yaml '.' ${./pnpm-workspace.json} > pnpm-workspace.yaml
+
     jq '
       . as $root
       | if .devDependencies then
@@ -81,6 +79,7 @@ buildDshBundle (finalAttrs: {
     inherit (finalAttrs) pname version;
     pnpm = pnpm_11;
     lockfileJson = ./pnpm-lock.json;
+    workspaceJson = lib.importJSON ./pnpm-workspace.json;
     fetcherVersion = 4;
   };
 
