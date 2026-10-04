@@ -20,7 +20,7 @@ let
 in
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-noema";
-  version = "0.1.0-rc.4";
+  version = "0.1.0-rc.5";
   deployPackage = "@zseven-w/dsh-noema";
   linkKernelNodeModules = dsh-kernel;
 
@@ -28,15 +28,14 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     owner = "ZSeven-W";
     repo = "dsh-noema";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-CuMTu7FOH77e+T6WSgFa5/1GqdYftBlI3gLzi9SUKQE=";
+    hash = "sha256-BEO7xHvgnraqm+yqDqCUoWTJ5lmb/cTvL0HpuG+dnKM=";
   };
 
-  pnpmDepsHash = "sha256-4NAETbjerUa61o3AOUpsQGlV8bVttk31Lr8HJjslc/A=";
+  pnpmDepsHash = "sha256-JSHpUa9ftofII5BBkl9WG7pU/vXfCzHCc9iSQr/d1Ng=";
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
-  patches = [ ./alpha1-compat.patch ];
 
   preBuild = ''
     rm -rf node_modules/@deepseek-ai
