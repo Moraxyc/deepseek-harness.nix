@@ -7,16 +7,16 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-client-liang-intensity-skin";
-  version = "0.1.8";
+  version = "0.1.9";
 
   src = fetchFromGitHub {
     owner = "kingOfSoySauce";
     repo = "dsh-liang-skin";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-HYqcaUmUhHY/BNhLMla7a39DmD9pCJ9OskHAd6D7C30=";
+    hash = "sha256-i/VUb+L84zKtxvQBuCfZpLLAiPBLTM9GGey1ZIyL+Xw=";
   };
 
-  npmDepsHash = "sha256-l+fwQbn1wKY1bCXkhMxp/Vz1IfA626eemBevIsbOvbA=";
+  npmDepsHash = "sha256-MrtZgy2TCD/rlia8EsZnmcXv2zS0zJM/8LvTFi9s12Q=";
   linkKernelNodeModules = dsh-kernel;
 
   passthru.requiresWeb = true;
