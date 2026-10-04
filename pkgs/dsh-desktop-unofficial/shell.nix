@@ -24,10 +24,7 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-AyeA44+9gUc/kJHYLCFgocvaxYds6vVFHM35r3tPjj0=";
   };
 
-  postPatch = ''
-    sed -i 's/^  version: 10$/  version: 9/' yarn.lock
-  ''
-  + lib.optionalString isLinux ''
+  postPatch = lib.optionalString isLinux ''
     # `current` is sufficient on native Linux; Darwin keeps both for universal builds.
     sed -i -E '/^    - (x64|arm64)$/d' .yarnrc.yml
   '';
@@ -46,7 +43,7 @@ stdenv.mkDerivation (finalAttrs: {
   offlineCache =
     (yarn-berry_4.fetchYarnBerryDeps {
       inherit (finalAttrs) src missingHashes postPatch;
-      hash = "sha256-Nva3uWFuUgFxMLf1kocN2QMnwuME9VJs5+C/zgJkQkY=";
+      hash = "sha256-9OodtY5wjRX6zm79Z20IOq5Zwrqx7N6ypd02btov958=";
     }).overrideAttrs
       (_: {
         buildPhase = ''

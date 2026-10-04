@@ -18,7 +18,6 @@
   nix,
   coreutils,
   gawk,
-  gnused,
   yarn-berry_4,
   git,
   imagemagick,
@@ -177,7 +176,6 @@ stdenvNoCC.mkDerivation (
             coreutils
             gawk
             git
-            gnused
             nix
             nix-update
             yarn-berry_4.yarn-berry-fetcher
@@ -194,15 +192,11 @@ stdenvNoCC.mkDerivation (
         nix-update --flake --version=branch --src-only "$shell_attr"
 
         src="$(nix build --no-link --print-out-paths .#dsh-desktop-unofficial.shell.src)"
-        mkdir -p "$tmp/source"
-        cp -a "$src/." "$tmp/source/"
-        chmod -R u+w "$tmp/source"
-        sed -i 's/^  version: 10$/  version: 9/' "$tmp/source/yarn.lock"
         awk '
           /^".*@file:/ { skip = 1; next }
           skip && /^$/ { skip = 0; next }
           !skip { print }
-        ' "$tmp/source/yarn.lock" > "$tmp/yarn.lock"
+        ' "$src/yarn.lock" > "$tmp/yarn.lock"
 
         yarn-berry-fetcher missing-hashes "$tmp/yarn.lock" \
           > "$PWD/pkgs/dsh-desktop-unofficial/missing-hashes.json"
