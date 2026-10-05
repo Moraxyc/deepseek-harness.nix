@@ -1,0 +1,49 @@
+diff --git a/scripts/verify-i18n.ts b/scripts/verify-i18n.ts
+--- a/scripts/verify-i18n.ts
++++ b/scripts/verify-i18n.ts
+@@ -77,7 +77,7 @@
+ }
+ 
+ // ── 3：死 key（src/ 与 scripts/ 全量字面扫描 + 拼接前缀放行）──────────
+-const files = [...new Set(execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard', '--', 'src', 'scripts'], { encoding: 'utf8' })
++const files = [...new Set(execFileSync('find', ['src', 'scripts', '-type', 'f', '-print0'], { encoding: 'utf8' })
+   .split('\0'))]
+   .filter(f => /\.(ts|tsx|mjs|cjs|js)$/.test(f))
+   .filter(f => existsSync(f))
+diff --git a/scripts/verify-minimal-ui-naming.ts b/scripts/verify-minimal-ui-naming.ts
+--- a/scripts/verify-minimal-ui-naming.ts
++++ b/scripts/verify-minimal-ui-naming.ts
+@@ -80,7 +80,7 @@
+ if (!/\bminimal\s*:\s*Schema\.boolean\(\)/.test(configSource)) fail('src/dsh-adapter/index.ts 的 Config 里没有 `minimal: Schema.boolean()`——持久化键被改动了')
+ 
+ // ── 4：源码词汇已解耦，发布面的旧名仍作为 deprecated 别名存在 ────────────
+-const tracked = execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard', '--', 'src', 'scripts'], { encoding: 'utf8' })
++const tracked = execFileSync('find', ['src', 'scripts', '-type', 'f', '-print0'], { encoding: 'utf8' })
+   .split('\0')
+   .filter(file => /\.(ts|tsx|mjs|cjs)$/.test(file))
+   .filter(file => existsSync(file))
+diff --git a/scripts/verify-protocol-single-source.ts b/scripts/verify-protocol-single-source.ts
+--- a/scripts/verify-protocol-single-source.ts
++++ b/scripts/verify-protocol-single-source.ts
+@@ -201,17 +201,17 @@
+ // silently drop the profile out of the published npm tarball, so fail closed.
+ try {
+   const { TUI_PROFILE_DIR } = await import('../src/adapter/standard/registry.js')
+-  const tracked = execFileSync('git', ['ls-files', '-s', '--', TUI_PROFILE_DIR], { encoding: 'utf8' })
++  const tracked = execFileSync('find', [TUI_PROFILE_DIR, '-type', 'f'], { encoding: 'utf8' })
+     .trim().split('\n').filter(Boolean)
+   if (tracked.length === 0) {
+-    failures.push(`${TUI_PROFILE_DIR}/ is not tracked by git`)
++    failures.push(`${TUI_PROFILE_DIR}/ contains no files`)
+   }
+-  const gitlinks = tracked.filter(line => line.startsWith('160000'))
++  const gitlinks = readFileSync(join(ROOT, '.gitmodules'), 'utf8').split('\n').filter(line => line.trim() === 'path = ' + TUI_PROFILE_DIR)
+   if (gitlinks.length > 0) {
+     failures.push(`${TUI_PROFILE_DIR}/ is mounted as a submodule (gitlink); it must stay plain in-tree files`)
+   }
+ } catch (error) {
+-  failures.push(`cannot verify tui-profile/ tracking state: ${error instanceof Error ? error.message : String(error)}`)
++  failures.push(`cannot verify tui-profile/ files: ${error instanceof Error ? error.message : String(error)}`)
+ }
+ 
+ // Canonical catalog singleton.

@@ -11,38 +11,24 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-tui";
-  version = "0.12.0";
+  version = "0.13.0";
 
   src = fetchFromGitHub {
     owner = "ccch1mneyyy";
     repo = "dsh-TUI";
     rev = "refs/tags/v${finalAttrs.version}";
     fetchSubmodules = true;
-    hash = "sha256-19XGm5spsmeo7leLKosxJiBxrMhBn2Cfy/CGYN6Q2os=";
+    hash = "sha256-gLrSt+rxWUANuGQFGUAR2VLvXbiHdkjwf9RGU4qqPBo=";
   };
 
   # The side-question probe still needs its render-settle patch.
-  patches = [ ./btw-side-question-settle.patch ];
+  patches = [
+    ./btw-side-question-settle.patch
+    ./verify-source-files.patch
+  ];
 
   postPatch = ''
-    chmod -R u+w vendor/dsh-std dsh-ecosystem-spec
-
-    # fetchFromGitHub provides a tarball without a Git index, but the static
-    # verification scans only need the source file list.
-    substituteInPlace scripts/verify-i18n.ts scripts/verify-minimal-ui-naming.ts \
-      --replace-fail \
-        "execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard', '--', 'src', 'scripts'], { encoding: 'utf8' })" \
-        "execFileSync('find', ['src', 'scripts', '-type', 'f', '-print0'], { encoding: 'utf8' })"
-
-    # Submodules lack a .git directory in the Nix sandbox.
-    substituteInPlace scripts/verify-protocol-single-source.ts \
-      --replace-fail \
-        "const head = execFileSync('git', ['-C', specGitDir, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()" \
-        "const { ECOSYSTEM_SPEC_REVISION: head } = await import('../src/adapter/standard/registry.js')" \
-      --replace-fail \
-        "const status = execFileSync('git', ['-C', specGitDir, 'status', '--short'], { encoding: 'utf8' }).trim()" \
-        "const status = \"\""
-
+    chmod -R u+w vendor/dsh-std
   '';
 
   # Static imports initialize i18n before the verification script can set its
@@ -52,7 +38,12 @@ buildDshBundle (finalAttrs: {
   };
 
   pnpmDeps = fetchPnpmDeps {
-    inherit (finalAttrs) pname version src;
+    inherit (finalAttrs)
+      pname
+      version
+      src
+      patches
+      ;
     pnpm = pnpm_11;
     fetcherVersion = 4;
     postPatch = finalAttrs.postPatch;
@@ -87,7 +78,7 @@ buildDshBundle (finalAttrs: {
     appDir="$out/lib/node_modules/@deepseek-harness-tui/dsh-tui"
     mkdir -p "$appDir"
 
-    cp -r package.json cordis.patch.yml cordis.yml dsh-ecosystem-spec presets lib bin assets guide "$appDir/"
+    cp -r package.json cordis.patch.yml cordis.yml tui-profile presets lib bin assets guide "$appDir/"
     # Bundle-private deps such as auto-bind and dsh-working-activity are not in
     # the kernel; linkKernelNodeModules merges the kernel peers into this tree.
     cp -r node_modules "$appDir/node_modules"
@@ -106,6 +97,22 @@ buildDshBundle (finalAttrs: {
     }}
 
     runHook postInstall
+  '';
+
+  doInstallCheck = true;
+  installCheckPhase = ''
+    runHook preInstallCheck
+
+    cd "$out/lib/node_modules/@deepseek-harness-tui/dsh-tui"
+    node --input-type=module -e "
+      import { readFileSync } from 'node:fs';
+      const manifest = JSON.parse(readFileSync('package.json', 'utf8'));
+      for (const specifier of Object.keys(manifest.imports)) {
+        await import(specifier);
+      }
+    "
+
+    runHook postInstallCheck
   '';
 
   passthru = {
