@@ -45,7 +45,10 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
 
-  patches = [ ./alpha2-compat.patch ];
+  patches = [
+    ./alpha2-compat.patch
+    ./invariant-compat.patch
+  ];
 
   preBuild = ''
     rm -rf node_modules/@deepseek-ai
