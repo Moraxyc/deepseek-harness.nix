@@ -20,7 +20,7 @@ let
 in
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-noema";
-  version = "0.1.0-rc.5";
+  version = "0.1.0-rc.6";
   deployPackage = "@zseven-w/dsh-noema";
   linkKernelNodeModules = dsh-kernel;
 
@@ -28,7 +28,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     owner = "ZSeven-W";
     repo = "dsh-noema";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-BEO7xHvgnraqm+yqDqCUoWTJ5lmb/cTvL0HpuG+dnKM=";
+    hash = "sha256-5y80AfGdjuqXZsIf12plz1NxFEgGP0bl8th7b+2Y5ss=";
   };
 
   pnpmDepsHash = "sha256-JSHpUa9ftofII5BBkl9WG7pU/vXfCzHCc9iSQr/d1Ng=";
