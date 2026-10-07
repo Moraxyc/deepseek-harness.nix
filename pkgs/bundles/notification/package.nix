@@ -34,6 +34,8 @@ buildDshBundle (finalAttrs: {
     hash = "sha256-rs6hWEds6wlH3psDqNPdZLdzhpWcAAqBkrKwJ0hkNXo=";
   };
 
+  patches = [ ./invariant-compat.patch ];
+
   # The upstream lockfile points at a developer's external DSH checkout. The
   # kernel supplies those peers during the source build; keep only published
   # package dependencies in the pnpm install.
