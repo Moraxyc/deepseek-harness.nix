@@ -73,8 +73,6 @@ let
     { directories, owner }:
     map (directory: "d ${directory} 0700 ${owner} -") directories;
 
-  # Host modules differ only in option text, defaults, and service wiring;
-  # callers pass those in so the declarations here stay shared.
   mkOptions =
     {
       cfg,

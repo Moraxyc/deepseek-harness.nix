@@ -99,7 +99,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     }}
     mv "$appDir/Contents/MacOS/Electron" "$appDir/Contents/MacOS/DeepSeek Harness"
 
-    # Use the upstream website logo until the desktop ships its own icon.
+    # The desktop source has no icon; use the upstream website logo.
     iconTheme=$(mktemp -d)
     install -Dm644 "${dsh-workspace.src}/website/public/favicon.svg" \
       "$iconTheme/icons/hicolor/scalable/apps/dsh.svg"
@@ -156,9 +156,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     }}
     cp "${dshHost}/lib/deepseek-harness/package.json" "$dshPackage/package.json"
 
-    # The composed tree is flattened once in dsh.passthru.flattenedNodeModules:
-    # a bundle resolution view that mirrors the shared tree is already dropped,
-    # so this stays one copy of the runtime dependency tree.
     ${copyTree.preserve {
       src = "${dshHost.passthru.flattenedNodeModules}/node_modules";
       dest = "$dshRuntime/node_modules";
@@ -170,8 +167,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       dest = "$dshRuntime/node_modules";
     }}
 
-    # Alpha.2 loads the Office skills from an external resource directory;
-    # copy them before pruning node_modules, which removes Markdown files.
+    # Office loads skills from external resources; copy them before Markdown pruning.
     ${copyTree.followLinks {
       src = "$src/host/node_modules/@deepseek-ai/dsh-skill-office/assets";
       dest = "$runtimeRoot/runtime/office-skills";

@@ -21,7 +21,6 @@ buildDshBundle (finalAttrs: {
     hash = "sha256-gLrSt+rxWUANuGQFGUAR2VLvXbiHdkjwf9RGU4qqPBo=";
   };
 
-  # The side-question probe still needs its render-settle patch.
   patches = [
     ./btw-side-question-settle.patch
     ./verify-source-files.patch
@@ -79,8 +78,7 @@ buildDshBundle (finalAttrs: {
     mkdir -p "$appDir"
 
     cp -r package.json cordis.patch.yml cordis.yml tui-profile presets lib bin assets guide "$appDir/"
-    # Bundle-private deps such as auto-bind and dsh-working-activity are not in
-    # the kernel; linkKernelNodeModules merges the kernel peers into this tree.
+    # Retain private dependencies absent from the kernel.
     cp -r node_modules "$appDir/node_modules"
 
     # Workspace links point into vendor/dsh-std, which is not installed.

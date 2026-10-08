@@ -187,10 +187,8 @@ let
       return 1
     }
 
-    # The kernel owns every package present in its node_modules. Bundle-local
-    # copies of those names must not survive into the final composition,
-    # otherwise the same runtime package can resolve twice. Callers can keep a
-    # specific local copy through linkKernelNodeModulesKeep.
+    # Duplicate kernel packages can create distinct runtime instances.
+    # linkKernelNodeModulesKeep retains intentional bundle-local versions.
     while IFS= read -r reserved; do
       [ -n "$reserved" ] || continue
       is_kernel_peer_kept "$reserved" && continue
@@ -202,9 +200,7 @@ let
       -exec rm -rf {} + 2>/dev/null || true
     done < "$reservedList"
 
-    # Removing package directories can leave dangling .bin links behind.
-    # noBrokenSymlinks rejects those, so delete any symlink whose target no
-    # longer exists before the kernel link is installed.
+    # Package removal leaves dangling .bin links that noBrokenSymlinks rejects.
     find "$bundleNodeModules" -depth -type l ! -exec test -e {} \; -delete 2>/dev/null || true
 
     find "$bundleNodeModules" -depth -type d \( -name "@" -o -name "@deepseek-ai" \) -empty -delete 2>/dev/null || true
@@ -226,9 +222,6 @@ let
         return
       fi
 
-      # A bundle-local node_modules keeps its own dependencies (for example
-      # dsh-cc-tui's auto-bind). Kernel-owned peers are linked into it so both
-      # resolve without duplicating the kernel runtime.
       mkdir -p "$moduleRoot"
       while IFS= read -r reserved; do
         [ -n "$reserved" ] || continue
@@ -265,8 +258,6 @@ let
     done
   '';
 
-  # Build a bundle from its own npm source. buildNpmPackage's npmInstallHook
-  # owns the standard npm package layout unless the bundle overrides it.
   buildDshBundle = lib.extendMkDerivation {
     constructDrv = buildNpmPackage;
     excludeDrvArgNames = [
@@ -324,8 +315,6 @@ let
       };
   };
 
-  # Build a bundle from an external pnpm workspace by deploying one package
-  # directly into the standard bundle output layout.
   fromPnpmWorkspace = lib.extendMkDerivation {
     constructDrv = buildNpmPackage;
     excludeDrvArgNames = [
@@ -402,8 +391,7 @@ let
         + preDeploy
         + ''
           pnpm config set --location=project inject-workspace-packages true
-          # Dependencies were installed by npmInstallHook; deploy must only
-          # copy them and must not rerun native install scripts.
+          # Deploy must not rerun native dependency install scripts.
           pnpm --filter ${lib.escapeShellArg deployPackage} deploy \
             --prod \
             --ignore-scripts \
@@ -460,8 +448,6 @@ let
       };
   };
 
-  # Package artifacts emitted by dsh-workspace. Use this for upstream bundles
-  # so the monorepo is built once and reused by the runtime packages.
   fromWorkspace = lib.extendMkDerivation {
     constructDrv = stdenvNoCC.mkDerivation;
     excludeDrvArgNames = [
@@ -526,8 +512,6 @@ let
       {
         inherit version;
         src = dsh-workspace;
-        # The workspace is only the build source. Runtime dependencies come
-        # from the independently consumable kernel package.
         disallowedReferences = lib.unique (disallowedReferences ++ [ dsh-workspace ]);
         dontUnpack = true;
         dontConfigure = true;

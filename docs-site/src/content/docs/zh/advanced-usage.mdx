@@ -25,8 +25,7 @@ description: 自定义 profile、包覆盖、服务和反向代理配置。
 ```
 
 名为 `tui` 的 profile 会生成到 `$DSH_HOME/profiles/nix-tui`
-（默认 `~/.dsh/profiles/nix-tui`）。Nix 只同步由它管理的 profile；已有但没有
-Nix 标记的同名目录不会被接管或覆盖。
+（默认 `~/.dsh/profiles/nix-tui`）。
 
 `defaultProfile` 使用生成后的名称（`nix-tui`）。不要直接填原始 profile key（`tui`）。
 没有显式传入 `--profile` 时，dsh 使用这个名称；显式传入时仍可选择任何可用 profile。
@@ -287,6 +286,22 @@ ID 以后一次定义为准。它可以放在 `withProfiles` 前面或后面：
 }
 ```
 
+### Profile 模式
+
+- `managed`：每次运行 `dsh` 时，Nix 恢复声明的 `package.json` 和
+  `cordis.patch.yml`。Home Manager 也会在激活时同步这两个文件。
+- `mutable`：Nix 仅在 profile 目录不存在时初始化，之后由用户管理。
+
+两种模式都不会接管已有但没有 Nix 标记的同名目录。
+
+Settings UI 写入当前 profile 的 `cordis.patch.yml`。managed 模式的设置应通过
+`profiles.<name>.patch` 声明；需要保留运行时 Settings 或 `dsh plugin` 修改时，
+使用 mutable 模式。
+
+Desktop profile 使用 managed 模式时，Nix 将 `ui-settings-account.step` 设为
+`done`、将 `completion` 设为 `skipped`。需要完成引导并保留运行时 Settings 时，
+使用 mutable 模式。管理模式下须在 Nix 中禁用插件，桌面的恢复操作不会改写该 profile。
+
 ## 可选子代理提供程序
 
 Codex 和 Claude Code 以可选 Profile Bundle 提供。只需把允许该 profile 使用的
@@ -322,10 +337,8 @@ programs.dsh = {
 };
 ```
 
-构建时会从随附的 `standard` 声明生成 `preset-web-subagents` 插件声明，
-只从 `enableTools` 列出的行删除 `disabled`，并将声明加入 profile patch；
-registry 的 `default` 会设为 `web-subagents`。不会创建独立的 preset 目录。
-安装 Bundle 不会开放工具；工具是否可用由 Agent Preset 单独决定。
+生成的声明名为 `preset-web-subagents`，会加入 profile patch。
+registry 的 `default` 设为 `web-subagents`，仅启用列出的工具行。
 
 这些 Bundle 使用 DeepSeek Harness 上游 workspace 固定的版本，不搜索
 `PATH`。如需改用某个 Nixpkgs revision 或 overlay 单独打包的二进制，可以覆盖
@@ -451,9 +464,6 @@ pkgs.dsh.dsh-desktop-official.override {
   `pnpm-workspace.json`）取依赖的 Bundle 准备的 fetcher。
 
 scope 里其余 helper，包括 `pkgs.dsh.dshWorkspacePatchHook`，属于构建的内部实现。
-`patchDshWorkspace kernel` 从 `DSH_WORKSPACE_OVERRIDES` 读取 workspace
-overrides，该变量指向对应 JSON 文件；`dsh-workspace` 用
-`pnpmDeps.passthru.workspaceConfig.overrides` 渲染该文件。
 
 `importPnpmLock` 接收 `lockfileJson` 和 `workspaceJson`。它写
 `pnpm-workspace.yaml` 时会丢掉 `workspaceJson.packages` 里等于 `.` 的条目：

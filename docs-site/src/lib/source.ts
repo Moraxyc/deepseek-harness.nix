@@ -27,16 +27,9 @@ export const source = loader({
   },
 });
 
-/** The page whose tables are rendered from generated data instead of its body. */
 const catalogSlug = "catalog";
 
-/**
- * Search rows for one page: its MDX body, plus the catalog entries that the
- * page renders from generated data, which the body never carries.
- * @param entry - the page's content entry.
- * @param locale - the page's locale, which selects the description language.
- * @returns the page's structured data for the search index.
- */
+/** Includes generated catalog entries absent from the page's MDX body. */
 export function getStructuredData(
   entry: CollectionEntry<"docs">,
   locale: Locale,
@@ -52,7 +45,6 @@ export function getStructuredData(
   };
 }
 
-/** One paragraph per catalog row, in the order the page lists them. */
 function catalogParagraphs(locale: Locale): string[] {
   const descriptionOf = (item: {
     description: string | null;

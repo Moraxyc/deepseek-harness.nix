@@ -51,15 +51,12 @@ buildNpmPackage (finalAttrs: {
     # The prebuilt require-builtin addon only accepts upstream Electron builds, so
     # the desktop host reads Node internals through `--expose-internals` instead.
     ./expose-internals-loader.patch
-    # Client CSS virtual ids would otherwise carry the build directory, and the
-    # module export map arrives in hash order; the patch rebases ids onto the
-    # build cwd and sorts the export map behind the injected class map.
+    # Absolute CSS IDs and unordered export maps make client bundles nondeterministic.
     ./client-bundle-determinism.patch
     # The login-shell read only skips win32 upstream, so on Linux it would replace
     # the wrapper PATH that carries the bundled node and office runtimes.
     # https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.0-rc.2/apps/desktop/src/login-shell-environment.ts#L176
     ./desktop-login-shell-macos-only.patch
-    # Remove when upstream routes Linux terminal signals through graceful shutdown and isolates the Host process group.
     ./desktop-signal-shutdown.patch
   ];
 

@@ -3,37 +3,19 @@
   stdenvNoCC,
 }:
 
-# Two layers over a runtime node_modules tree, called once on the final tree.
-# Neither decides which packages belong in it: that is the package manager's
-# production dependency graph (`pnpm deploy --prod`), which also selects the
-# platform-specific packages a package declares as optional dependencies.
-# Flattening a tree first and pruning afterwards is fine; adding packages after
-# a prune is not.
-#
-#   prune   removes files no runtime can need: documentation, test suites,
-#           coverage, node-gyp build leftovers, and the payload a package
-#           publishes for platforms the runtime is not.
-#
-#   minify  removes artifacts a runtime can still read: source maps, typings,
-#           TypeScript sources, fixtures and examples. A caller opts in per
-#           tree, because only it can accept that risk for its own runtime.
+# Prune the final production dependency tree, after all packages are added.
+# Package selection belongs to the package manager, not these file filters.
+# minify also removes runtime-readable artifacts; callers must accept that risk.
 let
-  # node-gyp-build and prebuildify resolve `prebuilds/<platform>-<arch>/`, so the
-  # host directory is named after the platform triple rather than guessed from
-  # whichever directories a package happens to ship.
+  # node-gyp-build and prebuildify resolve `prebuilds/<platform>-<arch>/`.
   hostPrebuildDir = with stdenvNoCC.hostPlatform.node; "${platform}-${arch}";
 
-  # Packages that publish every platform inside one tarball, where the
-  # dependency graph has nothing to select. Rules are keyed by package and
-  # asserted, so a renamed directory fails the build instead of silently
-  # keeping foreign payload or deleting unrelated files. A rule whose package
-  # is absent from the tree is skipped.
+  # The dependency graph cannot filter foreign payload within one tarball.
+  # Assert each path before deleting it so layout changes fail the build.
   platformRules = [
     {
       package = "node-pty";
-      # Host prebuilds live among the other systems' prebuilds.
       platformDir = "prebuilds";
-      # ConPTY, the Windows pty backend: redistributed binaries and sources.
       drop = [
         "src/win"
         "third_party/conpty"

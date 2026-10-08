@@ -24,8 +24,7 @@ src="$(nix build --no-link --print-out-paths ".#$attr.src")"
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
-# The release lockfile links peers to the author's DSH checkout, which the
-# pinned kernel supplies instead; keep the vendored lockfile matching that.
+# Keep this peer filter aligned with postPatch in package.nix.
 yq -o=json '
   .importers.".".devDependencies |= with_entries(
     select(.key | test("^@deepseek-ai/") | not)

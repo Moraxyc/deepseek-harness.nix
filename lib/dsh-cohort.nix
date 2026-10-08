@@ -1,9 +1,4 @@
-# Access to the tarball set upstream emits with `release:pack --family dsh`.
-#
-# The cohort is a build output, so its member list cannot be read at evaluation
-# time without IFD. The members this repository consumes are declared here once,
-# bundles only select from that list, and the build-time assertions catch a
-# renamed member or a version that drifted from the workspace.
+# Upstream release tarballs emitted by `release:pack --family dsh`.
 {
   lib,
   copyTree,
@@ -15,9 +10,8 @@
 let
   scope = "@deepseek-ai";
 
-  # Published client packages a bundle compiles against, by unscoped name. A
-  # tarball is the npm consumer view: the export map, file list, and dependency
-  # versions a plugin resolves, which the kernel runtime closure does not carry.
+  # Reading the cohort's member list at evaluation time would require IFD.
+  # Declare consumed client packages here; check validates the release pack.
   members = [
     "dsh-api-remotes"
     "dsh-api-session-controller"
@@ -36,20 +30,15 @@ let
     "dsh-client-ui-workspace"
   ];
 
-  # Members are declared by unscoped name; callers may pass either form.
   bareName = name: lib.removePrefix "${scope}/" name;
   scopedName = name: "${scope}/${bareName name}";
   declare =
     name:
     lib.assertMsg (lib.elem (bareName name) members) "dshCohort: ${name} is not declared in lib/dsh-cohort.nix";
 
-  # Upstream packs a member as `<unscoped scope>-<unscoped name>-<version>.tgz`.
   tarballBase = name: "${lib.removePrefix "@" scope}-${bareName name}";
   tarballName = name: "${tarballBase name}-${dsh-workspace.version}.tgz";
 
-  # A bundle names the peers it compiles against; the result carries the scope
-  # that node_modules paths and removal loops need. An undeclared name fails
-  # evaluation rather than the build.
   select =
     names:
     assert lib.all declare names;
@@ -97,8 +86,6 @@ let
       };
     };
 
-  # Replaces any workspace copy of the named members and copies the published
-  # package in, so the consumer-facing files are the ones that end up compiled.
   installPackages =
     {
       dest ? "node_modules",

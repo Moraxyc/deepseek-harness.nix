@@ -49,8 +49,6 @@ buildNpmPackage (finalAttrs: {
 
   doInstallCheck = true;
   nativeInstallCheckInputs = [ gnugrep ];
-  # The catalog tables come from generated data, so the exported index must
-  # carry every row for the search dialog to return it.
   installCheckPhase = ''
     runHook preInstallCheck
     for row in ${

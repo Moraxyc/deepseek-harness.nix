@@ -28,7 +28,6 @@
 
   bundles,
 
-  # Bundles included in every composed application.
   defaultBundles ? with bundles; [
     headless
     web-app
@@ -36,7 +35,6 @@
 
   # Profiles materialized under $DSH_HOME/profiles/nix-<name>.
   profiles ? { },
-  # Agent Preset definitions referenced by profiles.
   agentPresets ? { },
   # Optional profile used when the caller does not pass --profile.
   defaultProfile ? null,
@@ -82,9 +80,6 @@ let
   headlessBundle = bundles.headless;
   tuiBundle = bundles.tui;
   webBundle = bundles.web-app;
-  # Upstream's OPTIONAL_BUNDLES ship in every composition, switched off: every
-  # profile resolves them, none selects them, and only the user enables them in
-  # the plugin manager. Like upstream, the set is fixed and cannot be removed.
   validatedOptionalBundles = composition.validateBundles (
     map (entry: bundles.${entry.attr}) (
       lib.attrValues (lib.importJSON ../dsh-workspace/optional-bundles.json)
@@ -166,9 +161,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
               has_profile=0
               wants_profile_value=0
 
-              # Alpha.2 accepts `dsh <profile>` as shorthand for
-              # `dsh --profile <profile>`. Keep managed profiles in sync
-              # before handing the original argv to the upstream parser.
+              # Seed positional profile selections before the upstream parser runs.
               if [ "$#" -gt 0 ]; then
                 case "$1" in
                   --|-*|plugin) ;;
@@ -306,9 +299,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       ) profiles
     )
   );
-  # Profiles that need a real terminal enter an interactive loop instead of
-  # exiting after --help; dshBundleCheckHook treats a booted, still-running
-  # smoke window as success for these.
   dshBundleCheckTtyProfiles = lib.concatStringsSep " " (
     lib.flatten (
       lib.mapAttrsToList (
@@ -327,7 +317,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
     optionalBundles = validatedOptionalBundles;
 
-    # Optional bundles a composition does not already select.
     switchedOffBundles = lib.subtractLists finalAttrs.passthru.composedBundles finalAttrs.passthru.optionalBundles;
 
     config = builtins.removeAttrs compositionConfig [ "package" ];
@@ -370,10 +359,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       ));
     };
 
-    # Desktop packages consume this instead of copying the composed tree
-    # themselves with `cp -rL`, which expands every bundle resolution view into
-    # a full copy of the dependency tree. Flattening once here keeps that copy
-    # out of each of them.
     flattenedNodeModules = import ./node-modules-flat.nix {
       inherit
         copyTree

@@ -1,11 +1,8 @@
 final: prev:
 let
   removedBundles = import ../lib/removed-bundles.nix;
-  # `pnpm deploy` injects workspace dependencies only from 11.22.0 on
-  # (pnpm/pnpm#13754); older releases link back into the source workspace and
-  # break the self-contained bundle. This is a requirement of the deploy step,
-  # not of DSH as a whole, so keep it under a deploy-specific name and leave
-  # nixpkgs' pnpm_11 available to bundles that only fetch or build.
+  # Workspace injection requires pnpm >= 11.22.0 (pnpm/pnpm#13754).
+  # Older versions leave source-workspace links in deployed bundles.
   pnpmWorkspaceDeployMinVersion = "11.22.0";
   pnpmWorkspaceDeploy =
     let
@@ -21,11 +18,8 @@ let
     assert prev.lib.assertMsg (prev.lib.versionAtLeast pnpm.version pnpmWorkspaceDeployMinVersion)
       "dsh: pnpmWorkspaceDeploy resolved to ${pnpm.version}, older than ${pnpmWorkspaceDeployMinVersion}";
     pnpm;
-  # Keep pnpm from downloading a package manager version declared by an
-  # upstream project. Upstream release lockfiles are the source of truth, so
-  # their pinned dependencies must not be blocked by pnpm's release-age default.
-  # The fetcher defaults to the deploy pnpm, so a bundle only supplies a hash
-  # and cannot fetch with a pnpm that the deploy step would reject.
+  # Upstream release lockfiles must bypass pnpm's release-age policy and
+  # package-manager downloads.
   wrapFetchPnpmDeps =
     base:
     let
@@ -111,8 +105,6 @@ let
         fetchPnpmDeps
         nodeModulesPrune
         ;
-      # Client peers of external bundles come from the upstream release pack,
-      # not from the workspace deploy tree.
       dshCohort = self.callPackage ../lib/dsh-cohort.nix { };
       inherit pnpmWorkspaceDeploy;
       inherit removedBundles;

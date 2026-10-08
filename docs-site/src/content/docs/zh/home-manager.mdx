@@ -149,23 +149,9 @@ programs.dsh.package = inputs.deepseek-harness.packages.${pkgs.system}.dsh;
 
 ## Profile 模式
 
-- `managed`：每次激活和每次运行 `dsh` 都会把 profile 重新同步为配置内容，
-  因此对受管理的 `package.json` 和 `cordis.patch.yml` 的本地修改会被还原。
-- `mutable`：仅在 profile 目录不存在时由 Nix 初始化一次；之后用户通过
-  `dsh plugin` 管理，Nix 不再改动。
-
-Desktop profile 使用 `managed` 模式时，Nix 会在 `cordis.patch.yml` 中声明引导已完成且已跳过，
-因此每次启动后引导页都会保持隐藏。若用户需要完成引导并保留运行时 Settings，请使用
-`mutable`；其他 managed 设置仍由 Nix 声明管理。
-
-两种模式都不会接管已有但没有 Nix 标记的同名目录。
-
-设置的归属由模式决定。Settings UI 会写入当前 profile 的
-`cordis.patch.yml`；在 `managed` 模式下该文件由 Nix 所有，因此应通过
-`profiles.<name>.patch` 声明，并预期下次激活或启动时恢复。需要让运行时
-Settings 或 `dsh plugin` 的修改持久化时，请选择 `mutable`。上游的一次性迁移
-会导入已有的 `settings.yaml`，在首次写入前将其改名为
-`settings.yaml.imported`；文件之后被覆盖也不会再次自动导入。
+文件归属、Desktop 引导和 Settings 行为见
+[Profile 模式](../advanced-usage/#profile-模式)。升级已有数据前，请阅读
+[迁移说明](../migration/)。
 
 ## Per-User Web 服务
 
@@ -230,10 +216,7 @@ programs.dsh = {
 也可引用 `config.programs.dsh.profiles.desktop.materializedName`。
 模块自动加入 Web 应用依赖，并将 profile 的 bundles 打包进官方桌面 runtime。
 从命令行或应用菜单启动时，桌面先按 `programs.dsh.home` 初始化选中的 profile、
-其引用的 `agentPresets` 和 home 级 `patch`，再启动 host；不要求启用 CLI。
-`managed` 模式下，Nix 会将 `ui-settings-account.step` 设为 `done`、将
-`completion` 设为 `skipped`，引导页不会在重启后再次出现；`mutable` 模式只初始化一次，
-用户可完成引导并保留运行时 Settings。管理模式下须在 Nix 中禁用插件，桌面的恢复操作不会改写该 profile。
+其引用的 `agentPresets` 和 home 级 `patch`，再启动 host。
 修改配置后需重新启动桌面应用。
 
 `desktop.profile` 默认为 `null`，此时保留上游 `profiles/desktop` 行为。

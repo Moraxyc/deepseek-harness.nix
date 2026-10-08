@@ -15,6 +15,13 @@ Every builder runs the same bundle validation: `$out/lib/node_modules` must
 contain at least one package declaring `dsh.bundle.patch`, and the patch file
 must exist relative to that package root.
 
+## Kernel peers
+
+Set `linkKernelNodeModules = dsh-kernel` when a bundle needs kernel peers.
+The helper removes bundle-local copies of kernel-owned packages and resolves
+peers from the kernel to avoid duplicate runtime instances. Use
+`linkKernelNodeModulesKeep` for versions the bundle must keep locally.
+
 ## Adding an external pnpm workspace bundle
 
 Use `buildDshBundle.fromPnpmWorkspace` for external monorepo bundles. It owns
@@ -25,11 +32,6 @@ Bundle directory names are the flake output names under `bundles.*`, so strip a
 `dsh-` prefix when placing an upstream package under `pkgs/bundles/`. For
 example, `dsh-ads` becomes `pkgs/bundles/ads` and `bundles.ads`; the Nix
 package `pname` can still keep the upstream name.
-
-Every bundle outside the default composition is also exposed as
-`legacyPackages.bundleCompositions.*`: the default `dsh` composition with that
-single bundle layered on top. Use it to check that a new bundle still layers on
-the default stack before a preset or a profile mounts it.
 
 Minimal template:
 
@@ -113,15 +115,7 @@ If the selected package depends on such workspaces, build them in `preDeploy`
 
 For aggregator bundles, set `disableChildBundlePatches = true` so child
 `cordis.patch.yml` files are blanked and only `deployPackage` registers loader
-entries. If packages need kernel peers such as `@deepseek-ai/dsh-settings`,
-pass `linkKernelNodeModules = dsh-kernel`. The helper first removes kernel-owned
-packages, including the `@deepseek-ai/*` packages provided by the kernel, from
-the bundle output, cleans up dangling `.bin` links, then links the kernel
-`node_modules` tree into every package under `$out/lib/node_modules`. This keeps
-the kernel as the only runtime provider instead of allowing bundle-local copies
-to shadow it. If a bundle depends on its own version of a package that also
-exists in the kernel, list it in `linkKernelNodeModulesKeep` so the helper keeps
-the bundle-local copy.
+entries.
 
 `postDeploy` runs immediately after `pnpm deploy`, before the builder normalizes
 the output layout. Use `postNormalizeDeploy` for checks or cleanup that require
@@ -145,8 +139,7 @@ build, add it to `disallowedReferences` in the bundle expression.
 
 Use `buildDshBundle` when the source is not a pnpm workspace deploy target. Its
 standard install uses `package.json.name` for the package directory and the
-`npm pack` file list for the runtime payload. Kernel-owned packages are
-provided by `linkKernelNodeModules`:
+`npm pack` file list for the runtime payload:
 
 ```nix
 {
@@ -279,9 +272,7 @@ buildDshBundle.fromWorkspace (_finalAttrs: {
 
 `fromWorkspace` copies the complete deployment into the standard
 `$out/lib/node_modules/<packageName>` layout and keeps `dsh-workspace` out of
-the runtime closure. Use `linkKernelNodeModules = dsh-kernel` to deduplicate
-kernel-owned packages and satisfy kernel peers. `linkKernelNodeModulesKeep`
-retains an intentional bundle-local version of a kernel package.
+the runtime closure.
 
 The optional `artifacts` list is only for additional workspace outputs that do
 not belong to the npm package, such as a built web frontend. Use `runtimeDeps`
@@ -290,12 +281,9 @@ Bundle stay in its deployed closure.
 
 ## Client peers from the release cohort
 
-The kernel ships host and runtime packages only, and `dsh-workspace` no longer
-deploys the `@deepseek-ai/*` client packages. Upstream emits them once per
-release as a cohort: `pnpm run release:pack --family dsh` writes npm tarballs and
-`publish-order.txt` into one directory. The tarball is the npm consumer view, so
-it is what a bundle compiles against; there is no workspace `client-packages`
-tree to copy from.
+Bundles compile against upstream's published client packages, which the kernel
+runtime does not carry. `pnpm run release:pack --family dsh` emits their npm
+tarballs and `publish-order.txt` as a release cohort.
 
 `pkgs.dsh.dshCohort` (source: `lib/dsh-cohort.nix`) exposes the pack:
 
@@ -332,6 +320,3 @@ in
     done
   '';
 ```
-
-Add a peer to `members` before selecting it. An upstream rename fails
-`checks.dsh-cohort` instead of every bundle that selected the package.

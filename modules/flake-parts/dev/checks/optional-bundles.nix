@@ -4,8 +4,6 @@
   perSystem =
     { pkgs, ... }:
     let
-      # Upstream's switched-off bundles, generated from the pinned source by
-      # scripts/generate-optional-bundles.sh; no member is hardcoded below.
       optionalBundlesManifest = lib.importJSON ../../../../pkgs/dsh-workspace/optional-bundles.json;
       optionalBundleNames = lib.attrNames optionalBundlesManifest;
       shipped = pkgs.dsh.dsh.override {
@@ -20,8 +18,6 @@
       };
     in
     {
-      # The committed manifest must match what the generator reads from the
-      # pinned source; a parse drift fails here rather than in a later update.
       checks.dsh-optional-bundles-generated =
         pkgs.runCommand "dsh-optional-bundles-generated" { nativeBuildInputs = [ pkgs.jq ]; }
           ''
@@ -43,7 +39,6 @@
             defaultApp="${pkgs.dsh.dsh}/lib/deepseek-harness"
             kernelNodeModules="${pkgs.dsh.dsh-kernel}/lib/deepseek-harness/node_modules"
 
-            # Node resolves from the nearest node_modules between dir and /.
             resolve_package() {
               local dir=$1 name=$2
               while :; do
@@ -62,14 +57,12 @@
                 printf 'dsh optional bundle does not resolve from the app anchor: %s\n' "$name" >&2
                 exit 1
               }
-              # The plugin manager lists the bundles the installation manifest declares.
               version=$(jq -r '.version' "$bundleRoot/package.json")
               jq -e --arg name "$name" --arg version "$version" \
                 '.dependencies[$name] == $version' "$app/package.json" >/dev/null || {
                 printf 'dsh optional bundle is missing from the app manifest or at another version: %s\n' "$name" >&2
                 exit 1
               }
-              # Enabling it loads the bundle, so its dependencies must resolve.
               while IFS= read -r dependency
               do
                 [ -n "$dependency" ] || continue
@@ -79,7 +72,6 @@
                   exit 1
                 }
               done < <(jq -r '.dependencies // {} | keys[]' "$bundleRoot/package.json")
-              # Switched off: no shipped profile selects it.
               for manifest in ${shipped.passthru.profileTemplates}/*/package.json
               do
                 jq -e --arg name "$name" \
@@ -88,12 +80,10 @@
                   exit 1
                 }
               done
-              # The shared kernel carries no bundle, optional or not.
               if [ -e "$kernelNodeModules/$name" ] || [ -L "$kernelNodeModules/$name" ]; then
                 printf 'dsh kernel contains optional bundle: %s\n' "$name" >&2
                 exit 1
               fi
-              # Every composition ships them; none can leave them out.
               jq -e --arg name "$name" '.dependencies | has($name)' "$defaultApp/package.json" >/dev/null || {
                 printf 'default dsh composition lacks optional bundle: %s\n' "$name" >&2
                 exit 1

@@ -3,9 +3,7 @@
 # shellcheck shell=bash
 set -euo pipefail
 
-# Regenerate pkgs/dsh-workspace/optional-bundles.json from an upstream source
-# tree: the bundles the launcher ships switched off (OPTIONAL_BUNDLES), which
-# the plugin manager offers without a package manager run. update.sh runs it.
+# Regenerate pkgs/dsh-workspace/optional-bundles.json from upstream OPTIONAL_BUNDLES.
 
 usage='usage: generate-optional-bundles.sh <upstream-source-root> [output]'
 src=${1?"$usage"}
@@ -28,7 +26,6 @@ done
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
-# Lines between `export const <name>` and the first line matching <close>.
 # profile.ts imports the rest of the launcher, so it is scanned, not evaluated.
 declaration_body() {
   awk -v name="$1" -v close_line="$2" '
@@ -39,8 +36,7 @@ declaration_body() {
   ' "$profile_ts"
 }
 
-# The launcher constant names the set. Accept only one quoted package per line
-# so a format change fails here instead of yielding a partial set.
+# Reject unfamiliar declaration syntax rather than silently omitting packages.
 body="$(declaration_body OPTIONAL_BUNDLES '^]')" ||
   fail 'OPTIONAL_BUNDLES is missing or unterminated'
 blank_re='^[[:space:]]*(//.*)?$'
@@ -56,7 +52,6 @@ if [ ! -s "$tmp_dir/names" ]; then
   fail 'OPTIONAL_BUNDLES is empty'
 fi
 
-# Bundles a shipped template already selects; a member must not be one.
 body="$(declaration_body PROFILE_TEMPLATES '^}')" ||
   fail 'PROFILE_TEMPLATES is missing or unterminated'
 printf '%s\n' "$body" | { grep -oE "[\"']@deepseek-ai/[^\"']*[\"']" || true; } |
@@ -65,7 +60,6 @@ if [ ! -s "$tmp_dir/templates" ]; then
   fail 'PROFILE_TEMPLATES is empty or unparsable'
 fi
 
-# All workspace packages by name, plus the subset declaring a bundle patch.
 # Dependencies resolve through the full map, which includes non-bundle clients.
 declare -A package_dirs=()
 declare -A bundle_packages=()
@@ -79,8 +73,6 @@ while IFS= read -r manifest; do
   fi
 done < <(find "$src/packages" -mindepth 3 -maxdepth 3 -name package.json)
 
-# Web-composed when the bundle or a runtime dependency ships a browser client;
-# upstream marks those with dsh.client.platform.
 requires_web() {
   local manifest="$1" dependency dependency_dir
   if [ "$(jq -r '.dsh.client.platform // empty' "$manifest")" = web ]; then
@@ -101,7 +93,6 @@ requires_web() {
 while IFS= read -r package_name; do
   dir="${bundle_packages[$package_name]:-}"
   [ -n "$dir" ] || fail "$package_name is not a workspace bundle"
-  # The installation manifest is what the plugin manager lists.
   if ! jq -e --arg name "$package_name" '.dependencies | has($name)' "$cli_manifest" >/dev/null; then
     fail "$package_name is not an installation dependency"
   fi
@@ -109,15 +100,12 @@ while IFS= read -r package_name; do
     fail "$package_name is selected by a shipped profile template"
   fi
 
-  # Bundle output names: drop the scope for pname, the dsh- prefix for the
-  # attr, so bundles.experimental-foo addresses @deepseek-ai/dsh-experimental-foo.
   pname="${package_name##*/}"
   attr="${pname#dsh-}"
   if [ -e "$repo_root/pkgs/bundles/$attr" ]; then
     fail "generated bundle $attr collides with pkgs/bundles/$attr"
   fi
 
-  # The locale pair the plugin manager renders.
   description="$(jq -r '.meta.description // empty' "$dir/locale/en.json" 2>/dev/null || true)"
   description_zh="$(jq -r '.meta.description // empty' "$dir/locale/zh.json" 2>/dev/null || true)"
   if [ -z "$description" ]; then

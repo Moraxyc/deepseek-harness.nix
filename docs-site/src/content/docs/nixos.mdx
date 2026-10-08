@@ -87,14 +87,10 @@ you need a different composition or package source.
 Each profile supports:
 
 - `bundles`: a list of bundle packages, e.g. `pkgs.dsh.bundles.tui`;
-- `agentPreset`: an ID from `programs.dsh.agentPresets`; the build derives a
-  `@deepseek-ai/dsh-agent-preset` declaration from the shipped source and adds
-  it to the profile patch. The selected ID is set through
-  `agent-preset-registry`; no `.agent-presets` directory is copied;
+- `agentPreset`: an ID from `programs.dsh.agentPresets`;
 - `patch`: a list of Cordis patch operations or raw YAML applied after all
   bundle layers as `cordis.patch.yml`;
-- `mode`: `managed` by default, or `mutable`; a Desktop profile in `managed`
-  mode declares onboarding as done and skipped;
+- `mode`: `managed` by default, or `mutable`;
 - read-only `rawName` and `materializedName`.
 
 Example:
@@ -112,10 +108,9 @@ programs.dsh.profiles = {
 ```
 
 Declare an Agent Preset under `programs.dsh.agentPresets` and reference it from
-the profile. `source` selects one of the preset plugin declarations shipped by
-the web bundle. `enableTools` removes `disabled` only from the listed rows in
-the generated declaration; it does not install a provider bundle. See
-[Advanced Usage](../advanced-usage/) for a complete subagent example.
+the profile. List its provider bundles separately in `bundles`. See
+[Advanced Usage](../advanced-usage/) for `source`, `enableTools`, and a subagent
+example.
 
 Use the materialized name for defaults instead of hardcoding the `nix-`
 prefix:
@@ -135,26 +130,9 @@ prefix:
 
 ## Profile Modes
 
-- `managed`: every `dsh` invocation re-synchronizes the profile from the
-  configuration, so local changes to managed `package.json` and
-  `cordis.patch.yml` are restored.
-- `mutable`: Nix seeds the profile only when the directory does not exist;
-  afterwards the user manages it with `dsh plugin` and Nix leaves it alone.
-
-For a Desktop profile in `managed` mode, Nix declares onboarding as done and
-skipped in `cordis.patch.yml`, so the wizard stays hidden after each launch.
-Choose `mutable` when users should complete onboarding and retain runtime
-Settings; other managed settings remain declarative.
-
-Neither mode takes over an existing unmarked directory with the same name.
-
-Settings ownership follows the mode. The Settings UI writes the active
-profile's `cordis.patch.yml`; in `managed` mode Nix owns that file, so declare
-values through `profiles.<name>.patch` and expect the next activation or launch
-to restore them. Choose `mutable` when runtime Settings or `dsh plugin` changes
-must persist outside Nix. The upstream one-time migration imports an existing
-`settings.yaml`, renames it to `settings.yaml.imported` before writing, and does
-not retry that file after a later overwrite.
+See [Profile Modes](../advanced-usage/#profile-modes) for file ownership,
+Desktop onboarding, and Settings behavior. Before upgrading existing data,
+read the [Migration Guide](../migration/).
 
 ## Run the Web Service
 
@@ -268,12 +246,7 @@ The module includes the web application dependencies and packages the profile's
 bundles in the official desktop runtime. On command-line or application-menu
 launch, the desktop seeds the selected profile, its referenced `agentPresets`, and
 the home-level `patch` under `programs.dsh.home` before starting the host.
-The CLI does not need to be enabled. In `managed` mode, Nix sets
-`ui-settings-account.step` to `done` and `completion` to `skipped`, so the
-onboarding wizard does not reappear. Choose `mutable` when users should complete
-the wizard and keep runtime Settings. Disable managed plugins in Nix; desktop
-recovery does not rewrite a managed profile. Restart the desktop after changing
-its configuration.
+Restart the desktop after changing its configuration.
 
 `desktop.profile` defaults to `null`, preserving the upstream `profiles/desktop`
 behavior. This integration requires `desktop.package` to support the official

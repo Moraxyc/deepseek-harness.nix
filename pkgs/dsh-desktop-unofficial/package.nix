@@ -34,16 +34,10 @@
 let
   inherit (stdenvNoCC.hostPlatform) isLinux isDarwin;
 
-  # DSH's Linux Electron runner is spawned through `systemd-run`, but upstream
-  # only sets ELECTRON_RUN_AS_NODE=1 on Windows, so the scope starts the
-  # Electron binary in GUI mode instead of Node mode. Shadow systemd-run in the
-  # wrapper PATH with this shim: the private runner launched by
-  # `runnerEnvironment()` (marked by DSH_SUBPROCESS_RUNNER and the runner entry)
-  # gets ELECTRON_RUN_AS_NODE=1; every other systemd-run invocation is
-  # untouched.
+  # Upstream leaves Linux subprocess runners in Electron GUI mode.
+  # Set Node mode only for the private runner, preserving other systemd-run calls.
   useSystemdShim = isLinux && systemd != null;
   systemdRunShim = writeShellScriptBin "systemd-run" ''
-    # Every private runner launch needs Electron's Node mode.
     runner=0
     if [ -n "''${DSH_SUBPROCESS_RUNNER-}" ]; then
       case " $* " in

@@ -55,7 +55,6 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   '';
 
   postNormalizeDeploy = ''
-    # Prune
     find "$out/lib/node_modules" -type f -path '*/build/*' ! -name '*.node' -delete
     find "$out/lib/node_modules" -depth -type d -empty -delete
   '';

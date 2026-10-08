@@ -24,9 +24,7 @@ src="$(nix build --no-link --print-out-paths ".#$attr.src")"
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
-# Keep only the Harness peers the pinned kernel does not supply; the release
-# lockfile references the author's checkout for the rest. postPatch applies the
-# same filter to the source tree.
+# Keep this peer filter aligned with postPatch in package.nix.
 yq -o=json '
   .importers.".".devDependencies |= with_entries(
     select(

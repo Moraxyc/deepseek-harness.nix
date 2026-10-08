@@ -7,9 +7,6 @@
   nodeModules,
 }:
 
-# Turns the composed tree into one that resolves without the stores it was
-# assembled from. Pruning is a separate step: a consumer that adds packages
-# after this one has to strip the final tree, not this one.
 stdenvNoCC.mkDerivation {
   name = "dsh-node-modules-flat";
 
@@ -25,8 +22,7 @@ stdenvNoCC.mkDerivation {
     nm="$out/node_modules"
     composed="${nodeModules}"
 
-    # Package names in a view, one scope level expanded: find cannot descend
-    # into the symlinked package directories a view is built from.
+    # find cannot descend into a view's symlinked package directories.
     viewNames() {
       local name sub
       for name in $(ls -A "$1"); do
@@ -48,14 +44,9 @@ stdenvNoCC.mkDerivation {
         && [ "$(readlink -f "$1/package.json")" = "$(readlink -f "$2/package.json")" ]
     }
 
-    # Every bundle carries a nested resolution view that re-lists the whole
-    # dependency tree, and copying the tree below turns each of them into a
-    # full copy. The views are read off the composed tree, where they are still
-    # symlinks, so readlink -f reports the kernel tree both sides resolve to: an
-    # entry mirroring the shared tree is reachable one level up once dropped,
-    # while one resolving elsewhere is a pinned local copy and stays. Linking
-    # the views instead would break the descriptor walker in
-    # pkgs/dsh-desktop-official.
+    # Copying nested resolution views duplicates the shared tree. Drop only
+    # entries resolving to shared packages; retain pinned local copies.
+    # Symlinked views break the official desktop's descriptor walker.
     pruneList="$(mktemp)"
     for view in $(find -H "$composed" -mindepth 2 -name node_modules); do
       relative="''${view#"$composed"/}"
@@ -66,8 +57,6 @@ stdenvNoCC.mkDerivation {
       done
     done
 
-    # Following the links here is what produces a tree that survives without
-    # the stores it was composed from.
     ${copyTree.followLinks {
       src = nodeModules;
       dest = "$out/node_modules";

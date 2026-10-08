@@ -4,8 +4,8 @@
 
 按 bundle 来源选择 builder：
 
-- `buildDshBundle`：独立 npm 源码，需自带 `installPhase`，并把构建产物放到
-  `$out/lib/node_modules`。
+- `buildDshBundle`：独立 npm 源码，默认由 `buildNpmPackage` 的
+  `npmInstallHook` 安装；非标准布局才需要自定义 `installPhase`。
 - `buildDshBundle.fromPnpmWorkspace`：外部 pnpm monorepo，把选中的工作区
   包直接部署到 `$out/lib`。
 - `buildDshBundle.fromWorkspace`：使用 `dsh-workspace` 已部署的上游包及其
@@ -13,6 +13,12 @@
 
 所有 builder 执行同一套 bundle 校验：`$out/lib/node_modules` 中至少有一个
 包声明 `dsh.bundle.patch`，且补丁文件存在于该包根目录下。
+
+## Kernel peer
+
+bundle 需要 kernel peer 时，设置 `linkKernelNodeModules = dsh-kernel`。
+helper 移除 bundle 中与 kernel 同名的包，并从 kernel 解析 peer，避免重复的
+运行时实例。必须保留的 bundle 本地版本写入 `linkKernelNodeModulesKeep`。
 
 ## 添加外部 pnpm workspace bundle
 
@@ -101,13 +107,7 @@ deploy 命令使用上述参数和注入式 workspace 布局，这是受支持�
 `postNormalizeDeploy` 中检查运行时入口文件。
 
 聚合 bundle 可设置 `disableChildBundlePatches = true`，让子包
-`cordis.patch.yml` 清空，仅由 `deployPackage` 注册 loader 条目。包需要 kernel
-peer（如 `@deepseek-ai/dsh-settings`）时，传 `linkKernelNodeModules =
-dsh-kernel`。helper 先移除 bundle 输出中 kernel 持有的包（包括 kernel 提供的
-`@deepseek-ai/*`），清理悬空的 `.bin` 链接，再把 kernel 的 `node_modules`
-树链接到 `$out/lib/node_modules` 下的每个包。这样 kernel 保持唯一运行时
-提供者。如果 bundle 想保留与 kernel 同名包的自身版本，把该包列入
-`linkKernelNodeModulesKeep`。
+`cordis.patch.yml` 清空，仅由 `deployPackage` 注册 loader 条目。
 
 `postDeploy` 紧跟 `pnpm deploy` 运行，此时输出尚未整理。需要最终包目录的校验
 或清理应放在 `postNormalizeDeploy` 中。builder 会把已部署包的文件移动到
@@ -127,8 +127,7 @@ dsh-kernel`。helper 先移除 bundle 输出中 kernel 持有的包（包括 ker
 
 源码属于 pnpm workspace 部署目标时使用 `buildDshBundle.fromPnpmWorkspace`，
 其他情况使用 `buildDshBundle`。默认安装用 `package.json.name` 决定包目录、
-用 `npm pack` 的文件清单决定运行时产物；kernel 持有的包由
-`linkKernelNodeModules` 提供：
+用 `npm pack` 的文件清单决定运行时产物：
 
 ```nix
 {
@@ -257,9 +256,7 @@ buildDshBundle.fromWorkspace (_finalAttrs: {
 
 `fromWorkspace` 把完整部署结果复制到标准
 `$out/lib/node_modules/<packageName>` 布局，并把 `dsh-workspace` 排除在运行时
-闭包之外。设置 `linkKernelNodeModules = dsh-kernel` 可去重 kernel 持有的包，
-并满足 bundle 的 kernel peer。若需保留与 kernel 同名的 bundle 本地版本，使用
-`linkKernelNodeModulesKeep`。
+闭包之外。
 
 可选的 `artifacts` 只用于 npm 包之外的额外 workspace 产物，例如构建后的 web
 frontend。只有必须预置到 `PATH` 的可执行程序才放入 `runtimeDeps`；Bundle 持有
@@ -267,11 +264,9 @@ frontend。只有必须预置到 `PATH` 的可执行程序才放入 `runtimeDeps
 
 ## 客户端 peer 来自发布 cohort
 
-kernel 只提供 host 与 runtime 包，`dsh-workspace` 也不再部署
-`@deepseek-ai/*` 客户端包。上游在每次发布时用
-`pnpm run release:pack --family dsh` 生成 cohort：一个目录，内含各成员的 npm
-tarball 与 `publish-order.txt`。tarball 是 npm 消费端视角的文件，bundle 应对照
-它编译；workspace 中已没有 `client-packages` 目录可复制。
+bundle 使用上游发布的客户端包编译，kernel runtime 不包含这些包。
+`pnpm run release:pack --family dsh` 将它们的 npm tarball 和
+`publish-order.txt` 生成为 release cohort。
 
 `pkgs.dsh.dshCohort`（实现见 `lib/dsh-cohort.nix`）暴露这组产物：
 
@@ -306,6 +301,3 @@ in
     done
   '';
 ```
-
-新增 peer 时先把它加入 `members`。上游改名会先让 `checks.dsh-cohort` 失败，
-而不是让所有选中该包的 bundle 失败。

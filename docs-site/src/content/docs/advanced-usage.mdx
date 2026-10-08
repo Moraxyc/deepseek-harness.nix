@@ -26,9 +26,7 @@ Import `nixosModules.default` and enable `programs.dsh`:
 ```
 
 A profile named `tui` is materialized at `$DSH_HOME/profiles/nix-tui`
-(`~/.dsh/profiles/nix-tui` by default). Nix synchronizes only managed
-profiles. Existing unmanaged directories with the same name are never taken
-over or overwritten.
+(`~/.dsh/profiles/nix-tui` by default).
 
 `defaultProfile` uses the materialized name (`nix-tui`, not `tui`) and is used
 when `dsh` is invoked without an explicit `--profile`. Passing `--profile`
@@ -300,6 +298,24 @@ of the presets:
 }
 ```
 
+### Profile Modes
+
+- `managed`: Nix restores the declared `package.json` and `cordis.patch.yml`
+  on every `dsh` invocation. Home Manager also synchronizes them during activation.
+- `mutable`: Nix seeds a profile only when its directory does not exist, then
+  leaves it under user control.
+
+Neither mode takes over an existing unmarked directory with the same name.
+
+The Settings UI writes the active profile's `cordis.patch.yml`. Declare values
+through `profiles.<name>.patch` in managed mode; use mutable mode to retain
+runtime Settings or `dsh plugin` changes.
+
+For a managed Desktop profile, Nix sets `ui-settings-account.step` to `done`
+and `completion` to `skipped`. Use mutable mode to complete onboarding and keep
+runtime Settings. Disable managed plugins in Nix; desktop recovery does not
+rewrite a managed profile.
+
 ## Optional Subagent Providers
 
 Codex and Claude Code are optional Profile Bundles. Add only the providers a
@@ -335,12 +351,9 @@ programs.dsh = {
 };
 ```
 
-The build derives a `preset-web-subagents` plugin declaration from the shipped
-`standard` declaration, removes `disabled` only from the listed rows, and adds
-the declaration to the profile patch. The registry's `default` is set to
-`web-subagents`. No separate preset directory is created. Bundle installation
-and Agent Preset authorization are separate: installing a bundle does not
-authorize its tools.
+The generated declaration is named `preset-web-subagents` and added to the
+profile patch. The registry's `default` is set to `web-subagents`; only the
+listed tool rows are enabled.
 
 The Bundles use the versions pinned by the upstream DeepSeek Harness workspace;
 they do not search `PATH`. To use separately packaged binaries from a Nixpkgs
@@ -473,10 +486,7 @@ Two kinds of helper are available to consumers outside this flake:
   `pnpm-workspace.json` when upstream ships one.
 
 Every other helper in the scope, `pkgs.dsh.dshWorkspacePatchHook` included, is
-an internal build implementation detail. `patchDshWorkspace kernel` reads the
-workspace overrides from `DSH_WORKSPACE_OVERRIDES`, a path to that JSON;
-`dsh-workspace` renders it from
-`pnpmDeps.passthru.workspaceConfig.overrides`.
+an internal build implementation detail.
 
 `importPnpmLock` takes `lockfileJson` and `workspaceJson`. It drops a `.` entry
 from `workspaceJson.packages` when it writes `pnpm-workspace.yaml`, because pnpm

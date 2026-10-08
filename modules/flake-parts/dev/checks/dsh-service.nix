@@ -312,9 +312,6 @@
                 yq-go
               ];
 
-              # The service composes its package from the profiles declared
-              # under programs.dsh. dshBundleCheckHook validates the composed
-              # profile at build time.
               programs.dsh = {
                 enable = true;
                 home = "/var/lib/dsh/cli-home";

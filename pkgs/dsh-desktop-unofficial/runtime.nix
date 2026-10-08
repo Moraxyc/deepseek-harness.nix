@@ -24,15 +24,11 @@ stdenvNoCC.mkDerivation {
 
     appDir="${dshHost}/lib/deepseek-harness"
 
-    # The composed tree is flattened once for both desktop packages, and the
-    # result holds no symlinks, so copying it stays a plain copy.
     ${copyTree.preserve {
       src = "${dshHost.passthru.flattenedNodeModules}/node_modules";
       dest = "$out/node_modules";
     }}
 
-    # The production dependency graph already leaves out bundlers and test
-    # runners; what is left to strip is release tarball contents.
     ${nodeModulesPrune.prune { tree = "$out/node_modules"; }}
     ${nodeModulesPrune.minify { tree = "$out/node_modules"; }}
 
