@@ -7,13 +7,13 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-remote";
-  version = "0.8.40";
+  version = "0.8.41";
 
   src = fetchFromGitHub {
     owner = "flymysql";
     repo = "dsh-remote";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-obhGRrt9A64R2AJWNrsvItukfksPXiMWAYW7nParmK0=";
+    hash = "sha256-PgIml7VXJ9e/ZhjlzjRI1K0y82TXvaku9bGMjjm1wZQ=";
   };
 
   npmDepsHash = "sha256-MMD6mOZhRmui3WRgnLLL8vju+WVjX50xWEsTzaJcEoQ=";
