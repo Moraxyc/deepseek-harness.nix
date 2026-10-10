@@ -567,7 +567,13 @@ lib.extendMkDerivation {
       name = "${finalAttrs.pname}-${finalAttrs.version}";
 
       inherit (upstream) fixupPhase;
-      installPhase = lib.replaceStrings [ ''"--force"'' ] [ ''"--offline"'' ] upstream.installPhase;
+      installPhase =
+        lib.replaceStrings
+          [ ''"--force"'' ]
+          [
+            (if effectiveTargetPlatform == null then ''"--force" "--offline"'' else ''"--offline"'')
+          ]
+          upstream.installPhase;
       inherit (upstream)
         fetcherVersion
         pnpm
