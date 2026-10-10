@@ -82,7 +82,7 @@ let
                 _: prev:
                 let
                   generated = import ../lib/dsh-optional-bundles.nix {
-                    inherit (final) lib;
+                    inherit (final) lib gitMinimal nodejs-slim;
                     inherit buildDshBundle;
                     inherit (dirFinal) dsh-kernel dsh-workspace;
                   };

@@ -1,6 +1,8 @@
 # Upstream's OPTIONAL_BUNDLES resolve from every profile but are selected by none.
 {
   lib,
+  gitMinimal,
+  nodejs-slim,
   buildDshBundle,
   dsh-kernel,
   dsh-workspace,
@@ -16,6 +18,11 @@ let
       inherit (entry) pname;
 
       linkKernelNodeModules = dsh-kernel;
+
+      runtimeDeps = lib.optionals (packageName == "@deepseek-ai/dsh-experimental-tool-worktree") [
+        gitMinimal
+        nodejs-slim
+      ];
 
       passthru = lib.optionalAttrs entry.requiresWeb {
         requiresWeb = true;
