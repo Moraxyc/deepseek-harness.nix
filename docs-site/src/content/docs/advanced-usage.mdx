@@ -329,6 +329,15 @@ programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
 ];
 ```
 
+The Official on-demand catalog lists these providers even when they are absent.
+Nix-declared providers belong to the installation; remove or update them in Nix.
+For managed profiles, GUI enablement, installs, and updates do not change the
+declaration and can be reset on the next launch. Use mutable profiles for
+npm-managed installations. Avoid installing a second npm copy of a Nix-declared
+provider: profile-local dependencies can take precedence over the shipped copy.
+Runtime npm installs do not receive this repository's native-binary fixups.
+On NixOS, prefer declarative Bundles for the checked provider runtimes.
+
 Installing a provider Bundle only puts its Host provider in the runtime. It does
 not start Codex or Claude Code, and it does not authorize either model-facing tool. The
 shipped `standard` and `ptc` Agent Presets keep `tool-subagent-codex` and
@@ -421,6 +430,11 @@ fixed by the pinned source and cannot be removed or extended from Nix, so every
 installation carries their closure.
 
 Listing one in a profile's `bundles` composes it as usual instead.
+
+`experimental-tool-worktree` supplies Git 2.45 or newer (`gitMinimal`) and Node
+on the runtime `PATH`. It creates worktrees in the writable source checkout,
+not the Nix store. The existing sandbox policy must permit writes to both the
+worktree directory and shared Git metadata; the bundle grants no extra permissions.
 
 ## Overrides
 

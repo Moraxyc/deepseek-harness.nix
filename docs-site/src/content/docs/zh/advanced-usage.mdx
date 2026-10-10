@@ -315,6 +315,13 @@ programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
 ];
 ```
 
+Official 按需目录会列出尚未安装的提供程序。Nix 声明的提供程序属于安装本身，
+应在 Nix 中删除或更新。managed profile 的 GUI 启用、安装和更新不会修改声明，
+下次启动时可能被恢复。需要通过 npm 管理安装时，使用 mutable profile。
+不要再通过 npm 安装同名的 Nix 提供程序：profile 本地依赖可能优先于随包提供的副本。
+运行时 npm 安装不会经过本仓库的原生二进制修复。NixOS 下优先使用声明式 Bundle，
+以获得经过检查的提供程序运行时。
+
 安装提供程序 Bundle 只会把 Host provider 放进运行时。它不会启动 Codex 或
 Claude Code，也不会自动开放对应工具。内置的 `standard` 和 `ptc`
 Agent Preset 默认禁用 `tool-subagent-codex` 与
@@ -400,6 +407,10 @@ bundle 会覆盖前面 bundle 的 Cordis 配置；基础层固定在最前面。
 源码决定，无法通过 Nix 删减或扩充，因此每个安装都包含它们的闭包。
 
 把其中某个写进 profile 的 `bundles`，则由 Nix 直接参与组合。
+
+`experimental-tool-worktree` 将 Git 2.45 或更新版本（`gitMinimal`）和 Node 加入
+运行时 `PATH`。它在可写的源码 checkout 中创建 worktree，不写入 Nix Store。
+现有 sandbox 策略必须允许写入 worktree 目录和共享 Git 元数据；该 bundle 不增加权限。
 
 ## 覆盖
 
