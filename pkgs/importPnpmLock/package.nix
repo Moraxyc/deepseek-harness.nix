@@ -566,7 +566,8 @@ lib.extendMkDerivation {
       inherit pname version;
       name = "${finalAttrs.pname}-${finalAttrs.version}";
 
-      inherit (upstream) installPhase fixupPhase;
+      inherit (upstream) fixupPhase;
+      installPhase = lib.replaceStrings [ ''"--force"'' ] [ ''"--offline"'' ] upstream.installPhase;
       inherit (upstream)
         fetcherVersion
         pnpm
