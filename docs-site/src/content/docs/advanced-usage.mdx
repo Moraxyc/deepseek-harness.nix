@@ -153,13 +153,53 @@ source. If the credential is an environment file, name it `env` and load it as
 ```nix
 services.dsh = {
   credentials.env = "/run/secrets/dsh.env";
-  environmentFile = "/run/credentials/dsh-web/env";
+  environmentFile = "%d/env";
 };
 ```
 
-Credentials are exposed under `/run/credentials/dsh-web/<name>`.
+Credentials are exposed under `%d/<name>`, where systemd expands `%d` to the
+unit's credentials directory.
 
 ### Reverse Proxy
+
+The predefined Nginx proxy supports IPv4 and IPv6 listeners:
+
+```nix
+services.dsh = {
+  listenAddress = "::1";
+  reverseProxy = {
+    enable = true;
+    domain = "dsh.example.com";
+  };
+  trustedHosts = [ "dsh.example.com" ];
+};
+```
+
+`reverseProxy.scheme` defaults to `"http"` and controls only the connection
+from Nginx to dsh. For native HTTPS, pass both `--tls-cert` and `--tls-key`
+through `extraArguments` and set `reverseProxy.scheme = "https"`. The same
+scheme is required when TLS is configured in the webserver profile patch.
+Use runtime file paths, not Nix store paths, for private keys:
+
+```nix
+services.dsh = {
+  extraArguments = [
+    "--tls-cert" "%d/tls-cert"
+    "--tls-key" "%d/tls-key"
+  ];
+  credentials = {
+    tls-cert = "/run/secrets/dsh-cert.pem";
+    tls-key = "/run/secrets/dsh-key.pem";
+  };
+  reverseProxy.scheme = "https";
+};
+```
+
+Certificate replacement requires a service restart. Nginx does not verify
+upstream certificates by default; configure verification through the location's `extraConfig`
+(`proxy_ssl_verify`, `proxy_ssl_trusted_certificate`, and `proxy_ssl_name`).
+Client-facing TLS remains a separate Nginx configuration. Home Manager can
+use the same TLS flags with readable runtime files but has no predefined proxy.
 
 Keep `listenAddress` on loopback and terminate the public side in a proxy.
 Nginx:

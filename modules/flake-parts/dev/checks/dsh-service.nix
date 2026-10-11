@@ -295,6 +295,78 @@
               touch "$out"
             '';
 
+        dsh-service-reverse-proxy =
+          let
+            checkProxy =
+              {
+                host,
+                scheme ? null,
+                expected,
+              }:
+              let
+                evaluated = import (pkgs.path + "/nixos/lib/eval-config.nix") {
+                  inherit pkgs;
+                  system = pkgs.stdenv.hostPlatform.system;
+                  modules = [
+                    ../../../../modules/nixos-service.nix
+                    {
+                      services.dsh = {
+                        enable = true;
+                        package = pkgs.hello;
+                        listenAddress = host;
+                        reverseProxy = {
+                          enable = true;
+                          domain = "dsh.example.test";
+                          warn = false;
+                        }
+                        // lib.optionalAttrs (scheme != null) { inherit scheme; };
+                      };
+                    }
+                  ];
+                };
+                proxyPass = evaluated.config.services.nginx.virtualHosts."dsh.example.test".locations."/".proxyPass;
+              in
+              assert lib.assertMsg (
+                proxyPass == expected
+              ) "dsh reverse proxy: expected ${expected}, got ${proxyPass}";
+              pkgs.writeText "dsh-proxy.conf" ''
+                error_log stderr;
+                pid nginx.pid;
+                events {}
+                http {
+                  access_log off;
+                  server {
+                    listen 8080;
+                    location / { proxy_pass ${proxyPass}; }
+                  }
+                }
+              '';
+            configs = map checkProxy [
+              {
+                host = "127.0.0.1";
+                expected = "http://127.0.0.1:3080";
+              }
+              {
+                host = "::1";
+                expected = "http://[::1]:3080";
+              }
+              {
+                host = "127.0.0.1";
+                scheme = "https";
+                expected = "https://127.0.0.1:3080";
+              }
+              {
+                host = "::1";
+                scheme = "https";
+                expected = "https://[::1]:3080";
+              }
+            ];
+          in
+          pkgs.runCommand "dsh-service-reverse-proxy" { nativeBuildInputs = [ pkgs.nginx ]; } ''
+            ${lib.concatMapStringsSep "\n" (config: ''nginx -t -e stderr -p "$PWD/" -c ${config}'') configs}
+            touch "$out"
+          '';
+
         dsh-service = pkgs.testers.runNixOSTest {
           name = "dsh-service";
 
