@@ -16,7 +16,7 @@ tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
 old_src="$(nix-instantiate --eval --raw --expr \
-  "(builtins.getFlake (toString ./.)).packages.\${builtins.currentSystem}.$attr.src.rev" \
+  "(builtins.getFlake (\"git+file://\" + toString ./.)).packages.\${builtins.currentSystem}.$attr.src.rev" \
   2>/dev/null)"
 
 if [[ "$old_src" == refs/tags/* ]]; then
@@ -33,7 +33,7 @@ nix-update \
   "$attr"
 
 new_src="$(nix-instantiate --eval --raw --expr \
-  "(builtins.getFlake (toString ./.)).packages.\${builtins.currentSystem}.$attr.src.rev" \
+  "(builtins.getFlake (\"git+file://\" + toString ./.)).packages.\${builtins.currentSystem}.$attr.src.rev" \
   2>/dev/null)"
 
 if [[ "$new_src" == refs/tags/* ]]; then
@@ -59,6 +59,24 @@ if [ "$old_src" = "$new_src" ]; then
 fi
 
 src="$(nix build --no-link --print-out-paths ".#$attr.src")"
+
+if ! nix build --impure --no-link --print-build-logs --expr "
+  let
+    flake = builtins.getFlake (\"git+file://\" + toString ./.);
+    system = builtins.currentSystem;
+    pkgs = import flake.inputs.nixpkgs { inherit system; };
+    package = flake.packages.\${system}.$attr;
+  in
+  pkgs.applyPatches {
+    name = \"\${package.name}-source-patches\";
+    inherit (package) src patches;
+    patchFlags = [ \"-p1\" \"--fuzz=0\" ];
+  }
+"; then
+  printf 'dsh-workspace: source patch preflight failed; check the build log before updating dependencies\n' >&2
+  exit 1
+fi
+printf 'dsh-workspace: source patches verified\n'
 
 system_version="$(jq -er '.version | strings' "$src/native/system/package.json")"
 # dsh-system is an internal package and is not exposed as a flake output.
@@ -97,7 +115,7 @@ fetch_status=0
 fetch_output="$(
   nix build --impure --no-link --print-out-paths --expr '
     let
-      flake = builtins.getFlake (toString ./.);
+      flake = builtins.getFlake ("git+file://" + toString ./.);
       package = flake.packages.${builtins.currentSystem}.dsh-workspace;
     in
     package.passthru.fetchPnpmDeps
@@ -122,7 +140,7 @@ fi
 
 EXPECTED_PNPM_HASH="$new_hash" nix build --impure --no-link --print-out-paths --expr '
   let
-    flake = builtins.getFlake (toString ./.);
+    flake = builtins.getFlake ("git+file://" + toString ./.);
     package = flake.packages.${builtins.currentSystem}.dsh-workspace;
   in
   package.passthru.fetchPnpmDeps.overrideAttrs (_: {
