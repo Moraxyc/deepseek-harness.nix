@@ -157,6 +157,7 @@
                   ((pkgs.dsh.dsh.override { inherit homePatch; }).withAgentPresets {
                     first = {
                       source = "standard";
+                      enableTools = [ "tool-plugin-manager" ];
                     };
                     unused = {
                       source = "missing-unused-preset";
@@ -199,6 +200,8 @@
             test ! -e "$testHome/.agent-presets"
             yq -e '[.[] | .insert[]? | select(.id == "preset-first" and .name == "@deepseek-ai/dsh-agent-preset" and .config.id == "first")] | length == 1' "$testHome/profiles/nix-first/cordis.patch.yml"
             yq -e '[.[] | .insert[]? | select(.id == "preset-second" and .name == "@deepseek-ai/dsh-agent-preset" and .config.id == "second")] | length == 1' "$testHome/profiles/nix-second/cordis.patch.yml"
+            yq -e '[.. | select(type == "!!map") | select(.id == "tool-plugin-manager" and .disabled != true)] | length == 1' "$testHome/profiles/nix-first/cordis.patch.yml"
+            yq -e '[.. | select(type == "!!map") | select(.id == "tool-plugin-manager" and .disabled == true)] | length == 1' "$testHome/profiles/nix-second/cordis.patch.yml"
             yq -e '[.[] | select(.id == "agent-preset-registry" and .config.default == "first")] | length == 1' "$testHome/profiles/nix-first/cordis.patch.yml"
             yq -e '[.[] | select(.id == "agent-preset-registry" and .config.default == "second")] | length == 1' "$testHome/profiles/nix-second/cordis.patch.yml"
             touch "$out"
@@ -295,6 +298,78 @@
               touch "$out"
             '';
 
+        dsh-service-reverse-proxy =
+          let
+            checkProxy =
+              {
+                host,
+                scheme ? null,
+                expected,
+              }:
+              let
+                evaluated = import (pkgs.path + "/nixos/lib/eval-config.nix") {
+                  inherit pkgs;
+                  system = pkgs.stdenv.hostPlatform.system;
+                  modules = [
+                    ../../../../modules/nixos-service.nix
+                    {
+                      services.dsh = {
+                        enable = true;
+                        package = pkgs.hello;
+                        listenAddress = host;
+                        reverseProxy = {
+                          enable = true;
+                          domain = "dsh.example.test";
+                          warn = false;
+                        }
+                        // lib.optionalAttrs (scheme != null) { inherit scheme; };
+                      };
+                    }
+                  ];
+                };
+                proxyPass = evaluated.config.services.nginx.virtualHosts."dsh.example.test".locations."/".proxyPass;
+              in
+              assert lib.assertMsg (
+                proxyPass == expected
+              ) "dsh reverse proxy: expected ${expected}, got ${proxyPass}";
+              pkgs.writeText "dsh-proxy.conf" ''
+                error_log stderr;
+                pid nginx.pid;
+                events {}
+                http {
+                  access_log off;
+                  server {
+                    listen 8080;
+                    location / { proxy_pass ${proxyPass}; }
+                  }
+                }
+              '';
+            configs = map checkProxy [
+              {
+                host = "127.0.0.1";
+                expected = "http://127.0.0.1:3080";
+              }
+              {
+                host = "::1";
+                expected = "http://[::1]:3080";
+              }
+              {
+                host = "127.0.0.1";
+                scheme = "https";
+                expected = "https://127.0.0.1:3080";
+              }
+              {
+                host = "::1";
+                scheme = "https";
+                expected = "https://[::1]:3080";
+              }
+            ];
+          in
+          pkgs.runCommand "dsh-service-reverse-proxy" { nativeBuildInputs = [ pkgs.nginx ]; } ''
+            ${lib.concatMapStringsSep "\n" (config: ''nginx -t -e stderr -p "$PWD/" -c ${config}'') configs}
+            touch "$out"
+          '';
+
         dsh-service = pkgs.testers.runNixOSTest {
           name = "dsh-service";
 
@@ -333,12 +408,12 @@
                   agentPreset = "web-subagents";
                   patch = ''
                     # served by programs.dsh.profiles
-                    []
+                    - id: tool-subagent-claude-code
+                      disabled: true
                   '';
                 };
                 agentPresets.web-subagents = {
                   source = "standard";
-                  enableTools = [ "tool-subagent-codex" ];
                 };
               };
 
@@ -363,10 +438,13 @@
               "test -f /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml"
             )
             machine.succeed(
-              "test ! -e /var/lib/dsh/cli-home/.agent-presets; yq -e '[.[] | .insert[]? | select(.id == \"preset-web-subagents\" and .config.id == \"web-subagents\")] | length == 1' /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml; yq -e '[.. | select(type == \"!!map\") | select(.id == \"tool-subagent-codex\" and has(\"disabled\"))] | length == 0' /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml; yq -e '[.. | select(type == \"!!map\") | select(.id == \"tool-subagent-claude-code\" and .disabled == true)] | length == 1' /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml"
+              "test ! -e /var/lib/dsh/cli-home/.agent-presets; yq -e '[.[] | .insert[]? | select(.id == \"preset-web-subagents\" and .config.id == \"web-subagents\")] | length == 1' /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml"
             )
             machine.succeed(
               "yq -e '[.[] | select(.id == \"agent-preset-registry\" and .config.default == \"web-subagents\")] | length == 1' /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml"
+            )
+            machine.succeed(
+              "set +u; . /etc/set-environment; set -u; dsh --profile nix-web --dump-config > /tmp/dsh-profile-config.yml; yq -e '[.[] | select(.id == \"tool-subagent-codex\" and .config.provider == \"codex\" and .disabled != true)] | length == 1' /tmp/dsh-profile-config.yml; yq -e '[.[] | select(.id == \"tool-subagent-claude-code\" and .config.provider == \"claude-code\" and .disabled == true)] | length == 1' /tmp/dsh-profile-config.yml"
             )
             machine.succeed(
               "printf '\\n# drift\\n' >> /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml"

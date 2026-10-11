@@ -153,13 +153,53 @@ source. If the credential is an environment file, name it `env` and load it as
 ```nix
 services.dsh = {
   credentials.env = "/run/secrets/dsh.env";
-  environmentFile = "/run/credentials/dsh-web/env";
+  environmentFile = "%d/env";
 };
 ```
 
-Credentials are exposed under `/run/credentials/dsh-web/<name>`.
+Credentials are exposed under `%d/<name>`, where systemd expands `%d` to the
+unit's credentials directory.
 
 ### Reverse Proxy
+
+The predefined Nginx proxy supports IPv4 and IPv6 listeners:
+
+```nix
+services.dsh = {
+  listenAddress = "::1";
+  reverseProxy = {
+    enable = true;
+    domain = "dsh.example.com";
+  };
+  trustedHosts = [ "dsh.example.com" ];
+};
+```
+
+`reverseProxy.scheme` defaults to `"http"` and controls only the connection
+from Nginx to dsh. For native HTTPS, pass both `--tls-cert` and `--tls-key`
+through `extraArguments` and set `reverseProxy.scheme = "https"`. The same
+scheme is required when TLS is configured in the webserver profile patch.
+Use runtime file paths, not Nix store paths, for private keys:
+
+```nix
+services.dsh = {
+  extraArguments = [
+    "--tls-cert" "%d/tls-cert"
+    "--tls-key" "%d/tls-key"
+  ];
+  credentials = {
+    tls-cert = "/run/secrets/dsh-cert.pem";
+    tls-key = "/run/secrets/dsh-key.pem";
+  };
+  reverseProxy.scheme = "https";
+};
+```
+
+Certificate replacement requires a service restart. Nginx does not verify
+upstream certificates by default; configure verification through the location's `extraConfig`
+(`proxy_ssl_verify`, `proxy_ssl_trusted_certificate`, and `proxy_ssl_name`).
+Client-facing TLS remains a separate Nginx configuration. Home Manager can
+use the same TLS flags with readable runtime files but has no predefined proxy.
 
 Keep `listenAddress` on loopback and terminate the public side in a proxy.
 Nginx:
@@ -280,20 +320,20 @@ of the presets:
 ```nix
 (
   (pkgs.dsh.dsh.withAgentPresets {
-    web-subagents = {
+    web-tools = {
       source = "standard";
-      enableTools = [ "tool-subagent-codex" ];
+      enableTools = [ "tool-plugin-manager" ];
     };
   }).withAgentPresets {
-    code-subagents = {
+    code-tools = {
       source = "ptc";
-      enableTools = [ "tool-subagent-claude-code" ];
+      enableTools = [ "tool-workflow" ];
     };
   }
 ).withProfiles {
   web = {
     bundles = [ pkgs.dsh.bundles.subagent-codex ];
-    agentPreset = "web-subagents";
+    agentPreset = "web-tools";
   };
 }
 ```
@@ -329,31 +369,50 @@ programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
 ];
 ```
 
-Installing a provider Bundle only puts its Host provider in the runtime. It does
-not start Codex or Claude Code, and it does not authorize either model-facing tool. The
-shipped `standard` and `ptc` Agent Presets keep `tool-subagent-codex` and
-`tool-subagent-claude-code` disabled. Declare the preset and profile together:
+The Official on-demand catalog lists these providers even when they are absent.
+Nix-declared providers belong to the installation; remove or update them in Nix.
+For managed profiles, GUI enablement, installs, and updates do not change the
+declaration and can be reset on the next launch. Use mutable profiles for
+npm-managed installations. Avoid installing a second npm copy of a Nix-declared
+provider: profile-local dependencies can take precedence over the shipped copy.
+Runtime npm installs do not receive this repository's native-binary fixups.
+On NixOS, prefer declarative Bundles for the checked provider runtimes.
+
+Since `0.2.1-alpha.2`, each provider Bundle registers both its Host provider and
+its model-facing tool. It does not start Codex or Claude Code until the tool is
+invoked. These tools are no longer rows in the shipped `standard` or `ptc` Agent
+Presets, so remove their IDs from `agentPresets.<name>.enableTools`. That option
+only enables existing rows in the selected preset.
+
+To include both providers but disable the Claude Code tool, declare a profile
+patch alongside the preset:
 
 ```nix
 programs.dsh = {
   agentPresets.web-subagents = {
     source = "standard";
-    enableTools = [ "tool-subagent-codex" ];
   };
 
   profiles.web = {
     bundles = with pkgs.dsh.bundles; [
       web-app
       subagent-codex
+      subagent-claude-code
     ];
     agentPreset = "web-subagents";
+    patch = [
+      {
+        id = "tool-subagent-claude-code";
+        disabled = true;
+      }
+    ];
   };
 };
 ```
 
 The generated declaration is named `preset-web-subagents` and added to the
-profile patch. The registry's `default` is set to `web-subagents`; only the
-listed tool rows are enabled.
+profile patch. The registry's `default` is set to `web-subagents`; the separate
+profile patch disables the Host-scoped Claude Code tool.
 
 The Bundles use the versions pinned by the upstream DeepSeek Harness workspace;
 they do not search `PATH`. To use separately packaged binaries from a Nixpkgs
@@ -421,6 +480,11 @@ fixed by the pinned source and cannot be removed or extended from Nix, so every
 installation carries their closure.
 
 Listing one in a profile's `bundles` composes it as usual instead.
+
+`experimental-tool-worktree` supplies Git 2.45 or newer (`gitMinimal`) and Node
+on the runtime `PATH`. It creates worktrees in the writable source checkout,
+not the Nix store. The existing sandbox policy must permit writes to both the
+worktree directory and shared Git metadata; the bundle grants no extra permissions.
 
 ## Overrides
 

@@ -16,6 +16,7 @@ on:
       - ".github/scripts/merge-check.test.js"
       - ".github/workflows/merge-check.yml"
       - ".github/workflows/package-ci.yml"
+      - "scripts/generate-optional-bundles.sh"
       - "scripts/select-package-ci-attrs.sh"
   pull_request:
     paths:
@@ -30,6 +31,7 @@ on:
       - ".github/scripts/merge-check.test.js"
       - ".github/workflows/merge-check.yml"
       - ".github/workflows/package-ci.yml"
+      - "scripts/generate-optional-bundles.sh"
       - "scripts/select-package-ci-attrs.sh"
   workflow_dispatch:
 
@@ -66,6 +68,11 @@ jobs:
       - name: Check merge status aggregation
         run: nix build --no-link .#checks.x86_64-linux.merge-check
 
+      - name: Check generated optional bundle manifest
+        run: |
+          nix build --no-link --print-build-logs \
+            .#checks.x86_64-linux.dsh-optional-bundles-generated
+
       - name: Build package set
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
@@ -88,6 +95,12 @@ jobs:
           printf 'Building %d package attrs\n' "${#build_attrs[@]}"
           printf '%s\n' "${build_attrs[@]}"
           nix build --no-link --print-build-logs "${build_attrs[@]}"
+
+      - name: Check optional bundle composition and worktree runtime
+        run: |
+          nix build --no-link --print-build-logs \
+            .#checks.x86_64-linux.dsh-optional-bundles \
+            .#checks.x86_64-linux.dsh-worktree-runtime
 
       - name: Check bundle helper with nixpkgs 26.05
         run: |

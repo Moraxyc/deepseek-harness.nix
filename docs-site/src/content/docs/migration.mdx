@@ -43,6 +43,33 @@ This attribute was removed in upstream `0.2.1-alpha.1`. Remove it from your
 bundle selections; `bundles.web-app` now includes Schedule. Follow the Schedule
 instructions in the `0.2.1-alpha.1` entry below for profile and patch changes.
 
+## `0.2.1-alpha.2`
+
+### Services
+
+Web listeners accept concrete IPv4 and IPv6 addresses, not wildcard addresses.
+The predefined Nginx proxy brackets IPv6 addresses automatically. Native HTTPS
+requires both `--tls-cert` and `--tls-key`; set `services.dsh.reverseProxy.scheme`
+to `"https"` when using that proxy with a TLS backend. Client-facing Nginx TLS
+is independent. See [service configuration](../advanced-usage/#reverse-proxy).
+
+### Custom profiles and integrations
+
+- `dsh-tools` no longer accepts `mode = "both"`; choose `"native"` or `"ptc"`
+  in custom plugin patches. This is unrelated to Nix profile modes
+  (`"managed"` and `"mutable"`).
+- Shared instructions and skills use `DSH_AGENTS_HOME`, defaulting to
+  `~/.agents`. `DSH_HOME` still controls Harness state. Services can set
+  `services.dsh.environment.DSH_AGENTS_HOME` to a service-readable directory;
+  the module does not redirect it automatically. Review custom
+  `dsh-agent-instructions` settings against the current file-candidate schema.
+- Python PTC now uses the selected sandbox policy. A missing restricted
+  sandbox backend is an error; do not switch to full access to bypass it.
+- Custom SDK clients and plugins need review against the updated
+  `session/wait`, Agent Team Inbox, working-directory, dynamic tool-set, and
+  system-prompt APIs. Bundled upstream consumers use the same release as the
+  kernel; this flake does not provide compatibility shims for external clients.
+
 ## `0.2.1-alpha.1`
 
 These notes apply when upgrading from `0.2.0-rc.2` and supersede the earlier

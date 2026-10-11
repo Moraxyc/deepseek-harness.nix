@@ -144,13 +144,52 @@ services.dsh.environmentFile = "/run/secrets/dsh-env";
 ```nix
 services.dsh = {
   credentials.env = "/run/secrets/dsh.env";
-  environmentFile = "/run/credentials/dsh-web/env";
+  environmentFile = "%d/env";
 };
 ```
 
-credential 会暴露在 `/run/credentials/dsh-web/<name>`。
+credential 会暴露在 `%d/<name>`，其中 `%d` 由 systemd 展开为该单元的
+credentials 目录。
 
 ### 反向代理
+
+预定义的 Nginx 反代支持 IPv4 和 IPv6 监听地址：
+
+```nix
+services.dsh = {
+  listenAddress = "::1";
+  reverseProxy = {
+    enable = true;
+    domain = "dsh.example.com";
+  };
+  trustedHosts = [ "dsh.example.com" ];
+};
+```
+
+`reverseProxy.scheme` 默认是 `"http"`，只控制 Nginx 到 dsh 的连接协议。
+使用原生 HTTPS 时，通过 `extraArguments` 同时传入 `--tls-cert` 和
+`--tls-key`，并设置 `reverseProxy.scheme = "https"`。通过 webserver profile
+patch 配置 TLS 时，也需要设置相同协议。私钥应使用运行时文件路径，
+不要放进 Nix store：
+
+```nix
+services.dsh = {
+  extraArguments = [
+    "--tls-cert" "%d/tls-cert"
+    "--tls-key" "%d/tls-key"
+  ];
+  credentials = {
+    tls-cert = "/run/secrets/dsh-cert.pem";
+    tls-key = "/run/secrets/dsh-key.pem";
+  };
+  reverseProxy.scheme = "https";
+};
+```
+
+替换证书后需要重启服务。Nginx 默认不验证后端证书；通过 location 的 `extraConfig` 配置后端证书
+验证（`proxy_ssl_verify`、`proxy_ssl_trusted_certificate` 和 `proxy_ssl_name`）。
+客户端到 Nginx 的 TLS 配置仍然独立。Home Manager 可以使用相同 TLS 参数
+和可读的运行时文件，但不提供预定义反代。
 
 保持 `listenAddress` 为 loopback，把公网入口交给反向代理。Nginx：
 
@@ -268,20 +307,20 @@ ID 以后一次定义为准。它可以放在 `withProfiles` 前面或后面：
 ```nix
 (
   (pkgs.dsh.dsh.withAgentPresets {
-    web-subagents = {
+    web-tools = {
       source = "standard";
-      enableTools = [ "tool-subagent-codex" ];
+      enableTools = [ "tool-plugin-manager" ];
     };
   }).withAgentPresets {
-    code-subagents = {
+    code-tools = {
       source = "ptc";
-      enableTools = [ "tool-subagent-claude-code" ];
+      enableTools = [ "tool-workflow" ];
     };
   }
 ).withProfiles {
   web = {
     bundles = [ pkgs.dsh.bundles.subagent-codex ];
-    agentPreset = "web-subagents";
+    agentPreset = "web-tools";
   };
 }
 ```
@@ -315,30 +354,47 @@ programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
 ];
 ```
 
-安装提供程序 Bundle 只会把 Host provider 放进运行时。它不会启动 Codex 或
-Claude Code，也不会自动开放对应工具。内置的 `standard` 和 `ptc`
-Agent Preset 默认禁用 `tool-subagent-codex` 与
-`tool-subagent-claude-code`。可以同时声明 preset 和 profile：
+Official 按需目录会列出尚未安装的提供程序。Nix 声明的提供程序属于安装本身，
+应在 Nix 中删除或更新。managed profile 的 GUI 启用、安装和更新不会修改声明，
+下次启动时可能被恢复。需要通过 npm 管理安装时，使用 mutable profile。
+不要再通过 npm 安装同名的 Nix 提供程序：profile 本地依赖可能优先于随包提供的副本。
+运行时 npm 安装不会经过本仓库的原生二进制修复。NixOS 下优先使用声明式 Bundle，
+以获得经过检查的提供程序运行时。
+
+从 `0.2.1-alpha.2` 开始，每个提供程序 Bundle 同时注册 Host provider 和对应工具。
+调用工具前不会启动 Codex 或 Claude Code。这些工具已不再属于内置的 `standard`
+或 `ptc` Agent Preset，应从 `agentPresets.<name>.enableTools` 中删除对应 ID。
+该选项只启用所选 preset 中已有的行。
+
+如果同时包含两个提供程序，但需要禁用 Claude Code 工具，可在 preset 之外声明
+profile patch：
 
 ```nix
 programs.dsh = {
   agentPresets.web-subagents = {
     source = "standard";
-    enableTools = [ "tool-subagent-codex" ];
   };
 
   profiles.web = {
     bundles = with pkgs.dsh.bundles; [
       web-app
       subagent-codex
+      subagent-claude-code
     ];
     agentPreset = "web-subagents";
+    patch = [
+      {
+        id = "tool-subagent-claude-code";
+        disabled = true;
+      }
+    ];
   };
 };
 ```
 
 生成的声明名为 `preset-web-subagents`，会加入 profile patch。
-registry 的 `default` 设为 `web-subagents`，仅启用列出的工具行。
+registry 的 `default` 设为 `web-subagents`，另一个 profile patch 禁用 Host 层的
+Claude Code 工具。
 
 这些 Bundle 使用 DeepSeek Harness 上游 workspace 固定的版本，不搜索
 `PATH`。如需改用某个 Nixpkgs revision 或 overlay 单独打包的二进制，可以覆盖
@@ -400,6 +456,10 @@ bundle 会覆盖前面 bundle 的 Cordis 配置；基础层固定在最前面。
 源码决定，无法通过 Nix 删减或扩充，因此每个安装都包含它们的闭包。
 
 把其中某个写进 profile 的 `bundles`，则由 Nix 直接参与组合。
+
+`experimental-tool-worktree` 将 Git 2.45 或更新版本（`gitMinimal`）和 Node 加入
+运行时 `PATH`。它在可写的源码 checkout 中创建 worktree，不写入 Nix Store。
+现有 sandbox 策略必须允许写入 worktree 目录和共享 Git 元数据；该 bundle 不增加权限。
 
 ## 覆盖
 

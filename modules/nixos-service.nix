@@ -11,6 +11,8 @@ let
   dynamicUser = cfg.user == null && cfg.group == null;
   serviceUser = if cfg.user != null then cfg.user else "dsh";
   serviceGroup = if cfg.group != null then cfg.group else serviceUser;
+  proxyHost =
+    if lib.hasInfix ":" cfg.listenAddress then "[${cfg.listenAddress}]" else cfg.listenAddress;
 in
 {
   imports = [ ./shared-profile-options.nix ];
@@ -55,6 +57,19 @@ in
         domain = lib.mkOption {
           type = lib.types.str;
           description = "Domain served through the reverse proxy, for example `dsh.example.local`.";
+        };
+
+        scheme = lib.mkOption {
+          type = lib.types.enum [
+            "http"
+            "https"
+          ];
+          default = "http";
+          description = ''
+            Protocol spoken by the dsh backend, not the client-facing Nginx
+            listener. Set to `https` when TLS is configured through
+            `extraArguments` or the webserver profile patch.
+          '';
         };
 
         warn = lib.mkOption {
@@ -206,7 +221,7 @@ in
     services.nginx = lib.mkIf cfg.reverseProxy.enable {
       enable = true;
       virtualHosts.${cfg.reverseProxy.domain}.locations."/" = {
-        proxyPass = "http://${cfg.listenAddress}:${toString cfg.port}";
+        proxyPass = "${cfg.reverseProxy.scheme}://${proxyHost}:${toString cfg.port}";
         proxyWebsockets = true;
         recommendedProxySettings = true;
       };

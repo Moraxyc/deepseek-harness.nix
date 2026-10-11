@@ -5,11 +5,12 @@
  import { WINDOWS_TITLEBAR_HEIGHT } from './windows-layout.ts'
  /** Electron shell: desktop project ownership, custom protocol, windows, and lifecycle. */
  
-@@ -285,7 +285,8 @@
+@@ -314,8 +315,9 @@
  }
  
  async function main(): Promise<void> {
 +  initializeNixProfile()
+   const desktopSettings = readDesktopSettings(app.getPath('userData'))
    void pruneCrashReports(app.getPath('logs'))
    const journalDirectory = process.env.DSH_DESKTOP_UPDATE_JOURNAL_DIR
    const updateJournal = journalDirectory === undefined ? undefined : new DesktopUpdateJournal(journalDirectory, app.getVersion())
@@ -57,7 +58,7 @@
 +    profile: process.env.DSH_NIX_DESKTOP_PROFILE ?? 'desktop',
      resolvedProfile: { profile, installAnchor },
      patchFiles: [],
-     args: ['--no-open', '--port', '0'],
+     args: ['--no-open', '--host', '127.0.0.1', '--port', '0'],
 --- /dev/null
 +++ b/apps/desktop/src/nix-profile.ts
 @@ -0,0 +1,20 @@
