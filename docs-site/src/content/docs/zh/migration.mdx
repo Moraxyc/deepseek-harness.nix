@@ -36,6 +36,30 @@ description: 仓库包移除与上游 DeepSeek Harness 变更的迁移说明。
 `bundles.web-app` 现在直接包含 Schedule。profile 和 patch 的调整方法见下方
 `0.2.1-alpha.1` 条目的 Schedule 说明。
 
+## `0.2.1-alpha.2`
+
+### 服务
+
+Web 监听支持具体的 IPv4 和 IPv6 地址，不接受通配地址。预定义的 Nginx 反代会
+自动为 IPv6 地址添加方括号。原生 HTTPS 要求同时传入 `--tls-cert` 和
+`--tls-key`；使用该反代连接 TLS 后端时，将 `services.dsh.reverseProxy.scheme`
+设为 `"https"`。客户端到 Nginx 的 TLS 配置独立。参见
+[服务配置](../advanced-usage/#反向代理)。
+
+### 自定义 profile 与集成
+
+- `dsh-tools` 不再接受 `mode = "both"`；自定义插件 patch 应选择 `"native"` 或
+  `"ptc"`。这与 Nix profile 的 `"managed"`、`"mutable"` 模式无关。
+- 共享指令和技能使用 `DSH_AGENTS_HOME`，默认目录为 `~/.agents`；`DSH_HOME`
+  仍然控制 Harness 状态目录。服务可以将
+  `services.dsh.environment.DSH_AGENTS_HOME` 设为服务可读的目录，模块不会自动
+  重定位它。自定义的 `dsh-agent-instructions` 配置应按当前文件候选项 schema 检查。
+- Python PTC 现在使用所选的 sandbox policy。缺少受限 sandbox 后端会报错，
+  不要切换为 full access 来绕过它。
+- 自定义 SDK 客户端和插件需要检查 `session/wait`、Agent Team Inbox、
+  working-directory、动态工具集合和 system-prompt API 的变化。随包提供的
+  上游调用方与 kernel 使用同一版本；本 flake 不为外部客户端提供兼容层。
+
 ## `0.2.1-alpha.1`
 
 以下内容适用于从 `0.2.0-rc.2` 升级，并覆盖此前的 Schedule 说明。
