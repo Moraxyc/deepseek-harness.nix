@@ -88,8 +88,8 @@ let
         default = null;
         description = ''
           ID of an entry in `programs.dsh.agentPresets`. The preset controls the
-          tool rows visible to the model; provider bundles are configured
-          separately.
+          preset-scoped tool rows visible to the model; provider bundles and
+          their Host-scoped tools are configured separately.
         '';
       };
 
@@ -145,9 +145,9 @@ in
       inherit default defaultText;
       example = lib.literalExpression ''
         {
-          web-subagents = {
+          web-tools = {
             source = "standard";
-            enableTools = [ "tool-subagent-codex" ];
+            enableTools = [ "tool-plugin-manager" ];
           };
         }
       '';

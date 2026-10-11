@@ -320,20 +320,20 @@ of the presets:
 ```nix
 (
   (pkgs.dsh.dsh.withAgentPresets {
-    web-subagents = {
+    web-tools = {
       source = "standard";
-      enableTools = [ "tool-subagent-codex" ];
+      enableTools = [ "tool-plugin-manager" ];
     };
   }).withAgentPresets {
-    code-subagents = {
+    code-tools = {
       source = "ptc";
-      enableTools = [ "tool-subagent-claude-code" ];
+      enableTools = [ "tool-workflow" ];
     };
   }
 ).withProfiles {
   web = {
     bundles = [ pkgs.dsh.bundles.subagent-codex ];
-    agentPreset = "web-subagents";
+    agentPreset = "web-tools";
   };
 }
 ```
@@ -378,31 +378,41 @@ provider: profile-local dependencies can take precedence over the shipped copy.
 Runtime npm installs do not receive this repository's native-binary fixups.
 On NixOS, prefer declarative Bundles for the checked provider runtimes.
 
-Installing a provider Bundle only puts its Host provider in the runtime. It does
-not start Codex or Claude Code, and it does not authorize either model-facing tool. The
-shipped `standard` and `ptc` Agent Presets keep `tool-subagent-codex` and
-`tool-subagent-claude-code` disabled. Declare the preset and profile together:
+Since `0.2.1-alpha.2`, each provider Bundle registers both its Host provider and
+its model-facing tool. It does not start Codex or Claude Code until the tool is
+invoked. These tools are no longer rows in the shipped `standard` or `ptc` Agent
+Presets, so remove their IDs from `agentPresets.<name>.enableTools`. That option
+only enables existing rows in the selected preset.
+
+To include both providers but disable the Claude Code tool, declare a profile
+patch alongside the preset:
 
 ```nix
 programs.dsh = {
   agentPresets.web-subagents = {
     source = "standard";
-    enableTools = [ "tool-subagent-codex" ];
   };
 
   profiles.web = {
     bundles = with pkgs.dsh.bundles; [
       web-app
       subagent-codex
+      subagent-claude-code
     ];
     agentPreset = "web-subagents";
+    patch = [
+      {
+        id = "tool-subagent-claude-code";
+        disabled = true;
+      }
+    ];
   };
 };
 ```
 
 The generated declaration is named `preset-web-subagents` and added to the
-profile patch. The registry's `default` is set to `web-subagents`; only the
-listed tool rows are enabled.
+profile patch. The registry's `default` is set to `web-subagents`; the separate
+profile patch disables the Host-scoped Claude Code tool.
 
 The Bundles use the versions pinned by the upstream DeepSeek Harness workspace;
 they do not search `PATH`. To use separately packaged binaries from a Nixpkgs
