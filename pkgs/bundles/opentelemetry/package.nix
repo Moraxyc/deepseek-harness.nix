@@ -10,13 +10,13 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-opentelemetry";
-  version = "0.1.2";
+  version = "0.1.3";
 
   src = fetchFromGitHub {
     owner = "loongsuite";
     repo = "dsh-plugin";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-2qHSagsOHco8a7whBv/76otC8CouEVl27MiQwE2MhQ4=";
+    hash = "sha256-wOtGNkXspFPJbJPZi09lXhkQ0VFCy6gFDymqb5V6/OU=";
   };
 
   pnpmDeps = fetchPnpmDeps {
