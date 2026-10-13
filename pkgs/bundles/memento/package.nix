@@ -7,14 +7,14 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-memento";
-  version = "0.5.23";
+  version = "0.5.25";
 
   # The upstream package is authored JavaScript and has no compilation step.
   src = fetchFromGitHub {
     owner = "PerryLink";
     repo = "dsh-memento";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-dANuBtSTx9VO3roSOA9DFiv6Vaa3eThQg1AaWC3vc8U=";
+    hash = "sha256-Zjsi3+1vLr3eKsXze0jxElFRoQozVbuhDtocJqWAg1s=";
   };
 
   npmDeps = null;
