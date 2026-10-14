@@ -24,6 +24,7 @@ buildDshBundle (finalAttrs: {
   patches = [
     ./btw-side-question-settle.patch
     ./verify-source-files.patch
+    ./verify-host-contract-node-shebang.patch
   ];
 
   postPatch = ''

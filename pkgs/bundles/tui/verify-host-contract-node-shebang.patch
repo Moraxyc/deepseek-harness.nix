@@ -1,0 +1,13 @@
+diff --git a/scripts/verify-host-contract.ts b/scripts/verify-host-contract.ts
+--- a/scripts/verify-host-contract.ts
++++ b/scripts/verify-host-contract.ts
+@@ -115,6 +115,8 @@
+ const brokenHost = fakeHost({ dropExport: { key: 'cmdline', name: 'provideCmdline' } })
+ const record = join(fakeRoot, 'delegated.json')
+-writeFileSync(join(brokenHost, 'lib', 'bin.js'), `#!/usr/bin/env node
++// The build sandbox has no /usr/bin/env, so a `#!/usr/bin/env node` shim cannot
++// exec there; Node's own path keeps the fake host's bin runnable.
++writeFileSync(join(brokenHost, 'lib', 'bin.js'), `#!${process.execPath}
+ import { writeFileSync } from 'node:fs'
+ writeFileSync(${JSON.stringify(record)}, JSON.stringify({ args: process.argv.slice(2), notice: process.env.DSH_TUI_HOST_NOTICE }))
+ process.exit(7)
