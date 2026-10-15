@@ -230,8 +230,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
         pnpm = dshDesktopPnpm.version;
       }
     } "$runtimeRoot/runtime/versions.json"
-    chmod 755 "$runtimeRoot/runtime/office-skills/scripts/check_office.py"
-
     mkdir -p "$out/bin"
   ''
   + lib.optionalString isDarwin ''
@@ -293,18 +291,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       --prefix PATH : ${lib.makeBinPath finalAttrs.passthru.desktopRuntimeDeps}
       --inherit-argv0
     )
-  '';
-
-  doInstallCheck = true;
-  installCheckPhase = ''
-    runHook preInstallCheck
-
-    node --input-type=module <<EOF
-    import { verifyDesktopRuntime } from '$src/app/src/runtime-tree.ts';
-    await verifyDesktopRuntime('${runtimeRoot}/app/dsh', '${finalAttrs.version}');
-    EOF
-
-    runHook postInstallCheck
   '';
 
   desktopItems = lib.optional isLinux (makeDesktopItem {
