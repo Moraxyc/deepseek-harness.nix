@@ -356,6 +356,18 @@ and `completion` to `skipped`. Use mutable mode to complete onboarding and keep
 runtime Settings. Disable managed plugins in Nix; desktop recovery does not
 rewrite a managed profile.
 
+### Plugin Market Installs
+
+The optional `experimental-plugin-market-bundle` adds a Discover tab to Plugins
+that installs bundles from the index sources you add. An install records its
+declaration in profile-owned files: `package.json` for the dependency and bundle
+selection, `cordis.patch.yml` for plugin toggles and index sources, and
+`pnpm-workspace.yaml` for approved build scripts.
+
+Managed mode restores all three on the next launch, so those declarations can
+stop matching the packages still on disk. Install from the market in a mutable
+profile; keep managed mode declarative and add profile plugins as Nix Bundles.
+
 ## Optional Subagent Providers
 
 Codex and Claude Code are optional Profile Bundles. Add only the providers a

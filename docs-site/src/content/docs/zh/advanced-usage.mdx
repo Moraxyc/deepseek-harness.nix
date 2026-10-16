@@ -341,6 +341,17 @@ Desktop profile 使用 managed 模式时，Nix 将 `ui-settings-account.step` �
 `done`、将 `completion` 设为 `skipped`。需要完成引导并保留运行时 Settings 时，
 使用 mutable 模式。管理模式下须在 Nix 中禁用插件，桌面的恢复操作不会改写该 profile。
 
+### 插件市场安装
+
+可选的 `experimental-plugin-market-bundle` 会给插件页添加「发现」标签页，从你添加的
+索引源安装 bundle。安装会写入 profile 自有的文件：`package.json` 记录依赖和 bundle
+选择，`cordis.patch.yml` 记录插件开关和索引源，`pnpm-workspace.yaml` 记录已批准的
+构建脚本。
+
+managed 模式会在下次启动时恢复这三个文件，此时这些声明可能与磁盘上仍在的包不一致。
+需要从市场安装时请使用 mutable profile；保持 managed 模式时，profile 插件应通过
+Nix Bundle 声明。
+
 ## 可选子代理提供程序
 
 Codex 和 Claude Code 以可选 Profile Bundle 提供。只需把允许该 profile 使用的
