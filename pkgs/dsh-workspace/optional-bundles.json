@@ -34,6 +34,13 @@
     "descriptionZh": "查看调试会话原始数据、聊天消息分组数据，以及调试 NodeJS 后端",
     "requiresWeb": true
   },
+  "@deepseek-ai/dsh-experimental-plugin-market-bundle": {
+    "attr": "experimental-plugin-market-bundle",
+    "pname": "dsh-experimental-plugin-market-bundle",
+    "description": "Adds a Discover tab to Plugins for browsing and installing bundles from plugin market indexes you add",
+    "descriptionZh": "在插件页添加「发现」标签页，从你添加的插件市场索引浏览和安装插件。",
+    "requiresWeb": true
+  },
   "@deepseek-ai/dsh-experimental-ralph-bundle": {
     "attr": "experimental-ralph-bundle",
     "pname": "dsh-experimental-ralph-bundle",
