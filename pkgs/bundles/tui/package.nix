@@ -11,14 +11,14 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-tui";
-  version = "0.15.0";
+  version = "0.16.1";
 
   src = fetchFromGitHub {
     owner = "ccch1mneyyy";
     repo = "dsh-TUI";
     rev = "refs/tags/v${finalAttrs.version}";
     fetchSubmodules = true;
-    hash = "sha256-8l+UeIiZ+/e/WO+Iz939ggziaO20yxT6hcyGERVWdfc=";
+    hash = "sha256-qZaaOmdDEwZjgBEGA85DcTrlXuWqBOqs66k7w+tOmnM=";
   };
 
   patches = [
@@ -53,7 +53,7 @@ buildDshBundle (finalAttrs: {
         --frozen-lockfile \
         --registry="$NIX_NPM_REGISTRY"
     '';
-    hash = "sha256-foA//FM9tpcVTD/ZkQlbqx+9QZRvW6tRfJd3hPacnKs=";
+    hash = "sha256-sSyAEWCXcNcw+iyJkMtCyvXvnR/RGXgCPGFcj/sv3Sg=";
   };
 
   nativeBuildInputs = [ pnpm_11 ];
