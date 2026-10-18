@@ -63,7 +63,7 @@ jobs:
         with:
           name: ${{ vars.CACHIX_CACHE_NAME || 'deepseek-harness-nix' }}
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
-          skipPush: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+          skipPush: ${{ github.event_name == 'pull_request' }}
 
       - name: Check merge status aggregation
         run: nix build --no-link .#checks.x86_64-linux.merge-check
