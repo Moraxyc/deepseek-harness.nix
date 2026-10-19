@@ -1,16 +1,16 @@
 {
   "packageExtensions": {
-    "@deepseek-ai/dsh-client-store@0.2.0-rc.2": {
+    "@deepseek-ai/dsh-client-store@0.2.1-rc.2": {
       "dependencies": {
         "zustand": "~4.4.7",
         "immer": "^10.1.1"
       }
     },
-    "@deepseek-ai/dsh-client-ui-primitives@0.2.0-rc.2": {
+    "@deepseek-ai/dsh-client-ui-primitives@0.2.1-rc.2": {
       "dependencies": {
-        "@deepseek-ai/dsh-client-store": "0.2.0-rc.2",
-        "@deepseek-ai/dsh-util-code-language": "0.2.0-rc.2",
-        "@deepseek-ai/dsh-util-workspace-path": "0.2.0-rc.2",
+        "@deepseek-ai/dsh-client-store": "0.2.1-rc.2",
+        "@deepseek-ai/dsh-util-code-language": "0.2.1-rc.2",
+        "@deepseek-ai/dsh-util-workspace-path": "0.2.1-rc.2",
         "@shikijs/langs": "^4.3.1",
         "anser": "^2.3.5",
         "clsx": "^2.0.0",
