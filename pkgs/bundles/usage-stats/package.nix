@@ -10,7 +10,7 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-usage-stats";
-  version = "0.3.5";
+  version = "0.3.6";
 
   src = fetchFromGitHub {
     owner = "Ychris12138";
@@ -24,7 +24,7 @@ buildDshBundle (finalAttrs: {
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
-    hash = "sha256-7ObQLOTsHXKPBdqciDpjvxLC5Q+59K9/ZtxeaUx1y04=";
+    hash = "sha256-yU1hrVdRfQJLaT+fGHf5ZaSmPKV/qnhmt9toBQ5bT/M=";
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
