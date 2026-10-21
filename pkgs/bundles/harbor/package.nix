@@ -14,13 +14,13 @@ let
 in
 buildDshBundle (finalAttrs: {
   pname = "dsh-harbor";
-  version = "0.1.0-rc.4-unstable-2026-10-20";
+  version = "0.1.0-rc.4-unstable-2026-10-21";
 
   src = fetchFromGitHub {
     owner = "ZSeven-W";
     repo = "dsh-harbor";
-    rev = "fe3e1347f5a9ce9de90e54760fb875b6555336b4";
-    hash = "sha256-wrrzGIojo7IiqaiukBkRdMEjHmg7JRrjj+EkBmWX7Ag=";
+    rev = "8d9b998d03a223d766a29c5fa10fcf798638a341";
+    hash = "sha256-Vxzxj3gPERNSlmXggZ6yEucNsn6EU90FPBJSTas5CD8=";
   };
 
   # The upstream repository commits both the ESM host source and the generated
@@ -30,7 +30,7 @@ buildDshBundle (finalAttrs: {
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
-    hash = "sha256-IhFK5cCqstoJ/oreRDUstWBDK1MmtpUwaTXUmV63EFI=";
+    hash = "sha256-3EAkQeDqzFxg54qm7bpotpsTgCKXWFhl2DtmGj5v47I=";
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
