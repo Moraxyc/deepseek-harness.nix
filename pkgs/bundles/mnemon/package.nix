@@ -8,14 +8,14 @@
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-mnemon";
-  version = "0.5.33";
+  version = "0.5.34";
   deployPackage = "dsh-mnemon";
 
   src = fetchFromGitHub {
     owner = "omdsh-dev";
     repo = "dsh-mnemon";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-cTFwr6ejfQfBhvaYUMkLS9soyF9YuzAW6PeCzveZQH0=";
+    hash = "sha256-Ed7E8p9Ma1dgN9UfWpva6Bu+MM9ibN5z4FizmguKg6s=";
   };
 
   pnpmDepsHash = "sha256-15xN7OmFYcFxYyvLFrmmhhaVTQ/awGfiF0y+xAp2C+k=";
