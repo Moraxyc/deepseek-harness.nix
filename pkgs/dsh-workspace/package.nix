@@ -28,7 +28,7 @@ let
 in
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
-  version = "0.2.1-rc.2";
+  version = "0.2.1-rc.3";
 
   __structuredAttrs = true;
   strictDeps = true;
@@ -43,7 +43,7 @@ buildNpmPackage (finalAttrs: {
     owner = "deepseek-ai";
     repo = "deepseek-harness";
     tag = "dsh-v${finalAttrs.version}";
-    hash = "sha256-WcPs3q4NFTRnH2y1Rc/o7/rvJAOe8s7isoTQYf8APFU=";
+    hash = "sha256-wNwpit8WCjltafq+1JFTTFFbH05No60ImlmoJpVz2RQ=";
   };
 
   patches = [
@@ -61,7 +61,7 @@ buildNpmPackage (finalAttrs: {
   ];
 
   env = {
-    DSH_CLIENT_COMMIT_HASH = "687f282e8625c6b8d11ff58211a90524be2e4317";
+    DSH_CLIENT_COMMIT_HASH = "1f81c047fc48fa190a683e469daa699857e9afe8";
     PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = "false";
     # Rendered at evaluation time so the workspace patch hook does not have to
     # re-parse pnpm-workspace.yaml in the build sandbox.
