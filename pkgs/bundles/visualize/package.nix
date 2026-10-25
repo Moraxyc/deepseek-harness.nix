@@ -8,15 +8,15 @@
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-visualize";
-  version = "0.1.7-unstable-2026-10-18";
+  version = "0.1.7-unstable-2026-10-24";
   deployPackage = "@nagi-ovo/dsh-visualize";
   linkKernelNodeModules = dsh-kernel;
 
   src = fetchFromGitHub {
     owner = "Nagi-ovo";
     repo = "dsh-visualize";
-    rev = "1ab0d903b4d689524e9f72e5a4624e93d0b47cd2";
-    hash = "sha256-xXHYUf5WZ2NRbCNcr4tx9u22BUmXWhkG0U9EE7bev1c=";
+    rev = "cf6b3a3f5a3f02b83a380890a5b672a350715344";
+    hash = "sha256-OQH6GdpEQTHIgejjTkAAjpFFmf4q1VpWsDF1K1cUDp8=";
   };
 
   pnpmDepsHash = "sha256-0Y4KiZrZM8cpYX7jlfdc6HccuAeT0u00cJOq5sMmqpE=";
