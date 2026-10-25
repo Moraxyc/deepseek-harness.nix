@@ -1,0 +1,6 @@
+diff --git a/scripts/run-verify-build.mjs b/scripts/run-verify-build.mjs
+--- a/scripts/run-verify-build.mjs
++++ b/scripts/run-verify-build.mjs
+@@ -155,1 +155,1 @@
+-const SERIAL = []
++const SERIAL = ['verify:rewind-edit']
