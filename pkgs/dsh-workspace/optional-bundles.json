@@ -1,86 +1,130 @@
 {
+  "@deepseek-ai/dsh-cua-bundle": {
+    "attr": "cua-bundle",
+    "pname": "dsh-cua-bundle",
+    "description": "Currently supports macOS; Windows support is in development. Loads computer use for existing and new PTC sessions. Switch to PTC mode and grant Accessibility and Screen Recording permissions to use it.",
+    "descriptionZh": "目前仅支持 macOS，Windows 支持正在开发中。为已有及新建 PTC 会话加载 Computer Use。请切换到 PTC 模式来使用，并授予辅助功能和屏幕录制权限。",
+    "requiresWeb": true,
+    "platforms": ["darwin"]
+  },
   "@deepseek-ai/dsh-experimental-agent-team-profile": {
     "attr": "experimental-agent-team-profile",
     "pname": "dsh-experimental-agent-team-profile",
-    "description": "Enable team collaboration, team tools, the member roster, and the shared task board.",
-    "descriptionZh": "启用团队协作、团队工具、成员列表和共享任务看板。",
-    "requiresWeb": true
+    "description": "Lets the agent you talk to split a job among named teammates, track it on a shared task board, and report back with their results.",
+    "descriptionZh": "让与你对话的智能体把工作分给有名字的队友，在共享任务看板上跟踪进度，并汇总队友的结果向你汇报。",
+    "requiresWeb": true,
+    "platforms": []
   },
   "@deepseek-ai/dsh-experimental-auto-review": {
     "attr": "experimental-auto-review",
     "pname": "dsh-experimental-auto-review",
-    "description": "Add an Auto review permission mode that uses the model to assess authorization before each tool call.",
-    "descriptionZh": "提供自动审查权限模式，由模型在每次工具调用前判断是否授权。",
-    "requiresWeb": false
+    "description": "Adds an Auto review access mode: before each tool call, a model checks it against what you asked for, runs allowed calls at once, and holds denied calls for your approval.",
+    "descriptionZh": "提供“自动审查”访问模式：每次工具调用前，由模型对照你的要求检查，获准的调用立即运行，被拒绝的调用等你审批。",
+    "requiresWeb": false,
+    "platforms": []
   },
   "@deepseek-ai/dsh-experimental-badge-skill-bundle": {
     "attr": "experimental-badge-skill-bundle",
     "pname": "dsh-experimental-badge-skill-bundle",
     "description": "Let agents add a “powered by dsh” badge to documents, pull requests, and other outputs.",
     "descriptionZh": "让 Agent 为文档、PR 等产出添加「powered by dsh」徽章。",
-    "requiresWeb": false
+    "requiresWeb": false,
+    "platforms": []
   },
   "@deepseek-ai/dsh-experimental-cot-translation-bundle": {
     "attr": "experimental-cot-translation-bundle",
     "pname": "dsh-experimental-cot-translation-bundle",
-    "description": "Machine translation of expanded reasoning; source text is sent to the selected service",
-    "descriptionZh": "机器翻译展开的思考内容；原文会发送给所选服务",
-    "requiresWeb": true
+    "description": "Translates expanded Think rows into your chosen language as the agent writes them, and View original switches back.",
+    "descriptionZh": "智能体输出时，把展开的“思考”行翻译成你选择的语言，点击“查看原文”可切换回原文。",
+    "requiresWeb": true,
+    "platforms": []
+  },
+  "@deepseek-ai/dsh-experimental-forge-bundle": {
+    "attr": "experimental-forge-bundle",
+    "pname": "dsh-experimental-forge-bundle",
+    "description": "Track each Session's change requests with their checks and reviews, and start new Sessions in a Git worktree; uses the gh CLI for GitHub.",
+    "descriptionZh": "跟踪每个会话的变更请求及其检查与评审，新会话也可以在 Git 工作树中开始；GitHub 通过 gh 命令行访问。",
+    "requiresWeb": true,
+    "platforms": []
   },
   "@deepseek-ai/dsh-experimental-inspector-profile": {
     "attr": "experimental-inspector-profile",
     "pname": "dsh-experimental-inspector-profile",
-    "description": "Inspect and debug raw session data, grouped chat messages, and the NodeJS backend.",
-    "descriptionZh": "查看调试会话原始数据、聊天消息分组数据，以及调试 NodeJS 后端",
-    "requiresWeb": true
+    "description": "For troubleshooting: view what DSH recorded for a session in Session log, inspect per-turn and per-step statistics in the Statistics tab, and debug the DSH backend in Chrome DevTools.",
+    "descriptionZh": "用于排查问题：在「会话数据诊断」中查看 DSH 为会话记录的内容，在「统计」页签查看每轮/每步的上下文、耗时、缓存和工具成本，并在 Chrome DevTools 中调试 DSH 后端。",
+    "requiresWeb": true,
+    "platforms": []
+  },
+  "@deepseek-ai/dsh-experimental-liveshare": {
+    "attr": "experimental-liveshare",
+    "pname": "dsh-experimental-liveshare",
+    "description": "Share the current Session with a colleague, who can drive it in a browser, edit files inside the granted workspace when the share allows writes, or branch their own Session from the completed history.",
+    "descriptionZh": "把当前会话分享给同事，对方可在浏览器中驱动该会话、在分享允许写入时修改授权工作区内的文件，或从已完成历史分支出自己的会话。",
+    "requiresWeb": true,
+    "platforms": []
   },
   "@deepseek-ai/dsh-experimental-plugin-market-bundle": {
     "attr": "experimental-plugin-market-bundle",
     "pname": "dsh-experimental-plugin-market-bundle",
-    "description": "Adds a Discover tab to Plugins for browsing and installing bundles from plugin market indexes you add",
-    "descriptionZh": "在插件页添加「发现」标签页，从你添加的插件市场索引浏览和安装插件。",
-    "requiresWeb": true
+    "description": "Adds a Discover tab to Plugins, where you browse and install plugins from plugin indexes you add.",
+    "descriptionZh": "在插件页添加“发现”标签页，从你添加的插件索引中浏览和安装插件。",
+    "requiresWeb": true,
+    "platforms": []
   },
   "@deepseek-ai/dsh-experimental-ralph-bundle": {
     "attr": "experimental-ralph-bundle",
     "pname": "dsh-experimental-ralph-bundle",
-    "description": "Run explicitly requested repeated work with fresh agents.",
-    "descriptionZh": "使用新智能体执行用户明确要求的循环工作。",
-    "requiresWeb": false
+    "description": "Ask for a Ralph loop with a goal, and the agent starts a fresh agent on it round after round until the goal is met, a blocker is reported, or the round limit is reached.",
+    "descriptionZh": "要求用 Ralph 循环完成一个目标后，智能体会一轮接一轮地启动新的智能体处理它，直到目标达成、报告受阻或达到轮次上限。",
+    "requiresWeb": false,
+    "platforms": []
   },
   "@deepseek-ai/dsh-experimental-session-search": {
     "attr": "experimental-session-search",
     "pname": "dsh-experimental-session-search",
-    "description": "Give Agents tools to search and read earlier sessions from the current workspace.",
-    "descriptionZh": "为智能体提供搜索和读取当前工作区历史会话的工具。",
-    "requiresWeb": false
+    "description": "Ask about earlier work, such as “How did we fix the pool leak last week?”, and the agent searches your earlier sessions in the same workspace to answer.",
+    "descriptionZh": "询问以往的工作，例如“上周我们是怎么修好连接池泄漏的？”，智能体会搜索同一工作区的历史会话来回答。",
+    "requiresWeb": false,
+    "platforms": []
   },
   "@deepseek-ai/dsh-experimental-session-titles-bundle": {
     "attr": "experimental-session-titles-bundle",
     "pname": "dsh-experimental-session-titles-bundle",
-    "description": "Refresh session titles as new human prompts arrive.",
-    "descriptionZh": "在收到新的用户提示时更新会话标题。",
-    "requiresWeb": false
+    "description": "Writes a session's title from all of your messages and updates it when the main task changes, instead of only from the first message.",
+    "descriptionZh": "根据你的所有消息生成会话标题，并在主要任务变化时更新，而不是只根据第一条消息生成。",
+    "requiresWeb": false,
+    "platforms": []
   },
   "@deepseek-ai/dsh-experimental-terminal-bundle": {
     "attr": "experimental-terminal-bundle",
     "pname": "dsh-experimental-terminal-bundle",
-    "description": "Keep shell processes alive across tool calls.",
-    "descriptionZh": "让 shell 进程在多次工具调用之间保持运行。",
-    "requiresWeb": false
+    "description": "Gives the agent terminals whose processes keep running in the background between tool calls, so it can start a dev server or REPL and come back later to read output or type input.",
+    "descriptionZh": "为智能体提供终端，进程在多次工具调用之间持续在后台运行，因此它可以启动开发服务器或 REPL，稍后再读取输出或继续输入。",
+    "requiresWeb": false,
+    "platforms": []
   },
   "@deepseek-ai/dsh-experimental-tool-worktree": {
     "attr": "experimental-tool-worktree",
     "pname": "dsh-experimental-tool-worktree",
-    "description": "Let the agent create a new Git branch and worktree, then continue there.",
-    "descriptionZh": "让智能体创建新的 Git 分支与工作树，并在其中继续工作。",
-    "requiresWeb": false
+    "description": "Ask for work on a new branch, and the agent creates a separate Git worktree and continues there, leaving your current checkout as it is.",
+    "descriptionZh": "要求在新分支上工作时，智能体会创建单独的 Git 工作树并在其中继续，你当前的工作树保持原样。",
+    "requiresWeb": false,
+    "platforms": []
   },
   "@deepseek-ai/dsh-experimental-voice-input-bundle": {
     "attr": "experimental-voice-input-bundle",
     "pname": "dsh-experimental-voice-input-bundle",
-    "description": "Transcribe recordings locally with SenseVoice; first use requires installing dependencies",
+    "description": "Transcribe recordings locally with SenseVoice; first use requires installing dependencies.",
     "descriptionZh": "在本机使用 SenseVoice 转写录音，首次使用需安装依赖。",
-    "requiresWeb": true
+    "requiresWeb": true,
+    "platforms": []
+  },
+  "@deepseek-ai/dsh-personalized-recommendations": {
+    "attr": "personalized-recommendations",
+    "pname": "dsh-personalized-recommendations",
+    "description": "Shows recommendation cards below the answer for what you want from DSH: when you want a page or small tool you can keep, it proposes a new personalized page, built in the background after you click Create; when you ask how to do something in this app or say a capability is missing, it recommends the built-in plugin that provides it, turned on when you click Enable.",
+    "descriptionZh": "针对你对 DSH 的个性化需求，在回答下方展示推荐卡片：想要能长期使用的页面或小工具时，提议新增个性化页面，点击创建后在后台生成；问到本应用怎么做某件事或缺少某项能力时，推荐对应的内置插件，点击启用后开启。",
+    "requiresWeb": true,
+    "platforms": []
   }
 }

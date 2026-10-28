@@ -41,7 +41,6 @@
   desktopProfile ? null,
   # Optional home-level Cordis patch managed under $DSH_HOME.
   homePatch ? null,
-  # Optional external profile artifact seeder used by split integrations.
   profileSeeder ? null,
   profileDefaultProfile ? null,
   pname ? "dsh",
@@ -81,8 +80,10 @@ let
   tuiBundle = bundles.tui;
   webBundle = bundles.web-app;
   validatedOptionalBundles = composition.validateBundles (
-    map (entry: bundles.${entry.attr}) (
-      lib.attrValues (lib.importJSON ../dsh-workspace/optional-bundles.json)
+    lib.filter (lib.meta.availableOn stdenvNoCC.hostPlatform) (
+      map (entry: bundles.${entry.attr}) (
+        lib.attrValues (lib.importJSON ../dsh-workspace/optional-bundles.json)
+      )
     )
   );
   profileArtifacts = profileSupport.mkProfileArtifacts {
@@ -394,7 +395,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       );
 
     # pkgs.dsh.dsh.withAgentPresets { web-subagents = { source = "standard"; }; }
-    # merges definitions by ID; a later definition replaces an earlier one.
+    # merges definitions by ID. A later definition replaces an earlier one.
     withAgentPresets =
       configuredAgentPresets:
       assert lib.isAttrs configuredAgentPresets;
@@ -407,8 +408,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
     # pkgs.dsh.dsh.withBundles (b: with b; [ tui web-app ])
     # pkgs.dsh.dsh.withBundles [ pkgs.dsh.bundles.tui pkgs.dsh.bundles.web-app ]
-    # adds selected bundles to the current composition and to every managed
-    # profile so Nix-managed profiles stay in sync with the running package.
+    # adds selected bundles to the composition and each declared profile.
     withBundles =
       bundlesOrSelector:
       let

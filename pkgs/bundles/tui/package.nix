@@ -22,6 +22,7 @@ buildDshBundle (finalAttrs: {
   };
 
   patches = [
+    ./alpha2-model-selection.patch
     ./btw-side-question-settle.patch
     ./verify-source-files.patch
     ./verify-host-contract-node-shebang.patch
@@ -32,8 +33,7 @@ buildDshBundle (finalAttrs: {
     chmod -R u+w vendor/dsh-std
   '';
 
-  # Static imports initialize i18n before the verification script can set its
-  # process-local language; pin build-time UI assertions in the locale-less Nix sandbox.
+  # Static imports initialize i18n before the verification script sets its language.
   env = {
     DSH_TUI_LANG = "en";
   };
@@ -60,12 +60,11 @@ buildDshBundle (finalAttrs: {
   nativeBuildInputs = [ pnpm_11 ];
   disallowedReferences = [ pnpm_11 ];
   linkKernelNodeModules = dsh-kernel;
-  # dsh-tui compiles against React 19, while dsh-kernel carries React 18.
-  # supports-hyperlinks@3.2.0 needs the supports-color@7 function export,
-  # while dsh-kernel carries 9.x.
   linkKernelNodeModulesKeep = [
     "ansi-styles"
+    # dsh-tui compiles against React 19, while dsh-kernel carries React 18.
     "react"
+    # supports-hyperlinks@3.2.0 needs the supports-color@7 function export.
     "supports-color"
   ];
 
@@ -80,7 +79,6 @@ buildDshBundle (finalAttrs: {
     mkdir -p "$appDir"
 
     cp -r package.json cordis.patch.yml cordis.yml tui-profile presets lib bin assets guide "$appDir/"
-    # Retain private dependencies absent from the kernel.
     cp -r node_modules "$appDir/node_modules"
 
     # Workspace links point into vendor/dsh-std, which is not installed.

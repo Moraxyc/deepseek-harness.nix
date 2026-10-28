@@ -1,0 +1,11 @@
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -320,6 +320,8 @@
+     const affectedTools = recoveryPresentations.get(agent)
+     if (affectedTools === undefined) return resolved
+     recoveryPresentations.delete(agent)
++    // The host omits tool schemas from system-prompt/assemble.
++    if (resolved.tools === undefined) return resolved
+
+     let projected = false
+     const tools = resolved.tools.map(tool => {

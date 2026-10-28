@@ -5,7 +5,11 @@
     { pkgs, ... }:
     let
       optionalBundlesManifest = lib.importJSON ../../../../pkgs/dsh-workspace/optional-bundles.json;
-      optionalBundleNames = lib.attrNames optionalBundlesManifest;
+      optionalBundleNames = lib.attrNames (
+        lib.filterAttrs (
+          _: entry: lib.meta.availableOn pkgs.stdenv.hostPlatform pkgs.dsh.bundles.${entry.attr}
+        ) optionalBundlesManifest
+      );
       shipped = pkgs.dsh.dsh.override {
         profiles.web.bundles = [ pkgs.dsh.bundles.web-app ];
       };

@@ -1,0 +1,65 @@
+--- a/src/dsh-adapter/channel/model-selection.ts
++++ b/src/dsh-adapter/channel/model-selection.ts
+@@ -10,6 +10,30 @@
+   owner: ChannelOwner
+   agent(): Agent
+ }) {
++  type NativeModel = {
++    current(): ModelSelectionRef['current']
++    select(selection: NonNullable<ModelSelectionRef['current']>): void
++  }
++  const nativeModel = (agent: Agent): NativeModel | undefined =>
++    (agent as Agent & { model?: NativeModel }).model
++  if (nativeModel(deps.agent()) !== undefined) {
++    const selection: Pick<ModelSelectionRef, 'current'> = {
++      get current() { return nativeModel(deps.agent())!.current() },
++      set current(value) {
++        deps.owner.assertActive()
++        if (value === undefined) throw new Error('dsh-tui: model selection requires a route')
++        nativeModel(deps.agent())!.select(value)
++      },
++    }
++    return {
++      selection,
++      bind(agent: Agent, route: { provider: string; model: string }): void {
++        deps.owner.assertActive()
++        const model = nativeModel(agent)!
++        if (model.current() === undefined && route.provider !== '' && route.model !== '') model.select(route)
++      },
++    }
++  }
+   const entries = new Map<Agent, { ref: ModelSelectionRef; release(): void }>()
+   const foreground = (): ModelSelectionRef => {
+     const entry = entries.get(deps.agent())
+--- a/src/dsh-adapter/channel/model-actions.ts
++++ b/src/dsh-adapter/channel/model-actions.ts
+@@ -25,7 +25,7 @@
+   deps: {
+     owner: Pick<ChannelOwner, 'current'>
+     binding: Pick<Binding, 'capture' | 'isCurrent'>
+-    selection: ModelSelectionRef
++    selection: Pick<ModelSelectionRef, 'current'>
+     initialEffort?: string
+     agent(): Agent
+     notify: ChannelState['notify']
+--- a/src/dsh-adapter/channel/model-switch.ts
++++ b/src/dsh-adapter/channel/model-switch.ts
+@@ -17,7 +17,7 @@
+   deps: {
+     owner: Pick<ChannelOwner, 'current'>
+     binding: Pick<Binding, 'capture' | 'isCurrent'>
+-    selection: ModelSelectionRef
++    selection: Pick<ModelSelectionRef, 'current'>
+     /** Legacy DSH delegates from immutable creation options instead of request headers. */
+     supportsRouteSwitch: boolean
+     applyPreferredEffort(): Promise<void>
+--- a/src/dsh-adapter/channel/extensions.ts
++++ b/src/dsh-adapter/channel/extensions.ts
+@@ -884,6 +884,7 @@
+   // the active route. Keep complete child-specific routes authoritative.
+   // Registered before the first bind's own `agent/request` listener.
+   const disposeInheritedChildRoute = ctx.on('agent/request', async (_payload, next) => {
++    if (installedMeetsVersion('@deepseek-ai/dsh-agent', '0.2.2-alpha.2')) return next()
+     // This listener intentionally serves child scopes, not the bound agent's
+     // selection pipeline. Capture the foreground route before awaiting so an
+     // old child waterfall cannot borrow a later binding's model (A→B→A safe).

@@ -1,10 +1,11 @@
-# Upstream's OPTIONAL_BUNDLES resolve from every profile but are selected by none.
 {
   lib,
   gitMinimal,
+  gh,
   nodejs-slim,
   buildDshBundle,
   dsh-kernel,
+  dsh-cua-native,
   dsh-workspace,
 }:
 let
@@ -19,10 +20,17 @@ let
 
       linkKernelNodeModules = dsh-kernel;
 
-      runtimeDeps = lib.optionals (packageName == "@deepseek-ai/dsh-experimental-tool-worktree") [
-        gitMinimal
-        nodejs-slim
-      ];
+      runtimeDeps =
+        lib.optionals
+          (lib.elem packageName [
+            "@deepseek-ai/dsh-experimental-tool-worktree"
+            "@deepseek-ai/dsh-experimental-forge-bundle"
+          ])
+          [
+            gitMinimal
+            nodejs-slim
+          ]
+        ++ lib.optional (packageName == "@deepseek-ai/dsh-experimental-forge-bundle") gh;
 
       passthru = lib.optionalAttrs entry.requiresWeb {
         requiresWeb = true;
@@ -33,7 +41,13 @@ let
         descriptions.zh-CN = entry.descriptionZh;
         homepage = "https://github.com/deepseek-ai/deepseek-harness";
         license = lib.licenses.mit;
-        platforms = lib.platforms.unix;
+        platforms =
+          if packageName == "@deepseek-ai/dsh-cua-bundle" then
+            dsh-cua-native.meta.platforms
+          else if entry.platforms == [ ] then
+            lib.platforms.unix
+          else
+            lib.concatMap (platform: lib.platforms.${platform}) entry.platforms;
       };
     });
 in

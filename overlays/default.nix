@@ -68,8 +68,7 @@ let
   dsh = final.lib.makeScope final.newScope (
     self:
     let
-      # packagesFromDirectoryRecursive returns its own scope, which pkgs/ resolve
-      # arguments from, so upstream's switched-off bundles join `bundles` there.
+      # Inject bundles into the directory scope because package arguments resolve there.
       directoryPackages =
         (final.lib.packagesFromDirectoryRecursive {
           callPackage = self.callPackage;
@@ -82,9 +81,14 @@ let
                 _: prev:
                 let
                   generated = import ../lib/dsh-optional-bundles.nix {
-                    inherit (final) lib gitMinimal nodejs-slim;
+                    inherit (final)
+                      lib
+                      gitMinimal
+                      gh
+                      nodejs-slim
+                      ;
                     inherit buildDshBundle;
-                    inherit (dirFinal) dsh-kernel dsh-workspace;
+                    inherit (dirFinal) dsh-kernel dsh-workspace dsh-cua-native;
                   };
                   collisions = final.lib.attrNames (final.lib.intersectAttrs generated prev);
                 in
@@ -96,9 +100,8 @@ let
           );
     in
     {
-      # Only the dsh package set gets the release-age opt-out. Exporting the
-      # wrapped fetcher at the nixpkgs top level would change every unrelated
-      # pnpm package.
+      # Keep the wrapped fetcher in the dsh scope so unrelated pnpm packages
+      # retain their release-age policy.
       inherit
         buildDshBundle
         copyTree

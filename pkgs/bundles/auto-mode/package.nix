@@ -19,6 +19,8 @@ buildDshBundle (finalAttrs: {
     hash = "sha256-ZXXsfL0oHPSIHx5WsmT3muk+XkyCGEnJu410IyeJ+Jw=";
   };
 
+  patches = [ ./alpha2-prompt-tools.patch ];
+
   pnpmDeps = importPnpmLock {
     inherit (finalAttrs) pname version;
     pnpm = pnpm_11;
@@ -33,8 +35,9 @@ buildDshBundle (finalAttrs: {
       mv package.json.tmp package.json
     fi
 
-    # The packaged kernel is the authoritative Harness runtime cohort.
-    jq --arg hostVersion ${lib.escapeShellArg dsh-kernel.version} '
+    # Admit only the host version covered by the downstream compatibility check.
+    test ${lib.escapeShellArg dsh-kernel.version} = 0.2.2-alpha.2
+    jq --arg hostVersion "0.2.2-alpha.2" '
       .supportedHosts = if any(.supportedHosts[]; .version == $hostVersion)
         then .supportedHosts
         else .supportedHosts + [{version: $hostVersion, track: "current"}]

@@ -3,8 +3,6 @@
 # shellcheck shell=bash
 set -euo pipefail
 
-# Regenerate pkgs/dsh-workspace/optional-bundles.json from upstream OPTIONAL_BUNDLES.
-
 usage='usage: generate-optional-bundles.sh <upstream-source-root> [output]'
 src=${1?"$usage"}
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -15,9 +13,9 @@ fail() {
   exit 1
 }
 
-profile_ts="$src/packages/boot/app-boot/src/profile.ts"
+bundles_ts="$src/packages/util/official-bundles/src/bundles.ts"
 cli_manifest="$src/apps/cli/package.json"
-for required in "$profile_ts" "$cli_manifest"; do
+for required in "$bundles_ts" "$cli_manifest"; do
   if [ ! -f "$required" ]; then
     fail "missing $required; is this an upstream source tree?"
   fi
@@ -26,17 +24,15 @@ done
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
-# profile.ts imports the rest of the launcher, so it is scanned, not evaluated.
 declaration_body() {
   awk -v name="$1" -v close_line="$2" '
     $0 ~ ("^export const " name "[^A-Za-z0-9_$]") { inside = 1; next }
     inside && $0 ~ close_line { closed = 1; exit }
     inside { print }
     END { exit !closed }
-  ' "$profile_ts"
+  ' "$bundles_ts"
 }
 
-# Reject unfamiliar declaration syntax rather than silently omitting packages.
 body="$(declaration_body OPTIONAL_BUNDLES '^]')" ||
   fail 'OPTIONAL_BUNDLES is missing or unterminated'
 blank_re='^[[:space:]]*(//.*)?$'
@@ -60,7 +56,6 @@ if [ ! -s "$tmp_dir/templates" ]; then
   fail 'PROFILE_TEMPLATES is empty or unparsable'
 fi
 
-# Dependencies resolve through the full map, which includes non-bundle clients.
 declare -A package_dirs=()
 declare -A bundle_packages=()
 while IFS= read -r manifest; do
@@ -130,12 +125,14 @@ while IFS= read -r package_name; do
     --arg description "$description" \
     --arg descriptionZh "$description_zh" \
     --argjson requiresWeb "$requires_web_value" \
+    --argjson platforms "$(jq -c '.dsh.bundle.platforms // []' "$dir/package.json")" \
     '{ key: $name, value: {
         attr: $attr,
         pname: $pname,
         description: $description,
         descriptionZh: $descriptionZh,
         requiresWeb: $requiresWeb,
+        platforms: $platforms,
       } }' >> "$tmp_dir/entries"
 done < "$tmp_dir/names"
 

@@ -36,6 +36,42 @@ description: 仓库包移除与上游 DeepSeek Harness 变更的迁移说明。
 `bundles.web-app` 现在直接包含 Schedule。profile 和 patch 的调整方法见下方
 `0.2.1-alpha.1` 条目的 Schedule 说明。
 
+## `0.2.2-alpha.2`
+
+### 运行时与工具
+
+要求 Node.js 24.9 或更新版本。
+
+自定义 profile 应移除 `dsh-tools.mode` 和 `DSH_TOOLS_MODE`，挂载
+`dsh-tool-executor-native` 或 `dsh-tool-executor-ptc`。使用 PTC 时，将
+`maxParallelSubCalls` 从 `dsh-tools` 移至 PTC 执行器。随包提供的 preset 已选择执行器。
+
+SSH 协议 3 要求远端 helper 与宿主匹配。自定义的 Node PTC bootstrap 也应同步
+更新。由调用方取消的 `run_code` 现在返回 `ABORTED`。
+
+### 插件
+
+- 官方 bundle 列表与 profile 模板改从 `@deepseek-ai/dsh-official-bundles` 导入，
+  不再从 `dsh-app-boot` 导入。
+- 在步骤准备前通过 `agent.model.select()` 选择模型。`agent/request` 不再允许
+  改变路由或推理强度。
+- 工具声明不再经过 `system-prompt/assemble`，条件工具应使用步骤级准入。
+- 等待 Session projection 注册并保留句柄。自定义审批组合必须提供
+  `sessionProjections`，并等待服务激活。
+- Timer 的 `throttle`、`debounce` 包装函数返回 `void`，等待包装函数不会等待回调。
+
+相关 API 升级指南见[上游发版说明](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-alpha.2)。
+
+### 可选 bundle 与部署
+
+可选集合新增个性化推荐、LiveShare、Forge 和 CUA。Forge 携带 `git` 和 `gh`。
+GitHub 操作使用用户自行配置的认证。
+
+受当前固定的 Swift 工具链限制，CUA 仅在 `aarch64-darwin` 可用。
+Nix 在应用启动前构建原生 helper。
+
+Web Fetch 现在允许访问私网地址。公开或共享部署必须自行限制出站网络访问。
+
 ## `0.2.1-alpha.2`
 
 ### 服务

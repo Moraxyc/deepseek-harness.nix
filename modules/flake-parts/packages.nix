@@ -23,6 +23,12 @@
         inherit (dsh) bundles presets;
         inherit importPnpmLock;
         inherit bundleCompositions;
+        allBundleCompositions = pkgs.linkFarm "all-compositions" (
+          pkgs.lib.mapAttrsToList (name: drv: {
+            inherit name;
+            path = drv;
+          }) bundleCompositions
+        );
         ciPackageAttrs = {
           packages = packageAttrs;
           bundles = bundleAttrs;
@@ -31,7 +37,11 @@
           inherit bundleDependents;
         };
       };
-      isBuildable = package: lib.isDerivation package && !((package.meta or { }).broken or false);
+      isBuildable =
+        package:
+        lib.isDerivation package
+        && !((package.meta or { }).broken or false)
+        && lib.meta.availableOn pkgs.stdenv.hostPlatform package;
 
       packageNames = lib.attrNames (
         lib.filterAttrs (name: package: name != "default" && isBuildable package) packages
@@ -82,7 +92,6 @@
       );
     in
     {
-      # Keep build helpers and runtime dependencies out of the public package set.
       inherit packages legacyPackages;
 
       apps.default = {

@@ -17,6 +17,7 @@
   runCommand,
   stdenv,
   dsh-system,
+  dsh-cua-native,
   writers,
   yq-go,
 }:
@@ -24,11 +25,12 @@
 let
   platformKey = with stdenv.hostPlatform.node; "${platform}-${arch}";
   dshSystemIsAvailable = lib.meta.availableOn stdenv.hostPlatform dsh-system;
+  cuaIsAvailable = lib.meta.availableOn stdenv.hostPlatform dsh-cua-native;
   inherit (stdenv.hostPlatform) isLinux isDarwin;
 in
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
-  version = "0.2.1-rc.3";
+  version = "0.2.2-alpha.2";
 
   __structuredAttrs = true;
   strictDeps = true;
@@ -43,28 +45,23 @@ buildNpmPackage (finalAttrs: {
     owner = "deepseek-ai";
     repo = "deepseek-harness";
     tag = "dsh-v${finalAttrs.version}";
-    hash = "sha256-wNwpit8WCjltafq+1JFTTFFbH05No60ImlmoJpVz2RQ=";
+    hash = "sha256-KxEyrXuFwEKXney6ngmuEMp1djxPJ0F6duVZgBJ+fI0=";
   };
 
   patches = [
     ./desktop-nix-profile.patch
-    # The prebuilt require-builtin addon only accepts upstream Electron builds, so
-    # the desktop host reads Node internals through `--expose-internals` instead.
+    # The prebuilt require-builtin addon only accepts upstream Electron builds.
     ./expose-internals-loader.patch
-    # Absolute CSS IDs and unordered export maps make client bundles nondeterministic.
+    # Absolute CSS IDs make client bundles depend on the build directory.
     ./client-bundle-determinism.patch
-    # The login-shell read only skips win32 upstream, so on Linux it would replace
-    # the wrapper PATH that carries the bundled node and office runtimes.
-    # https://github.com/deepseek-ai/deepseek-harness/blob/dsh-v0.2.0-rc.2/apps/desktop/src/login-shell-environment.ts#L176
+    # On Linux, login-shell discovery replaces the wrapper PATH and hides bundled runtimes.
     ./desktop-login-shell-macos-only.patch
     ./desktop-signal-shutdown.patch
   ];
 
   env = {
-    DSH_CLIENT_COMMIT_HASH = "1f81c047fc48fa190a683e469daa699857e9afe8";
+    DSH_CLIENT_COMMIT_HASH = "f3803c96974ad4a94195fb97e5c637e9c2a3afe3";
     PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = "false";
-    # Rendered at evaluation time so the workspace patch hook does not have to
-    # re-parse pnpm-workspace.yaml in the build sandbox.
     DSH_WORKSPACE_OVERRIDES = "${writers.writeJSON "dsh-workspace-overrides.json" (
       finalAttrs.pnpmDeps.passthru.workspaceConfig.overrides or { }
     )}";
@@ -90,6 +87,10 @@ buildNpmPackage (finalAttrs: {
   ''
   + lib.optionalString (dshSystemIsAvailable && isDarwin) ''
     install -Dm644 ${dsh-system}/bin/system.node native/system/packages/${platformKey}/bin/system.node
+  ''
+  + lib.optionalString cuaIsAvailable ''
+    install -Dm755 ${dsh-cua-native}/bin/dsh-cua-native \
+      packages/experimental/cua-macos/native/bin/${platformKey}/dsh-cua-native
   '';
 
   preConfigure = ''
@@ -194,7 +195,7 @@ buildNpmPackage (finalAttrs: {
     cp -r "$appDir/lib" "$kernelApp/lib"
     cp -r "$appDir/config" "$kernelApp/config"
     cp "$appDir/package.json" "$kernelApp/package.json"
-    # Keep the public kernel self-contained; do not symlink back into the workspace.
+    # Copy dependencies because the public kernel must run without the workspace.
     cp -r "$appDir/node_modules" "$kernelApp/node_modules"
 
     jq '.name = "@deepseek-ai/dsh"' "$kernelApp/package.json" > "$kernelApp/package.json.tmp"
@@ -299,7 +300,6 @@ buildNpmPackage (finalAttrs: {
   '';
 
   passthru = {
-    # Used by the update script to validate the dependency fetcher.
     fetchPnpmDeps = finalAttrs.pnpmDeps.passthru.fetchPnpmDeps;
     updateScript = ./update.sh;
   };

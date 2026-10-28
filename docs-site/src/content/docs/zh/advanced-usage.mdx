@@ -455,16 +455,15 @@ pkgs.dsh.dsh.withBundles (b: with b; [
 ])
 ```
 
-选中的 bundle 会追加到当前组合，也会追加到包里的每个 Nix 管理 profile，
-因此生成的 profile 会随这次组合同步。所有 bundle 按列表顺序应用，后面的
-bundle 会覆盖前面 bundle 的 Cordis 配置；基础层固定在最前面。
+选中的 bundle 会追加到当前组合及每个已声明 profile 的 bundle 列表。
+所有 bundle 按列表顺序应用，后面的 bundle 会覆盖前面 bundle 的 Cordis 配置。
+基础层固定在最前面。
 
 ### 随包携带但默认关闭的 Bundle
 
-每个组合都会像 npm 安装一样携带上游的 `OPTIONAL_BUNDLES`，即
-`pkgs.dsh.bundles.experimental-*`。没有 profile 选中它们，但每个 profile 都能
-解析，插件管理页在官方分组中列出它们，由使用者自行启用。这份集合由固定的上游
-源码决定，无法通过 Nix 删减或扩充，因此每个安装都包含它们的闭包。
+每个组合都携带上游 `OPTIONAL_BUNDLES` 中支持当前平台的 bundle。
+所有 profile 都能解析它们，可在插件管理页的官方分组中启用。
+这份集合由固定的上游源码决定，无法通过 Nix 删减或扩充。
 
 把其中某个写进 profile 的 `bundles`，则由 Nix 直接参与组合。
 
@@ -520,9 +519,9 @@ pkgs.dsh.dsh-desktop-official.override {
 
 该 scope 包含 `pkgs.dsh.bundles.*`、`pkgs.dsh.presets.*`、
 `pkgs.dsh.helpers.*` 下的公开 helper，以及 `pkgs.dsh.dsh-desktop`、
-`pkgs.dsh.dsh-desktop-official` 等包输出。flake 的 `packages` 展开的是同一 scope，
-因此 `nix build .#bundles.tui` 和
-`nix run .#presets.web` 仍然可用。
+`pkgs.dsh.dsh-desktop-official` 等包输出。Bundle 和 preset 通过
+`legacyPackages` 导出，因此可用 `nix build .#bundles.tui` 和
+`nix run .#presets.web`。
 
 ### Helper 范围
 

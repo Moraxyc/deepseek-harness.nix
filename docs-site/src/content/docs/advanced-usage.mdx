@@ -476,20 +476,17 @@ pkgs.dsh.dsh.withBundles (b: with b; [
 ])
 ```
 
-The selected bundles are added to the current composition and appended to every
-managed profile on the package, so the materialized profile stays synchronized
-with the runnable composition. Bundles are applied in list order, so a later
-bundle overrides an earlier bundle's Cordis configuration; the base layer is
-always first.
+The selected bundles are added to the current composition and each declared
+profile's bundle list. Bundles are applied in list order, so a later bundle
+overrides an earlier bundle's Cordis configuration. The base layer is always
+first.
 
 ### Bundles Shipped Switched Off
 
-Every composition ships upstream's `OPTIONAL_BUNDLES`, the
-`pkgs.dsh.bundles.experimental-*` entries, the same way an npm installation
-does. No profile selects them; every profile resolves them, and the plugin
-manager lists them in its official group for a person to switch on. The set is
-fixed by the pinned source and cannot be removed or extended from Nix, so every
-installation carries their closure.
+Each composition ships upstream's `OPTIONAL_BUNDLES` that support the host
+platform. They are available to every profile and can be enabled in the plugin
+manager's official group. The set is fixed by the pinned source and cannot be
+removed or extended from Nix.
 
 Listing one in a profile's `bundles` composes it as usual instead.
 
@@ -548,8 +545,9 @@ Add the overlay to Nixpkgs and use the `pkgs.dsh` scope:
 
 The scope includes `pkgs.dsh.bundles.*`, `pkgs.dsh.presets.*`, public helpers
 under `pkgs.dsh.helpers.*`, and package outputs such as `pkgs.dsh.dsh-desktop`
-and `pkgs.dsh.dsh-desktop-official`. Flake `packages` expand the same scope, so
-`nix build .#bundles.tui` and `nix run .#presets.web` work the same way.
+and `pkgs.dsh.dsh-desktop-official`. Bundles and presets are exposed through
+`legacyPackages`, so `nix build .#bundles.tui` and `nix run .#presets.web` work
+the same way.
 
 ### Helper Surface
 

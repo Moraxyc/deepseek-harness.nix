@@ -43,6 +43,48 @@ This attribute was removed in upstream `0.2.1-alpha.1`. Remove it from your
 bundle selections; `bundles.web-app` now includes Schedule. Follow the Schedule
 instructions in the `0.2.1-alpha.1` entry below for profile and patch changes.
 
+## `0.2.2-alpha.2`
+
+### Runtime and tools
+
+Node.js 24.9 or newer is required.
+
+In custom profiles, remove `dsh-tools.mode` and `DSH_TOOLS_MODE`. Mount
+`dsh-tool-executor-native` or `dsh-tool-executor-ptc`. Move `maxParallelSubCalls`
+from `dsh-tools` to the PTC executor if using PTC. Shipped presets already select
+an executor.
+
+SSH protocol 3 requires a matching remote helper. Update custom Node PTC
+bootstraps with the host. Caller-cancelled `run_code` now reports `ABORTED`.
+
+### Plugins
+
+- Import official bundle lists and profile templates from
+  `@deepseek-ai/dsh-official-bundles`, not `dsh-app-boot`.
+- Select models through `agent.model.select()` before step preparation.
+  `agent/request` may no longer change the route or reasoning effort.
+- Tool declarations no longer pass through `system-prompt/assemble`. Use
+  step-time tool admission for conditional tools.
+- Await Session projection registration and retain its handle. Custom approval
+  compositions must provide `sessionProjections` and await service activation.
+- Timer `throttle` and `debounce` wrappers return `void`. Awaiting them does not
+  await the callback.
+
+See the [upstream release notes](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-alpha.2)
+for the corresponding API upgrade guides.
+
+### Optional bundles and deployment
+
+The optional set adds personalized recommendations, LiveShare, Forge, and CUA.
+Forge carries `git` and `gh`. GitHub operations require the user's own
+authentication.
+
+CUA is available only on `aarch64-darwin` with the pinned Swift toolchain.
+Nix builds its native helper before application startup.
+
+Web Fetch now permits private-network destinations. Public or shared deployments
+must enforce their own egress restrictions.
+
 ## `0.2.1-alpha.2`
 
 ### Services
