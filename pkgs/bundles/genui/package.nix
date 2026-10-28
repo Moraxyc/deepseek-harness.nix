@@ -8,18 +8,18 @@
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-genui";
-  version = "0.14.0-unstable-2026-10-27";
+  version = "0.15.0-unstable-2026-10-28";
   deployPackage = "@changfenhuang/dsh-genui";
   linkKernelNodeModules = dsh-kernel;
 
   src = fetchFromGitHub {
     owner = "omdsh-dev";
     repo = "dsh-genui";
-    rev = "24cea2dbf4161ecd326913094680a73d1f1b6261";
-    hash = "sha256-ODtIli7RjktnpF5Z6b0xYvKLmYDaROge7aH0OLnDBtE=";
+    rev = "419e029b9c6baa3070201ce5fce0ad4a812a41c9";
+    hash = "sha256-hT74MtAve6JMl7/QWV4OzMVoWqK8ReOezn25xTh/jj0=";
   };
 
-  pnpmDepsHash = "sha256-z4oBOARtYcLl3Tp8NPXW1FSHjC+XqwBO6keX7YUr8fQ=";
+  pnpmDepsHash = "sha256-sI52ys05qs1iY0kTuf1jIxkh/la/cNf1AFOJ0cNMsOo=";
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
