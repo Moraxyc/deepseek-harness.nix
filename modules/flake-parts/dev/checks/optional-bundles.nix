@@ -110,7 +110,9 @@
           ''
             bash ${generatorSource}/scripts/generate-optional-bundles.sh \
               ${pkgs.dsh.dsh-workspace.src} generated.json
-            cmp generated.json ${../../../../pkgs/dsh-workspace/optional-bundles.json}
+            jq '.' generated.json > generated.fmt.json
+            jq '.' ${../../../../pkgs/dsh-workspace/optional-bundles.json} > optional-bundles.fmt.json
+            cmp generated.fmt.json optional-bundles.fmt.json
             touch "$out"
           '';
 
