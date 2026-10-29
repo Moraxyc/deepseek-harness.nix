@@ -1,3 +1,19 @@
+diff --git a/src/client/FolderNavigator.tsx b/src/client/FolderNavigator.tsx
+--- a/src/client/FolderNavigator.tsx
++++ b/src/client/FolderNavigator.tsx
+@@ -1,6 +1,7 @@
+ /** Arrow-right directory navigation for the at-file candidate menu. */
+ import { useEffect, useLayoutEffect, useRef } from 'react'
+ import type { InjectFace, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
++import type { InputState } from '@deepseek-ai/dsh-client-ui-conversation/client'
+ import type {
+   InputTriggerCandidate, MenuState, TriggerGuard,
+ } from '@deepseek-ai/dsh-client-ui-input-trigger/client'
+@@ -30,3 +31,3 @@
+   readonly draftRev: number
+-  readonly phase: 'plain' | 'adjudicating' | 'claimed' | 'submitting'
++  readonly phase: InputState['phase']
+ }
 diff --git a/src/client/SettingsSection.tsx b/src/client/SettingsSection.tsx
 --- a/src/client/SettingsSection.tsx
 +++ b/src/client/SettingsSection.tsx
