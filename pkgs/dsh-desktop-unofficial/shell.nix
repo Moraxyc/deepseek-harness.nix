@@ -73,8 +73,16 @@ stdenv.mkDerivation (finalAttrs: {
   env = {
     ELECTRON_SKIP_BINARY_DOWNLOAD = "1";
     YARN_ENABLE_SCRIPTS = "0";
+    YARN_ENABLE_IMMUTABLE_INSTALLS = "0";
     CI = "true";
   };
+
+  preConfigure = ''
+    # Exclude other desktop channels before Yarn resolves their platform-only file dependencies.
+    jq '.workspaces = ["dsh-plugin-desktop", "dsh-community-market"]' \
+      package.json > package.json.tmp
+    mv package.json.tmp package.json
+  '';
 
   buildPhase = ''
     runHook preBuild
@@ -83,16 +91,12 @@ stdenv.mkDerivation (finalAttrs: {
     yarn workspace dsh-community-market build
     yarn workspace dsh-plugin-desktop build
 
-    jq '.workspaces = ["dsh-plugin-desktop", "dsh-community-market"]' \
-      package.json > package.json.tmp
-    mv package.json.tmp package.json
     for workspace in dsh-plugin-desktop dsh-community-market; do
       jq 'del(.devDependencies)' "$workspace/package.json" \
         > "$workspace/package.json.tmp"
       mv "$workspace/package.json.tmp" "$workspace/package.json"
     done
-    YARN_ENABLE_SCRIPTS=0 YARN_ENABLE_IMMUTABLE_INSTALLS=0 \
-      yarn install --mode=skip-build
+    yarn install --mode=skip-build
 
     runHook postBuild
   '';
