@@ -15,13 +15,13 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "dsh-desktop-shell";
-  version = "2.0.20-next-unstable-2026-10-27";
+  version = "2.0.20-next-unstable-2026-10-29";
 
   src = fetchFromGitHub {
     owner = "anywhere-labs";
     repo = "deepseek-harness-desktop";
-    rev = "77b01d15361d7112e7163f53c85e601ed82d6320";
-    hash = "sha256-cl+BAz8QHQgsye/HWqe7+X3Wvj7OUN5J5lKlRlox07s=";
+    rev = "872a0041d14fb33c5ee68989ebb8082e3c7d4d30";
+    hash = "sha256-lHtcM2NMmZSEg160X17OgbQTnxi4Ra7mUXzQBsKeyd0=";
   };
 
   postPatch = lib.optionalString isLinux ''
@@ -43,7 +43,7 @@ stdenv.mkDerivation (finalAttrs: {
   offlineCache =
     (yarn-berry_4.fetchYarnBerryDeps {
       inherit (finalAttrs) src missingHashes postPatch;
-      hash = "sha256-azPVcV57TPiVCidbkjtOdkfYO+Z03e3HWmha5JZ3Ydw=";
+      hash = "sha256-TX1pDK+mXRce/AhUtrKBu+lW/Z9vAmnIN8hAmAdMfpA=";
     }).overrideAttrs
       (_: {
         buildPhase = ''
@@ -73,8 +73,16 @@ stdenv.mkDerivation (finalAttrs: {
   env = {
     ELECTRON_SKIP_BINARY_DOWNLOAD = "1";
     YARN_ENABLE_SCRIPTS = "0";
+    YARN_ENABLE_IMMUTABLE_INSTALLS = "0";
     CI = "true";
   };
+
+  preConfigure = ''
+    # Exclude other desktop channels before Yarn resolves their platform-only file dependencies.
+    jq '.workspaces = ["dsh-plugin-desktop", "dsh-community-market"]' \
+      package.json > package.json.tmp
+    mv package.json.tmp package.json
+  '';
 
   buildPhase = ''
     runHook preBuild
@@ -83,16 +91,12 @@ stdenv.mkDerivation (finalAttrs: {
     yarn workspace dsh-community-market build
     yarn workspace dsh-plugin-desktop build
 
-    jq '.workspaces = ["dsh-plugin-desktop", "dsh-community-market"]' \
-      package.json > package.json.tmp
-    mv package.json.tmp package.json
     for workspace in dsh-plugin-desktop dsh-community-market; do
       jq 'del(.devDependencies)' "$workspace/package.json" \
         > "$workspace/package.json.tmp"
       mv "$workspace/package.json.tmp" "$workspace/package.json"
     done
-    YARN_ENABLE_SCRIPTS=0 YARN_ENABLE_IMMUTABLE_INSTALLS=0 \
-      yarn install --mode=skip-build
+    yarn install --mode=skip-build
 
     runHook postBuild
   '';
