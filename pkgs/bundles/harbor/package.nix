@@ -19,8 +19,8 @@ buildDshBundle (finalAttrs: {
   src = fetchFromGitHub {
     owner = "ZSeven-W";
     repo = "dsh-harbor";
-    rev = "4661f8d45a2fc9e677ae50709f2533ac7a203e9b";
-    hash = "sha256-73Q26ibvUUO+bgUcV0dQaP15NuRLwu0sWULp6+aNDCY=";
+    rev = "2586fc02dcccb9ef4cee01d0cb293d4012d00a4e";
+    hash = "sha256-yKqf6k4Yo49Dsf2pruAp0w8vXd4O9WMDf4b5nE9Xs/A=";
   };
 
   # The upstream repository commits both the ESM host source and the generated
