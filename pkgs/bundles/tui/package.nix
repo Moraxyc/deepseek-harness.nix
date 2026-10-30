@@ -5,7 +5,6 @@
   buildDshBundle,
   copyTree,
   dsh-kernel,
-  jq,
   pnpmConfigHook,
   pnpm_11,
   web-app,
@@ -62,12 +61,12 @@ buildDshBundle (finalAttrs: {
     hash = "sha256-ztdFdpwgWtIhBSqPbPib89lMPf+oxrdrGAuNpR1cZFQ=";
   };
 
-  nativeBuildInputs = [
-    jq
-    pnpm_11
-  ];
+  nativeBuildInputs = [ pnpm_11 ];
   disallowedReferences = [ pnpm_11 ];
   linkKernelNodeModules = dsh-kernel;
+  # Upstream peer ranges stop at 0.2.1-rc.3. Raise this only after the TUI
+  # boots every bundled preset on the new dsh release.
+  dshEngines = "0.2.2-alpha.2";
   linkKernelNodeModulesKeep = [
     "ansi-styles"
     # dsh-tui compiles against React 19, while dsh-kernel carries React 18.
@@ -86,11 +85,7 @@ buildDshBundle (finalAttrs: {
     appDir="$out/lib/node_modules/@deepseek-harness-tui/dsh-tui"
     mkdir -p "$appDir"
 
-    cp -r cordis.patch.yml cordis.yml tui-profile presets lib bin assets guide "$appDir/"
-    # dsh skips bundles whose dsh peer ranges exclude the runtime, and upstream
-    # ranges stop at 0.2.1-rc.3. engines.dsh takes precedence over those peers;
-    # update it only after verifying the patches against a new dsh release.
-    jq '.engines.dsh = "0.2.2-alpha.2"' package.json > "$appDir/package.json"
+    cp -r package.json cordis.patch.yml cordis.yml tui-profile presets lib bin assets guide "$appDir/"
     cp -r node_modules "$appDir/node_modules"
 
     # Workspace links point into vendor/dsh-std, which is not installed.

@@ -59,6 +59,14 @@ let
     '';
   };
 
+  # dsh skips a bundle whose dsh peer ranges exclude the runtime unless the
+  # manifest declares engines.dsh, which then decides alone.
+  setDshEnginesScript =
+    range:
+    lib.optionalString (range != null) ''
+      ${lib.getExe dshBundleResolver} set-engines ${lib.escapeShellArg range} "$out/lib/node_modules"
+    '';
+
   validateInstalledBundle = ''
     bundleRoot="$out/lib/node_modules"
     [ -d "$bundleRoot" ] || {
@@ -262,6 +270,7 @@ let
     constructDrv = buildNpmPackage;
     excludeDrvArgNames = [
       "disableChildBundlePatches"
+      "dshEngines"
       "linkKernelNodeModules"
       "linkKernelNodeModulesKeep"
       "runtimeDeps"
@@ -271,6 +280,7 @@ let
       {
         runtimeDeps ? [ ],
         disableChildBundlePatches ? false,
+        dshEngines ? null,
         linkKernelNodeModules ? null,
         linkKernelNodeModulesKeep ? [ ],
         nativeBuildInputs ? [ ],
@@ -303,13 +313,14 @@ let
         ]
         ++ lib.optional disableChildBundlePatches jq
         ++ nativeBuildInputs;
-        passthru = passthru // bundleValidation.passthru;
+        passthru = passthru // bundleValidation.passthru // { inherit dshEngines; };
         postInstall =
           postInstall
           + lib.optionalString disableChildBundlePatches suppressChildBundlePatches
           + lib.optionalString (linkKernelNodeModules != null) (
             linkKernelNodeModulesScript linkKernelNodeModules linkKernelNodeModulesKeep
           )
+          + setDshEnginesScript dshEngines
           + validateInstalledBundle;
         inherit (bundleValidation) meta;
       };
@@ -320,6 +331,7 @@ let
     excludeDrvArgNames = [
       "deployPackage"
       "disableChildBundlePatches"
+      "dshEngines"
       "linkKernelNodeModules"
       "linkKernelNodeModulesKeep"
       "pnpm"
@@ -342,6 +354,7 @@ let
         postNormalizeDeploy ? "",
         stripPrepareScripts ? false,
         disableChildBundlePatches ? false,
+        dshEngines ? null,
         linkKernelNodeModules ? null,
         linkKernelNodeModulesKeep ? [ ],
         pnpm ? pnpmWorkspaceDeploy,
@@ -433,13 +446,14 @@ let
         ]
         ++ lib.optionals (stripPrepareScripts || disableChildBundlePatches) [ jq ]
         ++ nativeBuildInputs;
-        passthru = passthru // bundleValidation.passthru;
+        passthru = passthru // bundleValidation.passthru // { inherit dshEngines; };
         installPhase = defaultInstallPhase;
         postInstall =
           postInstall
           + lib.optionalString (linkKernelNodeModules != null) (
             linkKernelNodeModulesScript linkKernelNodeModules linkKernelNodeModulesKeep
           )
+          + setDshEnginesScript dshEngines
           + validateInstalledBundle;
         inherit (bundleValidation) meta;
       }
@@ -455,6 +469,7 @@ let
       "packageName"
       "dsh-kernel"
       "dsh-workspace"
+      "dshEngines"
       "linkKernelNodeModules"
       "linkKernelNodeModulesKeep"
       "runtimeDeps"
@@ -467,6 +482,7 @@ let
         dsh-kernel,
         dsh-workspace,
         disallowedReferences ? [ ],
+        dshEngines ? null,
         linkKernelNodeModules ? null,
         linkKernelNodeModulesKeep ? [ ],
         nativeBuildInputs ? [ ],
@@ -523,8 +539,9 @@ let
           + lib.optionalString (linkKernelNodeModules != null) (
             linkKernelNodeModulesScript linkKernelNodeModules linkKernelNodeModulesKeep
           )
+          + setDshEnginesScript dshEngines
           + validateInstalledBundle;
-        passthru = passthru // bundleValidation.passthru;
+        passthru = passthru // bundleValidation.passthru // { inherit dshEngines; };
         inherit (bundleValidation) meta;
       };
   };
