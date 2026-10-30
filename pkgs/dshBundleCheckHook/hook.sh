@@ -165,10 +165,11 @@ dshBundleCheckHook() {
       cat "$logFile"
     fi
 
-    # dsh boots without a profile bundle it cannot load or that declares an
-    # unmet dsh requirement, so a successful boot alone does not prove it mounted.
-    if [[ "$status" -eq 0 ]] && grep -F 'skipping profile bundle' "$logFile" >&2; then
-      echo "dshBundleCheckHook: dsh profile $profile skipped a bundle" >&2
+    # dsh boots without bundles or plugin rows it cannot load or whose dsh
+    # requirements are unmet, so a successful boot alone does not prove they mounted.
+    if [[ "$status" -eq 0 ]] \
+      && grep -F -e 'skipping profile bundle' -e 'disabling profile plugin' "$logFile" >&2; then
+      echo "dshBundleCheckHook: dsh profile $profile dropped a bundle or plugin row" >&2
       status=1
     fi
 

@@ -130,10 +130,11 @@ invalid patches, missing kernel peer imports, and package resolution failures
 before runtime. Profiles that stay in an interactive terminal loop can set
 `requiresTty = true`; the hook runs those under a pseudo-terminal and treats a
 live smoke window as a successful boot. The hook also fails when dsh reports
-`skipping profile bundle`, for example when a bundle's `engines.dsh` or
-`@deepseek-ai/dsh-*` peer ranges exclude the pinned runtime. After verifying
-such a bundle against that runtime, set `engines.dsh` in its installed
-`package.json`; dsh then ignores the peer ranges.
+`skipping profile bundle` or `disabling profile plugin`, for example when a
+bundle's `engines.dsh` or `@deepseek-ai/dsh-*` peer ranges exclude the pinned
+runtime. After verifying such a bundle against that runtime, set
+`dshEngines = "<version>"` in its expression; the builder writes it to
+`engines.dsh`, and dsh then ignores the peer ranges.
 
 `buildDshBundle.fromPnpmWorkspace` automatically excludes `nodejs` and pnpm
 from the runtime closure. If a workspace bundle uses `python3` during its
@@ -324,3 +325,20 @@ in
     done
   '';
 ```
+
+## Bumping dsh-workspace
+
+A kernel bump can build cleanly while dsh skips bundles at runtime. Before and
+after updating the pin:
+
+- `scripts/dsh-bump-report.sh NEW_VERSION` compares the pinned and new upstream
+  sources: removed packages and exports, bundle rows, official bundle lists,
+  build inputs, targets of the local workspace patches, and whether dsh would
+  accept each bundle. The auto-update workflow adds this report to
+  dsh-workspace PRs and leaves auto-merge off when it lists actions.
+- `scripts/dsh-bundle-probe.sh --all` boots every bundle in its own profile and
+  separates bundles that only fail dsh's version check from bundles that fail
+  at runtime.
+
+CI builds `bundleCompositions` alongside the bundles, so a skipped bundle fails
+the check.

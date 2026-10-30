@@ -189,6 +189,29 @@ jobs:
             echo "updated=true" >> "$GITHUB_OUTPUT"
           fi
 
+      # A kernel bump can build cleanly while dsh skips bundles at runtime or
+      # upstream drops rows and exports that downstream code still uses.
+      - name: Report dsh-workspace impact
+        id: impact
+        if: steps.changes.outputs.updated == 'true' && matrix.name == 'dsh-workspace'
+        run: |
+          set -euo pipefail
+          NIX_PATH="nixpkgs=$(nix flake metadata --json --inputs-from . nixpkgs | jq -r .path)"
+          export NIX_PATH
+          main="git+file://$PWD?rev=$(git rev-parse origin/main)"
+          report="$RUNNER_TEMP/dsh-bump-report.md"
+          scripts/dsh-bump-report.sh --fetch-sources \
+            --old "$(nix build --no-link --print-out-paths "$main#dsh-workspace.src")" \
+            --kernel "$main#dsh-kernel" \
+            "$(nix build --no-link --print-out-paths .#dsh-workspace.src)" \
+            >"$report"
+          if awk '/^## Actions$/ { inside = 1; next } /^## / { inside = 0 } inside && /^- none$/ { found = 1 } END { exit !found }' "$report"; then
+            echo "actions=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "actions=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "report=$report" >> "$GITHUB_OUTPUT"
+
       - name: Generate GitHub App Token
         id: app-token
         if: steps.changes.outputs.updated == 'true'
@@ -203,6 +226,8 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           BRANCH: auto-update/${{ matrix.name }}
           TITLE: ${{ matrix.title }}
+          IMPACT_REPORT: ${{ steps.impact.outputs.report }}
+          IMPACT_ACTIONS: ${{ steps.impact.outputs.actions }}
         run: |
           set -euo pipefail
 
@@ -222,6 +247,13 @@ jobs:
           git push --force origin "HEAD:$BRANCH"
 
           body="Automated update. Package CI runs before auto-merge."
+          if [ "${IMPACT_ACTIONS:-false}" = true ]; then
+            body="Automated update. Auto-merge is off because the impact report lists downstream actions."
+          fi
+          if [ -n "${IMPACT_REPORT:-}" ]; then
+            # GitHub limits a PR body to 65536 characters.
+            body="$(printf '%s\n\n%s' "$body" "$(head -c 60000 "$IMPACT_REPORT")")"
+          fi
 
           pr_number="$(
             gh pr list \
@@ -248,8 +280,12 @@ jobs:
             pr_number="$(printf '%s\n' "$pr_url" | sed -n 's#.*/pull/\([0-9][0-9]*\).*#\1#p')"
           fi
 
-          gh pr merge "$pr_number" \
-            --repo "$GITHUB_REPOSITORY" \
-            --auto \
-            --squash \
-            --delete-branch
+          if [ "${IMPACT_ACTIONS:-false}" = true ]; then
+            gh pr merge "$pr_number" --repo "$GITHUB_REPOSITORY" --disable-auto || true
+          else
+            gh pr merge "$pr_number" \
+              --repo "$GITHUB_REPOSITORY" \
+              --auto \
+              --squash \
+              --delete-branch
+          fi

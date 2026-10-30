@@ -117,10 +117,11 @@ deploy 命令使用上述参数和注入式 workspace 布局，这是受支持�
 组合后的 `dsh` 在 `installCheckPhase` 通过 `dshBundleCheckHook` 启动每个
 托管 profile，可提前发现重复 loader ID、无效补丁、缺失 kernel peer 和包解析
 失败。交互式终端循环 profile 可设置 `requiresTty = true`；hook 会在伪终端下
-运行，并视存活 smoke 窗口为启动成功。dsh 输出 `skipping profile bundle` 时
-hook 同样失败，例如 bundle 的 `engines.dsh` 或 `@deepseek-ai/dsh-*` peer 范围
-不包含当前固定的运行时版本。针对该运行时验证 bundle 后，在其安装后的
-`package.json` 中设置 `engines.dsh`；dsh 随后不再检查 peer 范围。
+运行，并视存活 smoke 窗口为启动成功。dsh 输出 `skipping profile bundle` 或
+`disabling profile plugin` 时 hook 同样失败，例如 bundle 的 `engines.dsh` 或
+`@deepseek-ai/dsh-*` peer 范围不包含当前固定的运行时版本。针对该运行时验证
+bundle 后，在其表达式中设置 `dshEngines = "<version>"`；builder 会将其写入
+`engines.dsh`，dsh 随后不再检查 peer 范围。
 
 `buildDshBundle.fromPnpmWorkspace` 会把 `nodejs` 和 pnpm 排除在运行时闭包
 之外。如果 workspace bundle 构建期间使用 `python3`，把 `python3` 加入 bundle
@@ -304,3 +305,16 @@ in
     done
   '';
 ```
+
+## 升级 dsh-workspace
+
+kernel 升级可能构建成功，但 dsh 在运行时跳过部分 bundle。更新版本前后：
+
+- `scripts/dsh-bump-report.sh NEW_VERSION` 比较当前与新的上游源码：被移除的包和
+  export、bundle 行、官方 bundle 列表、构建输入、本地 workspace 补丁的目标文件，
+  以及 dsh 是否接受每个 bundle。自动更新工作流会把该报告附在 dsh-workspace PR
+  中，报告列出待办时不开启自动合并。
+- `scripts/dsh-bundle-probe.sh --all` 在独立 profile 中逐个启动 bundle，区分只是
+  未通过 dsh 版本检查的 bundle 与运行时失败的 bundle。
+
+CI 会同时构建 `bundleCompositions`，被跳过的 bundle 会让检查失败。

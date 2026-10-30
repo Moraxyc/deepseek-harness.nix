@@ -72,6 +72,31 @@ Nix 在应用启动前构建原生 helper。
 
 Web Fetch 现在允许访问私网地址。公开或共享部署必须自行限制出站网络访问。
 
+### 不兼容的 bundle
+
+bundle 的 `@deepseek-ai/dsh-*` peer 范围或 `engines.dsh` 不包含当前运行版本时，dsh
+会在启动时跳过它，并输出 `skipping profile bundle`。以下 bundle 声明的范围不包含
+`0.2.2-alpha.2`，自本次升级起 dsh 并未加载它们。现已标记为 broken，求值时会直接
+报告这一点，而不是构建一个永远不会加载的 bundle：
+
+- `bundles.auto-mode`
+- `bundles.billion-context`
+- `bundles.cpa`
+- `bundles.plugin-check`
+- `bundles.security-audit`
+- `bundles.session-health`
+- `bundles.turn-rewind`
+- `bundles.vision-toolkit`
+
+请从 `withBundles` 和 `programs.dsh.profiles.<name>.bundles` 中删除它们。上游发布
+支持该 dsh 版本的版本后，这些 bundle 会恢复。`bundles.tui` 此前也以同样方式被跳过，
+现已恢复加载。
+
+组合后的 `dsh` 包在 profile 会跳过 bundle 或禁用插件行时会构建失败。如果你用
+`buildDshBundle` 自行打包 bundle，并已针对当前固定的 dsh 版本验证过，可设置
+`dshEngines = "<version>"`；builder 会将其写入 `engines.dsh`，dsh 随后以此代替 peer
+范围进行检查。
+
 ## `0.2.1-alpha.2`
 
 ### 服务

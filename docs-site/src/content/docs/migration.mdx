@@ -85,6 +85,34 @@ Nix builds its native helper before application startup.
 Web Fetch now permits private-network destinations. Public or shared deployments
 must enforce their own egress restrictions.
 
+### Incompatible bundles
+
+dsh skips a bundle at startup when its `@deepseek-ai/dsh-*` peer ranges or
+`engines.dsh` exclude the running version, and prints
+`skipping profile bundle`. The following bundles declare ranges that exclude
+`0.2.2-alpha.2`, so dsh has not loaded them since this upgrade. They are now
+marked broken, and evaluating them reports that instead of building a bundle
+that never loads:
+
+- `bundles.auto-mode`
+- `bundles.billion-context`
+- `bundles.cpa`
+- `bundles.plugin-check`
+- `bundles.security-audit`
+- `bundles.session-health`
+- `bundles.turn-rewind`
+- `bundles.vision-toolkit`
+
+Remove them from `withBundles` and `programs.dsh.profiles.<name>.bundles`.
+They return once upstream publishes a release that supports this dsh version.
+`bundles.tui` was skipped the same way and now loads again.
+
+Composed `dsh` packages now fail to build when a profile would skip a bundle or
+disable a plugin row. If you package your own bundle with `buildDshBundle` and
+have verified it against the pinned dsh version, set
+`dshEngines = "<version>"`; the builder writes it to `engines.dsh`, which dsh
+checks instead of the peer ranges.
+
 ## `0.2.1-alpha.2`
 
 ### Services

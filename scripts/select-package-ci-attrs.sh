@@ -9,9 +9,11 @@ cd "$repo_root"
 system="$(nix eval --raw --impure --expr 'builtins.currentSystem')"
 package_set="$(nix eval --json ".#legacyPackages.${system}.ciPackageAttrs")"
 
+# A bundle build succeeds even when dsh would skip the bundle at runtime; its
+# composition boots it through dshBundleCheckHook.
 all_attrs() {
   jq -r '
-    (.packages, .bundles, .presets) | .[]
+    (.packages, .bundles, .presets, .bundleCompositions) | .[]
   ' <<< "$package_set"
 }
 
@@ -112,9 +114,9 @@ for name in "${changed_packages[@]}"; do
       "$(jq -r '.packages["dsh-desktop"]' <<< "$package_set")"
       "$(jq -r '.packages["dsh-desktop-official"]' <<< "$package_set")"
     )
-    while IFS= read -r preset; do
-      attrs+=("$preset")
-    done < <(jq -r '.presets[]' <<< "$package_set")
+    while IFS= read -r attr; do
+      attrs+=("$attr")
+    done < <(jq -r '.presets[], .bundleCompositions[]' <<< "$package_set")
   else
     attrs+=("$(jq -r --arg name "$name" '.packages[$name]' <<< "$package_set")")
   fi
@@ -123,7 +125,7 @@ done
 for name in "${changed_bundles[@]}"; do
   while IFS= read -r attr; do
     attrs+=("$attr")
-  done < <(jq -r --arg name "$name" '.bundles[$name], (.bundleDependents[$name][]?)' <<< "$package_set")
+  done < <(jq -r --arg name "$name" '.bundles[$name], (.bundleCompositions[$name] // empty), (.bundleDependents[$name][]?)' <<< "$package_set")
 done
 
 for name in "${changed_presets[@]}"; do
