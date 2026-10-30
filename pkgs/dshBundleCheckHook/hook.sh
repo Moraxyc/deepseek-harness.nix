@@ -92,8 +92,7 @@ dshBundleCheckHook() {
   }
 
   check_web_profile() {
-    local profile=$1
-    local logFile="$dshBundleCheckHome/$profile.web.log"
+    local profile=$1 logFile=$2
     local line webPid webUrl=''
     local ready='' status=0
 
@@ -138,19 +137,14 @@ dshBundleCheckHook() {
     return 1
   }
 
-  local profile
+  local profile logFile wrappedCommand status
   for profile in "${profiles[@]}"; do
     echo "dshBundleCheckHook: checking dsh profile $profile"
+    logFile="$dshBundleCheckHome/$profile.log"
+    status=0
     if is_web_profile "$profile"; then
-      if ! check_web_profile "$profile"; then
-        echo "dshBundleCheckHook: dsh profile $profile failed" >&2
-        print_failure_hint
-        return 1
-      fi
+      check_web_profile "$profile" "$logFile" || status=$?
     elif is_tty_profile "$profile"; then
-      local logFile="$dshBundleCheckHome/$profile.log"
-      local wrappedCommand
-      local status=0
       printf -v wrappedCommand '%q ' "$cmdProgram" --profile "$profile" "${checkArgs[@]}"
       DSH_HOME="$dshBundleCheckHome" DSH_TELEMETRY_DISABLED=1 \
         timeout "$dshBundleCheckTimeout" script -qefc \
@@ -158,15 +152,27 @@ dshBundleCheckHook() {
         "$logFile" >/dev/null 2>&1 || status=$?
       # Interactive profiles legitimately stay alive; a timeout means they
       # booted and remained available through the smoke window.
-      if [[ "$status" -ne 0 && "$status" -ne 124 ]]; then
+      if [[ "$status" -eq 124 ]]; then
+        status=0
+      elif [[ "$status" -ne 0 ]]; then
         cat "$logFile" >&2
-        echo "dshBundleCheckHook: dsh profile $profile failed" >&2
-        print_failure_hint
-        return 1
       fi
-    elif ! DSH_HOME="$dshBundleCheckHome" DSH_TELEMETRY_DISABLED=1 \
-      timeout "$dshBundleCheckTimeout" \
-      "$cmdProgram" --profile "$profile" "${checkArgs[@]}"; then
+    else
+      DSH_HOME="$dshBundleCheckHome" DSH_TELEMETRY_DISABLED=1 \
+        timeout "$dshBundleCheckTimeout" \
+        "$cmdProgram" --profile "$profile" "${checkArgs[@]}" \
+        >"$logFile" 2>&1 || status=$?
+      cat "$logFile"
+    fi
+
+    # dsh boots without a profile bundle it cannot load or that declares an
+    # unmet dsh requirement, so a successful boot alone does not prove it mounted.
+    if [[ "$status" -eq 0 ]] && grep -F 'skipping profile bundle' "$logFile" >&2; then
+      echo "dshBundleCheckHook: dsh profile $profile skipped a bundle" >&2
+      status=1
+    fi
+
+    if [[ "$status" -ne 0 ]]; then
       echo "dshBundleCheckHook: dsh profile $profile failed" >&2
       print_failure_hint
       return 1

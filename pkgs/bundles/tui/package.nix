@@ -5,8 +5,10 @@
   buildDshBundle,
   copyTree,
   dsh-kernel,
+  jq,
   pnpmConfigHook,
   pnpm_11,
+  web-app,
   nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
@@ -23,6 +25,9 @@ buildDshBundle (finalAttrs: {
 
   patches = [
     ./alpha2-model-selection.patch
+    # dsh 0.2.2-alpha.2 dropped the list-agents export and moved tool-ralph
+    # into an optional bundle.
+    ./alpha2-liangshen-delegation.patch
     ./btw-side-question-settle.patch
     ./verify-source-files.patch
     ./verify-host-contract-node-shebang.patch
@@ -57,7 +62,10 @@ buildDshBundle (finalAttrs: {
     hash = "sha256-ztdFdpwgWtIhBSqPbPib89lMPf+oxrdrGAuNpR1cZFQ=";
   };
 
-  nativeBuildInputs = [ pnpm_11 ];
+  nativeBuildInputs = [
+    jq
+    pnpm_11
+  ];
   disallowedReferences = [ pnpm_11 ];
   linkKernelNodeModules = dsh-kernel;
   linkKernelNodeModulesKeep = [
@@ -78,7 +86,11 @@ buildDshBundle (finalAttrs: {
     appDir="$out/lib/node_modules/@deepseek-harness-tui/dsh-tui"
     mkdir -p "$appDir"
 
-    cp -r package.json cordis.patch.yml cordis.yml tui-profile presets lib bin assets guide "$appDir/"
+    cp -r cordis.patch.yml cordis.yml tui-profile presets lib bin assets guide "$appDir/"
+    # dsh skips bundles whose dsh peer ranges exclude the runtime, and upstream
+    # ranges stop at 0.2.1-rc.3. engines.dsh takes precedence over those peers;
+    # update it only after verifying the patches against a new dsh release.
+    jq '.engines.dsh = "0.2.2-alpha.2"' package.json > "$appDir/package.json"
     cp -r node_modules "$appDir/node_modules"
 
     # Workspace links point into vendor/dsh-std, which is not installed.
@@ -93,6 +105,12 @@ buildDshBundle (finalAttrs: {
       src = "node_modules/@dsh-tui-vendor";
       dest = "$appDir/node_modules/@dsh-tui-vendor";
     }}
+
+    # Without a web-app row, dsh-tui registers the official presets from this
+    # dev dependency, which is pinned to the 0.2.1 line.
+    rm "$appDir/node_modules/@deepseek-ai/dsh-web-app"
+    ln -s ${web-app}/lib/node_modules/@deepseek-ai/dsh-web-app \
+      "$appDir/node_modules/@deepseek-ai/dsh-web-app"
 
     runHook postInstall
   '';

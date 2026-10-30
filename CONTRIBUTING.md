@@ -129,7 +129,11 @@ through `dshBundleCheckHook`; use that to catch duplicate loader entry IDs,
 invalid patches, missing kernel peer imports, and package resolution failures
 before runtime. Profiles that stay in an interactive terminal loop can set
 `requiresTty = true`; the hook runs those under a pseudo-terminal and treats a
-live smoke window as a successful boot.
+live smoke window as a successful boot. The hook also fails when dsh reports
+`skipping profile bundle`, for example when a bundle's `engines.dsh` or
+`@deepseek-ai/dsh-*` peer ranges exclude the pinned runtime. After verifying
+such a bundle against that runtime, set `engines.dsh` in its installed
+`package.json`; dsh then ignores the peer ranges.
 
 `buildDshBundle.fromPnpmWorkspace` automatically excludes `nodejs` and pnpm
 from the runtime closure. If a workspace bundle uses `python3` during its

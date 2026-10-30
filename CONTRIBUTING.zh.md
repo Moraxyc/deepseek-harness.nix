@@ -117,7 +117,10 @@ deploy 命令使用上述参数和注入式 workspace 布局，这是受支持�
 组合后的 `dsh` 在 `installCheckPhase` 通过 `dshBundleCheckHook` 启动每个
 托管 profile，可提前发现重复 loader ID、无效补丁、缺失 kernel peer 和包解析
 失败。交互式终端循环 profile 可设置 `requiresTty = true`；hook 会在伪终端下
-运行，并视存活 smoke 窗口为启动成功。
+运行，并视存活 smoke 窗口为启动成功。dsh 输出 `skipping profile bundle` 时
+hook 同样失败，例如 bundle 的 `engines.dsh` 或 `@deepseek-ai/dsh-*` peer 范围
+不包含当前固定的运行时版本。针对该运行时验证 bundle 后，在其安装后的
+`package.json` 中设置 `engines.dsh`；dsh 随后不再检查 peer 范围。
 
 `buildDshBundle.fromPnpmWorkspace` 会把 `nodejs` 和 pnpm 排除在运行时闭包
 之外。如果 workspace bundle 构建期间使用 `python3`，把 `python3` 加入 bundle
