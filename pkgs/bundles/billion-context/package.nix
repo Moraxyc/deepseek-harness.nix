@@ -41,5 +41,7 @@ buildDshBundle (finalAttrs: {
     homepage = "https://github.com/Tyan66666/billion-context-dsh";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;
+    # dsh 0.2.2-alpha.2 skips the bundle: its @deepseek-ai/dsh-* peer ranges stop below 0.2.1.
+    broken = true;
   };
 })

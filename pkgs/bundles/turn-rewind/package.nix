@@ -63,5 +63,7 @@ buildDshBundle (finalAttrs: {
     homepage = "https://github.com/Anionex/dsh-turn-rewind";
     license = lib.licenses.bsd3;
     platforms = lib.platforms.unix;
+    # dsh 0.2.2-alpha.2 skips the bundle: its @deepseek-ai/dsh-settings peer range stops at 0.2.1-rc.3.
+    broken = true;
   };
 })

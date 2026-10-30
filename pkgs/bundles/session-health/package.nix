@@ -42,5 +42,7 @@ buildDshBundle (finalAttrs: {
     homepage = "https://github.com/omdsh-dev/dsh-session-health";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;
+    # dsh 0.2.2-alpha.2 skips the bundle: it peers on dsh-invariants, removed in 0.2.1-alpha.1, and dsh-tools <0.2.0.
+    broken = true;
   };
 })

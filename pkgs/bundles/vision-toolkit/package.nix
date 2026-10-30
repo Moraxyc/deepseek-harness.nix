@@ -103,5 +103,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     homepage = "https://github.com/Anionex/dsh-vision-toolkit";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;
+    # dsh 0.2.2-alpha.2 skips the bundle: its @deepseek-ai/dsh-* peer ranges stop at 0.2.1-rc.3.
+    broken = true;
   };
 })

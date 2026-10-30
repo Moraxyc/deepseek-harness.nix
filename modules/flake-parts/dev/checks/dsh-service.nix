@@ -245,8 +245,8 @@
                 bundles = with pkgs.dsh.bundles; [
                   web-app
                   approve-for-me
-                  plugin-check
-                  cpa
+                  navbar
+                  annotation
                 ];
                 mode = "managed";
               };

@@ -30,5 +30,7 @@ buildDshBundle (finalAttrs: {
     homepage = "https://github.com/Moraxyc/dsh-cpa";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;
+    # dsh 0.2.2-alpha.2 skips the bundle: its @deepseek-ai/dsh-* peers pin 0.2.1-rc.2.
+    broken = true;
   };
 })

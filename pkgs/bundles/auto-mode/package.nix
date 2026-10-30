@@ -77,5 +77,7 @@ buildDshBundle (finalAttrs: {
     homepage = "https://github.com/NanmiCoder/dsh-auto-mode";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;
+    # dsh 0.2.2-alpha.2 skips the bundle: its @deepseek-ai/dsh-* peer ranges stop at 0.2.0-rc.2.
+    broken = true;
   };
 })
