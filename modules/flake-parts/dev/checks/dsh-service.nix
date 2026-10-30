@@ -245,7 +245,6 @@
                 bundles = with pkgs.dsh.bundles; [
                   web-app
                   approve-for-me
-                  navbar
                   annotation
                 ];
                 mode = "managed";

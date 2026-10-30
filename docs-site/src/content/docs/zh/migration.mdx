@@ -18,6 +18,28 @@ description: 仓库包移除与上游 DeepSeek Harness 变更的迁移说明。
 统一名单位于 `lib/removed-bundles.nix`。受支持的包目录和 CI 构建目标选择由本仓库
 维护的属性。请在配置中显式选择替代 bundle。
 
+### `bundles.auto-mode`
+
+[上游](https://github.com/NanmiCoder/dsh-auto-mode#readme)已于 2026-09-29 停止维护并
+归档仓库。请从 `withBundles` 和 `programs.dsh.profiles.<name>.bundles` 中删除
+`bundles.auto-mode`。
+
+重新构建前，请将已有会话切换到内置的手动权限模式，例如 Workspace write。重新构建后，
+重启 Harness 并新建会话。内置 Auto review 与插件的 Sandbox Auto 权限策略并不等价，
+可能授予更广的访问权限；选择前请先阅读当前权限说明。保留已有会话日志，不要改写。
+
+### `bundles.navbar`
+
+[上游](https://github.com/vlln/dsh-navbar#readme)因官方 Web 界面已内置回合导航而归档
+此插件。请从 bundle 选择中删除 `bundles.navbar`，使用 `bundles.web-app` 的内置导航。
+
+### `bundles.billion-context`
+
+[上游](https://github.com/Tyan66666/billion-context-dsh#readme)已停止维护、修复与支持。
+请从 bundle 选择中删除 `bundles.billion-context`。上游推荐
+[ranxianglei/billion-context](https://github.com/ranxianglei/billion-context)，
+该项目支持 DeepSeek Harness，但本 flake 尚未打包。
+
 ### `bundles.oh-dsh`
 
 本仓库不再维护 Oh-DSH。请从 bundle 选择中删除 `bundles.oh-dsh`，包括
@@ -79,8 +101,6 @@ bundle 的 `@deepseek-ai/dsh-*` peer 范围或 `engines.dsh` 不包含当前运�
 `0.2.2-alpha.2`，自本次升级起 dsh 并未加载它们。现已标记为 broken，求值时会直接
 报告这一点，而不是构建一个永远不会加载的 bundle：
 
-- `bundles.auto-mode`
-- `bundles.billion-context`
 - `bundles.cpa`
 - `bundles.plugin-check`
 - `bundles.security-audit`

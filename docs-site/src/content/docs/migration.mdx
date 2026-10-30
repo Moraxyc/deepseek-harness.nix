@@ -22,6 +22,32 @@ when evaluated. The shared registry is `lib/removed-bundles.nix`. The supported
 package catalog and CI build targets select maintained attributes. Select
 replacement bundles explicitly in your configuration.
 
+### `bundles.auto-mode`
+
+[Upstream](https://github.com/NanmiCoder/dsh-auto-mode#readme) ended maintenance
+on 2026-09-29 and archived the repository. Remove `bundles.auto-mode` from
+`withBundles` and `programs.dsh.profiles.<name>.bundles`.
+
+Before rebuilding, switch existing sessions to a built-in manual permission
+mode, such as Workspace write. After rebuilding, restart Harness and start a
+new session. Built-in Auto review is not policy-equivalent to the plugin's
+Sandbox Auto and may grant broader access; select it only after reviewing the
+current permission description. Keep existing session logs unchanged.
+
+### `bundles.navbar`
+
+[Upstream](https://github.com/vlln/dsh-navbar#readme) archived this plugin because
+the official Web interface includes turn navigation. Remove `bundles.navbar`
+from your bundle selections; use the built-in navigation in `bundles.web-app`.
+
+### `bundles.billion-context`
+
+[Upstream](https://github.com/Tyan66666/billion-context-dsh#readme) stopped
+maintenance, fixes, and support. Remove `bundles.billion-context` from your
+bundle selections. Upstream recommends
+[ranxianglei/billion-context](https://github.com/ranxianglei/billion-context),
+which supports DeepSeek Harness but is not packaged by this flake.
+
 ### `bundles.oh-dsh`
 
 Oh-DSH is no longer maintained in this repository. Remove `bundles.oh-dsh`
@@ -94,8 +120,6 @@ dsh skips a bundle at startup when its `@deepseek-ai/dsh-*` peer ranges or
 marked broken, and evaluating them reports that instead of building a bundle
 that never loads:
 
-- `bundles.auto-mode`
-- `bundles.billion-context`
 - `bundles.cpa`
 - `bundles.plugin-check`
 - `bundles.security-audit`
