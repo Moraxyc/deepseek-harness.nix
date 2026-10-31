@@ -7,9 +7,13 @@ let
     defaultProfile = cfg.desktop.profile;
     homePatch = cfg.patch;
   };
+  # The seeder lets the host's bundle check boot the declared profiles.
   host = import ./mk-dsh-runtime.nix {
     package = cfg.package;
     bundles = artifacts.runtimeBundles;
+    profileSeeder = artifacts.seedProfiles;
+    defaultProfile = artifacts.validatedDefaultProfile;
+    inherit (artifacts) bundleCheckProfiles;
   };
 in
 if cfg.desktop.profile == null then
