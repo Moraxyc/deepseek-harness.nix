@@ -9,7 +9,7 @@
     ".": {
       "dependencies": {
         "@linxin666/dsh-web-all": {
-          "specifier": "^0.4.12",
+          "specifier": "^0.4.13",
           "version": "link:packages/dsh-web-all"
         }
       },
@@ -274,12 +274,24 @@
           "specifier": "^4.0.5",
           "version": "4.0.5(@deepseek-ai/cordis-plugin-loader@1.0.6)"
         },
+        "@deepseek-ai/dsh-api-remotes": {
+          "specifier": "0.2.1-rc.3",
+          "version": "0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)(@deepseek-ai/dsh-scope@0.2.1-rc.3(@deepseek-ai/cordis@4.0.5))"
+        },
         "@deepseek-ai/dsh-client-locale": {
           "specifier": "^0.2.1-rc.3",
           "version": "0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)"
         },
+        "@deepseek-ai/dsh-client-store": {
+          "specifier": "0.2.1-rc.3",
+          "version": "0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)(@types/react@18.3.31)(react@18.3.1)"
+        },
         "@deepseek-ai/dsh-client-ui-layout": {
           "specifier": "^0.2.1-rc.3",
+          "version": "0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)"
+        },
+        "@deepseek-ai/dsh-client-ui-plugin-manager": {
+          "specifier": "0.2.1-rc.3",
           "version": "0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)"
         },
         "@deepseek-ai/dsh-client-ui-primitives": {
@@ -288,6 +300,10 @@
         },
         "@deepseek-ai/dsh-client-ui-renderer": {
           "specifier": "^0.2.1-rc.3",
+          "version": "0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)"
+        },
+        "@deepseek-ai/dsh-client-ui-settings": {
+          "specifier": "0.2.1-rc.3",
           "version": "0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)"
         },
         "@deepseek-ai/dsh-client-ui-sidebar-right": {
@@ -922,9 +938,17 @@
     },
     "packages/dsh-remote-bridge": {
       "dependencies": {
+        "cloudflared": {
+          "specifier": "^0.7.3",
+          "version": "0.7.3"
+        },
         "qrcode.react": {
           "specifier": "^4.2.0",
           "version": "4.2.0(react@18.3.1)"
+        },
+        "yaml": {
+          "specifier": "^2.8.2",
+          "version": "2.9.1"
         }
       },
       "devDependencies": {
@@ -1600,6 +1624,10 @@
           "specifier": "^0.2.1-rc.3",
           "version": "0.2.1-rc.3(c1c1dec24bb3aa2ff0d809ecb03d5494)"
         },
+        "@deepseek-ai/dsh-attachment": {
+          "specifier": "^0.2.1-rc.3",
+          "version": "0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)(@deepseek-ai/dsh-brand@0.2.1-rc.3(@deepseek-ai/cordis@4.0.5))"
+        },
         "@deepseek-ai/dsh-client-connection": {
           "specifier": "^0.2.1-rc.3",
           "version": "0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)(@deepseek-ai/dsh-scope@0.2.1-rc.3(@deepseek-ai/cordis@4.0.5))"
@@ -1820,6 +1848,84 @@
         }
       }
     },
+    "packages/dsh-task-board-team": {
+      "dependencies": {
+        "@deepseek-ai/schemastery": {
+          "specifier": "^3.18.5",
+          "version": "3.18.5"
+        }
+      },
+      "devDependencies": {
+        "@deepseek-ai/cordis": {
+          "specifier": "^4.0.5",
+          "version": "4.0.5(@deepseek-ai/cordis-plugin-loader@1.0.6)"
+        },
+        "@deepseek-ai/dsh-api-gateway": {
+          "specifier": "^0.2.1-rc.3",
+          "version": "0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)"
+        },
+        "@deepseek-ai/dsh-client-locale": {
+          "specifier": "^0.2.1-rc.3",
+          "version": "0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)"
+        },
+        "@deepseek-ai/dsh-client-ui-renderer": {
+          "specifier": "^0.2.1-rc.3",
+          "version": "0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)"
+        },
+        "@deepseek-ai/dsh-client-ui-settings": {
+          "specifier": "^0.2.1-rc.3",
+          "version": "0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)"
+        },
+        "@deepseek-ai/dsh-client-ui-slots": {
+          "specifier": "^0.2.1-rc.3",
+          "version": "0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)"
+        },
+        "@deepseek-ai/dsh-credentials": {
+          "specifier": "^0.2.1-rc.3",
+          "version": "0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)"
+        },
+        "@deepseek-ai/dsh-llm": {
+          "specifier": "^0.2.1-rc.3",
+          "version": "0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)"
+        },
+        "@deepseek-ai/dsh-tools": {
+          "specifier": "^0.2.1-rc.3",
+          "version": "0.2.1-rc.3(7f83a923574dbbc7d23711fe97edafc6)"
+        },
+        "@types/node": {
+          "specifier": "^22.20.0",
+          "version": "22.20.5"
+        },
+        "@types/react": {
+          "specifier": "~18.3.1",
+          "version": "18.3.31"
+        },
+        "@types/react-dom": {
+          "specifier": "^18.3.7",
+          "version": "18.3.7(@types/react@18.3.31)"
+        },
+        "react": {
+          "specifier": "^18.3.1",
+          "version": "18.3.1"
+        },
+        "react-dom": {
+          "specifier": "^18.3.1",
+          "version": "18.3.1(react@18.3.1)"
+        },
+        "tsdown": {
+          "specifier": "0.22.2",
+          "version": "0.22.2(@typescript/native-preview@7.0.0-dev.20260707.2)(typescript@5.7.3)"
+        },
+        "typescript": {
+          "specifier": "~5.7.2",
+          "version": "5.7.3"
+        },
+        "vitest": {
+          "specifier": "^4.1.11",
+          "version": "4.1.12(@types/node@22.20.5)(@vitest/coverage-v8@4.1.12)(jsdom@29.1.1)(yaml@2.9.1)"
+        }
+      }
+    },
     "packages/dsh-update": {
       "devDependencies": {
         "@deepseek-ai/cordis": {
@@ -2017,8 +2123,8 @@
           "version": "link:../dsh-browser-view"
         },
         "@linxin666/dsh-client-ui-community-plugins": {
-          "specifier": "^0.4.12",
-          "version": "0.4.12(react@18.3.1)"
+          "specifier": "^0.4.13",
+          "version": "0.4.13(react@18.3.1)"
         },
         "@linxin666/dsh-client-ui-git-graph": {
           "specifier": "workspace:*",
@@ -2037,16 +2143,16 @@
           "version": "link:../dsh-plugin-manager"
         },
         "@linxin666/dsh-client-ui-preset-center": {
-          "specifier": "^0.4.12",
-          "version": "0.4.12(react@18.3.1)"
+          "specifier": "^0.4.13",
+          "version": "0.4.13(react@18.3.1)"
         },
         "@linxin666/dsh-client-ui-skill-explorer": {
           "specifier": "workspace:*",
           "version": "link:../dsh-skill-explorer"
         },
         "@linxin666/dsh-client-ui-skin-center": {
-          "specifier": "^0.4.12",
-          "version": "0.4.12(react@18.3.1)"
+          "specifier": "^0.4.13",
+          "version": "0.4.13(react@18.3.1)"
         },
         "@linxin666/dsh-client-ui-task-board": {
           "specifier": "workspace:*",
@@ -2055,6 +2161,10 @@
         "@linxin666/dsh-client-ui-task-board-github": {
           "specifier": "workspace:*",
           "version": "link:../dsh-task-board-github"
+        },
+        "@linxin666/dsh-client-ui-task-board-team": {
+          "specifier": "workspace:*",
+          "version": "link:../dsh-task-board-team"
         },
         "@linxin666/dsh-client-ui-web-ui-settings": {
           "specifier": "workspace:*",
@@ -2069,16 +2179,12 @@
           "version": "link:../dsh-liangshen"
         },
         "@linxin666/dsh-pet": {
-          "specifier": "^0.4.12",
-          "version": "0.4.12(react-dom@18.3.1(react@18.3.1))(react@18.3.1)"
+          "specifier": "^0.4.13",
+          "version": "0.4.13(react-dom@18.3.1(react@18.3.1))(react@18.3.1)"
         },
         "@linxin666/dsh-remote-bridge": {
           "specifier": "workspace:*",
           "version": "link:../dsh-remote-bridge"
-        },
-        "@linxin666/dsh-remote-web-ui": {
-          "specifier": "workspace:*",
-          "version": "link:../dsh-remote-web-ui"
         },
         "@linxin666/dsh-session-archive": {
           "specifier": "workspace:*",
@@ -2898,6 +3004,14 @@
         "@deepseek-ai/cordis": "~4.0.5"
       }
     },
+    "@deepseek-ai/dsh-client-ui-plugin-manager@0.2.1-rc.3": {
+      "resolution": {
+        "integrity": "sha512-krOW4/f4tdUbbW4hZ97LNxdVTIjZR3axp400zaJiSJ+FQTuVKlIMxYN8OCnYBaWCCpClhoARp+WYZgG53hbRpw=="
+      },
+      "peerDependencies": {
+        "@deepseek-ai/cordis": "~4.0.5"
+      }
+    },
     "@deepseek-ai/dsh-client-ui-primitives@0.2.1-rc.3": {
       "resolution": {
         "integrity": "sha512-8ykslTgUjN70DUHbx3W92gIYuHSJng23NCwzLsUEDZ+hfx+cJOIf0MBBCbdwUX+kU3PTQdDDGldluIj7iQErZg=="
@@ -3348,36 +3462,36 @@
         "integrity": "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="
       }
     },
-    "@linxin666/dsh-client-ui-community-plugins@0.4.12": {
+    "@linxin666/dsh-client-ui-community-plugins@0.4.13": {
       "resolution": {
-        "integrity": "sha512-muuV14JujCdUzyB//CPYc2MwB0v8rorcibZNowEYkepKjhXgJ9/QUR5HIPozaUA6wh5G4IFWlWQRrwybIYfLyw=="
+        "integrity": "sha512-dU2pYhYrPVnNFEuNDA6EHwocVbjT7xvRBa2tN7idxEYRJymF80l8WD/YTcll8SZggrVajZComsqUKCkvU/Sf3w=="
       },
       "peerDependencies": {
         "@deepseek-ai/dsh": ">=0.2.1-rc.3",
         "react": "^18.2.0"
       }
     },
-    "@linxin666/dsh-client-ui-preset-center@0.4.12": {
+    "@linxin666/dsh-client-ui-preset-center@0.4.13": {
       "resolution": {
-        "integrity": "sha512-K5e2mFKmz5keMJbaQJ2Obk6ijpuWmcUwsA53ZchbTtu1RQSht77lIw4cG+wnKtJDrmYdDmoK7SuoS/O1aO2p4w=="
+        "integrity": "sha512-vO1NXk+YOPRVq/LhOhc9csRf51m7svzOs/VUxr+3cthFKZeAPlXsfYAT2gDXbqZIROBlNMAfkK/6VEAxAs/AqA=="
       },
       "peerDependencies": {
         "@deepseek-ai/dsh": ">=0.2.1-rc.3",
         "react": "^18.2.0"
       }
     },
-    "@linxin666/dsh-client-ui-skin-center@0.4.12": {
+    "@linxin666/dsh-client-ui-skin-center@0.4.13": {
       "resolution": {
-        "integrity": "sha512-RugNQs9a1ZoJthxiYCsqswcaSB7G4pMhCQ+EtrCpHgWIhycJwhq6jMOvbC0QgKNcyXSitiBZZ6+CjFP2IIOn+A=="
+        "integrity": "sha512-3haAP2QWt4FpZe3FEohxjx1PzZOfFlzd5VGp2p0zfs0cAHvJNn/11H7YcGLr1LjlKrwG88ogBVR5OxrWWWTaNQ=="
       },
       "peerDependencies": {
         "@deepseek-ai/dsh": ">=0.2.1-rc.3",
         "react": "^18.2.0"
       }
     },
-    "@linxin666/dsh-pet@0.4.12": {
+    "@linxin666/dsh-pet@0.4.13": {
       "resolution": {
-        "integrity": "sha512-mXVlbhlJPjFqZetOrXghsosxKXAwrXrvYx+M0YOjqcQbRLTSZpdw4d2gpiXsMhMJfd9us4mcON/poItCqkU4BQ=="
+        "integrity": "sha512-7ovGoDd/TFfhCtT7tMsQUBsvPJZ5vT2S7ZP7nyx9oyDOAnM3guCzy/hJubky5q4Wsy3nbXNCJN6EEC4weSg5nA=="
       },
       "engines": {
         "node": "^22.19.0 || >=24.0.0"
@@ -7285,6 +7399,15 @@
         "@deepseek-ai/cordis": "4.0.5(@deepseek-ai/cordis-plugin-loader@1.0.6)"
       }
     },
+    "@deepseek-ai/dsh-client-ui-plugin-manager@0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)": {
+      "dependencies": {
+        "@deepseek-ai/cordis": "4.0.5(@deepseek-ai/cordis-plugin-loader@1.0.6)",
+        "@deepseek-ai/dsh-timeout": "0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)",
+        "@deepseek-ai/dsh-typert-protocol": "0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)",
+        "@deepseek-ai/schemastery": "3.18.5",
+        "zod": "4.4.3"
+      }
+    },
     "@deepseek-ai/dsh-client-ui-primitives@0.2.1-rc.3(@deepseek-ai/cordis@4.0.5)(supports-color@7.2.0)": {
       "dependencies": {
         "@deepseek-ai/cordis": "4.0.5(@deepseek-ai/cordis-plugin-loader@1.0.6)",
@@ -7631,26 +7754,26 @@
         "@jridgewell/sourcemap-codec": "1.6.0"
       }
     },
-    "@linxin666/dsh-client-ui-community-plugins@0.4.12(react@18.3.1)": {
+    "@linxin666/dsh-client-ui-community-plugins@0.4.13(react@18.3.1)": {
       "dependencies": {
         "react": "18.3.1",
         "schemastery": "3.18.0"
       }
     },
-    "@linxin666/dsh-client-ui-preset-center@0.4.12(react@18.3.1)": {
+    "@linxin666/dsh-client-ui-preset-center@0.4.13(react@18.3.1)": {
       "dependencies": {
         "react": "18.3.1",
         "schemastery": "3.18.0"
       }
     },
-    "@linxin666/dsh-client-ui-skin-center@0.4.12(react@18.3.1)": {
+    "@linxin666/dsh-client-ui-skin-center@0.4.13(react@18.3.1)": {
       "dependencies": {
         "@deepseek-ai/schemastery": "3.18.5",
         "lightningcss": "1.33.0",
         "react": "18.3.1"
       }
     },
-    "@linxin666/dsh-pet@0.4.12(react-dom@18.3.1(react@18.3.1))(react@18.3.1)": {
+    "@linxin666/dsh-pet@0.4.13(react-dom@18.3.1(react@18.3.1))(react@18.3.1)": {
       "dependencies": {
         "@deepseek-ai/schemastery": "3.18.5",
         "clsx": "2.1.1",
