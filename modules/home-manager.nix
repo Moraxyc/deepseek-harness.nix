@@ -18,6 +18,7 @@ let
     profileSeeder =
       if cfg.profiles == { } && cfg.patch == null then null else profileArtifacts.seedProfiles;
     defaultProfile = profileArtifacts.validatedDefaultProfile;
+    inherit (profileArtifacts) bundleCheckProfiles;
   };
 in
 {

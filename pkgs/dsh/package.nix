@@ -43,6 +43,12 @@
   homePatch ? null,
   profileSeeder ? null,
   profileDefaultProfile ? null,
+  # Profile classes for dshBundleCheckHook when profiles come from profileSeeder.
+  profileBundleCheckProfiles ? {
+    all = [ ];
+    tty = [ ];
+    web = [ ];
+  },
   pname ? "dsh",
   meta ? { },
 }:
@@ -104,13 +110,8 @@ let
     else
       [ bundlesOrSelector ];
 
-  profileRequiresTty =
-    profile:
-    (profile.requiresTty or false)
-    || profileSupport.profileNeedsTui profile
-    || lib.any (bundle: bundle.passthru.requiresTty or false) (profile.bundles or [ ]);
-
-  profileRequiresWeb = profileSupport.profileNeedsWeb;
+  bundleCheckProfiles =
+    if profileSeeder == null then profileArtifacts.bundleCheckProfiles else profileBundleCheckProfiles;
   compositionConfig = {
     package = dsh;
     inherit
@@ -292,21 +293,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     util-linux
     writableTmpDirAsHomeHook
   ];
-  dshBundleCheckProfiles = lib.concatStringsSep " " managedProfileNames;
-  dshBundleCheckWebProfiles = lib.concatStringsSep " " (
-    lib.flatten (
-      lib.mapAttrsToList (
-        name: profile: lib.optional (profileRequiresWeb profile) (profileSupport.profileName name)
-      ) profiles
-    )
-  );
-  dshBundleCheckTtyProfiles = lib.concatStringsSep " " (
-    lib.flatten (
-      lib.mapAttrsToList (
-        name: profile: lib.optional (profileRequiresTty profile) (profileSupport.profileName name)
-      ) profiles
-    )
-  );
+  dshBundleCheckProfiles = lib.concatStringsSep " " bundleCheckProfiles.all;
+  dshBundleCheckWebProfiles = lib.concatStringsSep " " bundleCheckProfiles.web;
+  dshBundleCheckTtyProfiles = lib.concatStringsSep " " bundleCheckProfiles.tty;
   installCheckPhase = ''
     runHook preInstallCheck
     DSH_HOME="$TMPDIR/dsh" "$out/bin/dsh" --version

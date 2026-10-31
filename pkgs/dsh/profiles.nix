@@ -133,6 +133,12 @@ let
     (profile.requiresTui or false)
     || lib.any (bundle: bundle.passthru.requiresTui or false) (profile.bundles or [ ]);
 
+  profileNeedsTty =
+    profile:
+    (profile.requiresTty or false)
+    || profileNeedsTui profile
+    || lib.any (bundle: bundle.passthru.requiresTty or false) (profile.bundles or [ ]);
+
   profileBundles =
     profile:
     let
@@ -564,6 +570,15 @@ let
         }
       ) profiles;
       managedProfileNames = map (spec: spec.targetName) (lib.attrValues profileSpecs);
+      profileNamesWhere =
+        pred: lib.mapAttrsToList (name: _: profileName name) (lib.filterAttrs (_: pred) profiles);
+      # Profile classes for dshBundleCheckHook. Seeded runtimes carry no static
+      # profiles, so they receive these lists explicitly.
+      bundleCheckProfiles = {
+        all = managedProfileNames;
+        tty = profileNamesWhere profileNeedsTty;
+        web = profileNamesWhere profileNeedsWeb;
+      };
       validatedDefaultProfile =
         lib.throwIfNot (defaultProfile == null || lib.elem defaultProfile managedProfileNames)
           "dsh: defaultProfile '${defaultProfile}' is not one of the managed profiles: ${lib.concatStringsSep ", " managedProfileNames}"
@@ -597,6 +612,7 @@ let
     in
     {
       inherit
+        bundleCheckProfiles
         homePatchFile
         profileSpecs
         profileTemplates
@@ -613,9 +629,7 @@ in
   inherit
     mkProfileArtifacts
     profileBundles
-    profileNeedsTui
     profileName
-    profileNeedsWeb
     renderPatch
     ;
 }

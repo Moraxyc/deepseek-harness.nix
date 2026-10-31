@@ -249,6 +249,10 @@
                 ];
                 mode = "managed";
               };
+              tui = {
+                bundles = [ pkgs.dsh.bundles.tui ];
+                mode = "managed";
+              };
             };
             artifacts = pkgs.dsh.dsh.passthru.mkProfileArtifacts {
               inherit profiles;
@@ -259,6 +263,7 @@
               bundles = artifacts.runtimeBundles;
               profileSeeder = artifacts.seedProfiles;
               defaultProfile = artifacts.validatedDefaultProfile;
+              inherit (artifacts) bundleCheckProfiles;
             };
             runtimeBundleManifests = lib.concatMapStringsSep " " (
               bundle: lib.escapeShellArg "${bundle}/nix-support/dsh-bundles.json"
@@ -272,6 +277,12 @@
               ];
             }
             ''
+              # Dynamic discovery only seeds the default profile, so the runtime
+              # must carry every profile and its tty/web class.
+              [ ${lib.escapeShellArg runtime.dshBundleCheckProfiles} = 'nix-tui nix-use' ]
+              [ ${lib.escapeShellArg runtime.dshBundleCheckTtyProfiles} = nix-tui ]
+              [ ${lib.escapeShellArg runtime.dshBundleCheckWebProfiles} = nix-use ]
+
               app="${runtime}/lib/deepseek-harness"
               for bundleManifest in ${runtimeBundleManifests}; do
                 while IFS= read -r packageName; do
