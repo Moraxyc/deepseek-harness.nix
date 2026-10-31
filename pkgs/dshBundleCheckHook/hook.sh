@@ -34,19 +34,6 @@ dshBundleCheckHook() {
     profiles+=("$dshBundleCheckProfile")
   elif [[ -n "${dshBundleCheckProfiles-}" ]]; then
     read -r -a profiles <<< "$dshBundleCheckProfiles"
-  else
-    DSH_HOME="$dshBundleCheckHome" "$cmdProgram" --version >/dev/null 2>&1 || true
-    local profileDir profileName
-    for profileDir in "$dshBundleCheckHome"/profiles/*; do
-      [ -d "$profileDir" ] || continue
-      profileName="${profileDir##*/}"
-      case "$profileName" in
-        node_modules | '.' | '..')
-          continue
-          ;;
-      esac
-      profiles+=("$profileName")
-    done
   fi
 
   if [[ "${#profiles[@]}" -eq 0 ]]; then

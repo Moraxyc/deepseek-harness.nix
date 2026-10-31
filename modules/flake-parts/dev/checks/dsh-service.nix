@@ -277,8 +277,8 @@
               ];
             }
             ''
-              # Dynamic discovery only seeds the default profile, so the runtime
-              # must carry every profile and its tty/web class.
+              # The bundle check boots only listed profiles, so the runtime must
+              # list every profile with its tty/web class.
               [ ${lib.escapeShellArg runtime.dshBundleCheckProfiles} = 'nix-tui nix-use' ]
               [ ${lib.escapeShellArg runtime.dshBundleCheckTtyProfiles} = nix-tui ]
               [ ${lib.escapeShellArg runtime.dshBundleCheckWebProfiles} = nix-use ]
