@@ -43,12 +43,8 @@
   homePatch ? null,
   profileSeeder ? null,
   profileDefaultProfile ? null,
-  # Profile classes for dshBundleCheckHook when profiles come from profileSeeder.
-  profileBundleCheckProfiles ? {
-    all = [ ];
-    tty = [ ];
-    web = [ ];
-  },
+  # bundleCheckProfiles from the mkProfileArtifacts call that built profileSeeder.
+  profileBundleCheckProfiles ? null,
   pname ? "dsh",
   meta ? { },
 }:
@@ -111,7 +107,12 @@ let
       [ bundlesOrSelector ];
 
   bundleCheckProfiles =
-    if profileSeeder == null then profileArtifacts.bundleCheckProfiles else profileBundleCheckProfiles;
+    if profileSeeder == null then
+      profileArtifacts.bundleCheckProfiles
+    else
+      lib.throwIf (
+        profileBundleCheckProfiles == null
+      ) "dsh: profileSeeder requires profileBundleCheckProfiles" profileBundleCheckProfiles;
   compositionConfig = {
     package = dsh;
     inherit
