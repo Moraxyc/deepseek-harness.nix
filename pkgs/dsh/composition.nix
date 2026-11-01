@@ -9,8 +9,6 @@ let
   validateBundles = bundles: map validateBundle bundles;
 in
 {
-  packagesFromScope = scope: lib.attrValues (scope.packages scope);
-
   inherit validateBundles;
 
   composeBundles =

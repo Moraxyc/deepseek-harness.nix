@@ -5,10 +5,8 @@
 let
   packageNames =
     attrs:
-    lib.sort (a: b: a < b) (
-      lib.attrNames (
-        lib.filterAttrs (_: package: package ? pname && !(package.meta.broken or false)) attrs
-      )
+    lib.attrNames (
+      lib.filterAttrs (_: package: package ? pname && !(package.meta.broken or false)) attrs
     );
 
   bundleInfo = name: package: {

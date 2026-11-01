@@ -351,11 +351,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     };
 
     flattenedNodeModules = import ./node-modules-flat.nix {
-      inherit
-        copyTree
-        lib
-        stdenvNoCC
-        ;
+      inherit copyTree stdenvNoCC;
       nodeModules = finalAttrs.passthru.nodeModules;
     };
 
