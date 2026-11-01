@@ -34,7 +34,6 @@ dshWorkspacePrepareKernel() {
   kernel_peers="$TMPDIR/dsh-workspace-kernel-peers.json"
   source_lock_deps="$TMPDIR/dsh-workspace-source-lock-dependencies.json"
   lock_deps="$TMPDIR/dsh-workspace-kernel-lock-dependencies.json"
-  workspace_overrides="$TMPDIR/dsh-workspace-overrides.json"
 
   yq ea -o=json -I=0 '
     select(.name != null)

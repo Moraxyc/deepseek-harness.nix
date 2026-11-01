@@ -87,15 +87,6 @@ let
     else
       throw "dsh profile: invalid mode '${mode}', expected 'managed' or 'mutable'";
 
-  renderPatch =
-    patch:
-    if lib.isString patch then
-      patch
-    else if lib.isList patch then
-      lib.generators.toYAML { } patch
-    else
-      throw "dsh profile: patch must be a YAML string or a list of patch operations";
-
   warnPatchMigrations =
     location: patch:
     if !lib.isList patch then
@@ -628,8 +619,6 @@ in
 {
   inherit
     mkProfileArtifacts
-    profileBundles
     profileName
-    renderPatch
     ;
 }

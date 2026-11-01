@@ -292,11 +292,12 @@ tarballs and `publish-order.txt` as a release cohort.
 
 `pkgs.dsh.dshCohort` (source: `lib/dsh-cohort.nix`) exposes the pack:
 
-- `members`: the unscoped names of the cohort packages this repository consumes.
-  The cohort is a build output, so the list is declared here instead of being
-  read at evaluation time.
-- `select [ ... ]`: a bundle's selection from `members`, returned as scoped npm
-  names. Selecting an undeclared name fails evaluation.
+The consumed member names are a local list in that file, not an exported
+attribute: the cohort is a build output, so the list is declared instead of
+being read at evaluation time.
+
+- `select [ ... ]`: a bundle's selection from the declared members, returned as
+  scoped npm names. Selecting an undeclared name fails evaluation.
 - `installPackages { dest ? "node_modules", names }`: replace the named packages
   under `dest` with the published tarball contents.
 - `member name`: the unpacked tarball of one member, with `name` and `version`

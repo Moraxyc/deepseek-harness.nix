@@ -3,7 +3,6 @@
   buildDshBundle,
   dsh-kernel,
   dsh-workspace,
-  stdenvNoCC,
 }:
 buildDshBundle.fromWorkspace (_finalAttrs: {
   inherit dsh-kernel dsh-workspace;

@@ -263,6 +263,41 @@ let
     done
   '';
 
+  # Every builder exposes the same protocol surface: validated passthru,
+  # kernel peer linking, engines rewrite, and the bundle manifest.
+  mkBundleProtocol =
+    finalAttrs:
+    {
+      runtimeDeps ? [ ],
+      meta ? { },
+      passthru ? { },
+      postInstall ? "",
+      dshEngines ? null,
+      linkKernelNodeModules ? null,
+      linkKernelNodeModulesKeep ? [ ],
+    }:
+    let
+      validation = validateDshBundle {
+        bundle = {
+          inherit meta;
+          passthru = protocol runtimeDeps;
+          pname = finalAttrs.pname;
+        };
+        context = "buildDshBundle";
+      };
+    in
+    {
+      inherit (validation) meta;
+      passthru = passthru // validation.passthru // { inherit dshEngines; };
+      postInstall =
+        postInstall
+        + lib.optionalString (linkKernelNodeModules != null) (
+          linkKernelNodeModulesScript linkKernelNodeModules linkKernelNodeModulesKeep
+        )
+        + setDshEnginesScript dshEngines
+        + validateInstalledBundle;
+    };
+
   buildDshBundle = lib.extendMkDerivation {
     constructDrv = buildNpmPackage;
     excludeDrvArgNames = [
@@ -288,16 +323,6 @@ let
         postInstall ? "",
         ...
       }:
-      let
-        bundleValidation = validateDshBundle {
-          bundle = {
-            inherit meta;
-            passthru = protocol runtimeDeps;
-            pname = finalAttrs.pname;
-          };
-          context = "buildDshBundle";
-        };
-      in
       {
         nodejs = nodejs-slim;
         env = env // {
@@ -310,16 +335,17 @@ let
         ]
         ++ lib.optional disableChildBundlePatches jq
         ++ nativeBuildInputs;
-        passthru = passthru // bundleValidation.passthru // { inherit dshEngines; };
-        postInstall =
-          postInstall
-          + lib.optionalString disableChildBundlePatches suppressChildBundlePatches
-          + lib.optionalString (linkKernelNodeModules != null) (
-            linkKernelNodeModulesScript linkKernelNodeModules linkKernelNodeModulesKeep
-          )
-          + setDshEnginesScript dshEngines
-          + validateInstalledBundle;
-        inherit (bundleValidation) meta;
+      }
+      // mkBundleProtocol finalAttrs {
+        inherit
+          dshEngines
+          linkKernelNodeModules
+          linkKernelNodeModulesKeep
+          meta
+          passthru
+          runtimeDeps
+          ;
+        postInstall = postInstall + lib.optionalString disableChildBundlePatches suppressChildBundlePatches;
       };
   };
 
@@ -364,14 +390,6 @@ let
         ...
       }:
       let
-        bundleValidation = validateDshBundle {
-          bundle = {
-            inherit meta;
-            passthru = protocol runtimeDeps;
-            pname = finalAttrs.pname;
-          };
-          context = "buildDshBundle";
-        };
         resolvedPnpmDeps =
           if pnpmDeps != null then
             pnpmDeps
@@ -443,16 +461,18 @@ let
         ]
         ++ lib.optionals (stripPrepareScripts || disableChildBundlePatches) [ jq ]
         ++ nativeBuildInputs;
-        passthru = passthru // bundleValidation.passthru // { inherit dshEngines; };
         installPhase = defaultInstallPhase;
-        postInstall =
-          postInstall
-          + lib.optionalString (linkKernelNodeModules != null) (
-            linkKernelNodeModulesScript linkKernelNodeModules linkKernelNodeModulesKeep
-          )
-          + setDshEnginesScript dshEngines
-          + validateInstalledBundle;
-        inherit (bundleValidation) meta;
+      }
+      // mkBundleProtocol finalAttrs {
+        inherit
+          dshEngines
+          linkKernelNodeModules
+          linkKernelNodeModulesKeep
+          meta
+          passthru
+          runtimeDeps
+          ;
+        inherit postInstall;
       }
       // lib.optionalAttrs (resolvedPnpmDeps != null) {
         pnpmDeps = resolvedPnpmDeps;
@@ -492,14 +512,6 @@ let
         ...
       }:
       let
-        bundleValidation = validateDshBundle {
-          bundle = {
-            inherit meta;
-            passthru = protocol runtimeDeps;
-            pname = finalAttrs.pname;
-          };
-          context = "buildDshBundle";
-        };
         bundleSource = "${dsh-workspace}/lib/dsh-workspace/runtime-bundles/${packageName}";
         defaultInstallPhase = ''
           runHook preInstall
@@ -531,15 +543,17 @@ let
         dontBuild = true;
         installPhase = if installPhase == null then defaultInstallPhase else installPhase;
         nativeBuildInputs = [ nodejs-slim ] ++ nativeBuildInputs;
-        postInstall =
-          postInstall
-          + lib.optionalString (linkKernelNodeModules != null) (
-            linkKernelNodeModulesScript linkKernelNodeModules linkKernelNodeModulesKeep
-          )
-          + setDshEnginesScript dshEngines
-          + validateInstalledBundle;
-        passthru = passthru // bundleValidation.passthru // { inherit dshEngines; };
-        inherit (bundleValidation) meta;
+      }
+      // mkBundleProtocol finalAttrs {
+        inherit
+          dshEngines
+          linkKernelNodeModules
+          linkKernelNodeModulesKeep
+          meta
+          passthru
+          runtimeDeps
+          ;
+        inherit postInstall;
       };
   };
 in

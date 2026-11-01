@@ -1,6 +1,8 @@
 { lib, cfg }:
 let
-  selected = lib.filterAttrs (name: _: "nix-${name}" == cfg.desktop.profile) cfg.profiles;
+  selected = lib.filter (profile: profile.materializedName == cfg.desktop.profile) (
+    lib.attrValues cfg.profiles
+  );
   artifacts = cfg.package.passthru.mkProfileArtifacts {
     inherit (cfg) profiles agentPresets;
     desktopProfile = cfg.desktop.profile;
@@ -19,7 +21,7 @@ in
 if cfg.desktop.profile == null then
   cfg.desktop.package
 else
-  lib.throwIf (selected == { })
+  lib.throwIf (selected == [ ])
     "dsh desktop: desktop.profile must reference a declared programs.dsh.profiles entry"
     (
       cfg.desktop.package.override {
@@ -28,7 +30,7 @@ else
           home = cfg.home;
           profile = artifacts.validatedDefaultProfile;
           seeder = lib.getExe artifacts.seedProfiles;
-          mode = (builtins.head (lib.attrValues selected)).mode;
+          mode = (builtins.head selected).mode;
         };
       }
     )

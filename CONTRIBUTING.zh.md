@@ -274,9 +274,10 @@ bundle 使用上游发布的客户端包编译，kernel runtime 不包含这些�
 
 `pkgs.dsh.dshCohort`（实现见 `lib/dsh-cohort.nix`）暴露这组产物：
 
-- `members`：本仓库使用的 cohort 成员名（不带 scope）。cohort 是构建产物，
-  无法在求值期读取，因此这份列表在此声明。
-- `select [ ... ]`：bundle 从 `members` 中选取的 peer，返回带 scope 的 npm
+使用到的 cohort 成员名是该文件内的局部列表，不导出为属性：cohort 是构建产物，
+无法在求值期读取，因此这份列表在文件中声明。
+
+- `select [ ... ]`：bundle 从已声明的成员中选取的 peer，返回带 scope 的 npm
   包名。选取未声明的包名会直接求值失败。
 - `installPackages { dest ? "node_modules", names }`：用发布的 tarball 内容替换
   `dest` 下的同名包。

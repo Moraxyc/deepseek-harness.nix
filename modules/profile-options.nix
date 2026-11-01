@@ -132,8 +132,6 @@ let
   };
 in
 {
-  inherit agentPresetSubmodule profileSubmodule;
-
   mkAgentPresetsOption =
     {
       default ? { },

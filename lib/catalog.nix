@@ -9,15 +9,27 @@ let
       lib.filterAttrs (_: package: package ? pname && !(package.meta.broken or false)) attrs
     );
 
-  bundleInfo = name: package: {
-    inherit name;
-    package = package.pname;
-    version = package.version or null;
-    description = package.meta.description or null;
-    descriptionZh = package.meta.descriptions.zh-CN or package.meta.description or null;
-    descriptionJa = package.meta.descriptions.ja or package.meta.description or null;
-    homepage = package.meta.homepage or null;
-  };
+  metaInfo =
+    package:
+    let
+      meta = package.meta or { };
+      descriptions = meta.descriptions or { };
+    in
+    {
+      description = meta.description or null;
+      descriptionZh = descriptions.zh-CN or meta.description or null;
+      descriptionJa = descriptions.ja or meta.description or null;
+      homepage = meta.homepage or null;
+    };
+
+  bundleInfo =
+    name: package:
+    {
+      inherit name;
+      package = package.pname;
+      version = package.version or null;
+    }
+    // metaInfo package;
 
   presetInfo =
     name: package:
@@ -30,11 +42,8 @@ let
       defaultProfile = config.defaultProfile or null;
       profiles = package.passthru.profileNames or [ ];
       bundles = map (bundle: bundle.pname or bundle.name) (package.passthru.composedBundles or [ ]);
-      description = package.meta.description or null;
-      descriptionZh = package.meta.descriptions.zh-CN or package.meta.description or null;
-      descriptionJa = package.meta.descriptions.ja or package.meta.description or null;
-      homepage = package.meta.homepage or null;
-    };
+    }
+    // metaInfo package;
 
 in
 {
