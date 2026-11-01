@@ -1,0 +1,232 @@
+---
+title: Home Manager との連携
+description: スタンドアロンまたは NixOS 管理の Home Manager で DeepSeek Harness を使用します。
+---
+
+このガイドでは、スタンドアロンの Home Manager と NixOS によって管理される
+Home Manager の両方を対象に、`homeModules.default` について説明します。
+`pkgs.dsh` を利用可能にする方法と、プロファイルの管理方法を解説します。
+ユーザーごとの Web サービスについては、[高度な使い方](../advanced-usage/)を参照してください。
+
+## Flake 入力の追加
+
+```nix
+{
+  inputs.deepseek-harness.url = "github:moraxyc/deepseek-harness.nix";
+}
+```
+
+このリポジトリを `dsh` など別の入力名で宣言している場合は、例中の
+`inputs.deepseek-harness` をその名前に置き換えてください。
+
+## `pkgs.dsh` を利用可能にする
+
+`homeModules.default` は、デフォルトの `programs.dsh.package` と例中の
+`pkgs.dsh.bundles.*` に `pkgs.dsh` を使用します。次のいずれかの方法でセットアップしてください。
+
+- スタンドアロンの Home Manager: `inputs.deepseek-harness.overlays.default` を
+  すでに含む `pkgs` セットを `homeManagerConfiguration` に渡します。
+- NixOS 管理の Home Manager: `home-manager.useGlobalPkgs = true` を使用し、
+  NixOS レベルの `nixpkgs.overlays` にオーバーレイを追加します。
+- すべてのセットアップ: `programs.dsh.package` を明示的に設定します。デスクトップを
+  有効にする場合は、`programs.dsh.desktop.package` も設定します。
+
+## スタンドアロンの Home Manager
+
+Flake モジュールの例:
+
+```nix
+{ inputs, ... }:
+let
+  pkgs = import inputs.nixpkgs {
+    system = "x86_64-linux";
+    overlays = [ inputs.deepseek-harness.overlays.default ];
+  };
+in
+inputs.home-manager.lib.homeManagerConfiguration {
+  inherit pkgs;
+  modules = [ ./home.nix ];
+}
+```
+
+`home.nix`:
+
+```nix
+{ inputs, pkgs, ... }:
+{
+  imports = [ inputs.deepseek-harness.homeModules.default ];
+
+  programs.dsh = {
+    enable = true;
+    profiles.tui = {
+      bundles = [ pkgs.dsh.bundles.tui ];
+      mode = "managed";
+    };
+    defaultProfile = "nix-tui";
+  };
+}
+```
+
+このモジュールは構成済みのパッケージを `home.packages` に追加し、Home Manager の
+アクティベーション時に managed プロファイルの初期内容を配置します。
+
+個々のプロファイルでは、`programs.dsh.agentPresets` の定義を参照できます。
+`agentPreset = "name"` を設定し、プロバイダーバンドルを個別に列挙してください。
+Home Manager はアクティベーション時に、生成されたプリセット宣言をプロファイルパッチ内で
+管理します。ツール認可の例については、[高度な使い方](../advanced-usage/)を参照してください。
+
+別の `DSH_HOME` を使用するには、`programs.dsh.home` を設定します。
+
+```nix
+{ config, ... }:
+{
+  programs.dsh.home = "${config.home.homeDirectory}/.local/share/dsh";
+}
+```
+
+未設定の場合、dsh は `~/.dsh` を使用します。Home Manager は明示的な値を
+ユーザーセッションにエクスポートし、プロファイルのアクティベーション時にも使用します。
+`services.dsh.dataDir` を個別に設定しない限り、ユーザーサービスも同じ場所を継承します。
+
+ホームレベルの Cordis パッチを構造化データとして宣言します。
+
+```nix
+programs.dsh.patch = [
+  {
+    id = "agent-default-model";
+    config = {
+      provider = "deepseek-official";
+      model = "deepseek-flash";
+    };
+  }
+];
+```
+
+Home Manager はアクティベーション時に、このリストを `$DSH_HOME/cordis.patch.yml` に
+同期します。構成済みの CLI とユーザーサービスは、起動前にこのファイルを再度復元します。
+このレイヤーは各プロファイルのパッチの後に適用されます。`null` の場合、ファイルは管理されません。
+
+## NixOS 管理の Home Manager
+
+Home Manager が NixOS によって管理されている場合は、次の設定を行います。
+
+- `home-manager.useGlobalPkgs = true` を有効にします。
+- NixOS レベルの `nixpkgs.overlays` に `inputs.deepseek-harness.overlays.default` を
+  追加します。
+- 対象ユーザーの下で `homeModules.default` をインポートします。
+
+```nix
+{ inputs, pkgs, ... }:
+{
+  home-manager = {
+    useGlobalPkgs = true;
+    users.moraxyc = { config, ... }: {
+      imports = [ inputs.deepseek-harness.homeModules.default ];
+
+      programs.dsh = {
+        enable = true;
+        profiles.tui.bundles = [ pkgs.dsh.bundles.tui ];
+        defaultProfile = config.programs.dsh.profiles.tui.materializedName;
+      };
+    };
+  };
+}
+```
+
+`home-manager.useGlobalPkgs = true` は、Home Manager に NixOS のグローバルな
+`pkgs` を使用させるだけで、dsh オーバーレイ自体は追加しません。そのグローバルな
+pkgs セットに `dsh` がない場合、評価は `attribute 'dsh' missing` で失敗します。
+
+すでに `nixosModules.default` をインポートしている場合、そのモジュールが NixOS
+オーバーレイを自動的に設定します。
+
+## パッケージを明示的に設定する
+
+オーバーレイを注入できない場合は、`programs.dsh.package` に別の pkgs にある
+dsh パッケージを設定してください。プロファイルを構成するには、引き続き
+`pkgs.dsh.bundles.*` または明示的なバンドルリストが必要です。
+
+```nix
+programs.dsh.package = inputs.deepseek-harness.packages.${pkgs.system}.dsh;
+```
+
+## プロファイルモード
+
+ファイルの所有権、Desktop のオンボーディング、Settings の動作については、
+[プロファイルモード](../advanced-usage/#profile-modes)を参照してください。既存データを
+アップグレードする前に、[移行ガイド](../migration/)をお読みください。
+
+## ユーザーごとの Web サービス
+
+`homeModules.default` は、systemd ユーザーユニットとして `services.dsh` も提供します。
+`programs.dsh.home` が設定されていればそれを使用し、未設定の場合は `~/.dsh` が
+デフォルトになるため、CLI によって実体化されたプロファイルを共有します。
+
+```nix
+services.dsh = {
+  enable = true;
+  port = 3080;
+};
+```
+
+ユニット名は `dsh-web` です。
+
+```sh
+systemctl --user start dsh-web
+systemctl --user status dsh-web
+journalctl --user -u dsh-web -f
+```
+
+オプションは、`user`、`group`、`openFirewall` を除き、NixOS サービスと同じです。
+`dataDir` のデフォルトは `~/.dsh`、`workspace` のデフォルトは `~/.dsh/workspace`、
+`autoStart` のデフォルトは `true` です。詳細については、
+[高度な使い方](../advanced-usage/)を参照してください。
+
+## トラブルシューティング
+
+- `attribute 'dsh' missing` は、`homeModules.default` から参照できる `pkgs` に
+  dsh スコープが含まれていないことを意味します。その pkgs セットにオーバーレイを追加するか、
+  `programs.dsh.package` を明示的に設定してください。
+- NixOS 管理の Home Manager では、Home Manager のユーザーモジュール内に
+  `nixpkgs.overlays` を追加しても、NixOS レベルのオーバーレイの確実な代替にはなりません。
+  代わりにグローバルな `nixpkgs.overlays` を使用してください。
+- `dsh` は起動するものの、想定したプロファイルを使用しない場合は、
+  `programs.dsh.defaultProfile` に生のプロファイルキー（`tui`）ではなく、
+  実体化後の名前（`nix-tui`）が指定されていることを確認してください。
+
+## デスクトップアプリケーション
+
+モジュールをインポートし、上記のオーバーレイを設定した後、公式デスクトップ
+アプリケーションを個別に有効にできます。
+
+```nix
+programs.dsh.desktop.enable = true;
+```
+
+`desktop.enable` のデフォルトは `false` で、`programs.dsh.enable` は必要ありません。
+このモジュールは `pkgs.dsh.dsh-desktop-official` を `home.packages` に追加します。
+`programs.dsh.desktop.package` でオーバーライドできます。
+CLI のデフォルトとは独立に、`desktop.profile` で宣言済みのプロファイルを選択します。
+
+```nix
+programs.dsh = {
+  desktop.enable = true;
+  desktop.profile = "nix-desktop";
+  profiles.desktop = {
+    bundles = [ pkgs.dsh.bundles.notification ];
+    mode = "managed";
+  };
+};
+```
+
+`config.programs.dsh.profiles.desktop.materializedName` を参照することもできます。
+このモジュールは Web アプリケーションの依存関係を組み込み、プロファイルのバンドルを
+公式デスクトップランタイムにパッケージ化します。コマンドラインまたはアプリケーションメニューから
+起動すると、デスクトップは選択したプロファイル、それが参照する `agentPresets`、および
+`programs.dsh.home` 配下のホームレベル `patch` の初期内容を配置してから、ホストを起動します。
+設定を変更した後は、デスクトップを再起動してください。
+
+`desktop.profile` のデフォルトは `null` で、上流の `profiles/desktop` の動作を維持します。
+この連携では、`desktop.package` が公式パッケージの `dshHost` 引数と
+`desktopProfile` 引数をサポートしている必要があります。
+`programs.dsh.defaultProfile` は引き続き CLI のみを制御します。

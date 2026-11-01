@@ -123,6 +123,7 @@ buildDshBundle (finalAttrs: {
   meta = {
     description = "Use ChatGPT, Claude, Grok, and GitHub Copilot subscriptions as DSH providers with OAuth login and a web settings UI";
     descriptions.zh-CN = "将 ChatGPT、Claude、Grok 和 GitHub Copilot 订阅作为 DSH provider，并提供 OAuth 登录与 Web 设置界面";
+    descriptions.ja = "ChatGPT、Claude、Grok、GitHub Copilot のサブスクリプションを DSH プロバイダーとして利用し、OAuth ログインと Web 設定 UI を提供";
     homepage = "https://github.com/V1ki/dsh-plugin-subscriptions";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

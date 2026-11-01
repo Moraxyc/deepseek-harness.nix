@@ -100,6 +100,7 @@ buildDshBundle (finalAttrs: {
   meta = {
     description = "Browser desktop notifications for completed DeepSeek Harness turns with outcome and keyword filters";
     descriptions.zh-CN = "通过浏览器桌面通知提醒 DeepSeek Harness 回合完成，并支持结果与关键词筛选";
+    descriptions.ja = "DeepSeek Harness のターン完了をブラウザーのデスクトップ通知で知らせ、結果とキーワードによるフィルタリングに対応";
     homepage = "https://github.com/omdsh-dev/dsh-notification";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

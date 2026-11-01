@@ -44,6 +44,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   meta = {
     description = "VSCode-like right sidebar for the DSH web UI";
     descriptions.zh-CN = "为 DSH Web 界面提供 VSCode 风格右侧侧边栏";
+    descriptions.ja = "DSH Web UI に VS Code 風の右サイドバーを提供";
     homepage = "https://github.com/omdsh-dev/DSH-better-sidebar";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

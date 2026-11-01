@@ -1,0 +1,84 @@
+---
+title: 開発
+description: DSH Nix flake のビルド、テスト、保守。
+---
+
+このページでは、リポジトリのクローンが必要なローカル flake の使用方法について説明します。
+リモート flake の使用方法については、[README](https://github.com/moraxyc/deepseek-harness.nix) を参照してください。
+
+## クローン
+
+```sh
+git clone https://github.com/moraxyc/deepseek-harness.nix.git
+cd deepseek-harness.nix
+```
+
+## ローカル Flake の使用方法
+
+リポジトリのルートで次のコマンドを実行します：
+
+```sh
+nix build .#dsh
+nix build .#presets.tui
+nix build .#bundles.tui
+nix run .#default -- --version
+nix run .#dsh-desktop
+nix run .#dsh-desktop-official
+```
+
+`packages` は `dsh`、`dsh-desktop`、`dsh-desktop-official`、
+`dsh-desktop-unofficial`、`dsh-kernel`、`dsh-workspace` を提供します。`dsh-desktop` は
+エイリアスで、現在は `dsh-desktop-unofficial` に解決されます。
+`bundles.*` と `presets.*` は `legacyPackages` を通じて公開されているため、
+`.#bundles.tui` や `.#presets.tui` などの参照を直接使用できます。
+`bundleCompositions.*` も同じ方法で公開されます。これは、デフォルトの `dsh` コンポジションに
+1 つのバンドルを重ねたもので、デフォルトのコンポジションに既に含まれるバンドルについては
+生成をスキップします。バンドルのレイヤリングを検証するためのものであり、インストール用の
+パッケージではありません。完全なカタログは [バンドルとプリセット](../catalog/) を参照してください。
+
+## 開発シェル
+
+```sh
+nix develop
+```
+
+デフォルトの開発シェルには `jq`、`nix-update`、`nixfmt`、`pre-commit`、`yq-go` が
+含まれます。Pre-commit と flake チェックは push 前に実行されます。
+
+## よく使うコマンド
+
+```sh
+nix fmt
+nix flake check
+nix build .#docs-site
+cd docs-site
+npm ci
+npm run build
+```
+
+ロックファイルを更新するには、次を実行します：
+
+```sh
+nix flake update
+nix flake update --flake ./modules/flake-parts/dev
+```
+
+## バンドルの削除
+
+パッケージの実装を削除し、その属性名は `lib/removed-bundles.nix` に残してください。
+各エントリには、削除理由、ユーザーが行う操作、移行ガイドへのリンクを記載する必要があります。
+削除された属性には移行エラーを残し、ユーザーが代替バンドルを明示的に選択できるようにしてください。
+
+オーバーレイはレジストリのエントリを `throw` エラーに変換します。パッケージ CI と
+カタログ生成は同じレジストリを使用し、保守対象の属性を選択して評価します。
+移行手順は、[移行ガイド](../migration/) のすべての言語版に追加してください。
+
+## ドキュメント
+
+ユーザー向けドキュメントは、英語、中国語、日本語で保守され、それぞれ
+`docs-site/src/content/docs/`、`docs-site/src/content/docs/zh/`、
+`docs-site/src/content/docs/ja/` に配置されています。
+リリース固有のアップストリーム移行ノートは、[移行ガイド](../migration/) と
+その各言語版に記載してください。アップストリームの更新によってデータ形式、設定の管理主体、初回起動時の
+インポート、実行時のダウンロード、ロールバックの動作が変更される場合は、バージョン付きの
+エントリを追加してください。

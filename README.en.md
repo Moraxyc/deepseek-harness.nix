@@ -1,6 +1,6 @@
 # DSH Nix
 
-> **English** | [简体中文](README.md)
+> **English** | [简体中文](README.md) | [日本語](README.ja.md)
 
 DSH Nix is community-maintained Nix packaging for DeepSeek Harness (`dsh`):
 CLI, desktop app, kernel, workspace bundles (plugins), presets, a NixOS module,

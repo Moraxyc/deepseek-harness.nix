@@ -27,6 +27,7 @@ buildDshBundle (finalAttrs: {
   meta = {
     description = "CLI Proxy API provider and runtime plugin for dsh";
     descriptions.zh-CN = "dsh 的 CLI Proxy API（CPA）provider 与运行插件";
+    descriptions.ja = "dsh 向け CLI Proxy API（CPA）プロバイダーおよびランタイムプラグイン";
     homepage = "https://github.com/Moraxyc/dsh-cpa";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

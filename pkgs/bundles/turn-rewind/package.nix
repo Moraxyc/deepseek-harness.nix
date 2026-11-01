@@ -60,6 +60,7 @@ buildDshBundle (finalAttrs: {
   meta = {
     description = "Turn-level conversation and workspace rewind for DeepSeek Harness";
     descriptions.zh-CN = "DeepSeek Harness 的会话与工作区级回退插件";
+    descriptions.ja = "DeepSeek Harness の会話とワークスペースをターン単位で巻き戻すプラグイン";
     homepage = "https://github.com/Anionex/dsh-turn-rewind";
     license = lib.licenses.bsd3;
     platforms = lib.platforms.unix;

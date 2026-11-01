@@ -142,6 +142,7 @@ buildDshBundle (finalAttrs: {
   meta = {
     description = "Interactive terminal interface for dsh";
     descriptions.zh-CN = "dsh 的交互式终端界面";
+    descriptions.ja = "dsh の対話型ターミナルインターフェース";
     homepage = "https://github.com/ccch1mneyyy/dsh-TUI";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

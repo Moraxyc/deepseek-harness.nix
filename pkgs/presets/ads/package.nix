@@ -9,6 +9,7 @@ dsh.override {
   meta = {
     description = "DSH setup with local portal ads and scam-ad parodies";
     descriptions.zh-CN = "带本地门户广告与诈骗广告仿制内容的 DSH 组合";
+    descriptions.ja = "ローカルポータル広告と詐欺広告のパロディを含む DSH セットアップ";
   };
   profiles = {
     ads.bundles = with bundles; [

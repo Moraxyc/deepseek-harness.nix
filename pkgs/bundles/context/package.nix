@@ -51,6 +51,7 @@ buildDshBundle (finalAttrs: {
   meta = {
     description = "Context insight and management plugin for DeepSeek Harness";
     descriptions.zh-CN = "DeepSeek Harness 上下文洞察与管理插件";
+    descriptions.ja = "DeepSeek Harness のコンテキストを把握・管理するプラグイン";
     homepage = "https://github.com/bowenliang123/dsh-context";
     license = lib.licenses.asl20;
     platforms = lib.platforms.unix;

@@ -74,6 +74,7 @@ buildDshBundle (finalAttrs: {
   meta = {
     description = "Token usage, provider accounts, session cost estimates, budgets, and exports for the DSH Web UI";
     descriptions.zh-CN = "为 DSH Web 界面提供 Token 用量、Provider 账户、会话成本估算、预算与导出功能";
+    descriptions.ja = "DSH Web UI 向けのトークン使用量、プロバイダーアカウント、セッションコスト見積もり、予算、エクスポート機能";
     homepage = "https://github.com/Ychris12138/dsh-usage-stats";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

@@ -52,6 +52,7 @@ buildDshBundle (finalAttrs: {
   meta = {
     description = "Persistent cross-session memory for DeepSeek Harness with local Markdown storage and autoDream consolidation";
     descriptions.zh-CN = "为 DeepSeek Harness 提供持久化跨会话记忆、本地 Markdown 存储与 autoDream 整理";
+    descriptions.ja = "ローカル Markdown ストレージと autoDream による統合を備えた、DeepSeek Harness 向けの永続的なセッション間メモリ";
     homepage = "https://github.com/modusensus/dsh-mneme";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

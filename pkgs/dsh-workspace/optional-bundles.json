@@ -4,6 +4,7 @@
     "pname": "dsh-cua-bundle",
     "description": "Currently supports macOS; Windows support is in development. Loads computer use for existing and new PTC sessions. Switch to PTC mode and grant Accessibility and Screen Recording permissions to use it.",
     "descriptionZh": "目前仅支持 macOS，Windows 支持正在开发中。为已有及新建 PTC 会话加载 Computer Use。请切换到 PTC 模式来使用，并授予辅助功能和屏幕录制权限。",
+    "descriptionJa": "現在は macOS に対応し、Windows 対応は開発中です。既存および新規の PTC セッションで Computer Use を読み込みます。使用するには PTC モードに切り替え、アクセシビリティと画面収録の権限を付与してください。",
     "requiresWeb": true,
     "platforms": ["darwin"]
   },
@@ -12,6 +13,7 @@
     "pname": "dsh-experimental-agent-team-profile",
     "description": "Lets the agent you talk to split a job among named teammates, track it on a shared task board, and report back with their results.",
     "descriptionZh": "让与你对话的智能体把工作分给有名字的队友，在共享任务看板上跟踪进度，并汇总队友的结果向你汇报。",
+    "descriptionJa": "会話中のエージェントが、名前付きチームメンバーに作業を分担し、共有タスクボードで進捗を追跡し、各メンバーの結果をまとめて報告できるようにします。",
     "requiresWeb": true,
     "platforms": []
   },
@@ -20,6 +22,7 @@
     "pname": "dsh-experimental-auto-review",
     "description": "Adds an Auto review access mode: before each tool call, a model checks it against what you asked for, runs allowed calls at once, and holds denied calls for your approval.",
     "descriptionZh": "提供“自动审查”访问模式：每次工具调用前，由模型对照你的要求检查，获准的调用立即运行，被拒绝的调用等你审批。",
+    "descriptionJa": "「自動レビュー」アクセスモードを追加します。各ツール呼び出しの前にモデルが要求内容と照合し、許可された呼び出しは即時実行、拒否された呼び出しは承認待ちとして保留します。",
     "requiresWeb": false,
     "platforms": []
   },
@@ -28,6 +31,7 @@
     "pname": "dsh-experimental-badge-skill-bundle",
     "description": "Let agents add a “powered by dsh” badge to documents, pull requests, and other outputs.",
     "descriptionZh": "让 Agent 为文档、PR 等产出添加「powered by dsh」徽章。",
+    "descriptionJa": "ドキュメント、プルリクエスト、その他の成果物に「powered by dsh」バッジをエージェントが追加できるようにします。",
     "requiresWeb": false,
     "platforms": []
   },
@@ -36,6 +40,7 @@
     "pname": "dsh-experimental-cot-translation-bundle",
     "description": "Translates expanded Think rows into your chosen language as the agent writes them, and View original switches back.",
     "descriptionZh": "智能体输出时，把展开的“思考”行翻译成你选择的语言，点击“查看原文”可切换回原文。",
+    "descriptionJa": "展開した Think 行を、エージェントが書き込む際に選択した言語へ翻訳します。「原文を表示」で元の言語に切り替えられます。",
     "requiresWeb": true,
     "platforms": []
   },
@@ -44,6 +49,7 @@
     "pname": "dsh-experimental-forge-bundle",
     "description": "Track each Session's change requests with their checks and reviews, and start new Sessions in a Git worktree; uses the gh CLI for GitHub.",
     "descriptionZh": "跟踪每个会话的变更请求及其检查与评审，新会话也可以在 Git 工作树中开始；GitHub 通过 gh 命令行访问。",
+    "descriptionJa": "各セッションの変更リクエストをチェックやレビューとともに追跡し、Git ワークツリーで新しいセッションを開始できます。GitHub には gh CLI を使用します。",
     "requiresWeb": true,
     "platforms": []
   },
@@ -52,6 +58,7 @@
     "pname": "dsh-experimental-inspector-profile",
     "description": "For troubleshooting: view what DSH recorded for a session in Session log, inspect per-turn and per-step statistics in the Statistics tab, and debug the DSH backend in Chrome DevTools.",
     "descriptionZh": "用于排查问题：在「会话数据诊断」中查看 DSH 为会话记录的内容，在「统计」页签查看每轮/每步的上下文、耗时、缓存和工具成本，并在 Chrome DevTools 中调试 DSH 后端。",
+    "descriptionJa": "トラブルシューティング用。Session log で DSH がセッションに記録した内容を確認し、Statistics タブでターン・ステップごとの統計を調べ、Chrome DevTools で DSH バックエンドをデバッグできます。",
     "requiresWeb": true,
     "platforms": []
   },
@@ -60,6 +67,7 @@
     "pname": "dsh-experimental-liveshare",
     "description": "Share the current Session with a colleague, who can drive it in a browser, edit files inside the granted workspace when the share allows writes, or branch their own Session from the completed history.",
     "descriptionZh": "把当前会话分享给同事，对方可在浏览器中驱动该会话、在分享允许写入时修改授权工作区内的文件，或从已完成历史分支出自己的会话。",
+    "descriptionJa": "現在のセッションを同僚と共有できます。同僚はブラウザーからセッションを操作し、書き込みを許可した場合は許可されたワークスペース内のファイルを編集できます。また、完了した履歴から自分のセッションを分岐できます。",
     "requiresWeb": true,
     "platforms": []
   },
@@ -68,6 +76,7 @@
     "pname": "dsh-experimental-plugin-market-bundle",
     "description": "Adds a Discover tab to Plugins, where you browse and install plugins from plugin indexes you add.",
     "descriptionZh": "在插件页添加“发现”标签页，从你添加的插件索引中浏览和安装插件。",
+    "descriptionJa": "Plugins に Discover タブを追加し、追加したプラグインインデックスからプラグインを参照・インストールできます。",
     "requiresWeb": true,
     "platforms": []
   },
@@ -76,6 +85,7 @@
     "pname": "dsh-experimental-ralph-bundle",
     "description": "Ask for a Ralph loop with a goal, and the agent starts a fresh agent on it round after round until the goal is met, a blocker is reported, or the round limit is reached.",
     "descriptionZh": "要求用 Ralph 循环完成一个目标后，智能体会一轮接一轮地启动新的智能体处理它，直到目标达成、报告受阻或达到轮次上限。",
+    "descriptionJa": "目標を指定して Ralph ループを依頼すると、目標達成、ブロッカーの報告、またはラウンド上限到達のいずれかまで、エージェントがラウンドごとに新しいエージェントを起動して処理を続けます。",
     "requiresWeb": false,
     "platforms": []
   },
@@ -84,6 +94,7 @@
     "pname": "dsh-experimental-session-search",
     "description": "Ask about earlier work, such as “How did we fix the pool leak last week?”, and the agent searches your earlier sessions in the same workspace to answer.",
     "descriptionZh": "询问以往的工作，例如“上周我们是怎么修好连接池泄漏的？”，智能体会搜索同一工作区的历史会话来回答。",
+    "descriptionJa": "「先週、コネクションプールのリークはどう修正した？」のように以前の作業について尋ねると、エージェントが同じワークスペースの過去のセッションを検索して回答します。",
     "requiresWeb": false,
     "platforms": []
   },
@@ -92,6 +103,7 @@
     "pname": "dsh-experimental-session-titles-bundle",
     "description": "Writes a session's title from all of your messages and updates it when the main task changes, instead of only from the first message.",
     "descriptionZh": "根据你的所有消息生成会话标题，并在主要任务变化时更新，而不是只根据第一条消息生成。",
+    "descriptionJa": "最初のメッセージだけでなく、すべてのメッセージからセッションタイトルを生成し、主なタスクが変わったときに更新します。",
     "requiresWeb": false,
     "platforms": []
   },
@@ -100,6 +112,7 @@
     "pname": "dsh-experimental-terminal-bundle",
     "description": "Gives the agent terminals whose processes keep running in the background between tool calls, so it can start a dev server or REPL and come back later to read output or type input.",
     "descriptionZh": "为智能体提供终端，进程在多次工具调用之间持续在后台运行，因此它可以启动开发服务器或 REPL，稍后再读取输出或继续输入。",
+    "descriptionJa": "ツール呼び出しの合間もプロセスがバックグラウンドで動き続けるターミナルをエージェントに提供します。開発サーバーや REPL を起動し、後で出力の読み取りや入力を行えます。",
     "requiresWeb": false,
     "platforms": []
   },
@@ -108,6 +121,7 @@
     "pname": "dsh-experimental-tool-worktree",
     "description": "Ask for work on a new branch, and the agent creates a separate Git worktree and continues there, leaving your current checkout as it is.",
     "descriptionZh": "要求在新分支上工作时，智能体会创建单独的 Git 工作树并在其中继续，你当前的工作树保持原样。",
+    "descriptionJa": "新しいブランチでの作業を依頼すると、エージェントが別の Git ワークツリーを作成してそこで作業を続けるため、現在のチェックアウトはそのまま維持されます。",
     "requiresWeb": false,
     "platforms": []
   },
@@ -116,6 +130,7 @@
     "pname": "dsh-experimental-voice-input-bundle",
     "description": "Transcribe recordings locally with SenseVoice; first use requires installing dependencies.",
     "descriptionZh": "在本机使用 SenseVoice 转写录音，首次使用需安装依赖。",
+    "descriptionJa": "SenseVoice を使用して録音をローカルで文字起こしします。初回使用時には依存関係のインストールが必要です。",
     "requiresWeb": true,
     "platforms": []
   },
@@ -124,6 +139,7 @@
     "pname": "dsh-personalized-recommendations",
     "description": "Shows recommendation cards below the answer for what you want from DSH: when you want a page or small tool you can keep, it proposes a new personalized page, built in the background after you click Create; when you ask how to do something in this app or say a capability is missing, it recommends the built-in plugin that provides it, turned on when you click Enable.",
     "descriptionZh": "针对你对 DSH 的个性化需求，在回答下方展示推荐卡片：想要能长期使用的页面或小工具时，提议新增个性化页面，点击创建后在后台生成；问到本应用怎么做某件事或缺少某项能力时，推荐对应的内置插件，点击启用后开启。",
+    "descriptionJa": "DSH への要望に応じたおすすめカードを回答の下に表示します。継続して使えるページや小さなツールが必要な場合は新しいパーソナライズページを提案し、「作成」をクリックするとバックグラウンドで生成します。このアプリでの操作方法を尋ねたり、機能が不足していると伝えたりした場合は、その機能を提供する組み込みプラグインをおすすめし、「有効化」をクリックすると有効になります。",
     "requiresWeb": true,
     "platforms": []
   }

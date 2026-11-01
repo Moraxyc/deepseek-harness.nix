@@ -5,10 +5,10 @@ import { loader, type StaticSource } from "fumadocs-core/source";
 import * as path from "node:path";
 import { catalog } from "@/data/catalog";
 
-export type Locale = "en" | "zh";
+export type Locale = "en" | "zh" | "ja";
 
 export const i18n = defineI18n<Locale>({
-  languages: ["en", "zh"],
+  languages: ["en", "zh", "ja"],
   defaultLanguage: "en",
   parser: "dir",
   hideLocale: "default-locale",
@@ -46,13 +46,20 @@ export function getStructuredData(
 }
 
 function catalogParagraphs(locale: Locale): string[] {
+  const text =
+    locale === "ja"
+      ? { defaultProfile: "デフォルトプロファイル", bundles: "バンドル" }
+      : { defaultProfile: "default profile", bundles: "Bundles" };
   const descriptionOf = (item: {
     description: string | null;
     descriptionZh: string | null;
+    descriptionJa: string | null;
   }): string =>
     (locale === "zh"
       ? (item.descriptionZh ?? item.description)
-      : item.description) ?? "";
+      : locale === "ja"
+        ? (item.descriptionJa ?? item.description)
+        : item.description) ?? "";
 
   const row = (
     identity: string,
@@ -79,14 +86,14 @@ function catalogParagraphs(locale: Locale): string[] {
           preset.package,
           preset.defaultProfile === null
             ? ""
-            : `default profile ${preset.defaultProfile}`,
+            : `${text.defaultProfile} ${preset.defaultProfile}`,
         ]
           .filter((part) => part !== "")
           .join(", "),
         descriptionOf(preset),
         preset.bundles.length === 0
           ? ""
-          : ` Bundles: ${preset.bundles.join(" ")}`,
+          : ` ${text.bundles}: ${preset.bundles.join(" ")}`,
       ),
     ),
   ];

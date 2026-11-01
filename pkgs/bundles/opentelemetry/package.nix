@@ -66,6 +66,7 @@ buildDshBundle (finalAttrs: {
   meta = {
     description = "OpenTelemetry tracing and metrics for DeepSeek Harness";
     descriptions.zh-CN = "为 DeepSeek Harness 提供 OpenTelemetry 链路追踪与指标导出";
+    descriptions.ja = "DeepSeek Harness 向けの OpenTelemetry トレーシングとメトリクスエクスポート";
     homepage = "https://github.com/loongsuite/dsh-plugin";
     license = lib.licenses.asl20;
     platforms = lib.platforms.unix;

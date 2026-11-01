@@ -9,6 +9,7 @@ dsh.override {
   meta = {
     description = "Terminal-focused setup with an interactive interface";
     descriptions.zh-CN = "以交互式终端界面为主的组合";
+    descriptions.ja = "対話型インターフェースを備えた、ターミナル中心のセットアップ";
   };
   profiles = {
     tui = {

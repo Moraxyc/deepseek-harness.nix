@@ -1,0 +1,610 @@
+---
+title: 高度な使い方
+description: カスタムプロファイル、パッケージのオーバーライド、サービス、リバースプロキシ。
+---
+
+このページでは、カスタムプロファイル、オーバーライド、オーバーレイについて説明します。
+モジュールのセットアップについては [NixOS との連携](../nixos/)と
+[Home Manager との連携](../home-manager/)を、クイックスタートコマンドについては
+[README](https://github.com/moraxyc/deepseek-harness.nix)を参照してください。
+ユーザーによる対応が必要な上流の変更については、[移行ガイド](../migration/)を参照してください。
+
+## NixOS
+
+`nixosModules.default` をインポートし、`programs.dsh` を有効にします。
+
+```nix
+{
+  imports = [ inputs.deepseek-harness.nixosModules.default ];
+
+  programs.dsh = {
+    enable = true;
+    profiles.tui.bundles = [ pkgs.dsh.bundles.tui ];
+    defaultProfile = "nix-tui";
+  };
+}
+```
+
+`tui` という名前のプロファイルは `$DSH_HOME/profiles/nix-tui` に実体化されます
+（デフォルトでは `~/.dsh/profiles/nix-tui`）。
+
+`defaultProfile` には実体化後の名前（`tui` ではなく `nix-tui`）を使用します。
+これは、`dsh` を `--profile` を明示せずに起動した場合に使用されます。`--profile` を
+明示的に渡せば、利用可能な任意のプロファイルを選択できます。
+
+宣言された各プロファイルは、読み取り専用の `rawName`（`tui`）と
+`materializedName`（`nix-tui`）を公開します。モジュール内で `defaultProfile` を
+設定する際にプレフィックスをハードコードしないよう、
+`config.programs.dsh.profiles.tui.materializedName` を使用してください。
+
+各プロファイルは `bundles` と YAML の `patch` レイヤーをサポートします。
+`patch` はバンドルレイヤーの後に `cordis.patch.yml` として適用されます。
+
+`programs.dsh.patch` は、構造化されたホームレベルの
+`$DSH_HOME/cordis.patch.yml` を管理します。選択したプロファイルのパッチの後に
+適用され、すべてのプロファイルで共有されます。
+
+## NixOS Web サービス
+
+`services.dsh` を有効にすると、Web プリセットを systemd ユニットとして実行できます。
+デフォルトではループバックにのみバインドし、ファイアウォールは開放しません。
+
+```nix
+{
+  imports = [ inputs.deepseek-harness.nixosModules.default ];
+
+  services.dsh = {
+    enable = true;
+    profile = "nix-web";
+    listenAddress = "127.0.0.1";
+    port = 3080;
+    trustedHosts = [ "dsh.example.com" ];
+  };
+}
+```
+
+このサービスは `DSH_HOME` を `/var/lib/dsh/home` 配下に保持し、作業ディレクトリとして
+`/var/lib/dsh/workspace` を使用します。`dataDir`、`homeDirectory`、`workspace` を
+オーバーライドする場合は、サービスユーザーがそれらのパスに書き込めることを確認してください。
+
+`user` と `group` を両方とも設定しない限り、このユニットは systemd の `DynamicUser` を
+使用します。動的モードでは状態を `/var/lib/dsh` 配下に保持します。固定ユーザーモードでは、
+設定された `dataDir`、`homeDirectory`、`workspace` をそのアカウント用に作成します。
+
+より強力な systemd サンドボックスが必要な場合は、アイソレーションを明示的に有効にします。
+
+```nix
+services.dsh.isolation = {
+  enable = true;
+  rootDirectory = "/var/lib/dsh/root";
+  readWritePaths = [ "/var/lib/dsh/cache" ];
+  bindPaths = [ "/srv/dsh-assets:/opt/dsh/assets" ];
+  bindReadOnlyPaths = [ "/nix/store:/nix/store" "/etc/resolv.conf:/etc/resolv.conf" ];
+};
+```
+
+アイソレーションはネットワークを利用できる状態を保ち、デバイス、カーネル、ネームスペース、
+ケーパビリティ、SUID/SGID の制限を追加します。`homeDirectory` と `workspace` は
+書き込み可能なままです。追加の書き込み可能パスには `readWritePaths` を使用してください。
+`rootDirectory` を使用するには、実行ファイルのランタイムをそのルート配下で利用できるように
+する必要があります。読み取り専用のランタイム入力には `bindReadOnlyPaths` を使用します。
+どちらのバインドオプションも、systemd の `source:destination` 構文を使用します。
+
+### カスタムプロファイル
+
+`services.dsh` は、`programs.dsh`（または `services.dsh.profiles`）の下で宣言された
+プロファイルからパッケージを構成するため、カスタム Web プロファイルも自動的に提供されます。
+
+```nix
+{
+  programs.dsh.profiles.web.patch = ''
+    # cordis patch operations for the web profile
+  '';
+  services.dsh.enable = true;
+}
+```
+
+`services.dsh.profile` で指定された名前（デフォルトは `nix-web`）のプロファイルが
+`programs.dsh.profiles` に宣言されている場合、このユニットは `programs.dsh.package` と
+それらのプロファイルから構成されたパッケージを実行します。宣言されていない場合は、
+Web プリセットにフォールバックします。`services.dsh.profiles` は同じ `bundles`、
+`patch`、`mode` オプションを受け付けます。これを代入すると、`programs.dsh` から
+継承されたプロファイルが置き換えられます。
+
+### シークレット
+
+クレデンシャルは Nix 設定に含めないでください。代わりに、実行時のシークレット供給源を
+使用します。
+
+`environmentFile`:
+
+`environmentFile` は `LoadCredential` とは独立に、systemd によって直接読み取られます。
+
+```nix
+services.dsh.environmentFile = "/run/secrets/dsh.env";
+```
+
+このファイルは systemd の `EnvironmentFile` 構文を使用します。
+
+```sh
+DEEPSEEK_API_KEY=...
+DSH_PERMISSION_MODE=workspace-write
+```
+
+sops-nix を使用する場合は、`environmentFile` にレンダリングされたシークレットを指定します。
+
+```nix
+imports = [
+  inputs.sops-nix.nixosModules.sops
+  inputs.deepseek-harness.nixosModules.default
+];
+
+sops.secrets."dsh-env" = { };
+services.dsh.environmentFile = "/run/secrets/dsh-env";
+```
+
+systemd クレデンシャルを使用する場合は、`credentials.<name>` で `LoadCredential` の
+供給源を指定します。クレデンシャルが環境ファイルの場合は、`env` という名前を付け、
+`EnvironmentFile` として読み込みます。
+
+```nix
+services.dsh = {
+  credentials.env = "/run/secrets/dsh.env";
+  environmentFile = "%d/env";
+};
+```
+
+クレデンシャルは `%d/<name>` 配下に公開されます。systemd は `%d` をユニットの
+クレデンシャルディレクトリに展開します。
+
+### リバースプロキシ
+
+定義済みの Nginx プロキシは、IPv4 と IPv6 のリスナーをサポートします。
+
+```nix
+services.dsh = {
+  listenAddress = "::1";
+  reverseProxy = {
+    enable = true;
+    domain = "dsh.example.com";
+  };
+  trustedHosts = [ "dsh.example.com" ];
+};
+```
+
+`reverseProxy.scheme` のデフォルトは `"http"` で、Nginx から dsh への接続のみを制御します。
+ネイティブ HTTPS を使用するには、`extraArguments` を通じて `--tls-cert` と `--tls-key` の
+両方を渡し、`reverseProxy.scheme = "https"` を設定します。Web サーバープロファイルの
+パッチで TLS を設定する場合も、同じスキームが必要です。秘密鍵には Nix store パスではなく、
+実行時のファイルパスを使用してください。
+
+```nix
+services.dsh = {
+  extraArguments = [
+    "--tls-cert" "%d/tls-cert"
+    "--tls-key" "%d/tls-key"
+  ];
+  credentials = {
+    tls-cert = "/run/secrets/dsh-cert.pem";
+    tls-key = "/run/secrets/dsh-key.pem";
+  };
+  reverseProxy.scheme = "https";
+};
+```
+
+証明書を置き換えた場合は、サービスの再起動が必要です。Nginx はデフォルトでは上流の
+証明書を検証しません。location の `extraConfig` で検証を設定してください
+（`proxy_ssl_verify`、`proxy_ssl_trusted_certificate`、`proxy_ssl_name`）。
+クライアント側の TLS は、引き続き別の Nginx 設定として扱われます。Home Manager でも、
+読み取り可能な実行時ファイルを使用して同じ TLS フラグを指定できますが、定義済みの
+プロキシはありません。
+
+`listenAddress` はループバックのままにし、公開側の終端はプロキシで行ってください。
+
+Nginx:
+
+```nix
+services.nginx = {
+  enable = true;
+  virtualHosts."dsh.example.com" = {
+    forceSSL = true;
+    enableACME = true;
+    locations."/" = {
+      proxyPass = "http://127.0.0.1:3080";
+      proxyWebsockets = true;
+      extraConfig = ''
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+      '';
+    };
+  };
+};
+
+services.dsh.trustedHosts = [ "dsh.example.com" ];
+```
+
+Caddy:
+
+```nix
+services.caddy = {
+  enable = true;
+  virtualHosts."dsh.example.com".extraConfig = ''
+    reverse_proxy 127.0.0.1:3080
+  '';
+};
+
+services.dsh.trustedHosts = [ "dsh.example.com" ];
+```
+
+### 起動と停止
+
+ユニット名は `dsh-web` です。`services.dsh.autoStart = false` を設定しない限り、
+`multi-user.target` と一緒に起動します。
+
+```sh
+sudo systemctl start dsh-web
+sudo systemctl stop dsh-web
+sudo systemctl restart dsh-web
+systemctl status dsh-web
+journalctl -u dsh-web -f
+```
+
+## Home Manager Web サービス
+
+`homeModules.default` は、ユーザーごとのユニット向けに `services.dsh` も提供するため、
+NixOS 以外のユーザーも同じサービスを利用できます。
+
+```nix
+{
+  imports = [ inputs.deepseek-harness.homeModules.default ];
+
+  services.dsh = {
+    enable = true;
+    port = 3080;
+  };
+}
+```
+
+ユーザーマネージャー内のユニット名は `dsh-web.service` で、
+`services.dsh.autoStart = false` を設定しない限り `default.target` と一緒に起動します。
+`DSH_HOME` はデフォルトで `~/.dsh` になるため、CLI によって実体化されたプロファイルを
+共有します。
+
+```sh
+systemctl --user start dsh-web
+systemctl --user status dsh-web
+journalctl --user -u dsh-web -f
+```
+
+オプションは、`user`、`group`、`openFirewall` を除き、NixOS サービスと同じです。
+同じ `programs.dsh.profiles` の再利用ルールも適用されます。
+
+## カスタムプロファイル
+
+NixOS 以外では、`withProfiles` を使用してパッケージからプロファイルを実体化します。
+
+```nix
+pkgs.dsh.dsh.withProfiles {
+  tui.bundles = [ pkgs.dsh.bundles.tui ];
+}
+```
+
+各プロファイルの `bundles` には、リスト、または短い名前を使用するための
+バンドルスコープ関数のいずれかを指定できます。
+
+```nix
+pkgs.dsh.dsh.withProfiles {
+  tui.bundles = b: with b; [
+    tui
+  ];
+}
+```
+
+これにより `nix-tui` プロファイルが作成され、デフォルトプロファイルはクリアされます。
+デフォルトにするには、結果をオーバーライドします。
+
+```nix
+(pkgs.dsh.dsh.withProfiles {
+  tui.bundles = [ pkgs.dsh.bundles.tui ];
+}).override {
+  defaultProfile = "nix-tui";
+}
+```
+
+パッケージにプリセット定義を追加するには、`withAgentPresets` を使用します。複数回
+呼び出すと ID ごとにマージされ、同じ ID の定義がある場合は後の定義が前の定義を置き換えます。
+プロファイルがいずれかのプリセットを参照する場合、`withProfiles` の前後どちらで
+呼び出してもかまいません。
+
+```nix
+(
+  (pkgs.dsh.dsh.withAgentPresets {
+    web-tools = {
+      source = "standard";
+      enableTools = [ "tool-plugin-manager" ];
+    };
+  }).withAgentPresets {
+    code-tools = {
+      source = "ptc";
+      enableTools = [ "tool-workflow" ];
+    };
+  }
+).withProfiles {
+  web = {
+    bundles = [ pkgs.dsh.bundles.subagent-codex ];
+    agentPreset = "web-tools";
+  };
+}
+```
+
+### プロファイルモード
+
+- `managed`: `dsh` を起動するたびに、Nix が宣言された `package.json` と
+  `cordis.patch.yml` を復元します。Home Manager もアクティベーション時にこれらを同期します。
+- `mutable`: プロファイルのディレクトリが存在しない場合にのみ Nix が初期内容を配置し、
+  その後はユーザーの管理下に置かれます。
+
+どちらのモードでも、同名の既存ディレクトリがマークされていない場合、そのディレクトリを
+引き継ぐことはありません。
+
+Settings UI は、アクティブなプロファイルの `cordis.patch.yml` に書き込みます。
+managed モードでは `profiles.<name>.patch` を通じて値を宣言してください。実行時の
+Settings や `dsh plugin` による変更を保持するには、mutable モードを使用します。
+
+managed の Desktop プロファイルでは、Nix が `ui-settings-account.step` を `done` に、
+`completion` を `skipped` に設定します。オンボーディングを完了して実行時の Settings を
+保持するには、mutable モードを使用してください。managed プラグインを無効にする場合は
+Nix で行ってください。デスクトップの復旧処理では managed プロファイルは書き換えられません。
+
+### プラグインマーケットからのインストール
+
+オプションの `experimental-plugin-market-bundle` を使用すると、Plugins に Discover タブが
+追加され、追加したインデックスソースからバンドルをインストールできるようになります。
+インストールすると、その宣言がプロファイル所有のファイルに記録されます。依存関係と
+バンドルの選択は `package.json`、プラグインの切り替えとインデックスソースは
+`cordis.patch.yml`、承認されたビルドスクリプトは `pnpm-workspace.yaml` に記録されます。
+
+managed モードでは次回起動時にこれら 3 つのファイルがすべて復元されるため、宣言と
+ディスク上に残っているパッケージが一致しなくなる場合があります。マーケットからの
+インストールは mutable プロファイルで行ってください。managed モードでは宣言的な管理を
+維持し、プロファイルのプラグインを Nix バンドルとして追加します。
+
+## オプションのサブエージェントプロバイダー
+
+Codex と Claude Code は、オプションの Profile Bundle です。プロファイルが使用する
+プロバイダーのみを追加してください。
+
+```nix
+programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
+  web-app
+  subagent-codex
+  subagent-claude-code
+];
+```
+
+Official のオンデマンドカタログには、これらのプロバイダーが存在しない場合でも表示されます。
+Nix で宣言されたプロバイダーはインストールの一部なので、Nix で削除または更新してください。
+managed プロファイルでは、GUI での有効化、インストール、更新によって宣言は変更されず、
+次回起動時にリセットされる場合があります。npm で管理するインストールには、
+mutable プロファイルを使用してください。Nix で宣言したプロバイダーのコピーを npm で
+もう 1 つインストールすることは避けてください。プロファイルローカルの依存関係が、
+同梱されたコピーより優先されることがあります。実行時の npm インストールには、
+このリポジトリのネイティブバイナリ修正は適用されません。NixOS では、検証済みの
+プロバイダーランタイムに宣言的なバンドルを使用することを推奨します。
+
+`0.2.1-alpha.2` 以降、各プロバイダーバンドルは Host プロバイダーとモデル側から利用する
+ツールの両方を登録します。ツールが呼び出されるまで Codex や Claude Code は起動しません。
+これらのツールは、同梱される `standard` または `ptc` Agent Preset の行ではなくなったため、
+それらの ID を `agentPresets.<name>.enableTools` から削除してください。このオプションは、
+選択したプリセットに存在する行を有効にするだけです。
+
+両方のプロバイダーを組み込みつつ Claude Code ツールを無効にするには、プリセットと一緒に
+プロファイルパッチを宣言します。
+
+```nix
+programs.dsh = {
+  agentPresets.web-subagents = {
+    source = "standard";
+  };
+
+  profiles.web = {
+    bundles = with pkgs.dsh.bundles; [
+      web-app
+      subagent-codex
+      subagent-claude-code
+    ];
+    agentPreset = "web-subagents";
+    patch = [
+      {
+        id = "tool-subagent-claude-code";
+        disabled = true;
+      }
+    ];
+  };
+};
+```
+
+生成された宣言には `preset-web-subagents` という名前が付けられ、プロファイルパッチに
+追加されます。レジストリの `default` は `web-subagents` に設定され、個別の
+プロファイルパッチによって Host スコープの Claude Code ツールが無効になります。
+
+これらのバンドルは、上流の DeepSeek Harness ワークスペースでピン留めされたバージョンを
+使用し、`PATH` は検索しません。Nixpkgs のリビジョンまたはオーバーレイから個別に
+パッケージ化されたバイナリを使用するには、バンドルの入力をオーバーライドします。
+
+```nix
+programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
+  (subagent-codex.override {
+    codexPackage = pkgs.codex;
+  })
+  (subagent-claude-code.override {
+    claudeCodePackage = pkgs.claude-code;
+  })
+];
+```
+
+`codexPackage` は `bin/codex` と `bin/codex-code-mode-host` を提供する必要があります。
+`claudeCodePackage` は、メインプログラムとして `bin/claude` を公開する必要があります。
+属性名と利用可能性は、選択した Nixpkgs のリビジョンまたはオーバーレイによって異なります。
+オーバーライドした場合、実行ファイルのバージョンは上流ワークスペースのロックではなく、
+そのパッケージに従います。
+
+Claude Agent SDK は MIT ライセンスですが、バンドルされている Claude Code ペイロードは
+unfree です。`subagent-claude-code` を選択する利用者は、そのパッケージを明示的に
+許可する必要があります。
+
+```nix
+{ lib, ... }:
+{
+  nixpkgs.config.allowUnfreePredicate =
+    package: lib.getName package == "dsh-subagent-claude-code";
+}
+```
+
+## カスタムバンドル構成
+
+バンドルを追加するには、`withBundles` を使用します。バンドルパッケージのリスト、または
+短い名前を使用するためのバンドルスコープ関数のいずれかを指定できます。
+
+```nix
+pkgs.dsh.dsh.withBundles [
+  pkgs.dsh.bundles.tui
+  pkgs.dsh.bundles.web-app
+]
+
+pkgs.dsh.dsh.withBundles (b: with b; [
+  tui
+  web-app
+])
+```
+
+選択したバンドルは、現在の構成と宣言された各プロファイルのバンドルリストに追加されます。
+バンドルはリストの順序で適用されるため、後のバンドルが前のバンドルの Cordis 設定を
+上書きします。ベースレイヤーは常に最初です。
+
+### デフォルトで無効な同梱バンドル
+
+各構成には、ホストプラットフォームをサポートする上流の `OPTIONAL_BUNDLES` が同梱されます。
+これらはすべてのプロファイルで利用でき、プラグインマネージャーの official グループで
+有効にできます。このセットはピン留めされたソースによって固定されており、Nix から
+削除したり拡張したりすることはできません。
+
+これらのいずれかをプロファイルの `bundles` に列挙すると、代わりに通常どおり構成されます。
+
+`experimental-tool-worktree` は、Git 2.45 以降（`gitMinimal`）と Node を実行時の
+`PATH` に提供します。worktree は Nix store ではなく、書き込み可能なソースチェックアウトに
+作成されます。既存のサンドボックスポリシーで、worktree ディレクトリと共有 Git メタデータの
+両方への書き込みが許可されている必要があります。このバンドルが追加の権限を付与することは
+ありません。
+
+## オーバーライド
+
+プリセットは、パッケージ入力用の `override` を公開します。プリセット定義をマージするには
+`withAgentPresets`、バンドルを追加するには `withBundles`、パッケージのプロファイルを
+置き換えるには `withProfiles` を使用します。`withProfiles` は、プリセットのデフォルト
+プロファイルもクリアします。
+
+## デスクトップパッケージ
+
+2 つのデスクトップアプリケーションがパッケージ化されています。
+
+- `dsh-desktop-official`: ピン留めされた `dsh-workspace` リリースのデスクトップ
+  アプリケーションからビルドされます。Linux と Darwin に対応。
+- `dsh-desktop-unofficial`:
+  [`anywhere-labs/deepseek-harness-desktop`](https://github.com/anywhere-labs/deepseek-harness-desktop)
+  からビルドされます。Linux と Darwin に対応。
+
+`dsh-desktop` は、現在 `dsh-desktop-unofficial` に解決されるエイリアスです。
+使用するバリアントを明示的に参照してください。
+
+```sh
+nix build .#dsh-desktop-official
+nix run .#dsh-desktop-official
+```
+
+Darwin では、アプリケーションは `Applications/DeepSeek Harness.app` にインストールされ、
+`bin/dsh-desktop` がランチャーになります。
+
+どちらのバリアントも `dshHost` を受け付けます。これは、デスクトップランタイムの背後で
+動作する、構成済みの `dsh` です。プリセットまたはカスタム構成を指定すると、
+アプリケーションが実行するバンドルを変更できます。
+
+```nix
+pkgs.dsh.dsh-desktop-official.override {
+  dshHost = pkgs.dsh.presets.tui;
+}
+```
+
+## オーバーレイ
+
+Nixpkgs にオーバーレイを追加し、`pkgs.dsh` スコープを使用します。
+
+```nix
+{
+  nixpkgs.overlays = [ inputs.deepseek-harness.overlays.default ];
+  environment.systemPackages = [ pkgs.dsh.dsh ];
+}
+```
+
+このスコープには、`pkgs.dsh.bundles.*`、`pkgs.dsh.presets.*`、`pkgs.dsh.helpers.*` の
+公開ヘルパー、`pkgs.dsh.dsh-desktop` や `pkgs.dsh.dsh-desktop-official` などの
+パッケージ出力が含まれます。バンドルとプリセットは `legacyPackages` を通じても公開されるため、
+`nix build .#bundles.tui` と `nix run .#presets.web` も同じように動作します。
+
+### 公開ヘルパー
+
+この Flake の外部の利用者には、2 種類のヘルパーが提供されます。
+
+- `fromPnpmWorkspace`、`fromWorkspace`、`validateDshBundle` を含む
+  `pkgs.dsh.helpers.buildBundle`: 後述するバンドルビルダー。
+- `legacyPackages.<system>.importPnpmLock`、またはオーバーレイの
+  `pkgs.dsh.importPnpmLock`: `pnpm-lock.json` をベンダー化するバンドル用のフェッチャー。
+  上流が `pnpm-workspace.json` を同梱している場合は、それにも対応します。
+
+`pkgs.dsh.dshWorkspacePatchHook` を含め、スコープ内のその他すべてのヘルパーは、
+内部的なビルド実装の詳細です。
+
+`importPnpmLock` は `lockfileJson` と `workspaceJson` を受け取ります。
+`pnpm-workspace.yaml` を書き込む際に `workspaceJson.packages` から `.` エントリを
+削除します。これは、pnpm が出力された `%YAML 1.1` ヘッダーの下で裸の `.` を
+空のパッケージとして読み戻すためです。
+
+### 外部バンドルのパッケージ化
+
+この Flake でパッケージ化されていないスタンドアロンのバンドルには、
+`pkgs.dsh.helpers.buildBundle` を使用します。
+
+```nix
+{ pkgs, ... }:
+let
+  customBundle = pkgs.dsh.helpers.buildBundle (finalAttrs: {
+    pname = "example-bundle";
+    version = "0.1.0";
+
+    src = pkgs.fetchFromGitHub {
+      owner = "example";
+      repo = "example-bundle";
+      tag = "v${finalAttrs.version}";
+      hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+    };
+
+    npmDepsHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+    npmBuildScript = "build";
+    linkKernelNodeModules = pkgs.dsh.dsh-kernel;
+
+    meta.description = "Example DSH bundle";
+  });
+in
+{
+  programs.dsh.profiles.tui.bundles = [ customBundle ];
+}
+```
+
+このヘルパーは `buildNpmPackage` の標準的な `npmInstallHook` を使用します。
+`package.json.name` がパッケージディレクトリを選択し、`npm pack` のファイルリストが
+実行時ペイロードを選択します。インストールされたマニフェストは `dsh.bundle.patch` を
+宣言している必要があり、そのファイルもパッケージペイロードに含まれている必要があります。
+ビルダーは結果を検証し、構成で使用するバンドルマニフェストを出力します。
+`installPhase` をオーバーライドするのは、非標準のパッケージレイアウトの場合のみにしてください。
+外部の pnpm モノレポには、`pkgs.dsh.helpers.buildBundle.fromPnpmWorkspace` を使用します。

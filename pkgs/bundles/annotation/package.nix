@@ -76,6 +76,7 @@ buildDshBundle (finalAttrs: {
   meta = {
     description = "DSH Web selection annotation plugin: annotate assistant text and reply by numbered annotation";
     descriptions.zh-CN = "DSH Web 选区标注插件：标注助手文本，按编号回复对应标注";
+    descriptions.ja = "DSH Web の選択範囲注釈プラグイン。アシスタントのテキストに注釈を付け、注釈番号を指定して返信";
     homepage = "https://github.com/omdsh-dev/dsh-annotation";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

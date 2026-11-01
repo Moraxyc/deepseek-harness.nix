@@ -46,6 +46,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   meta = {
     description = "Rule-gated automatic approval for DeepSeek Harness sandbox escalations";
     descriptions.zh-CN = "为 DeepSeek Harness 沙箱提权提供规则分流的自动审批插件";
+    descriptions.ja = "DeepSeek Harness のサンドボックス権限昇格をルールに基づいて自動承認するプラグイン";
     homepage = "https://github.com/timeance/dsh-approve-for-me";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

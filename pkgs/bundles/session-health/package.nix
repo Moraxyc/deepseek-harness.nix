@@ -39,6 +39,7 @@ buildDshBundle (finalAttrs: {
   meta = {
     description = "Read-only DSH session health checker for multi-frame zstd logs";
     descriptions.zh-CN = "只读检查 DSH 多帧 zstd 会话日志健康状况的插件";
+    descriptions.ja = "マルチフレーム zstd セッションログの健全性を読み取り専用で確認する DSH プラグイン";
     homepage = "https://github.com/omdsh-dev/dsh-session-health";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

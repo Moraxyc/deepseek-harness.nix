@@ -1,0 +1,13 @@
+{
+  "title": "ドキュメント",
+  "pages": [
+    "index",
+    "getting-started",
+    "migration",
+    "catalog",
+    "nixos",
+    "home-manager",
+    "advanced-usage",
+    "development"
+  ]
+}

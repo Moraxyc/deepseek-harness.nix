@@ -74,6 +74,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   meta = {
     description = "Codex-style @path references for the DeepSeek Harness web GUI";
     descriptions.zh-CN = "为 DeepSeek Harness 网页界面提供 Codex 风格 @路径引用";
+    descriptions.ja = "DeepSeek Harness Web GUI に Codex 風の @パス参照を提供";
     homepage = "https://github.com/omdsh-dev/dsh-at-file";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;
