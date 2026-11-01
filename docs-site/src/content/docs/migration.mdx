@@ -15,6 +15,17 @@ existing data.
 - Check the target upstream version and read its entry below before the first
   launch.
 
+## Desktop Default
+
+`dsh-desktop` now launches `dsh-desktop-official` instead of
+`dsh-desktop-unofficial`. To keep using the third-party application, select
+`dsh-desktop-unofficial`. Overlay users should replace `pkgs.dsh.dsh-desktop`
+with `pkgs.dsh.dsh-desktop-unofficial`. The NixOS and Home Manager module
+defaults are unchanged.
+
+Compatibility of configuration, sessions, and login state between the
+applications has not been verified.
+
 ## Removed Bundles
 
 Removed `bundles.*` attributes serve as migration entries that throw an error

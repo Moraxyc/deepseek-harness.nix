@@ -44,8 +44,7 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui
 Main outputs:
 
 - `dsh`: CLI
-- `dsh-desktop`: desktop application alias; currently the same package as
-  `dsh-desktop-unofficial`
+- `dsh-desktop`: alias for `dsh-desktop-official`
 - `dsh-desktop-official`: desktop application from the upstream workspace
   release; Linux and Darwin
 - `dsh-desktop-unofficial`: desktop application from

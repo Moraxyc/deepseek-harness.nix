@@ -44,8 +44,7 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui
 主な出力:
 
 - `dsh`: CLI
-- `dsh-desktop`: デスクトップアプリケーションのエイリアス。現在は
-  `dsh-desktop-unofficial` と同じパッケージ
+- `dsh-desktop`: `dsh-desktop-official` のエイリアス
 - `dsh-desktop-official`: アップストリームワークスペースのリリースから構築した
   デスクトップアプリケーション。Linux と Darwin に対応
 - `dsh-desktop-unofficial`: anywhere-labs/deepseek-harness-desktop から構築した

@@ -14,6 +14,16 @@ description: リポジトリのパッケージ削除と上流 DeepSeek Harness �
   移行ではデータがその場で書き換えられます。
 - 対象の上流バージョンを確認し、初回起動前に以下の該当する項目を読んでください。
 
+## デフォルトのデスクトップアプリケーション
+
+`dsh-desktop` が起動するアプリケーションを `dsh-desktop-unofficial` から
+`dsh-desktop-official` に変更しました。サードパーティ版を使い続けるには、
+`dsh-desktop-unofficial` を選択してください。overlay の利用者は
+`pkgs.dsh.dsh-desktop` を `pkgs.dsh.dsh-desktop-unofficial` に変更してください。
+NixOS と Home Manager のモジュールのデフォルト値は変わりません。
+
+アプリケーション間の設定、セッション、ログイン状態の互換性は未検証です。
+
 ## 削除されたバンドル
 
 削除された `bundles.*` 属性は、評価時にエラーを発生させる移行用エントリとして機能します。

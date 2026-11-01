@@ -12,6 +12,15 @@ description: 仓库包移除与上游 DeepSeek Harness 变更的迁移说明。
 - 如果可能需要回滚，请使用独立的数据目录测试。部分迁移会原地改写数据。
 - 确认目标上游版本，并在首次启动前阅读对应条目。
 
+## 默认桌面应用
+
+`dsh-desktop` 现由启动 `dsh-desktop-unofficial` 改为启动 `dsh-desktop-official`。
+如需继续使用第三方应用，请选择 `dsh-desktop-unofficial`。overlay 用户应将
+`pkgs.dsh.dsh-desktop` 改为 `pkgs.dsh.dsh-desktop-unofficial`。
+NixOS 和 Home Manager 模块的默认值不变。
+
+两个应用之间的配置、会话和登录状态兼容性尚未验证。
+
 ## 已移除的 Bundle
 
 已移除的 `bundles.*` 属性作为迁移入口保留，求值时通过 `throw` 告知原因与处理方法。

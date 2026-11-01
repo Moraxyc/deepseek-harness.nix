@@ -515,9 +515,6 @@ pkgs.dsh.dsh.withBundles (b: with b; [
   [`anywhere-labs/deepseek-harness-desktop`](https://github.com/anywhere-labs/deepseek-harness-desktop)
   からビルドされます。Linux と Darwin に対応。
 
-`dsh-desktop` は、現在 `dsh-desktop-unofficial` に解決されるエイリアスです。
-使用するバリアントを明示的に参照してください。
-
 ```sh
 nix build .#dsh-desktop-official
 nix run .#dsh-desktop-official

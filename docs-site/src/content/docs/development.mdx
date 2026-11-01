@@ -27,8 +27,7 @@ nix run .#dsh-desktop-official
 ```
 
 `packages` provides `dsh`, `dsh-desktop`, `dsh-desktop-official`,
-`dsh-desktop-unofficial`, `dsh-kernel`, and `dsh-workspace`; `dsh-desktop` is an
-alias and currently resolves to `dsh-desktop-unofficial`.
+`dsh-desktop-unofficial`, `dsh-kernel`, and `dsh-workspace`.
 `bundles.*` and `presets.*` are exposed through `legacyPackages`, so refs such
 as `.#bundles.tui` and `.#presets.tui` work directly. `bundleCompositions.*` is
 exposed the same way: the default `dsh` composition with one bundle layered on

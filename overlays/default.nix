@@ -113,7 +113,7 @@ let
       inherit removedBundles;
       helpers.buildBundle = buildDshBundle;
       mkDshBundle = buildDshBundle;
-      dsh-desktop = self.dsh-desktop-unofficial;
+      dsh-desktop = self.dsh-desktop-official;
     }
     // directoryPackages
   );
