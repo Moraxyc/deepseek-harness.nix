@@ -237,12 +237,9 @@ let
           case "$reserved" in
             @*)
               mkdir -p "$moduleRoot/''${reserved%/*}"
-              ln -s "$kernelNodeModules/$reserved" "$moduleRoot/$reserved"
-              ;;
-            *)
-              ln -s "$kernelNodeModules/$reserved" "$moduleRoot/$reserved"
               ;;
           esac
+          ln -s "$kernelNodeModules/$reserved" "$moduleRoot/$reserved"
         fi
       done < "$reservedList"
     }

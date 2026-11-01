@@ -380,6 +380,8 @@
             touch "$out"
           '';
 
+      }
+      // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
         dsh-service = pkgs.testers.runNixOSTest {
           name = "dsh-service";
 

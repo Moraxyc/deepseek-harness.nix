@@ -65,8 +65,11 @@ jobs:
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
           skipPush: ${{ github.event_name == 'pull_request' }}
 
-      - name: Check merge status aggregation
-        run: nix build --no-link .#checks.x86_64-linux.merge-check
+      - name: Check CI scripts
+        run: |
+          nix build --no-link \
+            .#checks.x86_64-linux.merge-check \
+            .#checks.x86_64-linux.package-ci-selection
 
       - name: Check generated optional bundle manifest
         run: |

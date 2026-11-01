@@ -7,6 +7,7 @@
     ./checks/cohort.nix
     ./checks/dsh-service.nix
     ./checks/merge-check.nix
+    ./checks/package-ci.nix
     ./checks/optional-bundles.nix
   ];
 }

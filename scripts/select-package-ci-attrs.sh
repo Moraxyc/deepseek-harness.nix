@@ -56,13 +56,7 @@ while IFS= read -r file; do
     pkgs/*)
       name="${file#pkgs/}"
       name="${name%%/*}"
-      case "$name" in
-        dsh | dsh-kernel | dsh-workspace | dshWorkspacePatchHook)
-          ;;
-        *)
-          changed_unknown_packages+=("$name")
-          ;;
-      esac
+      changed_unknown_packages+=("$name")
       ;;
   esac
 done <<< "$changed_files"
@@ -113,6 +107,7 @@ for name in "${changed_packages[@]}"; do
       "$(jq -r '.packages.dsh' <<< "$package_set")"
       "$(jq -r '.packages["dsh-desktop"]' <<< "$package_set")"
       "$(jq -r '.packages["dsh-desktop-official"]' <<< "$package_set")"
+      "$(jq -r '.packages["dsh-desktop-unofficial"]' <<< "$package_set")"
     )
     while IFS= read -r attr; do
       attrs+=("$attr")
