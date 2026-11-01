@@ -60,6 +60,7 @@ buildDshBundle (finalAttrs: {
   meta = {
     description = "Native DSH web-search provider with X search and focused page-reading tools";
     descriptions.zh-CN = "原生 DSH 网页搜索 provider，并提供 X 搜索与聚焦网页阅读工具";
+    descriptions.ja = "X 検索とページの精読ツールを備えた DSH ネイティブの Web 検索プロバイダー";
     homepage = "https://github.com/liustack/modsearch";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

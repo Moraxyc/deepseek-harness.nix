@@ -9,6 +9,7 @@ dsh.override {
   meta = {
     description = "Web-first setup with extra UI themes and components";
     descriptions.zh-CN = "以网页界面为主，包含额外 UI 主题与组件";
+    descriptions.ja = "追加の UI テーマとコンポーネントを含む、Web インターフェース中心のセットアップ";
   };
   profiles.web-ui.bundles = with bundles; [
     web-app

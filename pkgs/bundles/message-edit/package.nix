@@ -35,6 +35,7 @@ buildDshBundle (finalAttrs: {
   meta = {
     description = "Branch-based message editing, reroll, retry, and version timeline for DeepSeek Harness";
     descriptions.zh-CN = "为 DeepSeek Harness 提供分支式消息编辑、重掷、重试与版本时间线";
+    descriptions.ja = "DeepSeek Harness 向けのブランチ型メッセージ編集、再生成、再試行、バージョンタイムライン";
     homepage = "https://github.com/Moeblack/dsh-message-edit";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

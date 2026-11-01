@@ -39,6 +39,7 @@ let
       meta = {
         inherit (entry) description;
         descriptions.zh-CN = entry.descriptionZh;
+        descriptions.ja = entry.descriptionJa;
         homepage = "https://github.com/deepseek-ai/deepseek-harness";
         license = lib.licenses.mit;
         platforms =

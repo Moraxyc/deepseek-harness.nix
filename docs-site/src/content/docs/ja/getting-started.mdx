@@ -1,0 +1,90 @@
+---
+title: はじめに
+description: リモート flake から DeepSeek Harness を実行し、出力を選択して、Cachix を設定します。
+---
+
+## クイックスタート
+
+TUI プリセットを試します：
+
+```sh
+nix run github:moraxyc/deepseek-harness.nix#presets.tui \
+  --accept-flake-config
+```
+
+`--accept-flake-config` フラグを指定すると、必要に応じてリポジトリに設定されたバイナリキャッシュを Nix が使用できるようになります。
+
+## リモート flake を使用する
+
+GitHub から個々の出力を直接実行またはビルドします：
+
+```sh
+nix run github:moraxyc/deepseek-harness.nix#default -- --version
+nix build github:moraxyc/deepseek-harness.nix#dsh
+nix build github:moraxyc/deepseek-harness.nix#dsh-desktop
+nix build github:moraxyc/deepseek-harness.nix#dsh-desktop-official
+nix build github:moraxyc/deepseek-harness.nix#dsh-kernel
+nix build github:moraxyc/deepseek-harness.nix#dsh-workspace
+nix build github:moraxyc/deepseek-harness.nix#bundles.tui
+nix run github:moraxyc/deepseek-harness.nix#presets.tui
+```
+
+主な出力は次のとおりです。
+
+| 出力                     | 用途                                                     |
+| ------------------------ | -------------------------------------------------------- |
+| `dsh`                    | CLI パッケージ                                           |
+| `dsh-desktop`            | デスクトップアプリケーション                             |
+| `dsh-desktop-official`   | 上流リリースのデスクトップアプリケーション               |
+| `dsh-desktop-unofficial` | サードパーティプロジェクトのデスクトップアプリケーション |
+| `dsh-kernel`             | プロファイルバンドルを含まないカーネル                   |
+| `dsh-workspace`          | ビルド済みワークスペース成果物                           |
+| `bundles.*`              | プラグイン形式の拡張機能                                 |
+| `presets.*`              | すぐに使えるバンドルの組み合わせ                         |
+
+完全な一覧は、[バンドルとプリセット](../catalog/)のカタログを参照してください。
+
+`dsh-desktop` はエイリアスで、現在は `dsh-desktop-unofficial` に解決されます。
+バリアントのソース、サポート対象プラットフォーム、`dshHost` オーバーライドについては、
+[高度な使用方法](../advanced-usage/)を参照してください。
+
+## 別の flake に追加する
+
+リポジトリを入力として宣言し、そのパッケージ、モジュール、オーバーレイに `inputs.deepseek-harness.*` を使用します：
+
+```nix
+{
+  inputs.deepseek-harness.url = "github:moraxyc/deepseek-harness.nix";
+}
+```
+
+入力を宣言したら、[NixOS との統合](../nixos/)、[Home Manager との統合](../home-manager/)、または[高度な使用方法](../advanced-usage/)のガイドに進んでください。
+
+## Cachix
+
+公開キャッシュは次のコマンドで使用します：
+
+```sh
+cachix use deepseek-harness-nix
+```
+
+または、Nix の設定に手動で追加します：
+
+```nix
+{
+  nix.settings = {
+    substituters = [ "https://deepseek-harness-nix.cachix.org" ];
+    trusted-public-keys = [
+      "deepseek-harness-nix.cachix.org-1:5NrkwLN9veNMhiINtU5ZeV4isXFhFsOwn6Ms7J1M+TA="
+    ];
+  };
+}
+```
+
+## ライセンスとブランドに関する注意
+
+このリポジトリ自体のコードとドキュメントは、MIT ライセンスの下で提供されています。このライセンスは、上流の `deepseek-harness`、DeepSeek または `@deepseek-ai` の資料、名称、商標、およびサードパーティコンポーネントには適用されません。
+
+DSH Nix は独立したコミュニティプロジェクトです。DeepSeek との提携、DeepSeek からの後援、認可、支持はありません。「DeepSeek Harness」という名称は、このプロジェクトが提供する Nix パッケージと統合を正確に説明するためだけに使用しています。
+
+DSH Nix は独立したプロジェクト名とビジュアル表現を使用しています。ブランド名とアセットの使用は、上流の [DeepSeek Harness ブランドアセット使用ガイドライン](https://github.com/deepseek-ai/deepseek-harness/blob/master/BRAND_GUIDELINES.md)に従います。ライセンス条件については、リポジトリの [LICENSE](https://github.com/moraxyc/deepseek-harness.nix/blob/main/LICENSE)を参照してください。

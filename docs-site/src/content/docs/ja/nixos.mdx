@@ -1,0 +1,253 @@
+---
+title: NixOS との連携
+description: NixOS モジュールを使用して dsh とその Web サービスを有効にします。
+---
+
+このガイドでは、`nixosModules.default` NixOS モジュールについて、`dsh` CLI
+の有効化、バンドルとプロファイルの宣言、Web プロファイルのシステムサービスとしての
+実行を説明します。バンドルとプリセットの詳細については
+[バンドルとプリセット](../catalog/)を、高度なパッケージオーバーライド、シークレットの
+注入、リバースプロキシの設定については[高度な使い方](../advanced-usage/)を参照してください。
+
+## Flake 入力の追加
+
+```nix
+{
+  inputs.deepseek-harness.url = "github:moraxyc/deepseek-harness.nix";
+}
+```
+
+このリポジトリを `dsh` など別の入力名で宣言している場合は、例中の
+`inputs.deepseek-harness` をその名前に置き換えてください。
+
+## モジュールの有効化
+
+NixOS 設定で `nixosModules.default` をインポートします。
+
+```nix
+{ inputs, pkgs, ... }:
+{
+  imports = [ inputs.deepseek-harness.nixosModules.default ];
+
+  programs.dsh = {
+    enable = true;
+    profiles.tui.bundles = [ pkgs.dsh.bundles.tui ];
+    defaultProfile = "nix-tui";
+  };
+}
+```
+
+このモジュールは次の処理を行います。
+
+- `pkgs.dsh.*` スコープを利用できるよう `nixpkgs.overlays` を設定します。
+- 構成済みの `dsh` パッケージを `environment.systemPackages` に追加します。
+- `programs.dsh` と `services.dsh` のオプショングループを公開します。
+
+## DSH ホームの設定
+
+`programs.dsh.home` を設定すると、システム環境を通じて明示的な `DSH_HOME` を
+エクスポートできます。
+
+```nix
+programs.dsh.home = "/var/lib/dsh-cli";
+```
+
+未設定の場合、dsh はユーザーごとのデフォルトである `$HOME/.dsh` をそのまま使用します。
+
+## ホームレベルのパッチの管理
+
+`programs.dsh.patch` は Cordis パッチエントリの構造化されたリストを受け取り、
+`$DSH_HOME/cordis.patch.yml` として管理します。
+
+```nix
+programs.dsh.patch = [
+  {
+    id = "agent-default-model";
+    config = {
+      provider = "deepseek-official";
+      model = "deepseek-flash";
+    };
+  }
+];
+```
+
+このレイヤーは各プロファイル自身のパッチの後に適用されるため、すべての
+プロファイルに影響します。モジュールによって構成された CLI パッケージとサービスパッケージは、
+起動前に宣言されたファイルを復元します。デフォルトの `null` では、このファイルを管理しません。
+
+## プロファイルの宣言
+
+プロファイルは `programs.dsh.profiles` の属性として宣言します。`tui` という名前の
+プロファイルは `$DSH_HOME/profiles/nix-tui` に実体化されます。
+`$DSH_HOME` のデフォルトは `~/.dsh` です。
+
+`programs.dsh.package` のデフォルトは `pkgs.dsh.dsh` です。別の構成や
+パッケージソースが必要な場合は、オーバーライドできます。
+
+各プロファイルは次の項目をサポートします。
+
+- `bundles`: バンドルパッケージのリスト。例: `pkgs.dsh.bundles.tui`。
+- `agentPreset`: `programs.dsh.agentPresets` にある ID。
+- `patch`: すべてのバンドルレイヤーの後に `cordis.patch.yml` として適用される、
+  Cordis パッチ操作のリストまたは生の YAML。
+- `mode`: デフォルトは `managed`。`mutable` も指定できます。
+- 読み取り専用の `rawName` と `materializedName`。
+
+例:
+
+```nix
+programs.dsh.profiles = {
+  tui = {
+    bundles = [
+      pkgs.dsh.bundles.tui
+      pkgs.dsh.bundles.web-app
+    ];
+    mode = "managed";
+  };
+};
+```
+
+`programs.dsh.agentPresets` の下で Agent Preset を宣言し、プロファイルから
+参照します。プロバイダーバンドルは `bundles` に個別に列挙してください。
+`source`、`enableTools`、サブエージェントの例については、
+[高度な使い方](../advanced-usage/)を参照してください。
+
+デフォルトの指定には `nix-` プレフィックスをハードコードせず、実体化後の名前を
+使用します。
+
+```nix
+{ config, inputs, pkgs, ... }:
+{
+  imports = [ inputs.deepseek-harness.nixosModules.default ];
+
+  programs.dsh = {
+    enable = true;
+    profiles.tui.bundles = [ pkgs.dsh.bundles.tui ];
+    defaultProfile = config.programs.dsh.profiles.tui.materializedName;
+  };
+}
+```
+
+## プロファイルモード
+
+ファイルの所有権、Desktop のオンボーディング、Settings の動作については、
+[プロファイルモード](../advanced-usage/#プロファイルモード)を参照してください。既存データを
+アップグレードする前に、[移行ガイド](../migration/)をお読みください。
+
+## Web サービスの実行
+
+`services.dsh` は Web プロファイルを NixOS の systemd ユニットとして実行します。
+デフォルトではループバックにのみバインドし、ファイアウォールは開放しません。
+
+```nix
+services.dsh = {
+  enable = true;
+  listenAddress = "127.0.0.1";
+  port = 3080;
+  trustedHosts = [ "dsh.example.com" ];
+};
+```
+
+デフォルトでは、このユニットは `nix-web` を提供します。カスタムの
+`programs.dsh.profiles.web` プロファイルが宣言されている場合、サービスは
+`programs.dsh.package` とそれらのプロファイルから構成します。宣言されていない場合は、
+Web プリセットにフォールバックします。
+
+主なサービスオプションは次のとおりです。
+
+- `profile`: ユニットが提供する、実体化後のプロファイル。デフォルトは `nix-web`。
+- `listenAddress`、`port`、`trustedHosts`: バインドとブラウザーからの信頼に関する設定。
+- `extraArguments`: `dsh` コマンドに追加する引数。
+- `user` と `group`: 固定サービスアカウント。`DynamicUser` を使用するには、
+  両方とも未設定のままにします。
+- `dataDir`、`homeDirectory`、`workspace`: 状態と作業ディレクトリのパス。
+- `environment`、`environmentFile`、`credentials`: 実行時環境とシークレットの供給源。
+- `openFirewall`: `port` を開放するかどうか。デフォルトは `false`。
+- `autoStart`: `multi-user.target` と一緒に起動するかどうか。デフォルトは `true`。
+
+サービスにより強力なサンドボックスが必要な場合は、オプションの systemd アイソレーション
+プロファイルを有効にしてください。Web サーバーがネットワークを利用できる状態を保ちながら、
+デバイス、カーネル、ネームスペース、ケーパビリティ、SUID/SGID の制限を追加します。
+追加の書き込み可能パスとバインドマウントは、明示的に宣言する必要があります。
+
+```nix
+services.dsh.isolation = {
+  enable = true;
+  rootDirectory = "/var/lib/dsh/root";
+  readWritePaths = [ "/var/lib/dsh/cache" ];
+  bindPaths = [ "/srv/dsh-assets:/opt/dsh/assets" ];
+  bindReadOnlyPaths = [ "/nix/store:/nix/store" "/etc/resolv.conf:/etc/resolv.conf" ];
+};
+```
+
+`rootDirectory` はオプションです。設定すると、そのディレクトリがサービスのルートになり、
+実行ファイルのランタイムをその配下で利用できるようにする必要があります。必要な
+Nix store パス、証明書、DNS ファイル、その他の読み取り専用入力には、
+`bindReadOnlyPaths` を使用してください。どちらのバインドオプションも、systemd の
+`source:destination` 構文を使用します。アイソレーションモードでも、サービスの
+`homeDirectory` と `workspace` は書き込み可能なままです。`readWritePaths` を使用すると、
+さらにパスを追加できます。
+
+ユニット名は `dsh-web` です。
+
+```sh
+sudo systemctl start dsh-web
+sudo systemctl restart dsh-web
+systemctl status dsh-web
+journalctl -u dsh-web -f
+```
+
+このサービスはデフォルトで systemd の `DynamicUser` を使用し、状態を
+`/var/lib/dsh` 配下に保存します。リバースプロキシ、シークレットファイル、クレデンシャル、
+固定ユーザー/グループモード、サービスオプションの完全な一覧については、
+[高度な使い方](../advanced-usage/)を参照してください。
+
+## トラブルシューティング
+
+- NixOS モジュールの評価中に `attribute 'dsh' missing` が表示された場合は、
+  `nixosModules.default` がインポートされていること、および dsh オーバーレイより前の
+  固定パッケージセットで他のモジュールが `pkgs` を置き換えていないことを確認してください。
+- Flake が `specialArgs` を通じて `pkgs` を `nixosSystem` に渡す場合、NixOS は
+  `nixpkgs.overlays` を無視します。dsh オーバーレイをすでに含む pkgs セットを使用してください。
+  既存の pkgs セットを再利用する場合は、`inputs.nixpkgs.nixosModules.readOnlyPkgs` を
+  インポートし、`nixpkgs.pkgs` にその pkgs セットを設定します。
+- `dsh` は起動するものの、想定したプロファイルを使用しない場合は、
+  `programs.dsh.defaultProfile` に生のプロファイルキー（`tui`）ではなく、
+  実体化後の名前（`nix-tui`）が指定されていることを確認してください。
+
+## デスクトップアプリケーション
+
+モジュールをインポートし、上記のオーバーレイを設定した後、公式デスクトップ
+アプリケーションを個別に有効にできます。
+
+```nix
+programs.dsh.desktop.enable = true;
+```
+
+`desktop.enable` のデフォルトは `false` で、`programs.dsh.enable` は必要ありません。
+このモジュールは `pkgs.dsh.dsh-desktop-official` を `environment.systemPackages` に追加します。
+`programs.dsh.desktop.package` でオーバーライドできます。
+CLI のデフォルトとは独立に、`desktop.profile` で宣言済みのプロファイルを選択します。
+
+```nix
+programs.dsh = {
+  desktop.enable = true;
+  desktop.profile = "nix-desktop";
+  profiles.desktop = {
+    bundles = [ pkgs.dsh.bundles.notification ];
+    mode = "managed";
+  };
+};
+```
+
+`config.programs.dsh.profiles.desktop.materializedName` を参照することもできます。
+このモジュールは Web アプリケーションの依存関係を組み込み、プロファイルのバンドルを
+公式デスクトップランタイムにパッケージ化します。コマンドラインまたはアプリケーションメニューから
+起動すると、デスクトップは選択したプロファイル、それが参照する `agentPresets`、および
+`programs.dsh.home` 配下のホームレベル `patch` の初期内容を配置してから、ホストを起動します。
+設定を変更した後は、デスクトップを再起動してください。
+
+`desktop.profile` のデフォルトは `null` で、上流の `profiles/desktop` の動作を維持します。
+この連携では、`desktop.package` が公式パッケージの `dshHost` 引数と
+`desktopProfile` 引数をサポートしている必要があります。
+`programs.dsh.defaultProfile` は引き続き CLI のみを制御します。

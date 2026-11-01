@@ -64,6 +64,7 @@ buildDshBundle (finalAttrs: {
   meta = {
     description = "Layered long-term memory, skill evolution, TODOs, and session orchestration for DeepSeek Harness";
     descriptions.zh-CN = "为 DeepSeek Harness 提供分层长期记忆、技能进化、待办管理与会话编排";
+    descriptions.ja = "DeepSeek Harness 向けの階層型長期メモリ、スキル進化、TODO 管理、セッションオーケストレーション";
     homepage = "https://github.com/csyangwen/dsh-memory-evolve";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

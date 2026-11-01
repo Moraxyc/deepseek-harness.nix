@@ -60,6 +60,7 @@ buildDshBundle (finalAttrs: {
   meta = {
     description = "Native DSH graph memory with SQLite, FTS5 fallback, graph traversal, PageRank, and cross-session recall";
     descriptions.zh-CN = "原生 DSH 知识图谱记忆插件，提供 SQLite、FTS5 降级、图遍历、PageRank 与跨会话召回";
+    descriptions.ja = "SQLite、FTS5 フォールバック、グラフ探索、PageRank、セッション間の想起に対応した DSH ネイティブの知識グラフメモリプラグイン";
     homepage = "https://github.com/adoresever/graph-memory";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

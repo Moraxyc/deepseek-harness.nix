@@ -86,6 +86,7 @@ buildDshBundle (finalAttrs: {
   meta = {
     description = "Liang intensity calibrator as a DeepSeek Harness model and thinking-effort slider";
     descriptions.zh-CN = "将 liang-intensity-calibrator 作为 DeepSeek Harness 的模型与思考强度滑块";
+    descriptions.ja = "liang-intensity-calibrator を DeepSeek Harness のモデル・思考強度スライダーとして提供";
     homepage = "https://github.com/BruzWJ/Liang-Saint-Slider";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

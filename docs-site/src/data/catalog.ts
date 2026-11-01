@@ -4,6 +4,7 @@ export interface BundleInfo {
   version: string | null;
   description: string | null;
   descriptionZh: string | null;
+  descriptionJa: string | null;
   homepage: string | null;
 }
 
@@ -15,6 +16,7 @@ export interface PresetInfo {
   bundles: string[];
   description: string | null;
   descriptionZh: string | null;
+  descriptionJa: string | null;
   homepage: string | null;
 }
 

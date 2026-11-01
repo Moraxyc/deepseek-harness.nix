@@ -52,6 +52,7 @@ buildDshBundle (finalAttrs: {
   meta = {
     description = "Multi-agent team collaboration for DeepSeek Harness";
     descriptions.zh-CN = "DeepSeek Harness 的多 Agent 团队协作插件";
+    descriptions.ja = "DeepSeek Harness 向けのマルチエージェントチーム連携プラグイン";
     homepage = "https://github.com/NanmiCoder/dsh-agent-teams";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

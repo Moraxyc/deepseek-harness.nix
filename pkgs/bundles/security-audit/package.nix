@@ -76,6 +76,7 @@ buildDshBundle (finalAttrs: {
   meta = {
     description = "Read-only local DSH security audit for configuration, plugin provenance, sessions, and network exposure";
     descriptions.zh-CN = "只读审计 DSH 本地配置、插件来源、会话结构与网络暴露面的安全插件";
+    descriptions.ja = "DSH のローカル設定、プラグインの出所、セッション構造、ネットワーク公開面を読み取り専用で監査するセキュリティプラグイン";
     homepage = "https://github.com/omdsh-dev/dsh-security-audit";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

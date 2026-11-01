@@ -65,6 +65,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   meta = {
     description = "Noema long-term memory plugin for DSH with recall tools and a settings page";
     descriptions.zh-CN = "DSH 的 Noema 长期记忆插件，提供召回工具与设置页";
+    descriptions.ja = "想起ツールと設定ページを備えた DSH の Noema 長期メモリプラグイン";
     homepage = "https://github.com/ZSeven-W/dsh-noema";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

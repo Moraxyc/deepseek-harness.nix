@@ -39,6 +39,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   meta = {
     description = "Composable three-tier memory control plane for DeepSeek Harness";
     descriptions.zh-CN = "DeepSeek Harness 的可组合三层记忆控制平面";
+    descriptions.ja = "DeepSeek Harness 向けの構成可能な 3 層メモリコントロールプレーン";
     homepage = "https://github.com/omdsh-dev/dsh-mnemon";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

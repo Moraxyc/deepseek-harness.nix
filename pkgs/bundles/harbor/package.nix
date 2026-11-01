@@ -90,6 +90,7 @@ buildDshBundle (finalAttrs: {
   meta = {
     description = "Read-only DSH plugin inventory with capability evidence, conflict detection, and change tracking";
     descriptions.zh-CN = "只读盘点 DSH 插件能力、证据、跨插件冲突与扫描变化";
+    descriptions.ja = "DSH プラグインを読み取り専用で棚卸しし、機能の根拠、プラグイン間の競合、スキャン間の変化を確認するツール";
     homepage = "https://github.com/ZSeven-W/dsh-harbor";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

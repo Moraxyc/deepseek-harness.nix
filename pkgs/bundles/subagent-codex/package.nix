@@ -70,6 +70,7 @@ buildDshBundle.fromWorkspace (_finalAttrs: {
   meta = {
     description = "Codex subagent provider for dsh";
     descriptions.zh-CN = "dsh 的 Codex 子代理提供程序";
+    descriptions.ja = "dsh の Codex サブエージェントプロバイダー";
     homepage = "https://github.com/deepseek-ai/deepseek-harness";
     license = with lib.licenses; [
       asl20

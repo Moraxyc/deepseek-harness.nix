@@ -76,6 +76,7 @@ buildDshBundle (finalAttrs: {
   meta = {
     description = "Read-only DSH plugin health checker for manifest, patch, build, and registry diagnostics";
     descriptions.zh-CN = "只读检查 DSH 插件清单、补丁、构建与注册状态的健康检查工具";
+    descriptions.ja = "DSH プラグインのマニフェスト、パッチ、ビルド、レジストリの状態を読み取り専用で診断するヘルスチェックツール";
     homepage = "https://github.com/omdsh-dev/dsh-plugin-check";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;

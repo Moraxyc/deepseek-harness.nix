@@ -39,6 +39,7 @@ export function Docs({
         locales: [
           { locale: "en", name: "English" },
           { locale: "zh", name: "简体中文" },
+          { locale: "ja", name: "日本語" },
         ],
         onLocaleChange: (nextLocale) => {
           const url = localeUrls[nextLocale as Locale];

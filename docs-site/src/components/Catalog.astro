@@ -2,11 +2,12 @@
 import { catalog } from '../data/catalog';
 
 interface Props {
-  locale: 'en' | 'zh-CN';
+  locale: 'en' | 'zh-CN' | 'ja';
 }
 
 const { locale } = Astro.props;
 const isChinese = locale === 'zh-CN';
+const isJapanese = locale === 'ja';
 const text = isChinese
   ? {
       bundles: 'Bundles',
@@ -20,21 +21,42 @@ const text = isChinese
       bundlesColumn: 'Bundles',
       unavailable: '暂无',
     }
-  : {
-      bundles: 'Bundles',
-      presets: 'Presets',
-      flakeOutput: 'Flake output',
-      package: 'Package',
-      version: 'Version',
-      description: 'Description',
-      homepage: 'Homepage',
-      defaultProfile: 'Default profile',
-      bundlesColumn: 'Bundles',
-      unavailable: 'Not available',
-    };
+  : isJapanese
+    ? {
+        bundles: 'バンドル',
+        presets: 'プリセット',
+        flakeOutput: 'Flake 出力',
+        package: 'パッケージ',
+        version: 'バージョン',
+        description: '説明',
+        homepage: 'ホームページ',
+        defaultProfile: 'デフォルトプロファイル',
+        bundlesColumn: 'バンドル',
+        unavailable: 'なし',
+      }
+    : {
+        bundles: 'Bundles',
+        presets: 'Presets',
+        flakeOutput: 'Flake output',
+        package: 'Package',
+        version: 'Version',
+        description: 'Description',
+        homepage: 'Homepage',
+        defaultProfile: 'Default profile',
+        bundlesColumn: 'Bundles',
+        unavailable: 'Not available',
+      };
 
-const descriptionFor = (item: { description: string | null; descriptionZh: string | null }) =>
-  (isChinese ? item.descriptionZh : item.description) ?? text.unavailable;
+const descriptionFor = (item: {
+  description: string | null;
+  descriptionZh: string | null;
+  descriptionJa: string | null;
+}) =>
+  (isChinese
+    ? item.descriptionZh
+    : isJapanese
+      ? item.descriptionJa
+      : item.description) ?? text.unavailable;
 
 const valueFor = (value: string | null) => value ?? text.unavailable;
 ---

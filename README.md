@@ -1,6 +1,6 @@
 # DSH Nix
 
-> [English](README.en.md) | **简体中文**
+> [English](README.en.md) | **简体中文** | [日本語](README.ja.md)
 
 DSH Nix 是 DeepSeek Harness（`dsh`）的社区 Nix 打包：提供 `dsh`、
 `dsh-desktop`、`dsh-kernel`、`dsh-workspace`，以及 bundle（插件）、preset、

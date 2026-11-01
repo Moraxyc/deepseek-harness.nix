@@ -103,6 +103,7 @@ while IFS= read -r package_name; do
 
   description="$(jq -r '.meta.description // empty' "$dir/locale/en.json" 2>/dev/null || true)"
   description_zh="$(jq -r '.meta.description // empty' "$dir/locale/zh.json" 2>/dev/null || true)"
+  description_ja="$(jq -r '.meta.description // empty' "$dir/locale/ja.json" 2>/dev/null || true)"
   if [ -z "$description" ]; then
     description="$(jq -r '.description // empty' "$dir/package.json")"
   fi
@@ -111,6 +112,11 @@ while IFS= read -r package_name; do
     printf 'generate-optional-bundles: %s has no Chinese description; using English\n' \
       "$package_name" >&2
     description_zh="$description"
+  fi
+  if [ -z "$description_ja" ]; then
+    printf 'generate-optional-bundles: %s has no Japanese description; using English\n' \
+      "$package_name" >&2
+    description_ja="$description"
   fi
 
   requires_web_value=false
@@ -124,6 +130,7 @@ while IFS= read -r package_name; do
     --arg pname "$pname" \
     --arg description "$description" \
     --arg descriptionZh "$description_zh" \
+    --arg descriptionJa "$description_ja" \
     --argjson requiresWeb "$requires_web_value" \
     --argjson platforms "$(jq -c '.dsh.bundle.platforms // []' "$dir/package.json")" \
     '{ key: $name, value: {
@@ -131,6 +138,7 @@ while IFS= read -r package_name; do
         pname: $pname,
         description: $description,
         descriptionZh: $descriptionZh,
+        descriptionJa: $descriptionJa,
         requiresWeb: $requiresWeb,
         platforms: $platforms,
       } }' >> "$tmp_dir/entries"

@@ -100,6 +100,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   meta = {
     description = "DeepSeek Harness-native vision toolkit with OCR, grounding, pixel diff, and UI restoration";
     descriptions.zh-CN = "DeepSeek Harness 原生视觉工具集，支持 OCR、定位、像素差异与 UI 还原";
+    descriptions.ja = "OCR、UI 要素の位置特定、ピクセル差分、UI 復元に対応した DeepSeek Harness ネイティブの視覚ツールキット";
     homepage = "https://github.com/Anionex/dsh-vision-toolkit";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;
