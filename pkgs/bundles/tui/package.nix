@@ -64,7 +64,7 @@ buildDshBundle (finalAttrs: {
   nativeBuildInputs = [ pnpm_11 ];
   disallowedReferences = [ pnpm_11 ];
   linkKernelNodeModules = dsh-kernel;
-  # Upstream peer ranges stop at 0.2.1-rc.3. Raise this only after the TUI
+  # Upstream peer ranges stop at 0.2.1-rc.5. Raise this only after the TUI
   # boots every bundled preset on the new dsh release.
   dshEngines = "0.2.2-alpha.2";
   linkKernelNodeModulesKeep = [
