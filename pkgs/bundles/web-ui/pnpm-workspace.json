@@ -5,6 +5,12 @@
   ],
   "autoInstallPeers": false,
   "linkWorkspacePackages": true,
+  "verifyDepsBeforeRun": false,
+  "overrides": {
+    "@deepseek-ai/dsh-client-store": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-client-ui-primitives": "0.2.1-rc.5",
+    "@deepseek-ai/dsh-client-ui-slots": "0.2.1-rc.5"
+  },
   "allowBuilds": {
     "cloudflared": true,
     "cpu-features": true,
@@ -13,13 +19,13 @@
     "ssh2": true
   },
   "packageExtensions": {
-    "@deepseek-ai/dsh-client-store@0.2.1-rc.3": {
+    "@deepseek-ai/dsh-client-store@0.2.1-rc.5": {
       "dependencies": {
         "zustand": "~4.4.7",
         "immer": "^10.1.1"
       }
     },
-    "@deepseek-ai/dsh-client-ui-primitives@0.2.1-rc.3": {
+    "@deepseek-ai/dsh-client-ui-primitives@0.2.1-rc.5": {
       "dependencies": {
         "anser": "^2.3.5",
         "clsx": "^2.0.0",
@@ -116,10 +122,10 @@
     "@mlgbnb/dsh-archive-manager@1.0.7",
     "@deepseek-ai/dsh-app-boot@0.2.1-rc.3",
     "@deepseek-ai/dsh-package-manifest@0.2.1-rc.3",
-    "@linxin666/dsh-client-ui-community-plugins@0.4.13",
-    "@linxin666/dsh-client-ui-skin-center@0.4.13",
-    "@linxin666/dsh-pet@0.4.13",
-    "@linxin666/dsh-client-ui-preset-center@0.4.13",
+    "@linxin666/dsh-client-ui-community-plugins@0.4.14",
+    "@linxin666/dsh-client-ui-skin-center@0.4.14",
+    "@linxin666/dsh-pet@0.4.14",
+    "@linxin666/dsh-client-ui-preset-center@0.4.14",
     "@deepseek-ai/dsh-util-code-language@0.2.1-rc.3",
     "@deepseek-ai/dsh-client-ui-layout@0.2.1-rc.3",
     "@oxlint/binding-android-arm-eabi@1.88.0",
