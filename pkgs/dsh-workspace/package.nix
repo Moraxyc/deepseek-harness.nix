@@ -30,7 +30,7 @@ let
 in
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
-  version = "0.2.2-alpha.2";
+  version = "0.2.2-alpha.3";
 
   __structuredAttrs = true;
   strictDeps = true;
@@ -45,7 +45,7 @@ buildNpmPackage (finalAttrs: {
     owner = "deepseek-ai";
     repo = "deepseek-harness";
     tag = "dsh-v${finalAttrs.version}";
-    hash = "sha256-KxEyrXuFwEKXney6ngmuEMp1djxPJ0F6duVZgBJ+fI0=";
+    hash = "sha256-c9vvBXU3cEdKJxevQu297rp1UdOUMZkF0NWJsUAgOUs=";
   };
 
   patches = [
@@ -60,7 +60,7 @@ buildNpmPackage (finalAttrs: {
   ];
 
   env = {
-    DSH_CLIENT_COMMIT_HASH = "f3803c96974ad4a94195fb97e5c637e9c2a3afe3";
+    DSH_CLIENT_COMMIT_HASH = "05b1cae8db6e674c5685101494d4eec24652424a";
     PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = "false";
     DSH_WORKSPACE_OVERRIDES = "${writers.writeJSON "dsh-workspace-overrides.json" (
       finalAttrs.pnpmDeps.passthru.workspaceConfig.overrides or { }
