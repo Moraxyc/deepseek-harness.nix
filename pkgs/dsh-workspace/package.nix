@@ -65,6 +65,10 @@ buildNpmPackage (finalAttrs: {
     DSH_WORKSPACE_OVERRIDES = "${writers.writeJSON "dsh-workspace-overrides.json" (
       finalAttrs.pnpmDeps.passthru.workspaceConfig.overrides or { }
     )}";
+  }
+  // lib.optionalAttrs cuaIsAvailable {
+    # The signed CUA application and its receipt must retain identical bytes.
+    stripExclude = "*/DSH Computer Use.app/*";
   };
 
   nodejs = nodejs-slim;
@@ -89,8 +93,7 @@ buildNpmPackage (finalAttrs: {
     install -Dm644 ${dsh-system}/bin/system.node native/system/packages/${platformKey}/bin/system.node
   ''
   + lib.optionalString cuaIsAvailable ''
-    install -Dm755 ${dsh-cua-native}/bin/dsh-cua-native \
-      packages/experimental/cua-macos/native/bin/${platformKey}/dsh-cua-native
+    cp -r ${dsh-cua-native}/lib/dsh-cua-native/. packages/experimental/cua-macos/
   '';
 
   preConfigure = ''
