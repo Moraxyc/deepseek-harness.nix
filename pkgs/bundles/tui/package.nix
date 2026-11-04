@@ -66,7 +66,7 @@ buildDshBundle (finalAttrs: {
   linkKernelNodeModules = dsh-kernel;
   # Upstream peer ranges stop at 0.2.1-rc.5. Raise this only after the TUI
   # boots every bundled preset on the new dsh release.
-  dshEngines = "0.2.2-alpha.2";
+  dshEngines = "0.2.2-alpha.3";
   linkKernelNodeModulesKeep = [
     "ansi-styles"
     # dsh-tui compiles against React 19, while dsh-kernel carries React 18.
