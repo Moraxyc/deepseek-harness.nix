@@ -352,6 +352,19 @@ managed 模式会在下次启动时恢复这三个文件，此时这些声明可
 需要从市场安装时请使用 mutable profile；保持 managed 模式时，profile 插件应通过
 Nix Bundle 声明。
 
+## macOS Computer Use
+
+在 `aarch64-darwin` 上使用声明式 profile 时，请显式选择它：
+
+```nix
+programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
+  web-app
+  cua-bundle
+];
+```
+
+请通过权限设置向 `DSH Computer Use.app` 授予辅助功能和屏幕录制权限。
+
 ## 可选子代理提供程序
 
 Codex 和 Claude Code 以可选 Profile Bundle 提供。只需把允许该 profile 使用的

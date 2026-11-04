@@ -1,35 +1,38 @@
 {
   lib,
-  stdenv,
-  swift,
-  dsh-workspace,
+  stdenvNoCC,
+  fetchurl,
 }:
-stdenv.mkDerivation (finalAttrs: {
+let
+  source = lib.importJSON ./source.json;
+in
+stdenvNoCC.mkDerivation {
   pname = "dsh-cua-native";
-  inherit (dsh-workspace) version src;
+  inherit (source) version;
 
-  sourceRoot = "${finalAttrs.src.name}/packages/experimental/cua-macos/native";
-  nativeBuildInputs = [ swift ];
-  disallowedReferences = [ swift ];
+  src = fetchurl {
+    inherit (source) url hash;
+  };
 
-  buildPhase = ''
-    runHook preBuild
-    export HOME="$TMPDIR/home"
-    mkdir -p "$HOME"
-    swift build --configuration release --product dsh-cua-native --scratch-path "$TMPDIR/swift-build"
-    runHook postBuild
-  '';
+  dontConfigure = true;
+  dontBuild = true;
+  # Fixup strips and rewrites Mach-O files, which would invalidate their signatures.
+  dontFixup = true;
 
   installPhase = ''
     runHook preInstall
-    install -Dm755 "$TMPDIR/swift-build/release/dsh-cua-native" "$out/bin/dsh-cua-native"
+    mkdir -p "$out/lib/dsh-cua-native"
+    cp -r native cua-helper.json "$out/lib/dsh-cua-native/"
     runHook postInstall
   '';
 
   meta = {
-    description = "Native macOS Computer Use helper for DeepSeek Harness";
+    description = "Upstream-signed macOS Computer Use helper for DeepSeek Harness";
+    descriptions.zh-CN = "上游签名的 macOS Computer Use 原生助手";
+    descriptions.ja = "上流の署名付き macOS Computer Use ヘルパー";
     homepage = "https://github.com/deepseek-ai/deepseek-harness";
     license = lib.licenses.mit;
-    platforms = lib.intersectLists lib.platforms.darwin swift.meta.platforms;
+    sourceProvenance = [ lib.sourceTypes.binaryNativeCode ];
+    platforms = lib.platforms.darwin;
   };
-})
+}

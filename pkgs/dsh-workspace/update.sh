@@ -78,6 +78,8 @@ if ! nix build --impure --no-link --print-build-logs --expr "
 fi
 printf 'dsh-workspace: source patches verified\n'
 
+"$repo_root/pkgs/dsh-cua-native/update.sh" "$src"
+
 system_version="$(jq -er '.version | strings' "$src/native/system/package.json")"
 # dsh-system is an internal package and is not exposed as a flake output.
 case "$system_version" in

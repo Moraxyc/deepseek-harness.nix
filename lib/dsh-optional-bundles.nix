@@ -5,7 +5,6 @@
   nodejs-slim,
   buildDshBundle,
   dsh-kernel,
-  dsh-cua-native,
   dsh-workspace,
 }:
 let
@@ -43,9 +42,7 @@ let
         homepage = "https://github.com/deepseek-ai/deepseek-harness";
         license = lib.licenses.mit;
         platforms =
-          if packageName == "@deepseek-ai/dsh-cua-bundle" then
-            dsh-cua-native.meta.platforms
-          else if entry.platforms == [ ] then
+          if entry.platforms == [ ] then
             lib.platforms.unix
           else
             lib.concatMap (platform: lib.platforms.${platform}) entry.platforms;

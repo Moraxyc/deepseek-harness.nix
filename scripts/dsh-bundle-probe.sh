@@ -66,8 +66,10 @@ let
     (composition.overrideAttrs { dontDshBundleCheck = true; })
     // {
       probeMode =
-        if bundle.passthru.requiresTui or false || bundle.passthru.requiresTty or false then
+        if bundle.passthru.requiresTui or false then
           "tty"
+        else if bundle.passthru.requiresTty or false then
+          "tty-task"
         else if bundle.passthru.requiresWeb or false then
           "web"
         else
@@ -97,9 +99,14 @@ run_profile() {
     tty)
       # Escape dismisses first-run onboarding so the agent is created.
       { sleep 8; printf '\033'; sleep "$DSH_PROBE_TIMEOUT"; } |
-        env "${env[@]}" timeout $((DSH_PROBE_TIMEOUT + 15)) script -qfc \
+        env "${env[@]}" timeout $((DSH_PROBE_TIMEOUT + 15)) script -qefc \
           "timeout --signal=INT --kill-after=2s $DSH_PROBE_TIMEOUT $(printf '%q' "$out/bin/dsh") --profile nix-probe" \
-          "$logFile" >/dev/null 2>&1 || status=$?
+          "$logFile" >/dev/null 2>&1 || status=${PIPESTATUS[1]}
+      ;;
+    tty-task)
+      env "${env[@]}" timeout $((DSH_PROBE_TIMEOUT + 15)) script -qefc \
+        "timeout --signal=INT --kill-after=2s $DSH_PROBE_TIMEOUT $(printf '%q' "$out/bin/dsh") --profile nix-probe probe" \
+        "$logFile" >/dev/null 2>&1 || status=$?
       ;;
     web)
       env "${env[@]}" timeout --signal=TERM --kill-after=2s "$DSH_PROBE_TIMEOUT" \
@@ -127,7 +134,12 @@ run_profile() {
       # unreachable provider, which is the expected end of the boot.
       env "${env[@]}" timeout "$DSH_PROBE_TIMEOUT" "$out/bin/dsh" --profile nix-probe probe \
         >"$logFile" 2>&1 || status=$?
-      if [ "$status" -eq 1 ] && grep -q 'TRANSPORT' "$logFile"; then status=0; fi
+      ;;
+  esac
+  case "$mode:$status" in
+    plain:1 | plain:124 | tty-task:1 | tty-task:124)
+      # Background exporters can keep a completed transport failure alive.
+      if grep -q 'dsh: TRANSPORT:' "$logFile"; then status=0; fi
       ;;
   esac
   # A live interactive session at the deadline counts as a boot.

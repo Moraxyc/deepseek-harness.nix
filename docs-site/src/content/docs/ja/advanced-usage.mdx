@@ -370,6 +370,19 @@ managed モードでは次回起動時にこれら 3 つのファイルがすべ
 インストールは mutable プロファイルで行ってください。managed モードでは宣言的な管理を
 維持し、プロファイルのプラグインを Nix バンドルとして追加します。
 
+## macOS Computer Use
+
+`aarch64-darwin` の宣言的なプロファイルでは、明示的に選択してください。
+
+```nix
+programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
+  web-app
+  cua-bundle
+];
+```
+
+権限設定から `DSH Computer Use.app` にアクセシビリティと画面収録の権限を付与してください。
+
 ## オプションのサブエージェントプロバイダー
 
 Codex と Claude Code は、オプションの Profile Bundle です。プロファイルが使用する

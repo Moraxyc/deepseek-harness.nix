@@ -88,7 +88,7 @@ let
                       nodejs-slim
                       ;
                     inherit buildDshBundle;
-                    inherit (dirFinal) dsh-kernel dsh-workspace dsh-cua-native;
+                    inherit (dirFinal) dsh-kernel dsh-workspace;
                   };
                   collisions = final.lib.attrNames (final.lib.intersectAttrs generated prev);
                 in

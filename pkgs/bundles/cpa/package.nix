@@ -17,6 +17,8 @@ buildDshBundle (finalAttrs: {
   };
 
   npmDepsHash = "sha256-Xd6erzQhvR674JdfBRZeMB6SNGnRvIEMoqSoso4JiyQ=";
+  # Boots on 0.2.2-alpha.3; the upstream peer ranges predate it.
+  dshEngines = "0.2.2-alpha.3";
   linkKernelNodeModules = dsh-kernel;
 
   passthru.requiresWeb = true;
@@ -31,7 +33,5 @@ buildDshBundle (finalAttrs: {
     homepage = "https://github.com/Moraxyc/dsh-cpa";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;
-    # dsh 0.2.2-alpha.2 skips the bundle: its @deepseek-ai/dsh-* peers pin 0.2.1-rc.2.
-    broken = true;
   };
 })
