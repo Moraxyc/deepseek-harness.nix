@@ -35,6 +35,8 @@ buildDshBundle (finalAttrs: {
   disallowedReferences = [ pnpm_11 ];
 
   # The peer and web client packages are supplied by the DSH kernel.
+  # Boots on 0.2.2-alpha.3; the upstream peer ranges predate it.
+  dshEngines = "0.2.2-alpha.3";
   linkKernelNodeModules = dsh-kernel;
   runtimeDeps = [ git ];
 
@@ -64,7 +66,5 @@ buildDshBundle (finalAttrs: {
     homepage = "https://github.com/Anionex/dsh-turn-rewind";
     license = lib.licenses.bsd3;
     platforms = lib.platforms.unix;
-    # dsh 0.2.2-alpha.2 skips the bundle: its @deepseek-ai/dsh-settings peer range stops at 0.2.1-rc.3.
-    broken = true;
   };
 })

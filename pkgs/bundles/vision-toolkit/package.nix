@@ -14,6 +14,8 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-vision-toolkit";
   version = "0.1.48";
   deployPackage = "@anionex/dsh-vision-toolkit";
+  # Boots on 0.2.2-alpha.3; the upstream peer ranges predate it.
+  dshEngines = "0.2.2-alpha.3";
   linkKernelNodeModules = dsh-kernel;
 
   src = fetchFromGitHub {
@@ -104,7 +106,5 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     homepage = "https://github.com/Anionex/dsh-vision-toolkit";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;
-    # dsh 0.2.2-alpha.2 skips the bundle: its @deepseek-ai/dsh-* peer ranges stop at 0.2.1-rc.3.
-    broken = true;
   };
 })
