@@ -105,6 +105,10 @@ programs.dsh.profiles.web.patch = [
 
 詳細は[上流のリリースノート](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-alpha.3)を参照してください。
 
+### 以前は互換性がなかったバンドル
+
+`bundles.cpa`、`bundles.turn-rewind`、`bundles.vision-toolkit` は、このリリースで再び利用できます。設定を変更せずに読み込まれます。上流のリリースはまだ `0.2.2-alpha.3` を対応バージョンとして宣言していないため、アップグレード後は各プラグインの動作を確認してください。
+
 ## `0.2.2-alpha.2`
 
 ### ランタイムとツール

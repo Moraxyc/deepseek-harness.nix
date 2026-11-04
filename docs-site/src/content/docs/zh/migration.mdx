@@ -94,6 +94,11 @@ programs.dsh.profiles.web.patch = [
 
 详见[上游发行说明](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-alpha.3)。
 
+### 此前不兼容的 Bundle
+
+`bundles.cpa`、`bundles.turn-rewind` 和 `bundles.vision-toolkit` 在本版本中重新可用，
+无需修改配置即可加载。上游发布版本尚未将 `0.2.2-alpha.3` 列为支持版本，升级后请检查各插件的行为。
+
 ## `0.2.2-alpha.2`
 
 ### 运行时与工具
