@@ -20,6 +20,12 @@ bundle 需要 kernel peer 时，设置 `linkKernelNodeModules = dsh-kernel`。
 helper 移除 bundle 中与 kernel 同名的包，并从 kernel 解析 peer，避免重复的
 运行时实例。必须保留的 bundle 本地版本写入 `linkKernelNodeModulesKeep`。
 
+## CUA 签名产物
+
+`dsh-cua-native` 提供 npm 发布版本中的 Computer Use 应用。`source.json` 固定版本与
+tarball 哈希，由 `pkgs/dsh-cua-native/update.sh` 刷新。
+不要对应用执行 strip、打补丁或重新签名。
+
 ## 添加外部 pnpm workspace bundle
 
 外部 monorepo bundle 使用 `buildDshBundle.fromPnpmWorkspace`。该 builder

@@ -368,6 +368,20 @@ Managed mode restores all three on the next launch, so those declarations can
 stop matching the packages still on disk. Install from the market in a mutable
 profile; keep managed mode declarative and add profile plugins as Nix Bundles.
 
+## macOS Computer Use
+
+Select the Computer Use bundle explicitly for a declarative profile on `aarch64-darwin`:
+
+```nix
+programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
+  web-app
+  cua-bundle
+];
+```
+
+Grant Accessibility and Screen Recording permissions to `DSH Computer Use.app`
+through the permission setup.
+
 ## Optional Subagent Providers
 
 Codex and Claude Code are optional Profile Bundles. Add only the providers a

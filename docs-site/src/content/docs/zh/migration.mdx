@@ -23,9 +23,7 @@ NixOS 和 Home Manager 模块的默认值不变。
 
 ## 已移除的 Bundle
 
-已移除的 `bundles.*` 属性作为迁移入口保留，求值时通过 `throw` 告知原因与处理方法。
-统一名单位于 `lib/removed-bundles.nix`。受支持的包目录和 CI 构建目标选择由本仓库
-维护的属性。请在配置中显式选择替代 bundle。
+已移除的 `bundles.*` 属性在求值时会通过 `throw` 告知原因与处理方法。请在配置中显式选择替代 bundle。
 
 ### `bundles.auto-mode`
 
@@ -67,6 +65,35 @@ NixOS 和 Home Manager 模块的默认值不变。
 `bundles.web-app` 现在直接包含 Schedule。profile 和 patch 的调整方法见下方
 `0.2.1-alpha.1` 条目的 Schedule 说明。
 
+## `0.2.2-alpha.3`
+
+### Computer Use 与工作树
+
+CUA 从随安装提供的可选集合移至上游按需目录。`bundles.cua-bundle` 仍支持
+`aarch64-darwin` 上的声明式选择；需要 Computer Use 的 profile 应显式添加它。
+请向 `DSH Computer Use.app` 授予辅助功能和屏幕录制权限，而不是向终端授予权限。
+
+使用 `bundles.experimental-forge-bundle` 时，请从同一 profile 中删除独立的
+`bundles.experimental-tool-worktree`，工作树入口现已合入 Forge。
+mutable profile 还需从 `dsh.profile.bundles` 中删除
+`@deepseek-ai/dsh-experimental-tool-worktree`。
+
+### 文件修改策略
+
+先读后写和外部修改检查现在默认关闭，沙箱限制与 Review 不变。
+需要这些检查的 profile 应显式恢复观察策略。以 Web profile 为例：
+
+```nix
+programs.dsh.profiles.web.patch = [
+  {
+    id = "fs-observation-policy";
+    disabled = false;
+  }
+];
+```
+
+详见[上游发行说明](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-alpha.3)。
+
 ## `0.2.2-alpha.2`
 
 ### 运行时与工具
@@ -98,8 +125,7 @@ SSH 协议 3 要求远端 helper 与宿主匹配。自定义的 Node PTC bootstr
 可选集合新增个性化推荐、LiveShare、Forge 和 CUA。Forge 携带 `git` 和 `gh`。
 GitHub 操作使用用户自行配置的认证。
 
-受当前固定的 Swift 工具链限制，CUA 仅在 `aarch64-darwin` 可用。
-Nix 在应用启动前构建原生 helper。
+CUA 仅在 `aarch64-darwin` 可用。
 
 Web Fetch 现在允许访问私网地址。公开或共享部署必须自行限制出站网络访问。
 
@@ -122,7 +148,7 @@ bundle 的 `@deepseek-ai/dsh-*` peer 范围或 `engines.dsh` 不包含当前运�
 现已恢复加载。
 
 组合后的 `dsh` 包在 profile 会跳过 bundle 或禁用插件行时会构建失败。如果你用
-`buildDshBundle` 自行打包 bundle，并已针对当前固定的 dsh 版本验证过，可设置
+`buildDshBundle` 自行打包 bundle，并已针对所用的 dsh 版本验证过，可设置
 `dshEngines = "<version>"`；builder 会将其写入 `engines.dsh`，dsh 随后以此代替 peer
 范围进行检查。
 
@@ -148,7 +174,7 @@ Web 监听支持具体的 IPv4 和 IPv6 地址，不接受通配地址。预定�
   不要切换为 full access 来绕过它。
 - 自定义 SDK 客户端和插件需要检查 `session/wait`、Agent Team Inbox、
   working-directory、动态工具集合和 system-prompt API 的变化。随包提供的
-  上游调用方与 kernel 使用同一版本；本 flake 不为外部客户端提供兼容层。
+  上游调用方与 kernel 使用同一版本；外部客户端须更新到与本版本匹配的 API。
 
 ## `0.2.1-alpha.1`
 
@@ -249,6 +275,5 @@ Session 日志会在磁盘上迁移到 V4。这是一次原地数据迁移：
 
 ### 语音输入
 
-语音输入会在首次使用时于运行时下载模型。本 flake 没有提供独立的 Nix 模型输出，
-也不会重定位上游插件的缓存目录。如果需要在重新生成 profile 或数据目录后保留模型，
+语音输入会在首次使用时于运行时下载模型。如果需要在重新生成 profile 或数据目录后保留模型，
 请保证缓存可写并纳入备份。只有同一运行用户成功下载模型后，才能按缓存实现离线使用。

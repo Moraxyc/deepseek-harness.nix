@@ -28,9 +28,7 @@ applications has not been verified.
 
 ## Removed Bundles
 
-Removed `bundles.*` attributes serve as migration entries that throw an error
-when evaluated. The shared registry is `lib/removed-bundles.nix`. The supported
-package catalog and CI build targets select maintained attributes. Select
+Removed `bundles.*` attributes throw an error when evaluated. Select
 replacement bundles explicitly in your configuration.
 
 ### `bundles.auto-mode`
@@ -80,6 +78,38 @@ This attribute was removed in upstream `0.2.1-alpha.1`. Remove it from your
 bundle selections; `bundles.web-app` now includes Schedule. Follow the Schedule
 instructions in the `0.2.1-alpha.1` entry below for profile and patch changes.
 
+## `0.2.2-alpha.3`
+
+### Computer Use and worktrees
+
+CUA moves from the shipped optional set to upstream's on-demand catalog.
+`bundles.cua-bundle` remains available for declarative selection on
+`aarch64-darwin`; add it explicitly to profiles that need Computer Use.
+Grant Accessibility and Screen Recording permissions to `DSH Computer Use.app`,
+not to the terminal.
+
+When using `bundles.experimental-forge-bundle`, remove the standalone
+`bundles.experimental-tool-worktree` from the same profile. Forge now provides
+its worktree interface. For mutable profiles, also remove
+`@deepseek-ai/dsh-experimental-tool-worktree` from `dsh.profile.bundles`.
+
+### File modification policy
+
+Read-before-write and external-change checks are now disabled by default;
+sandbox restrictions and Review remain unchanged. Profiles requiring those
+checks must explicitly restore the observation policy. For the Web profile:
+
+```nix
+programs.dsh.profiles.web.patch = [
+  {
+    id = "fs-observation-policy";
+    disabled = false;
+  }
+];
+```
+
+See the [upstream release notes](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-alpha.3).
+
 ## `0.2.2-alpha.2`
 
 ### Runtime and tools
@@ -116,8 +146,7 @@ The optional set adds personalized recommendations, LiveShare, Forge, and CUA.
 Forge carries `git` and `gh`. GitHub operations require the user's own
 authentication.
 
-CUA is available only on `aarch64-darwin` with the pinned Swift toolchain.
-Nix builds its native helper before application startup.
+CUA is available only on `aarch64-darwin`.
 
 Web Fetch now permits private-network destinations. Public or shared deployments
 must enforce their own egress restrictions.
@@ -144,7 +173,7 @@ They return once upstream publishes a release that supports this dsh version.
 
 Composed `dsh` packages now fail to build when a profile would skip a bundle or
 disable a plugin row. If you package your own bundle with `buildDshBundle` and
-have verified it against the pinned dsh version, set
+have verified it against the dsh version in use, set
 `dshEngines = "<version>"`; the builder writes it to `engines.dsh`, which dsh
 checks instead of the peer ranges.
 
@@ -173,7 +202,7 @@ is independent. See [service configuration](../advanced-usage/#reverse-proxy).
 - Custom SDK clients and plugins need review against the updated
   `session/wait`, Agent Team Inbox, working-directory, dynamic tool-set, and
   system-prompt APIs. Bundled upstream consumers use the same release as the
-  kernel; this flake does not provide compatibility shims for external clients.
+  kernel. External clients must be updated to match this release.
 
 ## `0.2.1-alpha.1`
 
@@ -288,8 +317,7 @@ the profile patch. Do not depend on the old directory being populated by Nix.
 
 ### Voice input
 
-Voice input downloads its model at runtime on first use. This flake does not
-provide a separate Nix model output or relocate the upstream plugin cache.
-Keep that cache writable and include it in backups if it must survive a fresh
-profile or data-directory setup. Offline use is available only after the model
+Voice input downloads its model at runtime on first use. Keep that cache
+writable and include it in backups if it must survive a fresh profile or
+data-directory setup. Offline use is available only after the model
 has been downloaded successfully for the same runtime user.

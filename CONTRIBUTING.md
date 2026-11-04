@@ -22,6 +22,13 @@ The helper removes bundle-local copies of kernel-owned packages and resolves
 peers from the kernel to avoid duplicate runtime instances. Use
 `linkKernelNodeModulesKeep` for versions the bundle must keep locally.
 
+## Signed CUA payload
+
+`dsh-cua-native` packages the Computer Use application from the published npm
+release. `source.json` pins its version and tarball hash, and
+`pkgs/dsh-cua-native/update.sh` refreshes them. Do not strip, patch, or re-sign
+the applications.
+
 ## Adding an external pnpm workspace bundle
 
 Use `buildDshBundle.fromPnpmWorkspace` for external monorepo bundles. It owns
