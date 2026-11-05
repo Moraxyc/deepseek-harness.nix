@@ -65,6 +65,17 @@ NixOS 和 Home Manager 模块的默认值不变。
 `bundles.web-app` 现在直接包含 Schedule。profile 和 patch 的调整方法见下方
 `0.2.1-alpha.1` 条目的 Schedule 说明。
 
+## `0.2.2-rc.1`
+
+[上游发行说明](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.1)
+汇总了自 `0.2.1-rc.5` 起的变更。与 `0.2.2-alpha.3` 相比，源码仅修改了包版本号，
+包括 Cordis 的正式版版本号。从 `alpha.3` 升级无需额外迁移配置。
+从更早版本升级时，还需遵循下方 `alpha.3` 和 `alpha.2` 条目的说明。
+
+`bundles.cpa`、`bundles.tui`、`bundles.turn-rewind` 和 `bundles.vision-toolkit`
+的上游版本范围不包含 `0.2.2-rc.1`，本仓库为它们声明了该版本的兼容性。
+已使用隔离 profile 检查启动，升级后仍请验证你使用的具体功能。
+
 ## `0.2.2-alpha.3`
 
 ### Computer Use 与工作树

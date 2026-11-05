@@ -35,8 +35,8 @@ buildDshBundle (finalAttrs: {
   disallowedReferences = [ pnpm_11 ];
 
   # The peer and web client packages are supplied by the DSH kernel.
-  # Boots on 0.2.2-alpha.3; the upstream peer ranges predate it.
-  dshEngines = "0.2.2-alpha.3";
+  # The upstream peer ranges exclude this verified runtime.
+  dshEngines = "0.2.2-rc.1";
   linkKernelNodeModules = dsh-kernel;
   runtimeDeps = [ git ];
 

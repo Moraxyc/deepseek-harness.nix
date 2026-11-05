@@ -14,8 +14,8 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-vision-toolkit";
   version = "0.1.48";
   deployPackage = "@anionex/dsh-vision-toolkit";
-  # Boots on 0.2.2-alpha.3; the upstream peer ranges predate it.
-  dshEngines = "0.2.2-alpha.3";
+  # The upstream peer ranges exclude this verified runtime.
+  dshEngines = "0.2.2-rc.1";
   linkKernelNodeModules = dsh-kernel;
 
   src = fetchFromGitHub {
