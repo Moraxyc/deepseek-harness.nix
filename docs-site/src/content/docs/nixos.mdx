@@ -219,13 +219,15 @@ user/group mode, and the complete service option list, see
 ## Desktop Application
 
 After importing the module and configuring the overlay described above, enable
-the official desktop application independently:
+the official desktop application:
 
 ```nix
 programs.dsh.desktop.enable = true;
 ```
 
-`desktop.enable` defaults to `false` and does not require `programs.dsh.enable`.
+`desktop.enable` defaults to `false`. Enabling it also enables `programs.dsh.enable`
+by default, keeping the `dsh` CLI available. Set `programs.dsh.enable = false`
+explicitly to install only the desktop application.
 The module adds `pkgs.dsh.dsh-desktop-official` to `environment.systemPackages`;
 override it with `programs.dsh.desktop.package`.
 Select a declared profile with `desktop.profile`, independently of the CLI default:

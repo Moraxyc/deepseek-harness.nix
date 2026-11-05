@@ -203,13 +203,14 @@ journalctl -u dsh-web -f
 
 ## 桌面应用
 
-导入模块并配置上述 overlay 后，可独立启用官方桌面应用：
+导入模块并配置上述 overlay 后，可启用官方桌面应用：
 
 ```nix
 programs.dsh.desktop.enable = true;
 ```
 
-`desktop.enable` 默认关闭，不要求启用 `programs.dsh.enable`。
+`desktop.enable` 默认关闭。启用后，`programs.dsh.enable` 也默认启用，
+确保 `dsh` CLI 仍然可用。如只需桌面应用，可显式设置 `programs.dsh.enable = false`。
 模块将 `pkgs.dsh.dsh-desktop-official` 加入 `environment.systemPackages`；
 可通过 `programs.dsh.desktop.package` 覆盖安装包。
 使用 `desktop.profile` 选择现有声明式 profile；桌面与 CLI 的默认选择独立：

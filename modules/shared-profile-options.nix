@@ -14,7 +14,10 @@ in
 
 {
   options.programs.dsh = {
-    enable = lib.mkEnableOption "the DeepSeek Harness dsh CLI with declarative profiles";
+    enable = lib.mkEnableOption "the DeepSeek Harness dsh CLI with declarative profiles" // {
+      default = config.programs.dsh.desktop.enable;
+      defaultText = lib.literalExpression "config.programs.dsh.desktop.enable";
+    };
 
     package = lib.mkPackageOption pkgs.dsh "dsh" { };
 

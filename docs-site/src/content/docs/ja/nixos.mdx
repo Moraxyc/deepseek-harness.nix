@@ -218,13 +218,15 @@ journalctl -u dsh-web -f
 ## デスクトップアプリケーション
 
 モジュールをインポートし、上記のオーバーレイを設定した後、公式デスクトップ
-アプリケーションを個別に有効にできます。
+アプリケーションを有効にできます。
 
 ```nix
 programs.dsh.desktop.enable = true;
 ```
 
-`desktop.enable` のデフォルトは `false` で、`programs.dsh.enable` は必要ありません。
+`desktop.enable` のデフォルトは `false` です。有効にすると、`programs.dsh.enable` も
+デフォルトで有効になり、`dsh` CLI を引き続き利用できます。デスクトップのみを
+インストールする場合は、`programs.dsh.enable = false` を明示的に設定してください。
 このモジュールは `pkgs.dsh.dsh-desktop-official` を `environment.systemPackages` に追加します。
 `programs.dsh.desktop.package` でオーバーライドできます。
 CLI のデフォルトとは独立に、`desktop.profile` で宣言済みのプロファイルを選択します。
