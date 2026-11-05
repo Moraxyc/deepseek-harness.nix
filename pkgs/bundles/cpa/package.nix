@@ -17,8 +17,8 @@ buildDshBundle (finalAttrs: {
   };
 
   npmDepsHash = "sha256-kSHppYZZK9c7c0xsTVWLIG5Nl7Y7OJ29vufu23J6mNA=";
-  # Boots on 0.2.2-alpha.3; the upstream peer ranges predate it.
-  dshEngines = "0.2.2-alpha.3";
+  # The upstream peer ranges exclude this verified runtime.
+  dshEngines = "0.2.2-rc.1";
   linkKernelNodeModules = dsh-kernel;
 
   passthru.requiresWeb = true;

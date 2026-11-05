@@ -78,6 +78,19 @@ This attribute was removed in upstream `0.2.1-alpha.1`. Remove it from your
 bundle selections; `bundles.web-app` now includes Schedule. Follow the Schedule
 instructions in the `0.2.1-alpha.1` entry below for profile and patch changes.
 
+## `0.2.2-rc.1`
+
+The [upstream release notes](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.1)
+summarize changes since `0.2.1-rc.5`. Compared with `0.2.2-alpha.3`, the source
+changes only package versions, including the Cordis release versions.
+No additional configuration migration is required from `alpha.3`. When upgrading
+from an earlier release, also follow the `alpha.3` and `alpha.2` entries below.
+
+`bundles.cpa`, `bundles.tui`, `bundles.turn-rewind`, and `bundles.vision-toolkit`
+use downstream compatibility declarations for `0.2.2-rc.1` because their upstream
+ranges exclude it. Startup was checked with isolated profiles. Verify the
+features you use after upgrading.
+
 ## `0.2.2-alpha.3`
 
 ### Computer Use and worktrees
