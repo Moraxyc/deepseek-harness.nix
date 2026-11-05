@@ -100,6 +100,12 @@ let
       esac
       mv "$entry" "$deployPackagePath/"
     done
+
+    # pnpm stamps install time and the temporary store path into these
+    # bookkeeping files, which makes the output differ between rebuilds.
+    rm -f \
+      "$out/lib/node_modules/.modules.yaml" \
+      "$out/lib/node_modules/.pnpm-workspace-state-v1.json"
   '';
 
   suppressChildBundlePatches = ''
