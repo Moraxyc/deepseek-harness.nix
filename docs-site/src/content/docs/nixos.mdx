@@ -230,6 +230,8 @@ by default, keeping the `dsh` CLI available. Set `programs.dsh.enable = false`
 explicitly to install only the desktop application.
 The module adds `pkgs.dsh.dsh-desktop-official` to `environment.systemPackages`;
 override it with `programs.dsh.desktop.package`.
+With the official desktop package, the CLI reuses its bundled dsh runtime
+instead of retaining a second kernel and bundle tree.
 Select a declared profile with `desktop.profile`, independently of the CLI default:
 
 ```nix

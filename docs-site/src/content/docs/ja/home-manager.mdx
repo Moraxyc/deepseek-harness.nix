@@ -208,6 +208,8 @@ programs.dsh.desktop.enable = true;
 インストールする場合は、`programs.dsh.enable = false` を明示的に設定してください。
 このモジュールは `pkgs.dsh.dsh-desktop-official` を `home.packages` に追加します。
 `programs.dsh.desktop.package` でオーバーライドできます。
+公式デスクトップパッケージを使用する場合、CLI は内蔵の dsh ランタイムを共有し、
+別の kernel と bundles のツリーを保持しません。
 CLI のデフォルトとは独立に、`desktop.profile` で宣言済みのプロファイルを選択します。
 
 ```nix

@@ -18,19 +18,23 @@ let
     inherit (artifacts) bundleCheckProfiles;
   };
 in
-if cfg.desktop.profile == null then
+if cfg.desktop.profile == null && !(cfg.desktop.package ? passthru.dshRuntime) then
   cfg.desktop.package
 else
-  lib.throwIf (selected == [ ])
+  lib.throwIf (cfg.desktop.profile != null && selected == [ ])
     "dsh desktop: desktop.profile must reference a declared programs.dsh.profiles entry"
     (
       cfg.desktop.package.override {
-        dshHost = host;
-        desktopProfile = {
-          home = cfg.home;
-          profile = artifacts.validatedDefaultProfile;
-          seeder = lib.getExe artifacts.seedProfiles;
-          mode = (builtins.head selected).mode;
-        };
+        dshHost = if cfg.desktop.profile == null && cfg.profiles == { } then cfg.package else host;
+        desktopProfile =
+          if cfg.desktop.profile == null then
+            null
+          else
+            {
+              home = cfg.home;
+              profile = artifacts.validatedDefaultProfile;
+              seeder = lib.getExe artifacts.seedProfiles;
+              mode = (builtins.head selected).mode;
+            };
       }
     )

@@ -201,6 +201,7 @@ programs.dsh.desktop.enable = true;
 确保 `dsh` CLI 仍然可用。如只需桌面应用，可显式设置 `programs.dsh.enable = false`。
 模块将 `pkgs.dsh.dsh-desktop-official` 加入 `home.packages`；
 可通过 `programs.dsh.desktop.package` 覆盖安装包。
+使用官方桌面包时，CLI 复用桌面内嵌的 dsh 运行时，不再额外保留一套 kernel 和 bundles。
 使用 `desktop.profile` 选择现有声明式 profile；桌面与 CLI 的默认选择独立：
 
 ```nix

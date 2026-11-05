@@ -167,12 +167,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       dest = "$dshRuntime/node_modules";
     }}
 
-    # Office loads skills from external resources; copy them before Markdown pruning.
-    ${copyTree.followLinks {
-      src = "$src/host/node_modules/@deepseek-ai/dsh-skill-office/assets";
-      dest = "$runtimeRoot/runtime/office-skills";
-      label = "dsh-desktop: Office skill assets are missing";
-    }}
+    mkdir -p "$runtimeRoot/runtime"
+    ln -s ../app/dsh/node_modules/@deepseek-ai/dsh-skill-office/assets \
+      "$runtimeRoot/runtime/office-skills"
 
     ${nodeModulesPrune.prune { tree = "$dshRuntime/node_modules"; }}
     ${nodeModulesPrune.minify { tree = "$dshRuntime/node_modules"; }}
@@ -304,6 +301,13 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   });
 
   passthru = {
+    dshRuntime = "${finalAttrs.finalPackage}/${
+      if isDarwin then
+        "Applications/DeepSeek Harness.app/Contents/Resources"
+      else
+        "lib/dsh-desktop/resources"
+    }/app/dsh";
+
     desktopRuntimeDeps = [
       finalAttrs.passthru.pythonEnv
     ]

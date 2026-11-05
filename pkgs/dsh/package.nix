@@ -45,6 +45,7 @@
   profileDefaultProfile ? null,
   # bundleCheckProfiles from the mkProfileArtifacts call that built profileSeeder.
   profileBundleCheckProfiles ? null,
+  runtimeRoot ? null,
   pname ? "dsh",
   meta ? { },
 }:
@@ -227,58 +228,72 @@ stdenvNoCC.mkDerivation (finalAttrs: {
               --set DSH_REAL "$out/bin/dsh-real"
           '';
     in
-    ''
-      kernelApp="${dsh-kernel}/lib/deepseek-harness"
-      appDir="$out/lib/deepseek-harness"
+    (
+      if runtimeRoot != null then
+        ''
+          appDir="$out/lib/deepseek-harness"
+          packageRoot=${lib.escapeShellArg "${runtimeRoot}/node_modules/@deepseek-ai/dsh"}
+          mkdir -p "$appDir"
+          for entry in lib package.json; do
+            ln -s "$packageRoot/$entry" "$appDir/$entry"
+          done
+          ln -s ${lib.escapeShellArg "${runtimeRoot}/node_modules"} "$appDir/node_modules"
+        ''
+      else
+        ''
+          kernelApp="${dsh-kernel}/lib/deepseek-harness"
+          appDir="$out/lib/deepseek-harness"
 
-      mkdir -p "$appDir"
-      # Copy lib so the profile heal anchors at this manifest, not the kernel's.
-      ${copyTree.keepLinks {
-        src = "$kernelApp/lib";
-        dest = "$appDir/lib";
-      }}
-      ln -s "$kernelApp/config" "$appDir/config"
-      cp "$kernelApp/package.json" "$appDir/package.json"
-      ln -s "${finalAttrs.passthru.nodeModules}" "$appDir/node_modules"
+          mkdir -p "$appDir"
+          # Copy lib so the profile heal anchors at this manifest, not the kernel's.
+          ${copyTree.keepLinks {
+            src = "$kernelApp/lib";
+            dest = "$appDir/lib";
+          }}
+          ln -s "$kernelApp/config" "$appDir/config"
+          cp "$kernelApp/package.json" "$appDir/package.json"
+          ln -s "${finalAttrs.passthru.nodeModules}" "$appDir/node_modules"
 
-      mkdir -p "$out/nix-support"
-      ${lib.getExe dshBundleResolver} merge \
-        "$out/nix-support/dsh-bundles.json" \
-        ${lib.concatMapStringsSep " " (
-          bundle: lib.escapeShellArg "${bundle}/nix-support/dsh-bundles.json"
-        ) finalAttrs.passthru.composedBundles}
-      # Switched-off bundles join the app manifest, not the composed one.
-      optionalBundleManifest="$TMPDIR/dsh-optional-bundles.json"
-      printf '{"schema":1,"bundles":[]}\n' > "$optionalBundleManifest"
-    ''
-    + lib.optionalString (finalAttrs.passthru.switchedOffBundles != [ ]) ''
-      ${lib.getExe dshBundleResolver} merge \
-        "$optionalBundleManifest" \
-        ${lib.concatMapStringsSep " " (
-          bundle: lib.escapeShellArg "${bundle}/nix-support/dsh-bundles.json"
-        ) finalAttrs.passthru.switchedOffBundles}
-    ''
+          mkdir -p "$out/nix-support"
+          ${lib.getExe dshBundleResolver} merge \
+            "$out/nix-support/dsh-bundles.json" \
+            ${lib.concatMapStringsSep " " (
+              bundle: lib.escapeShellArg "${bundle}/nix-support/dsh-bundles.json"
+            ) finalAttrs.passthru.composedBundles}
+          # Switched-off bundles join the app manifest, not the composed one.
+          optionalBundleManifest="$TMPDIR/dsh-optional-bundles.json"
+          printf '{"schema":1,"bundles":[]}\n' > "$optionalBundleManifest"
+        ''
+        + lib.optionalString (finalAttrs.passthru.switchedOffBundles != [ ]) ''
+          ${lib.getExe dshBundleResolver} merge \
+            "$optionalBundleManifest" \
+            ${lib.concatMapStringsSep " " (
+              bundle: lib.escapeShellArg "${bundle}/nix-support/dsh-bundles.json"
+            ) finalAttrs.passthru.switchedOffBundles}
+        ''
+        + ''
+          # Profiles resolve through $DSH_HOME, so advertise every package mounted
+          # by this installation to the profile module fallback.
+          runtimeDependencies="$TMPDIR/dsh-runtime-dependencies.json"
+          printf '{}\n' > "$runtimeDependencies"
+          for packageJson in "$appDir/node_modules"/*/package.json "$appDir/node_modules"/@*/*/package.json; do
+            [ -f "$packageJson" ] || continue
+            packageName=$(jq -r '.name | select(type == "string" and length > 0)' "$packageJson")
+            packageVersion=$(jq -r '.version | select(type == "string" and length > 0)' "$packageJson")
+            [ -n "$packageName" ] && [ -n "$packageVersion" ] || continue
+            jq --arg name "$packageName" --arg version "$packageVersion" \
+              '.[$name] = $version' "$runtimeDependencies" > "$runtimeDependencies.tmp"
+            mv "$runtimeDependencies.tmp" "$runtimeDependencies"
+          done
+          jq --slurpfile bundles "$out/nix-support/dsh-bundles.json" \
+            --slurpfile optionalBundles "$optionalBundleManifest" \
+            --slurpfile runtimeDependencies "$runtimeDependencies" \
+            '.dependencies *= ([$optionalBundles[0].bundles, $bundles[0].bundles] | add | map({key: .name, value: .version}) | from_entries) | .dependencies *= $runtimeDependencies[0]' \
+            "$appDir/package.json" > "$appDir/package.json.tmp"
+          mv "$appDir/package.json.tmp" "$appDir/package.json"
+        ''
+    )
     + ''
-      # Profiles resolve through $DSH_HOME, so advertise every package mounted
-      # by this installation to the profile module fallback.
-      runtimeDependencies="$TMPDIR/dsh-runtime-dependencies.json"
-      printf '{}\n' > "$runtimeDependencies"
-      for packageJson in "$appDir/node_modules"/*/package.json "$appDir/node_modules"/@*/*/package.json; do
-        [ -f "$packageJson" ] || continue
-        packageName=$(jq -r '.name | select(type == "string" and length > 0)' "$packageJson")
-        packageVersion=$(jq -r '.version | select(type == "string" and length > 0)' "$packageJson")
-        [ -n "$packageName" ] && [ -n "$packageVersion" ] || continue
-        jq --arg name "$packageName" --arg version "$packageVersion" \
-          '.[$name] = $version' "$runtimeDependencies" > "$runtimeDependencies.tmp"
-        mv "$runtimeDependencies.tmp" "$runtimeDependencies"
-      done
-      jq --slurpfile bundles "$out/nix-support/dsh-bundles.json" \
-        --slurpfile optionalBundles "$optionalBundleManifest" \
-        --slurpfile runtimeDependencies "$runtimeDependencies" \
-        '.dependencies *= ([$optionalBundles[0].bundles, $bundles[0].bundles] | add | map({key: .name, value: .version}) | from_entries) | .dependencies *= $runtimeDependencies[0]' \
-        "$appDir/package.json" > "$appDir/package.json.tmp"
-      mv "$appDir/package.json.tmp" "$appDir/package.json"
-
       mkdir -p "$out/bin"
       ${dshWrapper}
       ${profileLauncher}
@@ -334,21 +349,25 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
     seedProfiles = if profileSeeder == null then profileArtifacts.seedProfiles else profileSeeder;
 
-    nodeModules = symlinkJoin {
-      name = "dsh-node-modules";
-      paths = [
-        "${dsh-kernel}/lib/deepseek-harness/node_modules"
-      ]
-      # symlinkJoin keeps the first file on collisions. Reverse the bundle
-      # paths so a later Cordis layer also wins for overlapping runtime files.
-      ++ (map (bundle: "${bundle}/lib/node_modules") (
-        lib.reverseList finalAttrs.passthru.composedBundles
-      ))
-      # Switched-off bundles lose every name conflict to a selected bundle.
-      ++ (map (bundle: "${bundle}/lib/node_modules") (
-        lib.reverseList finalAttrs.passthru.switchedOffBundles
-      ));
-    };
+    nodeModules =
+      if runtimeRoot != null then
+        "${runtimeRoot}/node_modules"
+      else
+        symlinkJoin {
+          name = "dsh-node-modules";
+          paths = [
+            "${dsh-kernel}/lib/deepseek-harness/node_modules"
+          ]
+          # symlinkJoin keeps the first file on collisions. Reverse the bundle
+          # paths so a later Cordis layer also wins for overlapping runtime files.
+          ++ (map (bundle: "${bundle}/lib/node_modules") (
+            lib.reverseList finalAttrs.passthru.composedBundles
+          ))
+          # Switched-off bundles lose every name conflict to a selected bundle.
+          ++ (map (bundle: "${bundle}/lib/node_modules") (
+            lib.reverseList finalAttrs.passthru.switchedOffBundles
+          ));
+        };
 
     flattenedNodeModules = import ./node-modules-flat.nix {
       inherit copyTree stdenvNoCC;

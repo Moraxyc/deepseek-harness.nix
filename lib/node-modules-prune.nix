@@ -57,10 +57,10 @@ in
   prune =
     { tree }:
     ''
-      # Creator reads package README files and the Agent Preset skill provider
-      # reads its Markdown references and templates at runtime.
+      # Creator and bundled skill providers read Markdown at runtime.
       find "${tree}" -type f \
         ! -path "${tree}/@deepseek-ai/dsh-agent-preset/skills/*" \
+        ! -path "${tree}/@deepseek-ai/dsh-skill-office/assets/*" \
         ! -iname 'readme*' \( \
         -iname 'changelog*' -o -iname '*.md' -o -iname '*.markdown' \
         -o -name '*.test.js' -o -name '*.test.mjs' -o -name '*.test.cjs' \
@@ -71,7 +71,8 @@ in
       ${lib.optionalString (!stdenvNoCC.hostPlatform.isWindows) ''
         find "${tree}" -type f -name '*.pdb' -delete
       ''}
-      find "${tree}" -type d \( \
+      find "${tree}" -type d \
+        ! -path "${tree}/@deepseek-ai/dsh-skill-office/assets/*" \( \
         -name test -o -name tests -o -name __tests__ -o -name coverage \
       \) -prune -exec rm -rf {} +
       ${prunePlatform tree}
@@ -81,10 +82,12 @@ in
   minify =
     { tree }:
     ''
-      find "${tree}" -type f \( \
+      find "${tree}" -type f \
+        ! -path "${tree}/@deepseek-ai/dsh-skill-office/assets/*" \( \
         -name '*.map' -o -name '*.ts' -o -name '*.tsx' -o -name '*.mts' -o -name '*.cts' \
       \) -delete
-      find "${tree}" -type d \( \
+      find "${tree}" -type d \
+        ! -path "${tree}/@deepseek-ai/dsh-skill-office/assets/*" \( \
         -name fixtures -o -name example -o -name examples \
         -o -name benchmark -o -name benchmarks -o -name demo -o -name demos \
       \) -prune -exec rm -rf {} +

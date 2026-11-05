@@ -6,6 +6,7 @@
 let
   cfg = config.programs.dsh;
   mkDsh = import ../lib/mk-dsh.nix;
+  desktopPackage = import ../lib/mk-dsh-desktop.nix { inherit lib cfg; };
 in
 
 {
@@ -13,7 +14,7 @@ in
 
   config = lib.mkMerge [
     (lib.mkIf cfg.desktop.enable {
-      environment.systemPackages = [ (import ../lib/mk-dsh-desktop.nix { inherit lib cfg; }) ];
+      environment.systemPackages = [ desktopPackage ];
     })
     (lib.mkIf cfg.enable {
       environment.systemPackages = [
@@ -24,6 +25,7 @@ in
           defaultProfile = cfg.defaultProfile;
           desktopProfile = if cfg.desktop.enable then cfg.desktop.profile else null;
           patch = cfg.patch;
+          runtimeRoot = if cfg.desktop.enable then desktopPackage.passthru.dshRuntime or null else null;
         })
       ];
 
