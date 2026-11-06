@@ -7,10 +7,7 @@
   dsh,
 }:
 let
-  catalog = import ../../lib/catalog.nix {
-    inherit lib;
-    scope = dsh;
-  };
+  inherit (dsh) catalog;
 
   catalogSource = builtins.toFile "dsh-nix-docs-catalog.ts" ''
     import type { Catalog } from './catalog';

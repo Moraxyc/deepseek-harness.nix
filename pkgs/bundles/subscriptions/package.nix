@@ -5,7 +5,8 @@
   buildDshBundle,
   copyTree,
   dshCohort,
-  dsh-kernel,
+  dsh-runtime,
+  dsh-workspace,
   jq,
   pnpmConfigHook,
   pnpm_11,
@@ -40,7 +41,7 @@ buildDshBundle (finalAttrs: {
   };
 
   # The release lockfile contains absolute links to the author's DSH checkout.
-  # Replace only those development links; the pinned kernel supplies the same
+  # Replace only those development links; the pinned installation supplies the same
   # peers for type checking and runtime composition.
   postPatch = ''
     yq -o=yaml '.' ${./pnpm-workspace.json} > pnpm-workspace.yaml
@@ -92,12 +93,12 @@ buildDshBundle (finalAttrs: {
     yq-go
   ];
   disallowedReferences = [ pnpm_11 ];
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   preBuild = ''
     rm -rf node_modules/@deepseek-ai
     ${copyTree.followLinks {
-      src = "${dsh-kernel}/lib/deepseek-harness/node_modules/@deepseek-ai";
+      src = "${dsh-workspace.runtime}/node_modules/@deepseek-ai";
       dest = "node_modules/@deepseek-ai";
     }}
     ${dshCohort.installPackages { names = clientPackages; }}

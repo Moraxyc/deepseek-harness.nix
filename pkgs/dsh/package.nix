@@ -10,9 +10,7 @@
   makeWrapper,
   nodejs,
   nodejs-slim,
-  pnpmWorkspaceDeploy,
   runCommand,
-  symlinkJoin,
   util-linux,
   writeShellApplication,
   writeText,
@@ -20,20 +18,16 @@
   yq-go,
 
   buildDshBundle,
-  copyTree,
   dsh,
   dshBundleCheckHook,
-  dsh-kernel,
   dsh-runtime,
+  mkDsh,
   writableTmpDirAsHomeHook,
 
   bundles,
 
-  defaultBundles ? with bundles; [
-    headless
-    web-app
-  ],
-
+  # Installation that carries @deepseek-ai/dsh and its official bundles.
+  runtime ? dsh-runtime,
   # Profiles materialized under $DSH_HOME/profiles/nix-<name>.
   profiles ? { },
   agentPresets ? { },
@@ -46,28 +40,18 @@
   profileDefaultProfile ? null,
   # bundleCheckProfiles from the mkProfileArtifacts call that built profileSeeder.
   profileBundleCheckProfiles ? null,
-  # Shared installation (pkgs.dsh.dsh-runtime) to launch instead of composing
-  # the kernel with bundles.
-  runtime ? null,
   pname ? "dsh",
   meta ? { },
 }:
 
 let
-  composition = import ./composition.nix {
-    inherit lib;
-    validateDshBundle = buildDshBundle.validateDshBundle;
-  };
-  mkDsh = import ../../lib/mk-dsh.nix;
   dshBundleResolver = buildDshBundle.dshBundleResolver;
   profileSupport = import ./profiles.nix {
     inherit
-      baseBundle
       coreutils
       diffutils
       gnugrep
       dshBundleResolver
-      headlessBundle
       jq
       lib
       linkFarm
@@ -76,29 +60,21 @@ let
       writeShellApplication
       writeText
       writers
-      tuiBundle
-      webBundle
       yq-go
       ;
-    installation = dsh-runtime;
+    inherit (bundles)
+      base
+      headless
+      tui
+      web-app
+      ;
+    installation = runtime;
   };
 
-  baseBundle = bundles.base;
-  headlessBundle = bundles.headless;
-  tuiBundle = bundles.tui;
-  webBundle = bundles.web-app;
-  validatedOptionalBundles = composition.validateBundles (
-    lib.filter (lib.meta.availableOn stdenvNoCC.hostPlatform) (
-      map (entry: bundles.${entry.attr}) (
-        lib.attrValues (lib.importJSON ../dsh-workspace/optional-bundles.json)
-      )
-    )
-  );
   profileArtifacts = profileSupport.mkProfileArtifacts {
-    inherit agentPresets defaultBundles profiles;
+    inherit agentPresets profiles;
     inherit defaultProfile desktopProfile homePatch;
   };
-  profilesForComposition = profileArtifacts.profilesForComposition;
   managedProfileNames = map profileSupport.profileName (lib.attrNames profiles);
   validatedDefaultProfile = profileArtifacts.validatedDefaultProfile;
   validatedHomePatch = profileArtifacts.validatedHomePatch;
@@ -123,9 +99,9 @@ let
     package = dsh;
     inherit
       agentPresets
-      defaultBundles
       desktopProfile
       profiles
+      runtime
       ;
     defaultProfile = validatedDefaultProfile;
     patch = validatedHomePatch;
@@ -133,7 +109,7 @@ let
 in
 stdenvNoCC.mkDerivation (finalAttrs: {
   inherit pname;
-  inherit (dsh-kernel) version;
+  inherit (runtime) version;
 
   src = null;
   disallowedReferences = [ nodejs ];
@@ -141,23 +117,10 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   dontConfigure = true;
   dontBuild = true;
 
-  nativeBuildInputs = [
-    jq
-    makeWrapper
-  ];
+  nativeBuildInputs = [ makeWrapper ];
 
   installPhase =
     let
-      dshWrapper = ''
-        makeWrapper ${lib.getExe nodejs-slim} "$out/bin/dsh-real" \
-      ''
-      + lib.optionalString (finalAttrs.passthru.runtimeDeps != [ ]) ''
-        --prefix PATH : ${lib.makeBinPath finalAttrs.passthru.runtimeDeps} \
-      ''
-      + ''
-        --add-flags "--expose-internals" \
-        --add-flags "$appDir/lib/bin.js"
-      '';
       dshSeedWrapper =
         if profileSeeder == null && profiles == { } && validatedHomePatch == null then
           null
@@ -222,87 +185,28 @@ stdenvNoCC.mkDerivation (finalAttrs: {
           };
       launcherDefaultProfile =
         if profileSeeder == null then validatedDefaultProfile else profileDefaultProfile;
-      profileLauncher =
-        if dshSeedWrapper == null then
-          ''
-            mv "$out/bin/dsh-real" "$out/bin/dsh"
-          ''
-        else
-          ''
-            makeWrapper ${dshSeedWrapper}/bin/dsh-seed-profile "$out/bin/dsh" \
-              --set DSH_REAL "$out/bin/dsh-real"
-          '';
     in
-    (
-      if runtime != null then
+    ''
+      runHook preInstall
+
+      mkdir -p "$out/bin"
+      makeWrapper ${lib.getExe nodejs-slim} "$out/bin/dsh-real" \
+        --prefix PATH : ${lib.makeBinPath finalAttrs.passthru.runtimeDeps} \
+        --add-flags "--expose-internals" \
+        --add-flags ${lib.escapeShellArg "${runtime}/node_modules/@deepseek-ai/dsh/lib/bin.js"}
+    ''
+    + (
+      if dshSeedWrapper == null then
         ''
-          appDir="$out/lib/deepseek-harness"
-          packageRoot=${lib.escapeShellArg "${runtime}/node_modules/@deepseek-ai/dsh"}
-          mkdir -p "$appDir"
-          for entry in lib package.json; do
-            ln -s "$packageRoot/$entry" "$appDir/$entry"
-          done
-          ln -s ${lib.escapeShellArg "${runtime}/node_modules"} "$appDir/node_modules"
+          mv "$out/bin/dsh-real" "$out/bin/dsh"
         ''
       else
         ''
-          kernelApp="${dsh-kernel}/lib/deepseek-harness"
-          appDir="$out/lib/deepseek-harness"
-
-          mkdir -p "$appDir"
-          # Copy lib so the profile heal anchors at this manifest, not the kernel's.
-          ${copyTree.keepLinks {
-            src = "$kernelApp/lib";
-            dest = "$appDir/lib";
-          }}
-          ln -s "$kernelApp/config" "$appDir/config"
-          cp "$kernelApp/package.json" "$appDir/package.json"
-          ln -s "${finalAttrs.passthru.nodeModules}" "$appDir/node_modules"
-
-          mkdir -p "$out/nix-support"
-          ${lib.getExe dshBundleResolver} merge \
-            "$out/nix-support/dsh-bundles.json" \
-            ${lib.concatMapStringsSep " " (
-              bundle: lib.escapeShellArg "${bundle}/nix-support/dsh-bundles.json"
-            ) finalAttrs.passthru.composedBundles}
-          # Switched-off bundles join the app manifest, not the composed one.
-          optionalBundleManifest="$TMPDIR/dsh-optional-bundles.json"
-          printf '{"schema":1,"bundles":[]}\n' > "$optionalBundleManifest"
-        ''
-        + lib.optionalString (finalAttrs.passthru.switchedOffBundles != [ ]) ''
-          ${lib.getExe dshBundleResolver} merge \
-            "$optionalBundleManifest" \
-            ${lib.concatMapStringsSep " " (
-              bundle: lib.escapeShellArg "${bundle}/nix-support/dsh-bundles.json"
-            ) finalAttrs.passthru.switchedOffBundles}
-        ''
-        + ''
-          # Profiles resolve through $DSH_HOME, so advertise every package mounted
-          # by this installation to the profile module fallback.
-          runtimeDependencies="$TMPDIR/dsh-runtime-dependencies.json"
-          printf '{}\n' > "$runtimeDependencies"
-          for packageJson in "$appDir/node_modules"/*/package.json "$appDir/node_modules"/@*/*/package.json; do
-            [ -f "$packageJson" ] || continue
-            packageName=$(jq -r '.name | select(type == "string" and length > 0)' "$packageJson")
-            packageVersion=$(jq -r '.version | select(type == "string" and length > 0)' "$packageJson")
-            [ -n "$packageName" ] && [ -n "$packageVersion" ] || continue
-            jq --arg name "$packageName" --arg version "$packageVersion" \
-              '.[$name] = $version' "$runtimeDependencies" > "$runtimeDependencies.tmp"
-            mv "$runtimeDependencies.tmp" "$runtimeDependencies"
-          done
-          jq --slurpfile bundles "$out/nix-support/dsh-bundles.json" \
-            --slurpfile optionalBundles "$optionalBundleManifest" \
-            --slurpfile runtimeDependencies "$runtimeDependencies" \
-            '.dependencies *= ([$optionalBundles[0].bundles, $bundles[0].bundles] | add | map({key: .name, value: .version}) | from_entries) | .dependencies *= $runtimeDependencies[0]' \
-            "$appDir/package.json" > "$appDir/package.json.tmp"
-          mv "$appDir/package.json.tmp" "$appDir/package.json"
+          makeWrapper ${dshSeedWrapper}/bin/dsh-seed-profile "$out/bin/dsh" \
+            --set DSH_REAL "$out/bin/dsh-real"
         ''
     )
     + ''
-      mkdir -p "$out/bin"
-      ${dshWrapper}
-      ${profileLauncher}
-
       runHook postInstall
     '';
 
@@ -324,71 +228,24 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   '';
 
   passthru = {
-    inherit bundles defaultBundles;
-
-    optionalBundles = validatedOptionalBundles;
-
-    switchedOffBundles = lib.subtractLists finalAttrs.passthru.composedBundles finalAttrs.passthru.optionalBundles;
+    inherit bundles runtime;
+    inherit (runtime.passthru) runtimeDeps;
 
     config = builtins.removeAttrs compositionConfig [ "package" ];
 
     defaultProfileName = validatedDefaultProfile;
     profileNames = managedProfileNames;
 
-    composedBundles = composition.composeBundles {
-      base = baseBundle;
-      defaults = defaultBundles;
-      profiles = profilesForComposition;
-    };
+    # Bundles the declared profiles select, in first-use order.
+    profileBundles = lib.unique (
+      lib.concatMap (spec: spec.bundles) (lib.attrValues profileArtifacts.profileSpecs)
+    );
 
-    mkProfileArtifacts =
-      args:
-      profileSupport.mkProfileArtifacts (
-        args
-        // {
-          defaultBundles = lib.attrByPath [ "defaultBundles" ] defaultBundles args;
-        }
-      );
+    inherit (profileSupport) mkProfileArtifacts;
 
     profileTemplates = profileArtifacts.profileTemplates;
 
     seedProfiles = if profileSeeder == null then profileArtifacts.seedProfiles else profileSeeder;
-
-    nodeModules =
-      if runtime != null then
-        "${runtime}/node_modules"
-      else
-        symlinkJoin {
-          name = "dsh-node-modules";
-          paths = [
-            "${dsh-kernel}/lib/deepseek-harness/node_modules"
-          ]
-          # symlinkJoin keeps the first file on collisions. Reverse the bundle
-          # paths so a later Cordis layer also wins for overlapping runtime files.
-          ++ (map (bundle: "${bundle}/lib/node_modules") (
-            lib.reverseList finalAttrs.passthru.composedBundles
-          ))
-          # Switched-off bundles lose every name conflict to a selected bundle.
-          ++ (map (bundle: "${bundle}/lib/node_modules") (
-            lib.reverseList finalAttrs.passthru.switchedOffBundles
-          ));
-        };
-
-    flattenedNodeModules = import ./node-modules-flat.nix {
-      inherit copyTree stdenvNoCC;
-      nodeModules = finalAttrs.passthru.nodeModules;
-    };
-
-    runtimeDeps =
-      if runtime != null then
-        runtime.passthru.runtimeDeps
-      else
-        lib.unique (
-          dsh-kernel.passthru.runtimeDeps
-          ++ composition.runtimeDeps (lib.reverseList finalAttrs.passthru.composedBundles)
-          ++ composition.runtimeDeps (lib.reverseList finalAttrs.passthru.switchedOffBundles)
-          ++ [ pnpmWorkspaceDeploy ]
-        );
 
     # pkgs.dsh.dsh.withProfiles { tui.bundles = b: with b; [ tui ]; }
     # materializes the profile as nix-tui.
@@ -422,27 +279,29 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
     # pkgs.dsh.dsh.withBundles (b: with b; [ tui web-app ])
     # pkgs.dsh.dsh.withBundles [ pkgs.dsh.bundles.tui pkgs.dsh.bundles.web-app ]
-    # adds selected bundles to the composition and each declared profile.
+    # adds the selected bundles to each declared profile.
     withBundles =
       bundlesOrSelector:
       let
         selectedBundles = resolveBundles bundlesOrSelector;
-        profilesWithBundles = lib.mapAttrs (
-          _: profile:
-          profile
-          // {
-            bundles = lib.unique ((resolveBundles (profile.bundles or [ ])) ++ selectedBundles);
-          }
-        ) profiles;
       in
       assert lib.isList selectedBundles;
-      mkDsh (
-        compositionConfig
-        // {
-          defaultBundles = lib.unique (defaultBundles ++ selectedBundles);
-          profiles = profilesWithBundles;
-        }
-      );
+      lib.throwIf (profiles == { })
+        "dsh: withBundles adds bundles to declared profiles; declare one with withProfiles first"
+        (
+          mkDsh (
+            compositionConfig
+            // {
+              profiles = lib.mapAttrs (
+                _: profile:
+                profile
+                // {
+                  bundles = lib.unique ((resolveBundles (profile.bundles or [ ])) ++ selectedBundles);
+                }
+              ) profiles;
+            }
+          )
+        );
   };
 
   meta = {

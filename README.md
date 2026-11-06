@@ -3,7 +3,7 @@
 > [English](README.en.md) | **简体中文** | [日本語](README.ja.md)
 
 DSH Nix 是 DeepSeek Harness（`dsh`）的社区 Nix 打包：提供 `dsh`、
-`dsh-desktop`、`dsh-kernel`、`dsh-workspace`，以及 bundle（插件）、preset、
+`dsh-desktop`、`dsh-runtime`、`dsh-workspace`，以及 bundle（插件）、preset、
 NixOS 模块和 overlay。
 
 ## 目录
@@ -35,7 +35,7 @@ nix run github:moraxyc/deepseek-harness.nix#default -- --version
 nix build github:moraxyc/deepseek-harness.nix#dsh
 nix build github:moraxyc/deepseek-harness.nix#dsh-desktop
 nix build github:moraxyc/deepseek-harness.nix#dsh-desktop-official
-nix build github:moraxyc/deepseek-harness.nix#dsh-kernel
+nix build github:moraxyc/deepseek-harness.nix#dsh-runtime
 nix build github:moraxyc/deepseek-harness.nix#dsh-workspace
 nix build github:moraxyc/deepseek-harness.nix#bundles.tui
 nix run github:moraxyc/deepseek-harness.nix#presets.tui
@@ -49,12 +49,12 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui
   Darwin
 - `dsh-desktop-unofficial`：由 anywhere-labs/deepseek-harness-desktop 构建的第三方
   桌面应用，支持 Linux 和 Darwin
-- `dsh-kernel`：不带 profile bundle 的 kernel
+- `dsh-runtime`：CLI 与桌面共用的安装
 - `dsh-workspace`：构建后的 workspace 产物
 - `bundles.*` / `presets.*`：bundle 和 preset，完整目录见
   [Bundles 和预设](https://moraxyc.github.io/deepseek-harness.nix/zh/catalog/)
 
-桌面变体的来源、平台支持和 `dshHost` 覆盖方式见
+桌面变体的来源和平台支持见
 [高级用法](https://moraxyc.github.io/deepseek-harness.nix/zh/advanced-usage/)。
 
 也可以把仓库加入使用方 flake 的 inputs，再使用

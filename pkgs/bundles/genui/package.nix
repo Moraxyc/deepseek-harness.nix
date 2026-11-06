@@ -2,7 +2,7 @@
   lib,
   fetchFromGitHub,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   pnpmConfigHook,
   nix-update-script,
 }:
@@ -10,7 +10,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-genui";
   version = "0.15.0-unstable-2026-11-03";
   deployPackage = "@changfenhuang/dsh-genui";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   src = fetchFromGitHub {
     owner = "omdsh-dev";

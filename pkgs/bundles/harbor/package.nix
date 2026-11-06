@@ -4,7 +4,7 @@
   fetchNpmDeps,
   buildDshBundle,
   dshCohort,
-  dsh-kernel,
+  dsh-runtime,
   jq,
   nix-update-script,
   writers,
@@ -26,7 +26,7 @@ buildDshBundle (finalAttrs: {
   # The upstream repository commits both the ESM host source and the generated
   # React module-loader payload, and its lockfile lists development-time tooling
   # only. The payload's React and React DOM imports resolve against the web
-  # frontend's module-loader seeds, and the kernel supplies the host peers.
+  # frontend's module-loader seeds, and the installation supplies the host peers.
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
@@ -36,7 +36,7 @@ buildDshBundle (finalAttrs: {
   };
 
   nativeBuildInputs = [ jq ];
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   postPatch = ''
     jq 'del(.scripts, .dependencies, .devDependencies, .peerDependencies, .peerDependenciesMeta)' \

@@ -189,7 +189,7 @@ jobs:
             echo "updated=true" >> "$GITHUB_OUTPUT"
           fi
 
-      # A kernel bump can build cleanly while dsh skips bundles at runtime or
+      # A runtime bump can build cleanly while dsh skips bundles at runtime or
       # upstream drops rows and exports that downstream code still uses.
       - name: Report dsh-workspace impact
         id: impact
@@ -202,7 +202,7 @@ jobs:
           report="$RUNNER_TEMP/dsh-bump-report.md"
           scripts/dsh-bump-report.sh --fetch-sources \
             --old "$(nix build --no-link --print-out-paths "$main#dsh-workspace.src")" \
-            --kernel "$main#dsh-kernel" \
+            --runtime "$main#dsh-runtime" \
             "$(nix build --no-link --print-out-paths .#dsh-workspace.src)" \
             >"$report"
           if awk '/^## Actions$/ { inside = 1; next } /^## / { inside = 0 } inside && /^- none$/ { found = 1 } END { exit !found }' "$report"; then

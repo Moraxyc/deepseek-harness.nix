@@ -14,11 +14,12 @@
 所有 builder 执行同一套 bundle 校验：`$out/lib/node_modules` 中至少有一个
 包声明 `dsh.bundle.patch`，且补丁文件存在于该包根目录下。
 
-## Kernel peer
+## 安装中的包
 
-bundle 需要 kernel peer 时，设置 `linkKernelNodeModules = dsh-kernel`。
-helper 移除 bundle 中与 kernel 同名的包，并从 kernel 解析 peer，避免重复的
-运行时实例。必须保留的 bundle 本地版本写入 `linkKernelNodeModulesKeep`。
+bundle 链接进 profile，从 `dsh-runtime` 安装解析 peer。设置
+`installation = dsh-runtime` 后，helper 会把安装中的 `@deepseek-ai` 包和同版本的其他包改为指向安装的链接，
+保证每个包只有一个运行时实例。必须保留在 bundle 内的包写入 `installationKeep`。
+安装中已有的 bundle 使用 `buildDshBundle.fromInstallation`，按名称选用。
 
 ## CUA 签名产物
 
@@ -121,7 +122,7 @@ deploy 命令使用上述参数和注入式 workspace 布局，这是受支持�
 
 更新 `src.hash` 和 `pnpmDepsHash` 时，以 `nix build` 报告的哈希为准。
 组合后的 `dsh` 在 `installCheckPhase` 通过 `dshBundleCheckHook` 启动每个
-托管 profile，可提前发现重复 loader ID、无效补丁、缺失 kernel peer 和包解析
+托管 profile，可提前发现重复 loader ID、无效补丁、缺失安装 peer 和包解析
 失败。交互式终端循环 profile 可设置 `requiresTty = true`；hook 会在伪终端下
 运行，并视存活 smoke 窗口为启动成功。dsh 输出 `skipping profile bundle` 或
 `disabling profile plugin` 时 hook 同样失败，例如 bundle 的 `engines.dsh` 或
@@ -144,12 +145,12 @@ bundle 后，在其表达式中设置 `dshEngines = "<version>"`；builder 会�
   lib,
   fetchFromGitHub,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
 }:
 buildDshBundle (finalAttrs: {
   pname = "example-bundle";
   version = "0.1.0";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   src = fetchFromGitHub {
     owner = "example";
@@ -180,14 +181,14 @@ buildDshBundle (finalAttrs: {
   fetchFromGitHub,
   fetchPnpmDeps,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   pnpmConfigHook,
   pnpm_11,
 }:
 buildDshBundle (finalAttrs: {
   pname = "example-bundle";
   version = "0.1.0";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   src = fetchFromGitHub {
     owner = "example";
@@ -244,14 +245,14 @@ production 闭包。用准确的 npm `packageName` 选择部署结果：
 {
   lib,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   dsh-workspace,
 }:
 buildDshBundle.fromWorkspace (_finalAttrs: {
-  inherit dsh-kernel dsh-workspace;
+  inherit dsh-workspace;
   pname = "example-workspace-bundle";
   packageName = "@deepseek-ai/example-workspace-bundle";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   runtimeDeps = [ ];
 
@@ -274,7 +275,7 @@ frontend。只有必须预置到 `PATH` 的可执行程序才放入 `runtimeDeps
 
 ## 客户端 peer 来自发布 cohort
 
-bundle 使用上游发布的客户端包编译，kernel runtime 不包含这些包。
+bundle 使用上游发布的客户端包编译，安装不包含这些包。
 `pnpm run release:pack --family dsh` 将它们的 npm tarball 和
 `publish-order.txt` 生成为 release cohort。
 
@@ -315,7 +316,7 @@ in
 
 ## 升级 dsh-workspace
 
-kernel 升级可能构建成功，但 dsh 在运行时跳过部分 bundle。更新版本前后：
+运行时升级可能构建成功，但 dsh 在运行时跳过部分 bundle。更新版本前后：
 
 - `scripts/dsh-bump-report.sh NEW_VERSION` 比较当前与新的上游源码：被移除的包和
   export、bundle 行、官方 bundle 列表、构建输入、本地 workspace 补丁的目标文件，

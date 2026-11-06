@@ -2,7 +2,7 @@
   lib,
   fetchFromGitHub,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
@@ -19,7 +19,7 @@ buildDshBundle (finalAttrs: {
   npmDepsHash = "sha256-kSHppYZZK9c7c0xsTVWLIG5Nl7Y7OJ29vufu23J6mNA=";
   # The upstream peer ranges exclude this verified runtime.
   dshEngines = "0.2.2-rc.1";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   passthru.requiresWeb = true;
   passthru.updateScript = nix-update-script {

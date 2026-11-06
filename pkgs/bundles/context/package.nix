@@ -3,7 +3,7 @@
   fetchFromGitHub,
   fetchPnpmDeps,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   pnpmConfigHook,
   pnpm_11,
   nix-update-script,
@@ -31,7 +31,7 @@ buildDshBundle (finalAttrs: {
   npmBuildScript = "build";
   nativeBuildInputs = [ pnpm_11 ];
   disallowedReferences = [ pnpm_11 ];
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   installPhase = ''
     runHook preInstall

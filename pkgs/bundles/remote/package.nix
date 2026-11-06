@@ -2,7 +2,7 @@
   lib,
   fetchFromGitHub,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
@@ -19,9 +19,9 @@ buildDshBundle (finalAttrs: {
   npmDepsHash = "sha256-9BEtoJsocFoL9vAzJau3z9PkUKlAY7cnHkJ9ji9n0NU=";
   npmFlags = [ "--legacy-peer-deps" ];
   dontNpmBuild = true;
-  linkKernelNodeModules = dsh-kernel;
-  # Keep the hard dependency local so a kernel-owned sidebar cannot replace it.
-  linkKernelNodeModulesKeep = [ "dsh-better-sidebar" ];
+  installation = dsh-runtime;
+  # Keep the hard dependency local so the installation cannot replace it.
+  installationKeep = [ "dsh-better-sidebar" ];
 
   passthru.requiresWeb = true;
   passthru.updateScript = nix-update-script {

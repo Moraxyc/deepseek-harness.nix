@@ -2,7 +2,7 @@
   lib,
   fetchFromGitHub,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-message-edit";
@@ -18,7 +18,7 @@ buildDshBundle (finalAttrs: {
   npmDepsHash = "sha256-EXMwWYsck/wej6G0myADgNwOFOQZnt1l4dnkXC9T53o=";
   dontNpmBuild = true;
   npmBuildScript = "build";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   installPhase = ''
     runHook preInstall

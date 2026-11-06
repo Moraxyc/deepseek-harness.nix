@@ -7,7 +7,6 @@
   importPnpmLock,
   jq,
   dshWorkspacePatchHook,
-  makeWrapper,
   nodejs,
   nodejs-slim,
   patch,
@@ -37,7 +36,7 @@ buildNpmPackage (finalAttrs: {
   outputs = [
     "out"
     "cohort"
-    "kernel"
+    "runtime"
     "desktop"
   ];
 
@@ -97,7 +96,7 @@ buildNpmPackage (finalAttrs: {
   '';
 
   preConfigure = ''
-    patchDshWorkspace kernel
+    patchDshWorkspace runtime
   ''
   + lib.optionalString isLinux ''
     # Match the patched tarball used to populate the offline dependency store.
@@ -138,7 +137,6 @@ buildNpmPackage (finalAttrs: {
 
   nativeBuildInputs = [
     jq
-    makeWrapper
     nodejs-slim.npm
     pnpmWorkspaceDeploy
     python3
@@ -162,9 +160,9 @@ buildNpmPackage (finalAttrs: {
     runHook preInstall
 
     PNPM_CONFIG_OFFLINE=true PNPM_CONFIG_VERIFY_DEPS_BEFORE_RUN=false \
-      pnpm --filter @deepseek-ai/dsh-desktop-host deploy \
+      pnpm --filter @deepseek-ai/dsh-nix-runtime deploy \
         --prod --config.node-linker=hoisted --config.link-workspace-packages=true \
-        "$desktop/host"
+        "$runtime"
     PNPM_CONFIG_OFFLINE=true PNPM_CONFIG_VERIFY_DEPS_BEFORE_RUN=false \
       pnpm --filter @deepseek-ai/dsh-desktop deploy \
         --prod --config.node-linker=hoisted --config.link-workspace-packages=true \
@@ -176,38 +174,7 @@ buildNpmPackage (finalAttrs: {
       pnpm run release:pack --family dsh --out "$cohort"
 
     workspaceDir="$out/lib/dsh-workspace"
-    appDir="$workspaceDir/kernel"
-    kernelApp="$kernel/lib/deepseek-harness"
     mkdir -p "$workspaceDir"
-
-    cp -r apps/cli/lib apps/nix-kernel/lib
-    pnpm --filter @deepseek-ai/dsh-nix-kernel deploy \
-      --prod \
-      --config.node-linker=hoisted \
-      --config.link-workspace-packages=true \
-      "$appDir"
-
-    cp -r apps/cli/config "$appDir/config"
-
-    find "$appDir/node_modules" -type f \( -name "config.gypi" -o -name "Makefile" -o -name "*.target.mk" -o -name "binding.Makefile" -o -name "*.o" \) -delete
-    find "$appDir/node_modules" -depth -type d \( -name ".deps" -o -name "obj.target" \) -exec rm -rf {} +
-    sed -i '1{/^#!/d;}' "$appDir/lib/bin.js"
-    ${lib.getExe nodejs-slim} "$appDir/node_modules/@deepseek-ai/dsh-subprocess-local/scripts/ensure-spawn-helper.mjs"
-
-    mkdir -p "$kernelApp"
-    cp -r "$appDir/lib" "$kernelApp/lib"
-    cp -r "$appDir/config" "$kernelApp/config"
-    cp "$appDir/package.json" "$kernelApp/package.json"
-    # Copy dependencies because the public kernel must run without the workspace.
-    cp -r "$appDir/node_modules" "$kernelApp/node_modules"
-
-    jq '.name = "@deepseek-ai/dsh"' "$kernelApp/package.json" > "$kernelApp/package.json.tmp"
-    mv "$kernelApp/package.json.tmp" "$kernelApp/package.json"
-
-    mkdir -p "$kernel/bin"
-    makeWrapper ${lib.getExe nodejs-slim} "$kernel/bin/dsh" \
-      --add-flags "--expose-internals" \
-      --add-flags "$kernelApp/lib/bin.js"
 
     runtimeBundlesDir="$workspaceDir/runtime-bundles"
     for packageJson in packages/*/*/package.json; do
@@ -296,8 +263,8 @@ buildNpmPackage (finalAttrs: {
     cp apps/web/package.json "$workspaceDir/frontends/web/package.json"
     cp -r apps/web/dist "$workspaceDir/frontends/web/dist"
 
-    find "$out" "$kernel" -type f \( -name "config.gypi" -o -name "Makefile" -o -name "*.target.mk" -o -name "binding.Makefile" -o -name "*.o" \) -delete
-    find "$out" "$kernel" -depth -type d \( -name ".deps" -o -name "obj.target" \) -exec rm -rf {} +
+    find "$out" "$runtime" -type f \( -name "config.gypi" -o -name "Makefile" -o -name "*.target.mk" -o -name "binding.Makefile" -o -name "*.o" \) -delete
+    find "$out" "$runtime" -depth -type d \( -name ".deps" -o -name "obj.target" \) -exec rm -rf {} +
 
     runHook postInstall
   '';

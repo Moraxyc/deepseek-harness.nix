@@ -11,14 +11,13 @@
   dsh-workspace,
   gh,
   gitMinimal,
-  imagemagick,
-  jq,
   nodeModulesPrune,
   nodejs,
   nodejs-slim,
   pnpmWorkspaceDeploy,
   removeReferencesTo,
   ripgrep,
+  webMaskableIcons,
 }:
 
 let
@@ -36,7 +35,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "dsh-runtime";
   inherit (dsh-workspace) version;
 
-  src = dsh-workspace.desktop;
+  src = dsh-workspace.runtime;
   dontUnpack = true;
   dontConfigure = true;
   dontBuild = true;
@@ -55,27 +54,12 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     runHook preInstall
 
     ${copyTree.followLinks {
-      src = "$src/host/node_modules";
-      dest = "$out/node_modules";
-    }}
-    # pnpm deploy omits peers that upstream installs automatically; the kernel
-    # deploy declares them as dependencies.
-    ${copyTree.fillMissing {
-      src = "${dsh-workspace.kernel}/lib/deepseek-harness/node_modules";
+      src = "$src/node_modules";
       dest = "$out/node_modules";
     }}
     rm -rf "$out/node_modules/.bin" "$out/node_modules"/.modules.yaml "$out/node_modules"/.pnpm*
 
-    hostPackage="$out/node_modules/@deepseek-ai/dsh-desktop-host"
-    ${copyTree.followLinks {
-      src = "$src/host/lib";
-      dest = "$hostPackage/lib";
-    }}
-    cp "$src/host/package.json" "$hostPackage/package.json"
-
-    ${import ../../lib/web-maskable-icons.nix {
-      inherit lib imagemagick jq;
-    } "$out/node_modules/@deepseek-ai/dsh-web-frontend"}
+    ${webMaskableIcons "$out/node_modules/@deepseek-ai/dsh-web-frontend"}
     node "$out/node_modules/@deepseek-ai/dsh-subprocess-local/scripts/ensure-spawn-helper.mjs"
 
     ${nodeModulesPrune.prune { tree = "$out/node_modules"; }}
@@ -88,8 +72,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     sealDesktopRuntime() {
       node --input-type=module <<EOF
     import { readFileSync } from 'node:fs';
-    import { writeDesktopRuntime } from '$src/app/src/runtime-tree.ts';
-    import { DESKTOP_HOST_PROTOCOL_VERSION } from '$src/app/src/host-protocol.ts';
+    import { writeDesktopRuntime } from '${dsh-workspace.desktop}/app/src/runtime-tree.ts';
+    import { DESKTOP_HOST_PROTOCOL_VERSION } from '${dsh-workspace.desktop}/app/src/host-protocol.ts';
 
     const root = '$out';
     const readPackage = name => JSON.parse(readFileSync(root + '/node_modules/' + name + '/package.json', 'utf8'));

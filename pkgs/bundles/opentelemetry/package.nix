@@ -3,7 +3,7 @@
   fetchFromGitHub,
   fetchPnpmDeps,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   pnpmConfigHook,
   pnpm_11,
   nix-update-script,
@@ -32,8 +32,8 @@ buildDshBundle (finalAttrs: {
   nativeBuildInputs = [ pnpm_11 ];
   disallowedReferences = [ pnpm_11 ];
 
-  linkKernelNodeModules = dsh-kernel;
-  linkKernelNodeModulesKeep = [
+  installation = dsh-runtime;
+  installationKeep = [
     "@opentelemetry/api-logs"
     "@opentelemetry/core"
     "@opentelemetry/exporter-metrics-otlp-proto"

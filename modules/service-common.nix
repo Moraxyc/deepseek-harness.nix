@@ -4,7 +4,7 @@
 }:
 let
   profileOptions = import ./profile-options.nix { inherit lib; };
-  mkDsh = import ../lib/mk-dsh.nix;
+  inherit (pkgs.dsh) mkDsh;
   profileName = name: "nix-${name}";
 
   mkComposedPackage =

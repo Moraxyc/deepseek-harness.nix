@@ -6,8 +6,8 @@
 }:
 let
   cfg = config.programs.dsh;
-  mkDshRuntime = import ../lib/mk-dsh-runtime.nix;
-  desktopPackage = import ../lib/mk-dsh-desktop.nix { inherit lib pkgs cfg; };
+  inherit (pkgs.dsh) mkDshRuntime;
+  desktopPackage = pkgs.dsh.mkDshDesktop cfg;
   profileArtifacts = cfg.package.passthru.mkProfileArtifacts {
     inherit (cfg) agentPresets defaultProfile;
     desktopProfile = if cfg.desktop.enable then cfg.desktop.profile else null;
@@ -16,8 +16,6 @@ let
   };
   runtimePackage = mkDshRuntime {
     package = cfg.package;
-    runtime = if cfg.desktop.enable then desktopPackage.passthru.dshRuntime or null else null;
-    bundles = profileArtifacts.runtimeBundles;
     profileSeeder =
       if cfg.profiles == { } && cfg.patch == null then null else profileArtifacts.seedProfiles;
     defaultProfile = profileArtifacts.validatedDefaultProfile;

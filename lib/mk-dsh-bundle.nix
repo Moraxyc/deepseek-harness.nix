@@ -14,7 +14,8 @@
 }:
 
 let
-  resolveDshBundles = ../lib/resolve-dsh-bundles.mjs;
+  resolveDshBundles = ./resolve-dsh-bundles.mjs;
+  shareInstallationPackages = ./share-installation-packages.mjs;
   emptyCordisPatch = writers.writeYAML "empty-cordis.patch.yml" [ ];
   packageLabel = bundle: bundle.pname or bundle.name or "<unknown>";
 
@@ -156,121 +157,23 @@ let
     done
   '';
 
-  linkKernelNodeModulesScript = kernel: keep: ''
-    kernelNodeModules="${kernel}/lib/deepseek-harness/node_modules"
-    [ -d "$kernelNodeModules" ] || {
-      printf 'buildDshBundle: kernel node_modules is missing: %s\n' "$kernelNodeModules" >&2
+  # Bundles carry their own dependencies; peers resolve from the installation.
+  # Copies of installation packages become links into it, so a plugin and the
+  # installation share one module instance.
+  shareInstallationScript = installation: keep: ''
+    installationNodeModules="${installation}/node_modules"
+    [ -d "$installationNodeModules" ] || {
+      printf 'buildDshBundle: installation node_modules is missing: %s\n' "$installationNodeModules" >&2
       exit 1
     }
-
-    reservedList="$TMPDIR/dsh-kernel-reserved.txt"
-    : > "$reservedList"
-    for entry in "$kernelNodeModules"/*; do
-      [ -d "$entry" ] || continue
-      case "$(basename "$entry")" in
-        @*)
-          for package in "$entry"/*; do
-            [ -d "$package" ] || continue
-            printf '%s\n' "$(basename "$entry")/$(basename "$package")" >> "$reservedList"
-          done
-          ;;
-        *)
-          printf '%s\n' "$(basename "$entry")" >> "$reservedList"
-          ;;
-      esac
-    done
-
-    keepList="$TMPDIR/dsh-kernel-keep.txt"
-    : > "$keepList"
-    ${lib.concatMapStringsSep "\n" (
-      package: "printf '%s\\n' ${lib.escapeShellArg package} >> \"$keepList\""
-    ) keep}
-
-    bundleNodeModules="$out/lib/node_modules"
-    [ -d "$bundleNodeModules" ] || {
-      printf 'buildDshBundle: bundle node_modules is missing: %s\n' "$bundleNodeModules" >&2
-      exit 1
-    }
-
-    is_kernel_peer_kept() {
-      local candidate=$1 item
-      while IFS= read -r item; do
-        [ -n "$item" ] || continue
-        [ "$item" = "$candidate" ] && return 0
-      done < "$keepList"
-      return 1
-    }
-
-    # Duplicate kernel packages can create distinct runtime instances.
-    # linkKernelNodeModulesKeep retains intentional bundle-local versions.
-    while IFS= read -r reserved; do
-      [ -n "$reserved" ] || continue
-      is_kernel_peer_kept "$reserved" && continue
-      rm -rf "$bundleNodeModules/$reserved"
-      find "$bundleNodeModules" \
-        -depth \
-        \( -type d -o -type l \) \
-        -path "*/node_modules/$reserved" \
-      -exec rm -rf {} + 2>/dev/null || true
-    done < "$reservedList"
-
-    # Package removal leaves dangling .bin links that noBrokenSymlinks rejects.
-    find "$bundleNodeModules" -depth -type l ! -exec test -e {} \; -delete 2>/dev/null || true
-
-    find "$bundleNodeModules" -depth -type d \( -name "@" -o -name "@deepseek-ai" \) -empty -delete 2>/dev/null || true
-
-    while IFS= read -r reserved; do
-      [ -n "$reserved" ] || continue
-      is_kernel_peer_kept "$reserved" && continue
-      if [ -e "$bundleNodeModules/$reserved" ]; then
-        printf 'buildDshBundle: kernel runtime package was not pruned: %s\n' "$reserved" >&2
-        exit 1
-      fi
-    done < "$reservedList"
-
-    link_kernel_into_package() {
-      local moduleRoot="$1/node_modules"
-
-      if [ ! -e "$moduleRoot" ] && [ ! -L "$moduleRoot" ]; then
-        ln -s "$kernelNodeModules" "$moduleRoot"
-        return
-      fi
-
-      mkdir -p "$moduleRoot"
-      while IFS= read -r reserved; do
-        [ -n "$reserved" ] || continue
-        if [ ! -e "$moduleRoot/$reserved" ] && [ ! -L "$moduleRoot/$reserved" ]; then
-          case "$reserved" in
-            @*)
-              mkdir -p "$moduleRoot/''${reserved%/*}"
-              ;;
-          esac
-          ln -s "$kernelNodeModules/$reserved" "$moduleRoot/$reserved"
-        fi
-      done < "$reservedList"
-    }
-
-    for entry in "$out"/lib/node_modules/*; do
-      [ -d "$entry" ] || continue
-      case "$(basename "$entry")" in
-        .*)
-          continue
-          ;;
-        @*)
-          for pkg in "$entry"/*; do
-            [ -d "$pkg" ] || continue
-            link_kernel_into_package "$pkg"
-          done
-          ;;
-        *)
-          link_kernel_into_package "$entry"
-          ;;
-      esac
-    done
+    ${lib.getExe nodejs-slim} ${shareInstallationPackages} \
+      "$out/lib/node_modules" "$installationNodeModules" ${lib.escapeShellArgs keep}
+    # Shared packages leave dangling .bin links that noBrokenSymlinks rejects.
+    find "$out/lib/node_modules" -xtype l -delete
   '';
 
   # Every builder exposes the same protocol surface: validated passthru,
-  # kernel peer linking, engines rewrite, and the bundle manifest.
+  # installation package sharing, engines rewrite, and the bundle manifest.
   mkBundleProtocol =
     finalAttrs:
     {
@@ -279,8 +182,8 @@ let
       passthru ? { },
       postInstall ? "",
       dshEngines ? null,
-      linkKernelNodeModules ? null,
-      linkKernelNodeModulesKeep ? [ ],
+      installation ? null,
+      installationKeep ? [ ],
     }:
     let
       validation = validateDshBundle {
@@ -297,9 +200,7 @@ let
       passthru = passthru // validation.passthru // { inherit dshEngines; };
       postInstall =
         postInstall
-        + lib.optionalString (linkKernelNodeModules != null) (
-          linkKernelNodeModulesScript linkKernelNodeModules linkKernelNodeModulesKeep
-        )
+        + lib.optionalString (installation != null) (shareInstallationScript installation installationKeep)
         + setDshEnginesScript dshEngines
         + validateInstalledBundle;
     };
@@ -309,8 +210,8 @@ let
     excludeDrvArgNames = [
       "disableChildBundlePatches"
       "dshEngines"
-      "linkKernelNodeModules"
-      "linkKernelNodeModulesKeep"
+      "installation"
+      "installationKeep"
       "runtimeDeps"
     ];
     extendDrvArgs =
@@ -319,8 +220,8 @@ let
         runtimeDeps ? [ ],
         disableChildBundlePatches ? false,
         dshEngines ? null,
-        linkKernelNodeModules ? null,
-        linkKernelNodeModulesKeep ? [ ],
+        installation ? null,
+        installationKeep ? [ ],
         nativeBuildInputs ? [ ],
         disallowedReferences ? [ ],
         env ? { },
@@ -345,8 +246,8 @@ let
       // mkBundleProtocol finalAttrs {
         inherit
           dshEngines
-          linkKernelNodeModules
-          linkKernelNodeModulesKeep
+          installation
+          installationKeep
           meta
           passthru
           runtimeDeps
@@ -361,8 +262,8 @@ let
       "deployPackage"
       "disableChildBundlePatches"
       "dshEngines"
-      "linkKernelNodeModules"
-      "linkKernelNodeModulesKeep"
+      "installation"
+      "installationKeep"
       "pnpm"
       "pnpmDepsHash"
       "postDeploy"
@@ -384,8 +285,8 @@ let
         stripPrepareScripts ? false,
         disableChildBundlePatches ? false,
         dshEngines ? null,
-        linkKernelNodeModules ? null,
-        linkKernelNodeModulesKeep ? [ ],
+        installation ? null,
+        installationKeep ? [ ],
         pnpm ? pnpmWorkspaceDeploy,
         nativeBuildInputs ? [ ],
         disallowedReferences ? [ ],
@@ -472,8 +373,8 @@ let
       // mkBundleProtocol finalAttrs {
         inherit
           dshEngines
-          linkKernelNodeModules
-          linkKernelNodeModulesKeep
+          installation
+          installationKeep
           meta
           passthru
           runtimeDeps
@@ -490,11 +391,10 @@ let
     excludeDrvArgNames = [
       "artifacts"
       "packageName"
-      "dsh-kernel"
       "dsh-workspace"
       "dshEngines"
-      "linkKernelNodeModules"
-      "linkKernelNodeModulesKeep"
+      "installation"
+      "installationKeep"
       "runtimeDeps"
     ];
     extendDrvArgs =
@@ -502,12 +402,11 @@ let
       {
         packageName,
         artifacts ? [ ],
-        dsh-kernel,
         dsh-workspace,
         disallowedReferences ? [ ],
         dshEngines ? null,
-        linkKernelNodeModules ? null,
-        linkKernelNodeModulesKeep ? [ ],
+        installation ? null,
+        installationKeep ? [ ],
         nativeBuildInputs ? [ ],
         runtimeDeps ? [ ],
         version ? dsh-workspace.version,
@@ -553,8 +452,8 @@ let
       // mkBundleProtocol finalAttrs {
         inherit
           dshEngines
-          linkKernelNodeModules
-          linkKernelNodeModulesKeep
+          installation
+          installationKeep
           meta
           passthru
           runtimeDeps
@@ -562,11 +461,51 @@ let
         inherit postInstall;
       };
   };
+  # A bundle the dsh installation already carries. Profiles select it by name;
+  # its package stays in the installation.
+  fromInstallation =
+    {
+      pname,
+      packageName,
+      installation,
+      meta ? { },
+      passthru ? { },
+    }:
+    let
+      validation = validateDshBundle {
+        bundle = {
+          inherit meta pname;
+          passthru = protocol [ ];
+        };
+        context = "buildDshBundle.fromInstallation";
+      };
+      packageRoot = "${installation}/node_modules/${packageName}";
+    in
+    stdenvNoCC.mkDerivation {
+      inherit pname;
+      inherit (installation) version;
+      dontUnpack = true;
+      dontConfigure = true;
+      dontBuild = true;
+      nativeBuildInputs = [ jq ];
+      installPhase = ''
+        runHook preInstall
+        jq --arg root ${lib.escapeShellArg packageRoot} '
+          if .dsh.bundle.patch == null then error("\(.name) declares no dsh.bundle.patch") else . end
+          | {schema: 1, bundles: [{name, version, patch: .dsh.bundle.patch, packageRoot: $root}]}
+        ' ${lib.escapeShellArg "${packageRoot}/package.json"} > manifest.json
+        install -Dm644 manifest.json "$out/nix-support/dsh-bundles.json"
+        runHook postInstall
+      '';
+      passthru = passthru // validation.passthru // { dshInstallation = true; };
+      inherit (validation) meta;
+    };
 in
 buildDshBundle
 // {
   inherit
     dshBundleResolver
+    fromInstallation
     fromPnpmWorkspace
     fromWorkspace
     validateDshBundle

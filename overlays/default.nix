@@ -1,73 +1,10 @@
-final: prev:
+final: _prev:
 let
-  removedBundles = import ../lib/removed-bundles.nix;
-  # Workspace injection requires pnpm >= 11.22.0 (pnpm/pnpm#13754).
-  # Older versions leave source-workspace links in deployed bundles.
-  pnpmWorkspaceDeployMinVersion = "11.22.0";
-  pnpmWorkspaceDeploy =
-    let
-      pnpm =
-        if prev.lib.versionAtLeast prev.pnpm_11.version pnpmWorkspaceDeployMinVersion then
-          prev.pnpm_11
-        else
-          prev.pnpm_11.override {
-            version = pnpmWorkspaceDeployMinVersion;
-            hash = "sha256-V6l+byOj+v/AMVOk74x3CgVSYSuGQK6+Ob/dV1TQ69w=";
-          };
-    in
-    assert prev.lib.assertMsg (prev.lib.versionAtLeast pnpm.version pnpmWorkspaceDeployMinVersion)
-      "dsh: pnpmWorkspaceDeploy resolved to ${pnpm.version}, older than ${pnpmWorkspaceDeployMinVersion}";
-    pnpm;
-  # Upstream release lockfiles must bypass pnpm's release-age policy and
-  # package-manager downloads.
-  wrapFetchPnpmDeps =
-    base:
-    let
-      wrapped = prev.lib.makeOverridable (
-        args:
-        base (
-          args
-          // {
-            pnpm = args.pnpm or pnpmWorkspaceDeploy;
-            prePnpmInstall = (args.prePnpmInstall or "") + ''
-              export pnpm_config_manage_package_manager_versions=false
-              export pnpm_config_minimum_release_age=0
-            '';
-          }
-        )
-      );
-    in
-    wrapped
-    // {
-      override = overrides: wrapFetchPnpmDeps (base.override overrides);
-      overrideDerivation = f: wrapFetchPnpmDeps (base.overrideDerivation f);
-    };
-  fetchPnpmDeps = wrapFetchPnpmDeps prev.fetchPnpmDeps;
-  copyTree = import ../lib/copy-tree.nix { inherit (final) lib; };
-  nodeModulesPrune = import ../lib/node-modules-prune.nix {
-    inherit (final) lib stdenvNoCC;
-  };
-  buildDshBundle = import ../lib/mk-dsh-bundle.nix {
-    inherit (final)
-      buildNpmPackage
-      jq
-      lib
-      nodejs
-      nodejs-slim
-      stdenvNoCC
-      writeShellApplication
-      writers
-      ;
-    inherit
-      copyTree
-      fetchPnpmDeps
-      pnpmWorkspaceDeploy
-      pnpmWorkspaceDeployMinVersion
-      ;
-  };
+  dshLib = import ../lib { inherit (final) lib; };
   dsh = final.lib.makeScope final.newScope (
     self:
     let
+      helpers = dshLib.scope final self;
       # Inject bundles into the directory scope because package arguments resolve there.
       directoryPackages =
         (final.lib.packagesFromDirectoryRecursive {
@@ -76,43 +13,26 @@ let
           directory = ../pkgs;
         }).overrideScope
           (
-            dirFinal: dirPrev: {
+            _: dirPrev: {
               bundles = dirPrev.bundles.overrideScope (
                 _: prev:
                 let
-                  generated = import ../lib/dsh-optional-bundles.nix {
-                    inherit (final)
-                      lib
-                      gitMinimal
-                      gh
-                      nodejs-slim
-                      ;
-                    inherit buildDshBundle;
-                    inherit (dirFinal) dsh-kernel dsh-workspace;
-                  };
+                  generated = dshLib.optionalBundles final self;
                   collisions = final.lib.attrNames (final.lib.intersectAttrs generated prev);
                 in
                 final.lib.throwIf (collisions != [ ])
                   "dsh optional bundles collide with pkgs/bundles: ${final.lib.concatStringsSep ", " collisions}"
-                  (generated // final.lib.mapAttrs (_: message: throw message) removedBundles)
+                  (generated // final.lib.mapAttrs (_: message: throw message) helpers.removedBundles)
               );
             }
           );
     in
-    {
-      # Keep the wrapped fetcher in the dsh scope so unrelated pnpm packages
-      # retain their release-age policy.
-      inherit
-        buildDshBundle
-        copyTree
-        fetchPnpmDeps
-        nodeModulesPrune
-        ;
-      dshCohort = self.callPackage ../lib/dsh-cohort.nix { };
-      inherit pnpmWorkspaceDeploy;
-      inherit removedBundles;
-      helpers.buildBundle = buildDshBundle;
-      mkDshBundle = buildDshBundle;
+    # The wrapped fetchPnpmDeps stays in the dsh scope so unrelated pnpm
+    # packages retain their release-age policy.
+    helpers
+    // {
+      helpers.buildBundle = helpers.buildDshBundle;
+      mkDshBundle = helpers.buildDshBundle;
       dsh-desktop = self.dsh-desktop-official;
     }
     // directoryPackages

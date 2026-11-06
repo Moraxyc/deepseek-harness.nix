@@ -1,15 +1,15 @@
 {
   lib,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   dsh-cua-native,
   dsh-workspace,
 }:
 buildDshBundle.fromWorkspace (_finalAttrs: {
-  inherit dsh-kernel dsh-workspace;
+  inherit dsh-workspace;
   pname = "dsh-cua-bundle";
   packageName = "@deepseek-ai/dsh-cua-bundle";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
   stripExclude = [ "*/DSH Computer Use.app/*" ];
   passthru.requiresWeb = true;
 

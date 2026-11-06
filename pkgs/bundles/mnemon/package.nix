@@ -2,7 +2,7 @@
   lib,
   fetchFromGitHub,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   pnpmConfigHook,
   nix-update-script,
 }:
@@ -23,7 +23,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   # The root build does not build the source-only plugin workspaces, while
   # deploy intentionally skips dependency lifecycle scripts.

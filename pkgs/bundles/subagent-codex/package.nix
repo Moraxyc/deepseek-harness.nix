@@ -2,7 +2,7 @@
   codexPackage ? null,
   lib,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   dsh-workspace,
   nodejs-slim,
   stdenv,
@@ -41,11 +41,11 @@ let
   supportedPlatforms = lib.filter hasPlatformPackage (dsh-workspace.meta.platforms or [ ]);
 in
 buildDshBundle.fromWorkspace (_finalAttrs: {
-  inherit dsh-kernel dsh-workspace;
+  inherit dsh-workspace;
 
   pname = "dsh-subagent-codex";
   packageName = "@deepseek-ai/dsh-subagent-codex";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
   passthru.requiresTty = true;
 
   postInstall = lib.optionalString (codexPackage != null) ''

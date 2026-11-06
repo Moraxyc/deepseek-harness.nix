@@ -4,7 +4,6 @@
 }:
 dsh.override {
   pname = "dsh-web";
-  defaultBundles = [ bundles.web-app ];
   defaultProfile = "nix-web";
   meta = {
     description = "Web-first setup without extra UI components";

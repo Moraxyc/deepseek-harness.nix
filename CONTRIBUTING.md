@@ -15,12 +15,15 @@ Every builder runs the same bundle validation: `$out/lib/node_modules` must
 contain at least one package declaring `dsh.bundle.patch`, and the patch file
 must exist relative to that package root.
 
-## Kernel peers
+## Installation packages
 
-Set `linkKernelNodeModules = dsh-kernel` when a bundle needs kernel peers.
-The helper removes bundle-local copies of kernel-owned packages and resolves
-peers from the kernel to avoid duplicate runtime instances. Use
-`linkKernelNodeModulesKeep` for versions the bundle must keep locally.
+Bundles are linked into profiles and resolve their peers from the
+`dsh-runtime` installation. Set `installation = dsh-runtime` so the helper
+replaces copies of its `@deepseek-ai` packages, and same-version copies of
+other installation packages, with links into it,
+which keeps one runtime instance per package. Use `installationKeep` for
+packages the bundle must keep locally. Bundles the installation already
+carries use `buildDshBundle.fromInstallation` and are selected by name.
 
 ## Signed CUA payload
 
@@ -133,7 +136,7 @@ place.
 Update `src.hash` and `pnpmDepsHash` with the hashes reported by `nix build`.
 The composed `dsh` package boots every managed profile during `installCheckPhase`
 through `dshBundleCheckHook`; use that to catch duplicate loader entry IDs,
-invalid patches, missing kernel peer imports, and package resolution failures
+invalid patches, missing installation peer imports, and package resolution failures
 before runtime. Profiles that stay in an interactive terminal loop can set
 `requiresTty = true`; the hook runs those under a pseudo-terminal and treats a
 live smoke window as a successful boot. The hook also fails when dsh reports
@@ -158,12 +161,12 @@ standard install uses `package.json.name` for the package directory and the
   lib,
   fetchFromGitHub,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
 }:
 buildDshBundle (finalAttrs: {
   pname = "example-bundle";
   version = "0.1.0";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   src = fetchFromGitHub {
     owner = "example";
@@ -195,14 +198,14 @@ must place the package under `$out/lib/node_modules`:
   fetchFromGitHub,
   fetchPnpmDeps,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   pnpmConfigHook,
   pnpm_11,
 }:
 buildDshBundle (finalAttrs: {
   pname = "example-bundle";
   version = "0.1.0";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   src = fetchFromGitHub {
     owner = "example";
@@ -262,14 +265,14 @@ deployment by its exact npm `packageName`:
 {
   lib,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   dsh-workspace,
 }:
 buildDshBundle.fromWorkspace (_finalAttrs: {
-  inherit dsh-kernel dsh-workspace;
+  inherit dsh-workspace;
   pname = "example-workspace-bundle";
   packageName = "@deepseek-ai/example-workspace-bundle";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   runtimeDeps = [ ];
 
@@ -293,7 +296,7 @@ Bundle stay in its deployed closure.
 
 ## Client peers from the release cohort
 
-Bundles compile against upstream's published client packages, which the kernel
+Bundles compile against upstream's published client packages, which the installation
 runtime does not carry. `pnpm run release:pack --family dsh` emits their npm
 tarballs and `publish-order.txt` as a release cohort.
 
@@ -336,7 +339,7 @@ in
 
 ## Bumping dsh-workspace
 
-A kernel bump can build cleanly while dsh skips bundles at runtime. Before and
+A runtime bump can build cleanly while dsh skips bundles at runtime. Before and
 after updating the pin:
 
 - `scripts/dsh-bump-report.sh NEW_VERSION` compares the pinned and new upstream

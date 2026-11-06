@@ -4,10 +4,9 @@
   fetchPnpmDeps,
   buildDshBundle,
   copyTree,
-  dsh-kernel,
+  dsh-runtime,
   pnpmConfigHook,
   pnpm_11,
-  web-app,
   nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
@@ -63,13 +62,13 @@ buildDshBundle (finalAttrs: {
 
   nativeBuildInputs = [ pnpm_11 ];
   disallowedReferences = [ pnpm_11 ];
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
   # Upstream peer ranges stop at 0.2.1-rc.5. Raise this only after the TUI
   # boots every bundled preset on the new dsh release.
   dshEngines = "0.2.2-rc.1";
-  linkKernelNodeModulesKeep = [
+  installationKeep = [
     "ansi-styles"
-    # dsh-tui compiles against React 19, while dsh-kernel carries React 18.
+    # dsh-tui compiles against React 19, while the installation carries React 18.
     "react"
     # supports-hyperlinks@3.2.0 needs the supports-color@7 function export.
     "supports-color"
@@ -104,7 +103,7 @@ buildDshBundle (finalAttrs: {
     # Without a web-app row, dsh-tui registers the official presets from this
     # dev dependency, which is pinned to the 0.2.1 line.
     rm "$appDir/node_modules/@deepseek-ai/dsh-web-app"
-    ln -s ${web-app}/lib/node_modules/@deepseek-ai/dsh-web-app \
+    ln -s ${dsh-runtime}/node_modules/@deepseek-ai/dsh-web-app \
       "$appDir/node_modules/@deepseek-ai/dsh-web-app"
 
     runHook postInstall

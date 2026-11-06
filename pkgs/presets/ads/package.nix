@@ -4,7 +4,6 @@
 }:
 dsh.override {
   pname = "dsh-ads";
-  defaultBundles = [ bundles.web-app ];
   defaultProfile = "nix-ads";
   meta = {
     description = "DSH setup with local portal ads and scam-ad parodies";

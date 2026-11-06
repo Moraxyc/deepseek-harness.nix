@@ -3,7 +3,7 @@
   fetchFromGitHub,
   fetchNpmDeps,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   jq,
   nix-update-script,
   writers,
@@ -40,7 +40,7 @@ buildDshBundle (finalAttrs: {
 
   dontConfigure = true;
   dontNpmBuild = true;
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   installPhase = ''
     runHook preInstall

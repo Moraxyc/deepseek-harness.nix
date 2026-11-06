@@ -475,35 +475,39 @@ unfree です。`subagent-claude-code` を選択する利用者は、そのパ�
 }
 ```
 
-## カスタムバンドル構成
+## インストールとプロファイルのバンドル
 
-バンドルを追加するには、`withBundles` を使用します。バンドルパッケージのリスト、または
-短い名前を使用するためのバンドルスコープ関数のいずれかを指定できます。
+`pkgs.dsh.dsh-runtime` は上流のインストールで、`@deepseek-ai/dsh`、公式バンドル、
+プライベートな Desktop Host を含みます。CLI と公式デスクトップはどちらもこれを実行し、
+設定によって変わりません。`base`、`headless`、`web-app`、オプションバンドルなど、
+インストールに含まれるバンドルは名前で選択されます。その他のバンドルは、それを列挙する
+プロファイルにリンクされ、dsh はそこで外部プラグインを読み込みます。
+
+宣言済みの各プロファイルにバンドルを追加するには、`withBundles` を使用します。
+バンドルパッケージのリスト、または短い名前を使用するためのバンドルスコープ関数の
+いずれかを指定できます。
 
 ```nix
-pkgs.dsh.dsh.withBundles [
-  pkgs.dsh.bundles.tui
-  pkgs.dsh.bundles.web-app
+(pkgs.dsh.dsh.withProfiles { web.bundles = [ pkgs.dsh.bundles.web-app ]; }).withBundles [
+  pkgs.dsh.bundles.notification
 ]
 
-pkgs.dsh.dsh.withBundles (b: with b; [
+(pkgs.dsh.dsh.withProfiles { cli = { }; }).withBundles (b: with b; [
   tui
-  web-app
 ])
 ```
 
-選択したバンドルは、現在の構成と宣言された各プロファイルのバンドルリストに追加されます。
 バンドルはリストの順序で適用されるため、後のバンドルが前のバンドルの Cordis 設定を
 上書きします。ベースレイヤーは常に最初です。
 
 ### デフォルトで無効な同梱バンドル
 
-各構成には、ホストプラットフォームをサポートする上流の `OPTIONAL_BUNDLES` が同梱されます。
+インストールには、ホストプラットフォームをサポートする上流の `OPTIONAL_BUNDLES` が含まれます。
 これらはすべてのプロファイルで利用でき、プラグインマネージャーの official グループで
 有効にできます。このセットはピン留めされたソースによって固定されており、Nix から
 削除したり拡張したりすることはできません。
 
-これらのいずれかをプロファイルの `bundles` に列挙すると、代わりに通常どおり構成されます。
+これらのいずれかをプロファイルの `bundles` に列挙すると、そのプロファイルで有効になります。
 
 `experimental-tool-worktree` は、Git 2.45 以降（`gitMinimal`）と Node を実行時の
 `PATH` に提供します。worktree は Nix store ではなく、書き込み可能なソースチェックアウトに
@@ -536,16 +540,9 @@ nix run .#dsh-desktop-official
 Darwin では、アプリケーションは `Applications/DeepSeek Harness.app` にインストールされ、
 `bin/dsh-desktop` がランチャーになります。
 
-公式バリアントは共有の `pkgs.dsh.dsh-runtime` インストールを実行します。追加のバンドルは
-`programs.dsh.desktop.profile` で選択したプロファイルから読み込まれます。非公式バリアントは
-`dshHost` を受け付けます。これは、そのランタイムの背後で動作する構成済みの `dsh` です。
-プリセットまたはカスタム構成を指定すると、アプリケーションが実行するバンドルを変更できます。
-
-```nix
-pkgs.dsh.dsh-desktop-unofficial.override {
-  dshHost = pkgs.dsh.presets.tui;
-}
-```
+どちらのバリアントも共有の `pkgs.dsh.dsh-runtime` インストールを実行します。公式
+デスクトップの追加のバンドルは、`programs.dsh.desktop.profile` で選択したプロファイルから
+読み込まれます。
 
 ## オーバーレイ
 
@@ -567,7 +564,7 @@ Nixpkgs にオーバーレイを追加し、`pkgs.dsh` スコープを使用し�
 
 この Flake の外部の利用者には、2 種類のヘルパーが提供されます。
 
-- `fromPnpmWorkspace`、`fromWorkspace`、`validateDshBundle` を含む
+- `fromPnpmWorkspace`、`fromWorkspace`、`fromInstallation`、`validateDshBundle` を含む
   `pkgs.dsh.helpers.buildBundle`: 後述するバンドルビルダー。
 - `legacyPackages.<system>.importPnpmLock`、またはオーバーレイの
   `pkgs.dsh.importPnpmLock`: `pnpm-lock.json` をベンダー化するバンドル用のフェッチャー。
@@ -602,7 +599,7 @@ let
 
     npmDepsHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
     npmBuildScript = "build";
-    linkKernelNodeModules = pkgs.dsh.dsh-kernel;
+    installation = pkgs.dsh.dsh-runtime;
 
     meta.description = "Example DSH bundle";
   });
@@ -616,6 +613,9 @@ in
 `package.json.name` がパッケージディレクトリを選択し、`npm pack` のファイルリストが
 実行時ペイロードを選択します。インストールされたマニフェストは `dsh.bundle.patch` を
 宣言している必要があり、そのファイルもパッケージペイロードに含まれている必要があります。
-ビルダーは結果を検証し、構成で使用するバンドルマニフェストを出力します。
+ビルダーは結果を検証し、プロファイルが読み取るバンドルマニフェストを出力します。
+`installation` を指定すると、インストールに含まれる `@deepseek-ai` パッケージと、同じバージョンで含まれる依存関係は
+インストールへのリンクに置き換えられ、プラグインと dsh が同じモジュールインスタンスを
+共有します。例外は `installationKeep` に列挙してください。
 `installPhase` をオーバーライドするのは、非標準のパッケージレイアウトの場合のみにしてください。
 外部の pnpm モノレポには、`pkgs.dsh.helpers.buildBundle.fromPnpmWorkspace` を使用します。

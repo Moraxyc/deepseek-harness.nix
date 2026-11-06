@@ -13,7 +13,6 @@
           dsh-desktop
           dsh-desktop-official
           dsh-desktop-unofficial
-          dsh-kernel
           dsh-runtime
           dsh-workspace
           ;
@@ -59,9 +58,9 @@
       bundleAttrs = lib.genAttrs bundleNames (name: ".#bundles.${name}");
       presetAttrs = lib.genAttrs presetNames (name: ".#presets.${name}");
       bundleKeyOf = bundle: bundle.pname or bundle.name or null;
-      defaultBundleKeys = map bundleKeyOf dsh.dsh.passthru.composedBundles;
+      # Bundles the installation carries need no composition of their own.
       bundleCompositionNames = lib.filter (
-        name: !(lib.elem (bundleKeyOf legacyPackages.bundles.${name}) defaultBundleKeys)
+        name: !(legacyPackages.bundles.${name}.passthru.dshInstallation or false)
       ) bundleNames;
       bundleCompositionAttrs = lib.genAttrs bundleCompositionNames (name: ".#bundleCompositions.${name}");
       bundleCompositions = lib.genAttrs bundleCompositionNames (
@@ -73,9 +72,7 @@
       );
       usesBundle =
         package: bundleKey:
-        lib.any (bundle: bundleKeyOf bundle == bundleKey) (
-          (package.passthru or { }).composedBundles or [ ]
-        );
+        lib.any (bundle: bundleKeyOf bundle == bundleKey) ((package.passthru or { }).profileBundles or [ ]);
       bundleDependents = lib.genAttrs bundleNames (
         bundleName:
         let
@@ -86,9 +83,6 @@
           ) presetNames;
         in
         (map (name: packageAttrs.${name}) affectedPackages)
-        ++ lib.optional (lib.elem "dsh" affectedPackages) packageAttrs.dsh-desktop
-        ++ lib.optional (lib.elem "dsh" affectedPackages) packageAttrs.dsh-desktop-official
-        ++ lib.optional (lib.elem "dsh" affectedPackages) packageAttrs.dsh-desktop-unofficial
         ++ map (name: presetAttrs.${name}) affectedPresets
       );
     in

@@ -1,35 +1,17 @@
 {
   lib,
-  gitMinimal,
-  gh,
-  nodejs-slim,
   buildDshBundle,
-  dsh-kernel,
-  dsh-workspace,
+  dsh-runtime,
 }:
 let
   manifest = lib.importJSON ../pkgs/dsh-workspace/optional-bundles.json;
 
   mkBundle =
     packageName: entry:
-    buildDshBundle.fromWorkspace (_finalAttrs: {
-      inherit dsh-kernel dsh-workspace packageName;
-
+    buildDshBundle.fromInstallation {
+      inherit packageName;
       inherit (entry) pname;
-
-      linkKernelNodeModules = dsh-kernel;
-
-      runtimeDeps =
-        lib.optionals
-          (lib.elem packageName [
-            "@deepseek-ai/dsh-experimental-tool-worktree"
-            "@deepseek-ai/dsh-experimental-forge-bundle"
-          ])
-          [
-            gitMinimal
-            nodejs-slim
-          ]
-        ++ lib.optional (packageName == "@deepseek-ai/dsh-experimental-forge-bundle") gh;
+      installation = dsh-runtime;
 
       passthru = lib.optionalAttrs entry.requiresWeb {
         requiresWeb = true;
@@ -47,7 +29,7 @@ let
           else
             lib.concatMap (platform: lib.platforms.${platform}) entry.platforms;
       };
-    });
+    };
 in
 lib.mapAttrs' (
   packageName: entry: lib.nameValuePair entry.attr (mkBundle packageName entry)

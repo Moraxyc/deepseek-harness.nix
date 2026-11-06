@@ -2,7 +2,7 @@
   lib,
   fetchFromGitHub,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
@@ -21,7 +21,7 @@ buildDshBundle (finalAttrs: {
   dontPatch = true;
   dontConfigure = true;
   dontBuild = true;
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   installPhase = ''
     runHook preInstall

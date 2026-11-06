@@ -3,7 +3,7 @@
 > [English](README.en.md) | [简体中文](README.md) | **日本語**
 
 DSH Nix は、DeepSeek Harness（`dsh`）向けのコミュニティメンテナンスによる Nix
-パッケージングです。CLI、デスクトップアプリ、カーネル、ワークスペースバンドル
+パッケージングです。CLI、デスクトップアプリ、共有ランタイム、ワークスペースバンドル
 （プラグイン）、プリセット、NixOS モジュール、overlay を提供します。
 
 ## 目次
@@ -35,7 +35,7 @@ nix run github:moraxyc/deepseek-harness.nix#default -- --version
 nix build github:moraxyc/deepseek-harness.nix#dsh
 nix build github:moraxyc/deepseek-harness.nix#dsh-desktop
 nix build github:moraxyc/deepseek-harness.nix#dsh-desktop-official
-nix build github:moraxyc/deepseek-harness.nix#dsh-kernel
+nix build github:moraxyc/deepseek-harness.nix#dsh-runtime
 nix build github:moraxyc/deepseek-harness.nix#dsh-workspace
 nix build github:moraxyc/deepseek-harness.nix#bundles.tui
 nix run github:moraxyc/deepseek-harness.nix#presets.tui
@@ -49,13 +49,13 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui
   デスクトップアプリケーション。Linux と Darwin に対応
 - `dsh-desktop-unofficial`: anywhere-labs/deepseek-harness-desktop から構築した
   デスクトップアプリケーション。Linux と Darwin に対応
-- `dsh-kernel`: プロファイルバンドルを含まないカーネル
+- `dsh-runtime`: CLI とデスクトップが共有するインストール
 - `dsh-workspace`: ビルド済みのワークスペース成果物
 - `bundles.*` / `presets.*`: バンドルとプリセット。完全なカタログは
   [バンドルとプリセット](https://moraxyc.github.io/deepseek-harness.nix/ja/catalog/)
   を参照
 
-各バリアントのソース、対応プラットフォーム、`dshHost` のオーバーライドについては、
+各バリアントのソースと対応プラットフォームについては、
 [高度な使い方](https://moraxyc.github.io/deepseek-harness.nix/ja/advanced-usage/)
 を参照してください。
 

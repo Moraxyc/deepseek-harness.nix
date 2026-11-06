@@ -4,7 +4,7 @@
   fetchPnpmDeps,
   buildDshBundle,
   copyTree,
-  dsh-kernel,
+  dsh-runtime,
   git,
   pnpmConfigHook,
   pnpm_11,
@@ -34,10 +34,10 @@ buildDshBundle (finalAttrs: {
   nativeBuildInputs = [ pnpm_11 ];
   disallowedReferences = [ pnpm_11 ];
 
-  # The peer and web client packages are supplied by the DSH kernel.
+  # The peer and web client packages are supplied by the DSH installation.
   # The upstream peer ranges exclude this verified runtime.
   dshEngines = "0.2.2-rc.1";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
   runtimeDeps = [ git ];
 
   installPhase = ''

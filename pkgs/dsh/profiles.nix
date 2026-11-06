@@ -1,10 +1,10 @@
 {
-  baseBundle,
+  base,
   coreutils,
   diffutils,
   gnugrep,
   dshBundleResolver,
-  headlessBundle,
+  headless,
   installation,
   jq,
   lib,
@@ -14,8 +14,8 @@
   writeShellApplication,
   writeText,
   writers,
-  tuiBundle,
-  webBundle,
+  tui,
+  web-app,
   yq-go,
 }:
 
@@ -139,19 +139,19 @@ let
       needsTui = profileNeedsTui profile;
     in
     lib.unique (
-      lib.optional needsWeb webBundle
-      ++ lib.optional needsTui tuiBundle
+      lib.optional needsWeb web-app
+      ++ lib.optional needsTui tui
       # A profile manifest is independent from the runtime defaults. Keep
       # plain CLI profiles non-interactive instead of letting dsh fall back to
       # its interactive entrypoint during headless checks and service use.
-      ++ lib.optional (!needsWeb && !needsTui) headlessBundle
+      ++ lib.optional (!needsWeb && !needsTui) headless
       ++ (profile.bundles or [ ])
     );
 
   makeAgentPresetPatch =
     id: definition:
     let
-      sourcePatch = "${webBundle}/lib/node_modules/@deepseek-ai/dsh-web-app/presets/${definition.source}.patch.yml";
+      sourcePatch = "${installation}/node_modules/@deepseek-ai/dsh-web-app/presets/${definition.source}.patch.yml";
     in
     runCommand (lib.strings.sanitizeDerivationName "dsh-agent-preset-patch-${id}")
       {
@@ -219,9 +219,7 @@ let
           null;
       # The manifest argument order is the Cordis patch order. Keep the base
       # layer first, then apply profile bundles in their declared order.
-      bundleManifests = map (bundle: "${bundle}/nix-support/dsh-bundles.json") (
-        [ baseBundle ] ++ bundles
-      );
+      bundleManifests = map (bundle: "${bundle}/nix-support/dsh-bundles.json") ([ base ] ++ bundles);
       rawPatch = warnPatchMigrations "profiles.${name}.patch" (profile.patch or [ ]);
       agentPresetPatchFile =
         if agentPreset == null then null else makeAgentPresetPatch agentPreset.id agentPreset.definition;
@@ -595,7 +593,6 @@ let
   mkProfileArtifacts =
     {
       agentPresets ? { },
-      defaultBundles ? [ ],
       defaultProfile ? null,
       desktopProfile ? null,
       homePatch ? null,
@@ -645,16 +642,6 @@ let
           profileTemplates
           ;
       };
-      runtimeBundles = lib.unique (
-        defaultBundles ++ lib.concatMap (spec: spec.bundles) (lib.attrValues profileSpecs)
-      );
-      profilesForComposition = lib.mapAttrs (
-        name: profile:
-        profile
-        // {
-          bundles = (builtins.getAttr name profileSpecs).bundles;
-        }
-      ) profiles;
     in
     {
       inherit
@@ -662,8 +649,6 @@ let
         homePatchFile
         profileSpecs
         profileTemplates
-        profilesForComposition
-        runtimeBundles
         seedProfiles
         validatedHomePatch
         validatedDefaultProfile

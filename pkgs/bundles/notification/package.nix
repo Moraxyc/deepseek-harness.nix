@@ -5,7 +5,8 @@
   buildDshBundle,
   copyTree,
   dshCohort,
-  dsh-kernel,
+  dsh-runtime,
+  dsh-workspace,
   pnpmConfigHook,
   pnpm_11,
   yq-go,
@@ -37,7 +38,7 @@ buildDshBundle (finalAttrs: {
   patches = [ ./invariant-compat.patch ];
 
   # The upstream lockfile points at a developer's external DSH checkout. The
-  # kernel supplies those peers during the source build; keep only published
+  # installation supplies those peers during the source build; keep only published
   # package dependencies in the pnpm install.
   postPatch = ''
     yq -o=json \
@@ -69,12 +70,12 @@ buildDshBundle (finalAttrs: {
     yq-go
   ];
   disallowedReferences = [ pnpm_11 ];
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   preBuild = ''
     rm -rf node_modules/@deepseek-ai
     ${copyTree.followLinks {
-      src = "${dsh-kernel}/lib/deepseek-harness/node_modules/@deepseek-ai";
+      src = "${dsh-workspace.runtime}/node_modules/@deepseek-ai";
       dest = "node_modules/@deepseek-ai";
     }}
     ${dshCohort.installPackages { names = clientPackages; }}

@@ -15,13 +15,14 @@
 `dsh.bundle.patch` を宣言するパッケージが少なくとも 1 つ含まれている必要があり、
 パッチファイルはそのパッケージのルートからの相対パスに存在しなければなりません。
 
-## カーネルの peer 依存関係
+## インストールのパッケージ
 
-バンドルがカーネルの peer を必要とする場合は、`linkKernelNodeModules = dsh-kernel` を
-設定します。このヘルパーは、カーネルが所有するパッケージのバンドルローカルなコピーを
-削除し、カーネル側から peer を解決することで、ランタイムインスタンスの重複を防ぎます。
-バンドル内にローカルで保持する必要があるバージョンには、
-`linkKernelNodeModulesKeep` を使用してください。
+バンドルはプロファイルにリンクされ、`dsh-runtime` インストールから peer を解決します。
+`installation = dsh-runtime` を設定すると、このヘルパーはインストールの `@deepseek-ai` パッケージと、
+同じバージョンのその他のパッケージをインストールへのリンクに置き換え、パッケージごとのランタイムインスタンスを
+1 つに保ちます。バンドル内にローカルで保持する必要があるパッケージには
+`installationKeep` を使用してください。インストールに既に含まれるバンドルは
+`buildDshBundle.fromInstallation` を使用し、名前で選択されます。
 
 ## 外部 pnpm ワークスペースバンドルの追加
 
@@ -129,7 +130,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
 `src.hash` と `pnpmDepsHash` は、`nix build` が報告したハッシュで更新してください。
 構成済みの `dsh` パッケージは、`installCheckPhase` の間に `dshBundleCheckHook` を
 通じて管理対象のすべてのプロファイルを起動します。これを利用して、ローダーエントリー ID の
-重複、無効なパッチ、カーネル peer のインポート不足、パッケージ解決の失敗を、実行前に
+重複、無効なパッチ、インストールの peer のインポート不足、パッケージ解決の失敗を、実行前に
 検出してください。対話型ターミナルのループ内にとどまるプロファイルでは、
 `requiresTty = true` を設定できます。フックはこれらを擬似端末の下で実行し、
 スモークウィンドウが生存していれば起動成功とみなします。dsh が
@@ -156,12 +157,12 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   lib,
   fetchFromGitHub,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
 }:
 buildDshBundle (finalAttrs: {
   pname = "example-bundle";
   version = "0.1.0";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   src = fetchFromGitHub {
     owner = "example";
@@ -193,14 +194,14 @@ buildDshBundle (finalAttrs: {
   fetchFromGitHub,
   fetchPnpmDeps,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   pnpmConfigHook,
   pnpm_11,
 }:
 buildDshBundle (finalAttrs: {
   pname = "example-bundle";
   version = "0.1.0";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   src = fetchFromGitHub {
     owner = "example";
@@ -261,14 +262,14 @@ buildDshBundle (finalAttrs: {
 {
   lib,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   dsh-workspace,
 }:
 buildDshBundle.fromWorkspace (_finalAttrs: {
-  inherit dsh-kernel dsh-workspace;
+  inherit dsh-workspace;
   pname = "example-workspace-bundle";
   packageName = "@deepseek-ai/example-workspace-bundle";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   runtimeDeps = [ ];
 
@@ -293,7 +294,7 @@ buildDshBundle.fromWorkspace (_finalAttrs: {
 ## リリースコホートからのクライアント peer
 
 バンドルは、アップストリームが公開したクライアントパッケージに対してコンパイルしますが、
-カーネルランタイムにはこれらのパッケージが含まれていません。
+インストールにはこれらのパッケージが含まれていません。
 `pnpm run release:pack --family dsh` は、それらの npm tarball と
 `publish-order.txt` をリリースコホートとして出力します。
 
@@ -336,7 +337,7 @@ in
 
 ## dsh-workspace のバージョン更新
 
-カーネルを更新すると、ビルドは正常に完了しても、dsh が実行時にバンドルをスキップする
+ランタイムを更新すると、ビルドは正常に完了しても、dsh が実行時にバンドルをスキップする
 ことがあります。固定バージョンを更新する前後で、次を実行してください。
 
 - `scripts/dsh-bump-report.sh NEW_VERSION` は、固定されたソースと新しい

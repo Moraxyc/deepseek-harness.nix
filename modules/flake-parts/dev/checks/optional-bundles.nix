@@ -14,7 +14,6 @@
         profiles.web.bundles = [ pkgs.dsh.bundles.web-app ];
       };
       worktree = pkgs.dsh.dsh.override {
-        defaultBundles = [ pkgs.dsh.bundles.headless ];
         profiles.worktree.bundles = with pkgs.dsh.bundles; [
           headless
           experimental-tool-worktree
@@ -98,7 +97,7 @@
         ${worktree}/bin/dsh --profile nix-worktree --dump-default-config > config.yml
         grep -q '@deepseek-ai/dsh-experimental-worktree' config.yml
         grep -q '@deepseek-ai/dsh-experimental-tool-worktree' config.yml
-        ln -s ${worktree}/lib/deepseek-harness/node_modules "$TMPDIR/runtime/node_modules"
+        ln -s ${worktree.passthru.runtime}/node_modules "$TMPDIR/runtime/node_modules"
         cp ${worktreeCheck} "$TMPDIR/runtime/check.mjs"
         PATH=${lib.escapeShellArg (lib.makeBinPath worktree.passthru.runtimeDeps)} \
           ${lib.getExe pkgs.nodejs-slim} --expose-internals "$TMPDIR/runtime/check.mjs"
@@ -124,9 +123,7 @@
               exit 1
             fi
 
-            app="${shipped}/lib/deepseek-harness"
-            defaultApp="${pkgs.dsh.dsh}/lib/deepseek-harness"
-            kernelNodeModules="${pkgs.dsh.dsh-kernel}/lib/deepseek-harness/node_modules"
+            app="${pkgs.dsh.dsh-runtime}/node_modules/@deepseek-ai/dsh"
 
             resolve_package() {
               local dir=$1 name=$2
@@ -146,10 +143,8 @@
                 printf 'dsh optional bundle does not resolve from the app anchor: %s\n' "$name" >&2
                 exit 1
               }
-              version=$(jq -r '.version' "$bundleRoot/package.json")
-              jq -e --arg name "$name" --arg version "$version" \
-                '.dependencies[$name] == $version' "$app/package.json" >/dev/null || {
-                printf 'dsh optional bundle is missing from the app manifest or at another version: %s\n' "$name" >&2
+              jq -e --arg name "$name" '.dependencies | has($name)' "$app/package.json" >/dev/null || {
+                printf 'dsh optional bundle is missing from the app manifest: %s\n' "$name" >&2
                 exit 1
               }
               while IFS= read -r dependency
@@ -169,14 +164,6 @@
                   exit 1
                 }
               done
-              if [ -e "$kernelNodeModules/$name" ] || [ -L "$kernelNodeModules/$name" ]; then
-                printf 'dsh kernel contains optional bundle: %s\n' "$name" >&2
-                exit 1
-              fi
-              jq -e --arg name "$name" '.dependencies | has($name)' "$defaultApp/package.json" >/dev/null || {
-                printf 'default dsh composition lacks optional bundle: %s\n' "$name" >&2
-                exit 1
-              }
             done
             touch "$out"
           '';

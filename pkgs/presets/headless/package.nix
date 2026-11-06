@@ -4,7 +4,6 @@
 }:
 dsh.override {
   pname = "dsh-headless";
-  defaultBundles = [ bundles.headless ];
   defaultProfile = "nix-headless";
   meta = {
     description = "Simple setup for running dsh from the terminal";

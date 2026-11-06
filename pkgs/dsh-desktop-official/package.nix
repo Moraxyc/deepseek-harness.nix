@@ -254,9 +254,9 @@ stdenvNoCC.mkDerivation (finalAttrs: {
           nativeBuildInputs = [ patchelf ];
         }
         ''
-          addon="$(find ${dsh-workspace.desktop} -name 'sharp-linux-*.node' | head -n 1)"
+          addon="$(find ${dsh-runtime} -name 'sharp-linux-*.node' | head -n 1)"
           if [ -z "$addon" ]; then
-            echo "dsh-desktop: could not find sharp-linux-*.node under dsh-workspace.desktop" >&2
+            echo "dsh-desktop: could not find sharp-linux-*.node under dsh-runtime" >&2
             exit 1
           fi
 

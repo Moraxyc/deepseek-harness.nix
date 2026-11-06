@@ -1,14 +1,12 @@
 {
   lib,
   buildDshBundle,
-  dsh-kernel,
-  dsh-workspace,
+  dsh-runtime,
 }:
-buildDshBundle.fromWorkspace (_finalAttrs: {
-  inherit dsh-kernel dsh-workspace;
+buildDshBundle.fromInstallation {
   pname = "dsh-headless";
   packageName = "@deepseek-ai/dsh-headless";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
   meta = {
     description = "Run dsh without a graphical interface";
     descriptions.zh-CN = "无需图形界面即可运行 dsh";
@@ -17,4 +15,4 @@ buildDshBundle.fromWorkspace (_finalAttrs: {
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;
   };
-})
+}

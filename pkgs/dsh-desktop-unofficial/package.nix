@@ -24,9 +24,7 @@
   libGL,
 
   copyTree,
-  dsh,
-  # Composed dsh backing resources/host; override with a preset or dsh.override.
-  dshHost ? dsh,
+  dsh-runtime,
   # systemd package providing systemd-run for the Linux containment shim.
   systemd ? null,
 }:
@@ -161,8 +159,8 @@ stdenvNoCC.mkDerivation (
     passthru = {
       variant = "unofficial";
       shell = callPackage ./shell.nix { };
-      runtime = callPackage ./runtime.nix { inherit dshHost; };
-      runtimeDeps = lib.optional useSystemdShim systemdRunShim ++ dshHost.passthru.runtimeDeps;
+      runtime = callPackage ./runtime.nix { };
+      runtimeDeps = lib.optional useSystemdShim systemdRunShim ++ dsh-runtime.passthru.runtimeDeps;
 
       updateScript = writeShellScript "dsh-desktop-update" ''
         PATH=${

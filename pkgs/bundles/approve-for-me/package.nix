@@ -3,7 +3,7 @@
   fetchFromGitHub,
   buildDshBundle,
   dshCohort,
-  dsh-kernel,
+  dsh-runtime,
   pnpmConfigHook,
   nix-update-script,
 }:
@@ -11,7 +11,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-approve-for-me";
   version = "0-unstable-2026-10-17";
   deployPackage = "dsh-approve-for-me";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   src = fetchFromGitHub {
     owner = "timeance";
@@ -27,7 +27,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   npmBuildScript = "build";
 
   # The upstream plugin declares this as a peer but imports it from its host
-  # module. The CLI kernel intentionally does not ship browser client peers.
+  # module. The installation does not ship these browser client peers.
   postNormalizeDeploy = ''
     ${dshCohort.installPackages {
       dest = "$deployPackagePath/node_modules";

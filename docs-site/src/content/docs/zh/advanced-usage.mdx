@@ -451,34 +451,36 @@ Claude Agent SDK 使用 MIT 许可证，其内置 Claude Code payload 为非自�
 }
 ```
 
-## 自定义 Bundle 组合
+## 安装与 Profile Bundle
 
-用 `withBundles` 追加 bundle。它既接受 bundle 包列表，也接受一个接收 bundle
-scope 的函数，方便直接使用短名称：
+`pkgs.dsh.dsh-runtime` 是上游安装：`@deepseek-ai/dsh`、官方 bundle 和私有
+Desktop Host。CLI 和官方桌面都运行它，它不随配置变化。安装中已有的 bundle，
+如 `base`、`headless`、`web-app` 和可选 bundle，按名称选用；其他 bundle 会链接进
+列出它们的 profile，dsh 在那里加载外部插件。
+
+用 `withBundles` 给每个已声明的 profile 追加 bundle。它既接受 bundle 包列表，
+也接受一个接收 bundle scope 的函数，方便直接使用短名称：
 
 ```nix
-pkgs.dsh.dsh.withBundles [
-  pkgs.dsh.bundles.tui
-  pkgs.dsh.bundles.web-app
+(pkgs.dsh.dsh.withProfiles { web.bundles = [ pkgs.dsh.bundles.web-app ]; }).withBundles [
+  pkgs.dsh.bundles.notification
 ]
 
-pkgs.dsh.dsh.withBundles (b: with b; [
+(pkgs.dsh.dsh.withProfiles { cli = { }; }).withBundles (b: with b; [
   tui
-  web-app
 ])
 ```
 
-选中的 bundle 会追加到当前组合及每个已声明 profile 的 bundle 列表。
 所有 bundle 按列表顺序应用，后面的 bundle 会覆盖前面 bundle 的 Cordis 配置。
 基础层固定在最前面。
 
 ### 随包携带但默认关闭的 Bundle
 
-每个组合都携带上游 `OPTIONAL_BUNDLES` 中支持当前平台的 bundle。
+安装中带有上游 `OPTIONAL_BUNDLES` 里支持当前平台的 bundle。
 所有 profile 都能解析它们，可在插件管理页的官方分组中启用。
 这份集合由固定的上游源码决定，无法通过 Nix 删减或扩充。
 
-把其中某个写进 profile 的 `bundles`，则由 Nix 直接参与组合。
+把其中某个写进 profile 的 `bundles`，即在该 profile 中启用。
 
 `experimental-tool-worktree` 将 Git 2.45 或更新版本（`gitMinimal`）和 Node 加入
 运行时 `PATH`。它在可写的源码 checkout 中创建 worktree，不写入 Nix Store。
@@ -508,15 +510,8 @@ nix run .#dsh-desktop-official
 Darwin 下应用安装为 `Applications/DeepSeek Harness.app`，启动入口是
 `bin/dsh-desktop`。
 
-官方变体运行共享的 `pkgs.dsh.dsh-runtime` 安装；额外的 bundle 通过
-`programs.dsh.desktop.profile` 选择的 profile 加入。非官方变体接受 `dshHost`，
-即其运行时背后的组合后 `dsh`。把它指向 preset 或自定义组合，就能改变应用运行的 bundle：
-
-```nix
-pkgs.dsh.dsh-desktop-unofficial.override {
-  dshHost = pkgs.dsh.presets.tui;
-}
-```
+两个变体都运行共享的 `pkgs.dsh.dsh-runtime` 安装。官方桌面额外的 bundle 通过
+`programs.dsh.desktop.profile` 选择的 profile 加入。
 
 ## Overlay
 
@@ -539,8 +534,8 @@ pkgs.dsh.dsh-desktop-unofficial.override {
 
 本 flake 之外可以使用的 helper 有两类：
 
-- `pkgs.dsh.helpers.buildBundle`，含 `fromPnpmWorkspace`、`fromWorkspace`
-  和 `validateDshBundle`：下文用到的 Bundle 构建器。
+- `pkgs.dsh.helpers.buildBundle`，含 `fromPnpmWorkspace`、`fromWorkspace`、
+  `fromInstallation` 和 `validateDshBundle`：下文用到的 Bundle 构建器。
 - `legacyPackages.<system>.importPnpmLock`，overlay 下为
   `pkgs.dsh.importPnpmLock`：为通过 vendored `pnpm-lock.json`（上游提供时还有
   `pnpm-workspace.json`）取依赖的 Bundle 准备的 fetcher。
@@ -571,7 +566,7 @@ let
 
     npmDepsHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
     npmBuildScript = "build";
-    linkKernelNodeModules = pkgs.dsh.dsh-kernel;
+    installation = pkgs.dsh.dsh-runtime;
 
     meta.description = "Example DSH bundle";
   });
@@ -584,6 +579,8 @@ in
 该 helper 使用 `buildNpmPackage` 的标准 `npmInstallHook`：由
 `package.json.name` 决定 package 目录，由 `npm pack` 文件清单决定运行时内容。
 安装后的 manifest 必须声明 `dsh.bundle.patch`，对应文件也必须包含在 package
-内容中。Builder 会校验结果，并生成组合阶段使用的 bundle manifest。只有非标准
+内容中。Builder 会校验结果，并生成 profile 读取的 bundle manifest。设置
+`installation` 后，安装中的 `@deepseek-ai` 包和同版本的依赖会改为指向安装的链接，插件与 dsh 共用同一个
+模块实例；例外写进 `installationKeep`。只有非标准
 package 布局才需要覆盖 `installPhase`。外部 pnpm monorepo 可使用
 `pkgs.dsh.helpers.buildBundle.fromPnpmWorkspace`。

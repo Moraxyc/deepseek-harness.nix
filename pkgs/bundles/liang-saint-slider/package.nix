@@ -3,7 +3,7 @@
   fetchFromGitHub,
   fetchNpmDeps,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   jq,
   nix-update-script,
   writers,
@@ -26,7 +26,7 @@ buildDshBundle (finalAttrs: {
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
   nativeBuildInputs = [ jq ];
 
   dontConfigure = true;

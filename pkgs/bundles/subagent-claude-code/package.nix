@@ -3,7 +3,7 @@
   claudeCodePackage ? null,
   lib,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   dsh-workspace,
   stdenv,
 }:
@@ -42,11 +42,11 @@ let
   supportedPlatforms = lib.filter hasPlatformPackage (dsh-workspace.meta.platforms or [ ]);
 in
 buildDshBundle.fromWorkspace (_finalAttrs: {
-  inherit dsh-kernel dsh-workspace;
+  inherit dsh-workspace;
 
   pname = "dsh-subagent-claude-code";
   packageName = "@deepseek-ai/dsh-subagent-claude-code";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
   passthru.requiresTty = true;
 
   nativeBuildInputs = lib.optionals (stdenv.hostPlatform.isLinux && claudeCodePackage == null) [

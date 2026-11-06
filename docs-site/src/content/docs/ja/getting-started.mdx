@@ -23,7 +23,7 @@ nix run github:moraxyc/deepseek-harness.nix#default -- --version
 nix build github:moraxyc/deepseek-harness.nix#dsh
 nix build github:moraxyc/deepseek-harness.nix#dsh-desktop
 nix build github:moraxyc/deepseek-harness.nix#dsh-desktop-official
-nix build github:moraxyc/deepseek-harness.nix#dsh-kernel
+nix build github:moraxyc/deepseek-harness.nix#dsh-runtime
 nix build github:moraxyc/deepseek-harness.nix#dsh-workspace
 nix build github:moraxyc/deepseek-harness.nix#bundles.tui
 nix run github:moraxyc/deepseek-harness.nix#presets.tui
@@ -37,7 +37,6 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui
 | `dsh-desktop`            | デスクトップアプリケーション                             |
 | `dsh-desktop-official`   | 上流リリースのデスクトップアプリケーション               |
 | `dsh-desktop-unofficial` | サードパーティプロジェクトのデスクトップアプリケーション |
-| `dsh-kernel`             | プロファイルバンドルを含まないカーネル                   |
 | `dsh-runtime`            | CLI とデスクトップが共有するインストール                 |
 | `dsh-workspace`          | ビルド済みワークスペース成果物                           |
 | `bundles.*`              | プラグイン形式の拡張機能                                 |
@@ -47,7 +46,7 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui
 
 `dsh-desktop` は `dsh-desktop-official` のエイリアスです。
 `dsh-desktop-unofficial` も引き続きサポートされ、明示的に選択できます。
-バリアントのソース、サポート対象プラットフォーム、非公式バリアントの `dshHost` オーバーライドについては、
+バリアントのソースとサポート対象プラットフォームについては、
 [高度な使用方法](../advanced-usage/)を参照してください。
 
 ## 別の flake に追加する

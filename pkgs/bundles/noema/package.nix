@@ -4,7 +4,8 @@
   buildDshBundle,
   copyTree,
   dshCohort,
-  dsh-kernel,
+  dsh-runtime,
+  dsh-workspace,
   pnpmConfigHook,
   nix-update-script,
 }:
@@ -22,7 +23,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-noema";
   version = "0.1.0-rc.6";
   deployPackage = "@zseven-w/dsh-noema";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   src = fetchFromGitHub {
     owner = "ZSeven-W";
@@ -40,7 +41,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   preBuild = ''
     rm -rf node_modules/@deepseek-ai
     ${copyTree.followLinks {
-      src = "${dsh-kernel}/lib/deepseek-harness/node_modules/@deepseek-ai";
+      src = "${dsh-workspace.runtime}/node_modules/@deepseek-ai";
       dest = "node_modules/@deepseek-ai";
     }}
     ${dshCohort.installPackages { names = clientPackages; }}

@@ -35,7 +35,6 @@
       providerProfile =
         providers:
         pkgs.dsh.dsh.override {
-          defaultBundles = [ ];
           profiles.web.bundles = [ pkgs.dsh.bundles.web-app ] ++ providers;
         };
       checkProviderProfile =
@@ -48,35 +47,23 @@
         let
           package = providerProfile providers;
         in
-        pkgs.runCommand "dsh-provider-${name}-composition"
+        pkgs.runCommand "dsh-provider-${name}-profile"
           {
             nativeBuildInputs = [ pkgs.jq ];
           }
           ''
-            app="${package}/lib/deepseek-harness"
+            profile="${package.passthru.profileTemplates}/nix-web"
             ${lib.concatMapStringsSep "\n" (provider: ''
-              if ! jq -e --arg provider ${lib.escapeShellArg provider} \
-                '.dependencies | has($provider)' "$app/package.json" >/dev/null; then
-                printf 'dsh composition is missing provider dependency: %s\n' \
-                  ${lib.escapeShellArg provider} >&2
-                exit 1
-              fi
-              [ -d "$app/node_modules/${provider}" ] || {
-                printf 'dsh composition is missing provider package: %s\n' \
-                  ${lib.escapeShellArg provider} >&2
+              jq -e --arg provider ${lib.escapeShellArg provider} \
+                '.dependencies[$provider] | startswith("link:/")' "$profile/package.json" >/dev/null || {
+                printf 'dsh profile does not link provider: %s\n' ${lib.escapeShellArg provider} >&2
                 exit 1
               }
             '') present}
             ${lib.concatMapStringsSep "\n" (provider: ''
               if jq -e --arg provider ${lib.escapeShellArg provider} \
-                '.dependencies | has($provider)' "$app/package.json" >/dev/null; then
-                printf 'dsh composition contains unselected provider dependency: %s\n' \
-                  ${lib.escapeShellArg provider} >&2
-                exit 1
-              fi
-              if [ -e "$app/node_modules/${provider}" ] || [ -L "$app/node_modules/${provider}" ]; then
-                printf 'dsh composition contains unselected provider package: %s\n' \
-                  ${lib.escapeShellArg provider} >&2
+                '.dependencies | has($provider)' "$profile/package.json" >/dev/null; then
+                printf 'dsh profile links unselected provider: %s\n' ${lib.escapeShellArg provider} >&2
                 exit 1
               fi
             '') absent}
@@ -89,10 +76,10 @@
     in
     {
       checks = {
-        dsh-kernel-provider-isolation = pkgs.runCommand "dsh-kernel-provider-isolation" { } ''
-          kernelNodeModules="${pkgs.dsh.dsh-kernel}/lib/deepseek-harness/node_modules"
-          [ -d "$kernelNodeModules/@deepseek-ai/dsh-app-boot" ] || {
-            printf 'dsh kernel is missing its runtime sentinel\n' >&2
+        dsh-runtime-provider-isolation = pkgs.runCommand "dsh-runtime-provider-isolation" { } ''
+          runtimeNodeModules="${pkgs.dsh.dsh-runtime}/node_modules"
+          [ -d "$runtimeNodeModules/@deepseek-ai/dsh-app-boot" ] || {
+            printf 'dsh runtime is missing its sentinel\n' >&2
             exit 1
           }
           for package in \
@@ -103,8 +90,8 @@
             "@anthropic-ai/claude-agent-sdk" \
             "${claudePlatformPackage}"
           do
-            if [ -e "$kernelNodeModules/$package" ] || [ -L "$kernelNodeModules/$package" ]; then
-              printf 'dsh kernel contains optional provider package: %s\n' "$package" >&2
+            if [ -e "$runtimeNodeModules/$package" ] || [ -L "$runtimeNodeModules/$package" ]; then
+              printf 'dsh runtime contains on-demand provider package: %s\n' "$package" >&2
               exit 1
             fi
           done
@@ -190,7 +177,6 @@
           assert config.agentPresets.second.source == "ptc";
           assert config.profiles.first.agentPreset == "first";
           assert config.profiles.second.agentPreset == "second";
-          assert lib.elem pkgs.dsh.bundles.base config.defaultBundles;
           assert lib.elem pkgs.dsh.bundles.base config.profiles.first.bundles;
           pkgs.runCommand "dsh-agent-presets-composition" { nativeBuildInputs = [ pkgs.yq-go ]; } ''
             testHome=$(mktemp -d)
@@ -258,16 +244,12 @@
               inherit profiles;
               defaultProfile = "nix-use";
             };
-            runtime = import ../../../../lib/mk-dsh-runtime.nix {
+            runtime = pkgs.dsh.mkDshRuntime {
               package = pkgs.dsh.dsh;
-              bundles = artifacts.runtimeBundles;
               profileSeeder = artifacts.seedProfiles;
               defaultProfile = artifacts.validatedDefaultProfile;
               inherit (artifacts) bundleCheckProfiles;
             };
-            runtimeBundleManifests = lib.concatMapStringsSep " " (
-              bundle: lib.escapeShellArg "${bundle}/nix-support/dsh-bundles.json"
-            ) artifacts.runtimeBundles;
           in
           pkgs.runCommand "dsh-profile-runtime-split"
             {
@@ -283,20 +265,10 @@
               [ ${lib.escapeShellArg runtime.dshBundleCheckTtyProfiles} = nix-tui ]
               [ ${lib.escapeShellArg runtime.dshBundleCheckWebProfiles} = nix-use ]
 
-              app="${runtime}/lib/deepseek-harness"
-              for bundleManifest in ${runtimeBundleManifests}; do
-                while IFS= read -r packageName; do
-                  [ -d "$app/node_modules/$packageName" ] || {
-                    printf 'runtime is missing bundle package: %s\n' "$packageName" >&2
-                    exit 1
-                  }
-                  jq -e --arg package "$packageName" \
-                    '.dependencies | has($package)' "$app/package.json" >/dev/null || {
-                    printf 'runtime manifest is missing bundle dependency: %s\n' "$packageName" >&2
-                    exit 1
-                  }
-                done < <(jq -r '.bundles[].name' "$bundleManifest")
-              done
+              # The installation carries web-app; the profile links only the others.
+              profile="${artifacts.profileTemplates}/nix-use"
+              jq -e '.dependencies | length == 2 and all(.[]; startswith("link:/"))' "$profile/package.json"
+              [ "$(wc -l < "$profile/.nix-links")" -eq 2 ]
 
               testHome=$(mktemp -d)
               DSH_HOME="$testHome" ${lib.getExe runtime} --version
@@ -468,7 +440,7 @@
               "! grep -q '# drift' /var/lib/dsh/cli-home/profiles/nix-web/cordis.patch.yml"
             )
             machine.succeed(
-              "yq -e '.dependencies.\"@deepseek-ai/dsh-subagent-codex\" != null and .dependencies.\"@deepseek-ai/dsh-subagent-claude-code\" != null' $(dirname $(dirname $(readlink -f /run/current-system/sw/bin/dsh)))/lib/deepseek-harness/package.json"
+              "yq -e '.dependencies.\"@deepseek-ai/dsh-subagent-codex\" != null and .dependencies.\"@deepseek-ai/dsh-subagent-claude-code\" != null' /var/lib/dsh/cli-home/profiles/nix-web/package.json"
             )
             machine.succeed(
               "truncate -s 0 /var/lib/dsh/cli-home/cordis.patch.yml; set +u; . /etc/set-environment; set -u; dsh --profile nix-web --version; yq -e '.[0].id == \"agent-default-model\" and .[0].config.model == \"deepseek-flash\" and .[0].config.provider == \"deepseek-official\"' /var/lib/dsh/cli-home/cordis.patch.yml"

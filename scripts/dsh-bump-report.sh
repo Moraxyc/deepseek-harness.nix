@@ -7,12 +7,12 @@ set -euo pipefail
 usage() {
   cat >&2 <<'EOF'
 usage: dsh-bump-report.sh [--json] [--strict] [--no-bundles] [--fetch-sources]
-                          [--old SRC] [--kernel INSTALLABLE] NEW
+                          [--old SRC] [--runtime INSTALLABLE] NEW
 
 NEW and SRC are an upstream version (0.2.2-alpha.3), a tag (dsh-v0.2.2-alpha.3),
 or a source directory. SRC defaults to the pinned dsh-workspace source.
 Bundle compatibility is evaluated with dsh-app-boot from INSTALLABLE
-(default .#dsh-kernel) against built bundles, or their sources when present in
+(default .#dsh-runtime) against built bundles, or their sources when present in
 the store. --fetch-sources downloads the missing sources first. --strict exits
 nonzero when the report lists actions.
 EOF
@@ -26,7 +26,7 @@ system="$(nix eval --raw --impure --expr builtins.currentSystem)"
 report_args=()
 old=''
 new=''
-kernel_installable='.#dsh-kernel'
+runtime_installable='.#dsh-runtime'
 bundles=1
 fetch_sources=0
 while [ "$#" -gt 0 ]; do
@@ -39,9 +39,9 @@ while [ "$#" -gt 0 ]; do
       old=$2
       shift
       ;;
-    --kernel)
+    --runtime)
       [ "$#" -ge 2 ] || usage
-      kernel_installable=$2
+      runtime_installable=$2
       shift
       ;;
     -h | --help) usage ;;
@@ -86,10 +86,10 @@ tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
 if [ "$bundles" -eq 1 ]; then
-  log "resolving the kernel"
-  kernel="$(nix build --no-link --print-out-paths "$kernel_installable")"
+  log "resolving the runtime"
+  runtime="$(nix build --no-link --print-out-paths "$runtime_installable")"
   log "evaluating bundles"
-  report_args+=(--app-boot "$kernel/lib/deepseek-harness/node_modules/@deepseek-ai/dsh-app-boot")
+  report_args+=(--app-boot "$runtime/node_modules/@deepseek-ai/dsh-app-boot")
 
   # The CI bundle set: buildable on this platform, not removed or broken.
   nix eval --json ".#legacyPackages.$system" --apply '

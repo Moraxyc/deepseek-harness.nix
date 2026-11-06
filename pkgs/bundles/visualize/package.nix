@@ -2,7 +2,7 @@
   lib,
   fetchFromGitHub,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   pnpmConfigHook,
   nix-update-script,
 }:
@@ -10,7 +10,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-visualize";
   version = "0.1.7-unstable-2026-10-24";
   deployPackage = "@nagi-ovo/dsh-visualize";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   src = fetchFromGitHub {
     owner = "Nagi-ovo";

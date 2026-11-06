@@ -3,7 +3,7 @@
   stdenv,
   fetchFromGitHub,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   importPnpmLock,
   pnpmConfigHook,
   yq-go,
@@ -14,7 +14,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   deployPackage = "@linxin666/dsh-web-all";
   stripPrepareScripts = true;
   disableChildBundlePatches = true;
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   src = fetchFromGitHub {
     owner = "zhu1090093659";

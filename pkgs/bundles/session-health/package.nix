@@ -2,7 +2,7 @@
   lib,
   fetchFromGitHub,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
@@ -17,7 +17,7 @@ buildDshBundle (finalAttrs: {
   };
   npmDepsHash = "sha256-J8l4N+zHM7iogI0osS7cLaS1cgMvYIw1wKGBdeuUuds=";
   npmBuildScript = "build";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   installPhase = ''
     runHook preInstall

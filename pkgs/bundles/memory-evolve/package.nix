@@ -2,7 +2,7 @@
   lib,
   fetchFromGitHub,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   esbuild,
 }:
 buildDshBundle (finalAttrs: {
@@ -22,7 +22,7 @@ buildDshBundle (finalAttrs: {
   dontPatch = true;
   npmDeps = null;
   nativeBuildInputs = [ esbuild ];
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   buildPhase = ''
     runHook preBuild

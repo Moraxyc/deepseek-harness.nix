@@ -3,7 +3,7 @@
   fetchFromGitHub,
   fetchNpmDeps,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   yq-go,
   nix-update-script,
 }:
@@ -37,7 +37,7 @@ buildDshBundle (finalAttrs: {
     yq-go
   ];
   npmBuildScript = "build";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   installPhase = ''
     runHook preInstall

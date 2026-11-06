@@ -473,36 +473,39 @@ explicitly:
 }
 ```
 
-## Custom Bundle Compositions
+## Installation and Profile Bundles
 
-Use `withBundles` to add bundles. It accepts either a list of bundle packages
-or a bundle-scope function for short names:
+`pkgs.dsh.dsh-runtime` is the upstream installation: `@deepseek-ai/dsh`, its
+official bundles, and the private Desktop Host. The CLI and the official desktop
+both run it, and it does not change with the configuration. Bundles it carries,
+such as `base`, `headless`, `web-app`, and the optional bundles, are selected by
+name. Other bundles are linked into each profile that lists them, where dsh loads
+out-of-tree plugins.
+
+Use `withBundles` to add bundles to every declared profile. It accepts either a
+list of bundle packages or a bundle-scope function for short names:
 
 ```nix
-pkgs.dsh.dsh.withBundles [
-  pkgs.dsh.bundles.tui
-  pkgs.dsh.bundles.web-app
+(pkgs.dsh.dsh.withProfiles { web.bundles = [ pkgs.dsh.bundles.web-app ]; }).withBundles [
+  pkgs.dsh.bundles.notification
 ]
 
-pkgs.dsh.dsh.withBundles (b: with b; [
+(pkgs.dsh.dsh.withProfiles { cli = { }; }).withBundles (b: with b; [
   tui
-  web-app
 ])
 ```
 
-The selected bundles are added to the current composition and each declared
-profile's bundle list. Bundles are applied in list order, so a later bundle
-overrides an earlier bundle's Cordis configuration. The base layer is always
-first.
+Bundles are applied in list order, so a later bundle overrides an earlier
+bundle's Cordis configuration. The base layer is always first.
 
 ### Bundles Shipped Switched Off
 
-Each composition ships upstream's `OPTIONAL_BUNDLES` that support the host
+The installation carries upstream's `OPTIONAL_BUNDLES` that support the host
 platform. They are available to every profile and can be enabled in the plugin
 manager's official group. The set is fixed by the pinned source and cannot be
 removed or extended from Nix.
 
-Listing one in a profile's `bundles` composes it as usual instead.
+Listing one in a profile's `bundles` enables it in that profile.
 
 `experimental-tool-worktree` supplies Git 2.45 or newer (`gitMinimal`) and Node
 on the runtime `PATH`. It creates worktrees in the writable source checkout,
@@ -533,17 +536,9 @@ nix run .#dsh-desktop-official
 On Darwin the application is installed as
 `Applications/DeepSeek Harness.app`, with `bin/dsh-desktop` as the launcher.
 
-The official variant runs the shared `pkgs.dsh.dsh-runtime` installation;
-select extra bundles through a profile with `programs.dsh.desktop.profile`.
-The unofficial variant accepts `dshHost`, the composed `dsh` behind its
-runtime. Point it at a preset or a custom composition to change the bundles
-the application runs:
-
-```nix
-pkgs.dsh.dsh-desktop-unofficial.override {
-  dshHost = pkgs.dsh.presets.tui;
-}
-```
+Both variants run the shared `pkgs.dsh.dsh-runtime` installation. Select extra
+bundles for the official desktop through a profile with
+`programs.dsh.desktop.profile`.
 
 ## Overlay
 
@@ -567,7 +562,7 @@ the same way.
 Two kinds of helper are available to consumers outside this flake:
 
 - `pkgs.dsh.helpers.buildBundle`, including `fromPnpmWorkspace`, `fromWorkspace`,
-  and `validateDshBundle`: the bundle builders described below.
+  `fromInstallation`, and `validateDshBundle`: the bundle builders described below.
 - `legacyPackages.<system>.importPnpmLock`, or `pkgs.dsh.importPnpmLock` from the
   overlay: the fetcher for bundles that vendor a `pnpm-lock.json`, plus
   `pnpm-workspace.json` when upstream ships one.
@@ -600,7 +595,7 @@ let
 
     npmDepsHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
     npmBuildScript = "build";
-    linkKernelNodeModules = pkgs.dsh.dsh-kernel;
+    installation = pkgs.dsh.dsh-runtime;
 
     meta.description = "Example DSH bundle";
   });
@@ -614,6 +609,9 @@ The helper uses `buildNpmPackage`'s standard `npmInstallHook`: `package.json.nam
 selects the package directory, and the `npm pack` file list selects the runtime
 payload. The installed manifest must declare `dsh.bundle.patch`, and that file
 must be included in the package payload. The builder validates the result and
-emits the bundle manifest used by composition. Override `installPhase` only for
+emits the bundle manifest that profiles read. With `installation`, its `@deepseek-ai`
+packages and same-version dependencies the installation carries become links
+into it, so the plugin and dsh share one module instance; list exceptions in `installationKeep`.
+Override `installPhase` only for
 a nonstandard package layout. For an external pnpm monorepo, use
 `pkgs.dsh.helpers.buildBundle.fromPnpmWorkspace`.

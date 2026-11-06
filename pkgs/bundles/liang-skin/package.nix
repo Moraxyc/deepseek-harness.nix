@@ -2,7 +2,7 @@
   lib,
   fetchFromGitHub,
   buildDshBundle,
-  dsh-kernel,
+  dsh-runtime,
   nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
@@ -17,7 +17,7 @@ buildDshBundle (finalAttrs: {
   };
 
   npmDepsHash = "sha256-cgkiTbsmt8CLdnoKmGMW26cO2s/epumnFZoww7eosPE=";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   passthru.requiresWeb = true;
   passthru.updateScript = nix-update-script { extraArgs = [ "--flake" ]; };

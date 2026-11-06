@@ -1,8 +1,10 @@
 {
   lib,
-  pkgs,
-  cfg,
+  makeWrapper,
+  symlinkJoin,
+  writers,
 }:
+cfg:
 let
   desktop = cfg.desktop.package;
   selected = lib.filter (profile: profile.materializedName == cfg.desktop.profile) (
@@ -14,7 +16,7 @@ let
     defaultProfile = cfg.desktop.profile;
     homePatch = cfg.patch;
   };
-  profileConfig = pkgs.writers.writeJSON "dsh-desktop-profile.json" {
+  profileConfig = writers.writeJSON "dsh-desktop-profile.json" {
     home = cfg.home;
     profile = artifacts.validatedDefaultProfile;
     seeder = lib.getExe artifacts.seedProfiles;
@@ -28,16 +30,14 @@ if cfg.desktop.profile == null then
 else
   lib.throwIf (selected == [ ])
     "dsh desktop: desktop.profile must reference a declared programs.dsh.profiles entry"
-    (
-      pkgs.symlinkJoin {
-        inherit (desktop) pname version;
-        paths = [ desktop ];
-        nativeBuildInputs = [ pkgs.makeWrapper ];
-        postBuild = ''
-          rm "$out/bin/dsh-desktop"
-          makeWrapper ${lib.getExe desktop} "$out/bin/dsh-desktop" \
-            --set DSH_NIX_DESKTOP_PROFILE_CONFIG ${profileConfig}
-        '';
-        inherit (desktop) meta passthru;
-      }
-    )
+    (symlinkJoin {
+      inherit (desktop) pname version;
+      paths = [ desktop ];
+      nativeBuildInputs = [ makeWrapper ];
+      postBuild = ''
+        rm "$out/bin/dsh-desktop"
+        makeWrapper ${lib.getExe desktop} "$out/bin/dsh-desktop" \
+          --set DSH_NIX_DESKTOP_PROFILE_CONFIG ${profileConfig}
+      '';
+      inherit (desktop) meta passthru;
+    })

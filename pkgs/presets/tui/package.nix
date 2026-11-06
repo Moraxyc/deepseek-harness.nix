@@ -4,7 +4,6 @@
 }:
 dsh.override {
   pname = "dsh-tui";
-  defaultBundles = [ bundles.headless ];
   defaultProfile = "nix-tui";
   meta = {
     description = "Terminal-focused setup with an interactive interface";

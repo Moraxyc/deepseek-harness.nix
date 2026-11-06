@@ -3,7 +3,7 @@
 > **English** | [简体中文](README.md) | [日本語](README.ja.md)
 
 DSH Nix is community-maintained Nix packaging for DeepSeek Harness (`dsh`):
-CLI, desktop app, kernel, workspace bundles (plugins), presets, a NixOS module,
+CLI, desktop app, shared runtime, workspace bundles (plugins), presets, a NixOS module,
 and an overlay.
 
 ## Table of Contents
@@ -35,7 +35,7 @@ nix run github:moraxyc/deepseek-harness.nix#default -- --version
 nix build github:moraxyc/deepseek-harness.nix#dsh
 nix build github:moraxyc/deepseek-harness.nix#dsh-desktop
 nix build github:moraxyc/deepseek-harness.nix#dsh-desktop-official
-nix build github:moraxyc/deepseek-harness.nix#dsh-kernel
+nix build github:moraxyc/deepseek-harness.nix#dsh-runtime
 nix build github:moraxyc/deepseek-harness.nix#dsh-workspace
 nix build github:moraxyc/deepseek-harness.nix#bundles.tui
 nix run github:moraxyc/deepseek-harness.nix#presets.tui
@@ -49,13 +49,13 @@ Main outputs:
   release; Linux and Darwin
 - `dsh-desktop-unofficial`: desktop application from
   anywhere-labs/deepseek-harness-desktop; Linux and Darwin
-- `dsh-kernel`: kernel without profile bundles
+- `dsh-runtime`: installation shared by the CLI and desktop
 - `dsh-workspace`: built workspace artifacts
 - `bundles.*` / `presets.*`: bundles and presets; see
   [Bundles and Presets](https://moraxyc.github.io/deepseek-harness.nix/catalog/)
   for the full catalog
 
-Variant sources, supported platforms, and the `dshHost` override are documented
+Variant sources and supported platforms are documented
 in [Advanced Usage](https://moraxyc.github.io/deepseek-harness.nix/advanced-usage/).
 
 The flake can also be added to another flake's inputs, then use the modules

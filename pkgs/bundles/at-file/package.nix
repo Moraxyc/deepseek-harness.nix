@@ -4,7 +4,8 @@
   buildDshBundle,
   copyTree,
   dshCohort,
-  dsh-kernel,
+  dsh-runtime,
+  dsh-workspace,
   pnpmConfigHook,
   nix-update-script,
 }:
@@ -30,7 +31,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-at-file";
   version = "0.7.0";
   deployPackage = "dsh-at-file";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   src = fetchFromGitHub {
     owner = "omdsh-dev";
@@ -53,7 +54,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   preBuild = ''
     rm -rf node_modules/@deepseek-ai
     ${copyTree.followLinks {
-      src = "${dsh-kernel}/lib/deepseek-harness/node_modules/@deepseek-ai";
+      src = "${dsh-workspace.runtime}/node_modules/@deepseek-ai";
       dest = "node_modules/@deepseek-ai";
     }}
 

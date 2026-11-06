@@ -23,7 +23,7 @@ nix run github:moraxyc/deepseek-harness.nix#default -- --version
 nix build github:moraxyc/deepseek-harness.nix#dsh
 nix build github:moraxyc/deepseek-harness.nix#dsh-desktop
 nix build github:moraxyc/deepseek-harness.nix#dsh-desktop-official
-nix build github:moraxyc/deepseek-harness.nix#dsh-kernel
+nix build github:moraxyc/deepseek-harness.nix#dsh-runtime
 nix build github:moraxyc/deepseek-harness.nix#dsh-workspace
 nix build github:moraxyc/deepseek-harness.nix#bundles.tui
 nix run github:moraxyc/deepseek-harness.nix#presets.tui
@@ -37,7 +37,6 @@ The main outputs are:
 | `dsh-desktop`            | Desktop application                            |
 | `dsh-desktop-official`   | Desktop application from the upstream release  |
 | `dsh-desktop-unofficial` | Desktop application from a third-party project |
-| `dsh-kernel`             | Kernel without profile bundles                 |
 | `dsh-runtime`            | Installation shared by the CLI and desktop     |
 | `dsh-workspace`          | Built workspace artifacts                      |
 | `bundles.*`              | Plugin-style extensions                        |
@@ -47,8 +46,8 @@ See the [Bundles and Presets](../catalog/) catalog for the complete list.
 
 `dsh-desktop` is an alias for `dsh-desktop-official`.
 `dsh-desktop-unofficial` remains supported as an explicit choice.
-See [Advanced Usage](../advanced-usage/) for the variant sources, the
-supported platforms, and the unofficial variant's `dshHost` override.
+See [Advanced Usage](../advanced-usage/) for the variant sources and the
+supported platforms.
 
 ## Add It to Another Flake
 

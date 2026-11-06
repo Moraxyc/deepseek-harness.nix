@@ -41,7 +41,7 @@ let
       package = package.pname;
       defaultProfile = config.defaultProfile or null;
       profiles = package.passthru.profileNames or [ ];
-      bundles = map (bundle: bundle.pname or bundle.name) (package.passthru.composedBundles or [ ]);
+      bundles = map (bundle: bundle.pname or bundle.name) (package.passthru.profileBundles or [ ]);
     }
     // metaInfo package;
 

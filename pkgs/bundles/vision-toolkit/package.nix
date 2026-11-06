@@ -4,7 +4,7 @@
   fetchFromGitHub,
   buildDshBundle,
   copyTree,
-  dsh-kernel,
+  dsh-runtime,
   dsh-workspace,
   pnpmConfigHook,
   python3,
@@ -16,7 +16,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   deployPackage = "@anionex/dsh-vision-toolkit";
   # The upstream peer ranges exclude this verified runtime.
   dshEngines = "0.2.2-rc.1";
-  linkKernelNodeModules = dsh-kernel;
+  installation = dsh-runtime;
 
   src = fetchFromGitHub {
     owner = "Anionex";

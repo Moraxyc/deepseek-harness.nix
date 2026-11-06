@@ -27,13 +27,12 @@ nix run .#dsh-desktop-official
 ```
 
 `packages` は `dsh`、`dsh-desktop`、`dsh-desktop-official`、
-`dsh-desktop-unofficial`、`dsh-kernel`、`dsh-workspace` を提供します。
+`dsh-desktop-unofficial`、`dsh-runtime`、`dsh-workspace` を提供します。
 `bundles.*` と `presets.*` は `legacyPackages` を通じて公開されているため、
 `.#bundles.tui` や `.#presets.tui` などの参照を直接使用できます。
-`bundleCompositions.*` も同じ方法で公開されます。これは、デフォルトの `dsh` コンポジションに
-1 つのバンドルを重ねたもので、デフォルトのコンポジションに既に含まれるバンドルについては
-生成をスキップします。バンドルのレイヤリングを検証するためのものであり、インストール用の
-パッケージではありません。完全なカタログは [バンドルとプリセット](../catalog/) を参照してください。
+`bundleCompositions.*` も同じ方法で公開されます。これは、1 つのバンドルだけを選択する
+プロファイルを持つ `dsh` で、インストールに既に含まれるバンドルについては生成をスキップします。
+バンドルの読み込みを検証するためのものであり、インストール用のパッケージではありません。完全なカタログは [バンドルとプリセット](../catalog/) を参照してください。
 
 ## 開発シェル
 
