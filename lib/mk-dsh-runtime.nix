@@ -4,7 +4,7 @@
   profileSeeder ? null,
   defaultProfile ? null,
   bundleCheckProfiles ? null,
-  runtimeRoot ? null,
+  runtime ? null,
 }:
 package.override {
   defaultBundles = bundles;
@@ -13,7 +13,7 @@ package.override {
   defaultProfile = null;
   desktopProfile = null;
   homePatch = null;
-  inherit profileSeeder runtimeRoot;
+  inherit profileSeeder runtime;
   profileDefaultProfile = if profileSeeder == null then null else defaultProfile;
   profileBundleCheckProfiles = bundleCheckProfiles;
 }

@@ -38,6 +38,7 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui
 | `dsh-desktop-official`   | 上游发布版桌面应用            |
 | `dsh-desktop-unofficial` | 第三方桌面应用                |
 | `dsh-kernel`             | 不带 profile bundle 的 kernel |
+| `dsh-runtime`            | CLI 与桌面共用的安装          |
 | `dsh-workspace`          | 构建后的 workspace 产物       |
 | `bundles.*`              | 插件式扩展                    |
 | `presets.*`              | 开箱即用的 bundle 组合        |
@@ -46,7 +47,7 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui
 
 `dsh-desktop` 是 `dsh-desktop-official` 的别名。`dsh-desktop-unofficial` 继续受支持，
 可显式选择。变体来源、支持平台和
-`dshHost` 覆盖方式见[高级用法](../advanced-usage/)。
+非官方变体的 `dshHost` 覆盖方式见[高级用法](../advanced-usage/)。
 
 ## 加入其他 Flake
 

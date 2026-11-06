@@ -1,12 +1,13 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
   cfg = config.programs.dsh;
   mkDsh = import ../lib/mk-dsh.nix;
-  desktopPackage = import ../lib/mk-dsh-desktop.nix { inherit lib cfg; };
+  desktopPackage = import ../lib/mk-dsh-desktop.nix { inherit lib pkgs cfg; };
 in
 
 {
@@ -25,7 +26,7 @@ in
           defaultProfile = cfg.defaultProfile;
           desktopProfile = if cfg.desktop.enable then cfg.desktop.profile else null;
           patch = cfg.patch;
-          runtimeRoot = if cfg.desktop.enable then desktopPackage.passthru.dshRuntime or null else null;
+          runtime = if cfg.desktop.enable then desktopPackage.passthru.dshRuntime or null else null;
         })
       ];
 

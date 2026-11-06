@@ -61,7 +61,7 @@
      args: ['--no-open', '--host', '127.0.0.1', '--port', '0'],
 --- /dev/null
 +++ b/apps/desktop/src/nix-profile.ts
-@@ -0,0 +1,20 @@
+@@ -0,0 +1,21 @@
 +import { execFileSync } from 'node:child_process'
 +import { readFileSync } from 'node:fs'
 +
@@ -73,10 +73,11 @@
 +}
 +
 +export function initializeNixProfile(): void {
-+  const config = JSON.parse(readFileSync(new URL('../nix-profile.json', import.meta.url), 'utf8')) as NixProfile | null
++  const path = process.env.DSH_NIX_DESKTOP_PROFILE_CONFIG
 +  delete process.env.DSH_NIX_DESKTOP_PROFILE
 +  delete process.env.DSH_NIX_DESKTOP_PROFILE_MODE
-+  if (config === null) return
++  if (path === undefined || path === '') return
++  const config = JSON.parse(readFileSync(path, 'utf8')) as NixProfile
 +  if (config.home !== null) process.env.DSH_HOME = config.home
 +  process.env.DSH_NIX_DESKTOP_PROFILE = config.profile
 +  process.env.DSH_NIX_DESKTOP_PROFILE_MODE = config.mode

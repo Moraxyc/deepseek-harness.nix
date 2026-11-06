@@ -533,12 +533,14 @@ nix run .#dsh-desktop-official
 On Darwin the application is installed as
 `Applications/DeepSeek Harness.app`, with `bin/dsh-desktop` as the launcher.
 
-Both variants accept `dshHost`, the composed `dsh` behind the desktop runtime.
-Point it at a preset or a custom composition to change the bundles the
-application runs:
+The official variant runs the shared `pkgs.dsh.dsh-runtime` installation;
+select extra bundles through a profile with `programs.dsh.desktop.profile`.
+The unofficial variant accepts `dshHost`, the composed `dsh` behind its
+runtime. Point it at a preset or a custom composition to change the bundles
+the application runs:
 
 ```nix
-pkgs.dsh.dsh-desktop-official.override {
+pkgs.dsh.dsh-desktop-unofficial.override {
   dshHost = pkgs.dsh.presets.tui;
 }
 ```

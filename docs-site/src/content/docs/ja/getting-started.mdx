@@ -38,6 +38,7 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui
 | `dsh-desktop-official`   | 上流リリースのデスクトップアプリケーション               |
 | `dsh-desktop-unofficial` | サードパーティプロジェクトのデスクトップアプリケーション |
 | `dsh-kernel`             | プロファイルバンドルを含まないカーネル                   |
+| `dsh-runtime`            | CLI とデスクトップが共有するインストール                 |
 | `dsh-workspace`          | ビルド済みワークスペース成果物                           |
 | `bundles.*`              | プラグイン形式の拡張機能                                 |
 | `presets.*`              | すぐに使えるバンドルの組み合わせ                         |
@@ -46,7 +47,7 @@ nix run github:moraxyc/deepseek-harness.nix#presets.tui
 
 `dsh-desktop` は `dsh-desktop-official` のエイリアスです。
 `dsh-desktop-unofficial` も引き続きサポートされ、明示的に選択できます。
-バリアントのソース、サポート対象プラットフォーム、`dshHost` オーバーライドについては、
+バリアントのソース、サポート対象プラットフォーム、非公式バリアントの `dshHost` オーバーライドについては、
 [高度な使用方法](../advanced-usage/)を参照してください。
 
 ## 別の flake に追加する

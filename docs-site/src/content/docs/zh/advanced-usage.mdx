@@ -508,11 +508,12 @@ nix run .#dsh-desktop-official
 Darwin 下应用安装为 `Applications/DeepSeek Harness.app`，启动入口是
 `bin/dsh-desktop`。
 
-两个变体都接受 `dshHost`，即桌面运行时背后的组合后 `dsh`。把它指向 preset 或自定义
-组合，就能改变应用运行的 bundle：
+官方变体运行共享的 `pkgs.dsh.dsh-runtime` 安装；额外的 bundle 通过
+`programs.dsh.desktop.profile` 选择的 profile 加入。非官方变体接受 `dshHost`，
+即其运行时背后的组合后 `dsh`。把它指向 preset 或自定义组合，就能改变应用运行的 bundle：
 
 ```nix
-pkgs.dsh.dsh-desktop-official.override {
+pkgs.dsh.dsh-desktop-unofficial.override {
   dshHost = pkgs.dsh.presets.tui;
 }
 ```

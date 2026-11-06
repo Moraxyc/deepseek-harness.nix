@@ -10,12 +10,11 @@
   desktopToDarwinBundle,
   makeDesktopItem,
   makeWrapper,
-  nodeModulesPrune,
   runCommand,
   wrapGAppsHook3,
   writers,
 
-  dsh,
+  dsh-runtime,
   dsh-workspace,
   electron,
   gsettings-desktop-schemas,
@@ -23,16 +22,13 @@
   libGL,
   nodejs-slim,
   patchelf,
-  pnpmWorkspaceDeploy,
   removeReferencesTo,
   python3,
   python3Packages,
   vips,
   xcbuild,
 
-  dshHost ? dsh,
-  desktopProfile ? null,
-  dshDesktopPnpm ? pnpmWorkspaceDeploy,
+  dshDesktopPnpm ? dsh-runtime.passthru.pnpm,
 }:
 
 let
@@ -54,7 +50,7 @@ let
 in
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "dsh-desktop";
-  inherit (dshHost) version;
+  inherit (dsh-runtime) version;
 
   src = dsh-workspace.desktop;
   dontUnpack = true;
@@ -88,7 +84,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
     appDir="${appDir}"
     runtimeRoot="${runtimeRoot}"
-    dshRuntime="$runtimeRoot/app/dsh"
   ''
   + lib.optionalString isDarwin ''
     mkdir -p "$out/Applications"
@@ -143,45 +138,13 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       ]
     }
     cp "$src/app/package.json" "$runtimeRoot/app/package.json"
-    cp ${writers.writeJSON "dsh-desktop-nix-profile.json" desktopProfile} "$runtimeRoot/app/nix-profile.json"
 
-    dshPackage="$dshRuntime/node_modules/@deepseek-ai/dsh"
-    ${copyTree.followLinks {
-      src = "${dshHost}/lib/deepseek-harness/lib";
-      dest = "$dshPackage/lib";
-    }}
-    ${copyTree.followLinks {
-      src = "${dshHost}/lib/deepseek-harness/config";
-      dest = "$dshPackage/config";
-    }}
-    cp "${dshHost}/lib/deepseek-harness/package.json" "$dshPackage/package.json"
-
-    ${copyTree.preserve {
-      src = "${dshHost.passthru.flattenedNodeModules}/node_modules";
-      dest = "$dshRuntime/node_modules";
-    }}
-
-    # Host dependencies only fill in names the runtime does not ship.
-    ${copyTree.fillMissing {
-      src = "$src/host/node_modules";
-      dest = "$dshRuntime/node_modules";
-    }}
-
-    mkdir -p "$runtimeRoot/runtime"
-    ln -s ../app/dsh/node_modules/@deepseek-ai/dsh-skill-office/assets \
-      "$runtimeRoot/runtime/office-skills"
-
-    ${nodeModulesPrune.prune { tree = "$dshRuntime/node_modules"; }}
-    ${nodeModulesPrune.minify { tree = "$dshRuntime/node_modules"; }}
-
-    hostPackage="$dshRuntime/node_modules/@deepseek-ai/dsh-desktop-host"
-    ${copyTree.followLinks {
-      src = "$src/host/lib";
-      dest = "$hostPackage/lib";
-    }}
-    cp "$src/host/package.json" "$hostPackage/package.json"
+    # The sealed installation is shared with the CLI instead of copied.
+    ln -s ${dsh-runtime} "$runtimeRoot/app/dsh"
 
     mkdir -p "$runtimeRoot/runtime/bin"
+    ln -s ${dsh-runtime}/node_modules/@deepseek-ai/dsh-skill-office/assets \
+      "$runtimeRoot/runtime/office-skills"
     ln -s "${dshDesktopPnpm}/libexec/pnpm" "$runtimeRoot/runtime/pnpm"
     ln -s "${nodejs-slim}/bin/node" "$runtimeRoot/runtime/bin/node"
 
@@ -243,52 +206,30 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     runHook postInstall
   '';
 
-  preFixup = ''
-    sealDesktopRuntime() {
-      node --input-type=module <<EOF
-    import { readFileSync } from 'node:fs';
-    import { writeDesktopRuntime } from '$src/app/src/runtime-tree.ts';
-    import { DESKTOP_HOST_PROTOCOL_VERSION } from '$src/app/src/host-protocol.ts';
-
-    const root = '${runtimeRoot}/app/dsh';
-    const readPackage = name => JSON.parse(readFileSync(root + '/node_modules/' + name + '/package.json', 'utf8'));
-    const dsh = readPackage('@deepseek-ai/dsh');
-    const host = readPackage('@deepseek-ai/dsh-desktop-host');
-    const sharedNames = [dsh.name, host.name, ...Object.keys(dsh.dependencies), ...Object.keys(host.dependencies)];
-    writeDesktopRuntime(root, {
-      schemaVersion: 1, version: '${finalAttrs.version}',
-      hostProtocolVersion: DESKTOP_HOST_PROTOCOL_VERSION,
-      nodeVersion: '${nodejs-slim.version}', pnpmVersion: '${dshDesktopPnpm.version}',
-    }, sharedNames);
-    EOF
-    }
-  ''
-  + lib.optionalString isDarwin ''
-    stripRuntimeReferences() {
-      find "$out" -type f -exec ${lib.getExe removeReferencesTo} ${storeReferenceArgs} {} +
-    }
-    # Rewrite binaries before signing, then record their final bytes.
-    postFixupHooks=(stripRuntimeReferences "''${postFixupHooks[@]}")
-  ''
-  + ''
-    postFixupHooks+=(sealDesktopRuntime)
-  ''
-  + lib.optionalString isLinux ''
-    gappsWrapperArgs+=(
-      --prefix LD_LIBRARY_PATH : "${finalAttrs.passthru.sharpLibvips}/lib"
-      --suffix LD_LIBRARY_PATH : ${
-        lib.makeLibraryPath [
-          libGL
-          stdenv.cc.cc.lib
-        ]
+  preFixup =
+    lib.optionalString isDarwin ''
+      stripRuntimeReferences() {
+        find "$out" -type f -exec ${lib.getExe removeReferencesTo} ${storeReferenceArgs} {} +
       }
-     --set CHROME_DEVEL_SANDBOX "${appDir}/chrome-sandbox"
-      --set DSH_BUNDLED_PRIMARY_RUNTIME "${runtimeRoot}/runtime/primary-runtime"
-      --prefix PATH : "${runtimeRoot}/runtime/bin"
-      --prefix PATH : ${lib.makeBinPath finalAttrs.passthru.desktopRuntimeDeps}
-      --inherit-argv0
-    )
-  '';
+      # Rewrite binaries before signing.
+      postFixupHooks=(stripRuntimeReferences "''${postFixupHooks[@]}")
+    ''
+    + lib.optionalString isLinux ''
+      gappsWrapperArgs+=(
+        --prefix LD_LIBRARY_PATH : "${finalAttrs.passthru.sharpLibvips}/lib"
+        --suffix LD_LIBRARY_PATH : ${
+          lib.makeLibraryPath [
+            libGL
+            stdenv.cc.cc.lib
+          ]
+        }
+       --set CHROME_DEVEL_SANDBOX "${appDir}/chrome-sandbox"
+        --set DSH_BUNDLED_PRIMARY_RUNTIME "${runtimeRoot}/runtime/primary-runtime"
+        --prefix PATH : "${runtimeRoot}/runtime/bin"
+        --prefix PATH : ${lib.makeBinPath finalAttrs.passthru.desktopRuntimeDeps}
+        --inherit-argv0
+      )
+    '';
 
   desktopItems = lib.optional isLinux (makeDesktopItem {
     name = desktopId;
@@ -301,19 +242,14 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   });
 
   passthru = {
-    dshRuntime = "${finalAttrs.finalPackage}/${
-      if isDarwin then
-        "Applications/DeepSeek Harness.app/Contents/Resources"
-      else
-        "lib/dsh-desktop/resources"
-    }/app/dsh";
+    dshRuntime = dsh-runtime;
 
     desktopRuntimeDeps = [
       finalAttrs.passthru.pythonEnv
     ]
-    ++ lib.remove dshDesktopPnpm dshHost.passthru.runtimeDeps;
+    ++ lib.remove dshDesktopPnpm dsh-runtime.passthru.runtimeDeps;
     sharpLibvips =
-      runCommand "dsh-desktop-sharp-libvips-${dshHost.version}"
+      runCommand "dsh-desktop-sharp-libvips-${dsh-runtime.version}"
         {
           nativeBuildInputs = [ patchelf ];
         }

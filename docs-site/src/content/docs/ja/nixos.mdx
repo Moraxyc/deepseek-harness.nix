@@ -229,8 +229,8 @@ programs.dsh.desktop.enable = true;
 インストールする場合は、`programs.dsh.enable = false` を明示的に設定してください。
 このモジュールは `pkgs.dsh.dsh-desktop-official` を `environment.systemPackages` に追加します。
 `programs.dsh.desktop.package` でオーバーライドできます。
-公式デスクトップパッケージを使用する場合、CLI は内蔵の dsh ランタイムを共有し、
-別の kernel と bundles のツリーを保持しません。
+公式デスクトップパッケージを使用する場合、CLI とデスクトップは
+`pkgs.dsh.dsh-runtime` のインストールを共有します。
 CLI のデフォルトとは独立に、`desktop.profile` で宣言済みのプロファイルを選択します。
 
 ```nix
@@ -245,13 +245,14 @@ programs.dsh = {
 ```
 
 `config.programs.dsh.profiles.desktop.materializedName` を参照することもできます。
-このモジュールは Web アプリケーションの依存関係を組み込み、プロファイルのバンドルを
-公式デスクトップランタイムにパッケージ化します。コマンドラインまたはアプリケーションメニューから
+このモジュールは Web アプリケーションの依存関係を組み込みます。インストールに含まれない
+バンドルはプロファイルにリンクされるため、デスクトップパッケージ自体は設定によって変わらず、
+ランチャーがプロファイルを選択します。コマンドラインまたはアプリケーションメニューから
 起動すると、デスクトップは選択したプロファイル、それが参照する `agentPresets`、および
 `programs.dsh.home` 配下のホームレベル `patch` の初期内容を配置してから、ホストを起動します。
 設定を変更した後は、デスクトップを再起動してください。
 
 `desktop.profile` のデフォルトは `null` で、上流の `profiles/desktop` の動作を維持します。
-この連携では、`desktop.package` が公式パッケージの `dshHost` 引数と
-`desktopProfile` 引数をサポートしている必要があります。
+この連携では、`desktop.package` が公式パッケージと同様に
+`DSH_NIX_DESKTOP_PROFILE_CONFIG` を読み取る必要があります。
 `programs.dsh.defaultProfile` は引き続き CLI のみを制御します。

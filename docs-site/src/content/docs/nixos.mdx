@@ -230,8 +230,8 @@ by default, keeping the `dsh` CLI available. Set `programs.dsh.enable = false`
 explicitly to install only the desktop application.
 The module adds `pkgs.dsh.dsh-desktop-official` to `environment.systemPackages`;
 override it with `programs.dsh.desktop.package`.
-With the official desktop package, the CLI reuses its bundled dsh runtime
-instead of retaining a second kernel and bundle tree.
+With the official desktop package, the CLI and the desktop share the
+`pkgs.dsh.dsh-runtime` installation.
 Select a declared profile with `desktop.profile`, independently of the CLI default:
 
 ```nix
@@ -246,13 +246,14 @@ programs.dsh = {
 ```
 
 You can also reference `config.programs.dsh.profiles.desktop.materializedName`.
-The module includes the web application dependencies and packages the profile's
-bundles in the official desktop runtime. On command-line or application-menu
+The module includes the web application dependencies. Bundles that the
+installation does not carry are linked into the profile, so the desktop package
+does not change with the configuration; its launcher selects the profile. On command-line or application-menu
 launch, the desktop seeds the selected profile, its referenced `agentPresets`, and
 the home-level `patch` under `programs.dsh.home` before starting the host.
 Restart the desktop after changing its configuration.
 
 `desktop.profile` defaults to `null`, preserving the upstream `profiles/desktop`
-behavior. This integration requires `desktop.package` to support the official
-package's `dshHost` and `desktopProfile` arguments.
+behavior. This integration requires `desktop.package` to read
+`DSH_NIX_DESKTOP_PROFILE_CONFIG`, as the official package does.
 `programs.dsh.defaultProfile` still controls only the CLI.

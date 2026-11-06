@@ -1,5 +1,10 @@
-{ lib, cfg }:
+{
+  lib,
+  pkgs,
+  cfg,
+}:
 let
+  desktop = cfg.desktop.package;
   selected = lib.filter (profile: profile.materializedName == cfg.desktop.profile) (
     lib.attrValues cfg.profiles
   );
@@ -9,32 +14,30 @@ let
     defaultProfile = cfg.desktop.profile;
     homePatch = cfg.patch;
   };
-  # The seeder lets the host's bundle check boot the declared profiles.
-  host = import ./mk-dsh-runtime.nix {
-    package = cfg.package;
-    bundles = artifacts.runtimeBundles;
-    profileSeeder = artifacts.seedProfiles;
-    defaultProfile = artifacts.validatedDefaultProfile;
-    inherit (artifacts) bundleCheckProfiles;
+  profileConfig = pkgs.writers.writeJSON "dsh-desktop-profile.json" {
+    home = cfg.home;
+    profile = artifacts.validatedDefaultProfile;
+    seeder = lib.getExe artifacts.seedProfiles;
+    mode = (builtins.head selected).mode;
   };
 in
-if cfg.desktop.profile == null && !(cfg.desktop.package ? passthru.dshRuntime) then
-  cfg.desktop.package
+# The desktop package stays independent of the configuration; only its
+# launcher selects the declared profile.
+if cfg.desktop.profile == null then
+  desktop
 else
-  lib.throwIf (cfg.desktop.profile != null && selected == [ ])
+  lib.throwIf (selected == [ ])
     "dsh desktop: desktop.profile must reference a declared programs.dsh.profiles entry"
     (
-      cfg.desktop.package.override {
-        dshHost = if cfg.desktop.profile == null && cfg.profiles == { } then cfg.package else host;
-        desktopProfile =
-          if cfg.desktop.profile == null then
-            null
-          else
-            {
-              home = cfg.home;
-              profile = artifacts.validatedDefaultProfile;
-              seeder = lib.getExe artifacts.seedProfiles;
-              mode = (builtins.head selected).mode;
-            };
+      pkgs.symlinkJoin {
+        inherit (desktop) pname version;
+        paths = [ desktop ];
+        nativeBuildInputs = [ pkgs.makeWrapper ];
+        postBuild = ''
+          rm "$out/bin/dsh-desktop"
+          makeWrapper ${lib.getExe desktop} "$out/bin/dsh-desktop" \
+            --set DSH_NIX_DESKTOP_PROFILE_CONFIG ${profileConfig}
+        '';
+        inherit (desktop) meta passthru;
       }
     )

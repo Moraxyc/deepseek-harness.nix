@@ -536,12 +536,13 @@ nix run .#dsh-desktop-official
 Darwin では、アプリケーションは `Applications/DeepSeek Harness.app` にインストールされ、
 `bin/dsh-desktop` がランチャーになります。
 
-どちらのバリアントも `dshHost` を受け付けます。これは、デスクトップランタイムの背後で
-動作する、構成済みの `dsh` です。プリセットまたはカスタム構成を指定すると、
-アプリケーションが実行するバンドルを変更できます。
+公式バリアントは共有の `pkgs.dsh.dsh-runtime` インストールを実行します。追加のバンドルは
+`programs.dsh.desktop.profile` で選択したプロファイルから読み込まれます。非公式バリアントは
+`dshHost` を受け付けます。これは、そのランタイムの背後で動作する構成済みの `dsh` です。
+プリセットまたはカスタム構成を指定すると、アプリケーションが実行するバンドルを変更できます。
 
 ```nix
-pkgs.dsh.dsh-desktop-official.override {
+pkgs.dsh.dsh-desktop-unofficial.override {
   dshHost = pkgs.dsh.presets.tui;
 }
 ```

@@ -5,6 +5,8 @@
   gnugrep,
   dshBundleResolver,
   headlessBundle,
+  installation,
+  jq,
   lib,
   linkFarm,
   runCommand,
@@ -278,11 +280,29 @@ let
     spec:
     runCommand (lib.strings.sanitizeDerivationName "dsh-profile-${spec.targetName}-template")
       {
-        nativeBuildInputs = [ coreutils ];
+        nativeBuildInputs = [
+          coreutils
+          jq
+        ];
       }
       ''
         mkdir -p "$out"
-        cp ${lib.escapeShellArg "${spec.packageJson}/package.json"} "$out/package.json"
+        # The installation resolves the bundles it carries. Link the others into
+        # the profile, where dsh loads out-of-tree plugins.
+        : > "$out/.nix-links"
+        for manifest in ${
+          lib.concatMapStringsSep " " (
+            bundle: lib.escapeShellArg "${bundle}/nix-support/dsh-bundles.json"
+          ) spec.bundles
+        }; do
+          jq -r '.bundles[] | [.name, .packageRoot] | @tsv' "$manifest"
+        done | while IFS=$'\t' read -r name packageRoot; do
+          [ -e ${lib.escapeShellArg "${installation}/node_modules"}/"$name"/package.json ] \
+            || printf '%s\t%s\n' "$name" "$packageRoot" >> "$out/.nix-links"
+        done
+        jq -R -s --slurpfile manifest ${lib.escapeShellArg "${spec.packageJson}/package.json"} '
+          $manifest[0] * {dependencies: (split("\n") | map(select(. != "") | split("\t") | {(.[0]): ("link:" + .[1])}) | add // {})}
+        ' "$out/.nix-links" > "$out/package.json"
         cp ${lib.escapeShellArg spec.patchFile} "$out/cordis.patch.yml"
         cp ${lib.escapeShellArg spec.workspaceFile} "$out/pnpm-workspace.yaml"
         # Fingerprint the rendered files, not the store paths, so a rebuild
@@ -436,7 +456,7 @@ let
           local file
 
           [ -d "$source" ] || die "managed profile source is missing: $source"
-          for file in ${lib.concatStringsSep " " managedFiles} .nix-managed; do
+          for file in ${lib.concatStringsSep " " managedFiles} .nix-managed .nix-links; do
             [ -f "$source/$file" ] || die "managed profile source is missing: $source/$file"
           done
         }
@@ -471,6 +491,37 @@ let
           fi
         }
 
+        # Point declared bundle links at their store paths and drop store links
+        # the declaration no longer lists.
+        sync_profile_links() {
+          local source=$1
+          local destination=$2
+          local modules="$destination/node_modules"
+          local link name target
+
+          for link in "$modules"/* "$modules"/@*/*; do
+            [ -L "$link" ] || continue
+            target=$(readlink -- "$link")
+            case "$target" in
+              ${builtins.storeDir}/*) ;;
+              *) continue ;;
+            esac
+            name=''${link#"$modules"/}
+            grep -Fxq -- "$name"$'\t'"$target" "$source/.nix-links" || rm -f -- "$link"
+          done
+
+          while IFS=$'\t' read -r name target; do
+            [ -n "$name" ] || continue
+            link="$modules/$name"
+            [ "$(readlink -- "$link" 2>/dev/null)" != "$target" ] || continue
+            if [ -e "$link" ] && [ ! -L "$link" ]; then
+              die "refusing to replace installed package with a Nix bundle link: $link"
+            fi
+            mkdir -p -- "$(dirname -- "$link")"
+            ln -sfn -- "$target" "$link"
+          done < "$source/.nix-links"
+        }
+
         sync_managed_profile() {
           local profile=$1
           local source=$2
@@ -481,6 +532,7 @@ let
 
           if [ ! -e "$destination" ]; then
             install_profile_dir "$source" "$destination"
+            sync_profile_links "$source" "$destination"
             return 0
           fi
 
@@ -490,6 +542,7 @@ let
           validate_owned_file "$destination/.nix-managed"
 
           if profile_is_current "$source" "$destination"; then
+            sync_profile_links "$source" "$destination"
             return 0
           fi
 
@@ -499,6 +552,7 @@ let
             map (file: "  copy_owned_file \"$source/${file}\" \"$destination/${file}\"") managedFiles
           )}
           copy_owned_file "$source/.nix-managed" "$destination/.nix-managed"
+          sync_profile_links "$source" "$destination"
         }
 
         seed_mutable_profile() {
@@ -514,6 +568,7 @@ let
           fi
 
           install_profile_dir "$source" "$destination"
+          sync_profile_links "$source" "$destination"
         }
 
         requested_profile=''${1:-}

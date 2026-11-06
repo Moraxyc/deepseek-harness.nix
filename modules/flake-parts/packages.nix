@@ -14,6 +14,7 @@
           dsh-desktop-official
           dsh-desktop-unofficial
           dsh-kernel
+          dsh-runtime
           dsh-workspace
           ;
         inherit docs-site;

@@ -24,6 +24,7 @@
   dsh,
   dshBundleCheckHook,
   dsh-kernel,
+  dsh-runtime,
   writableTmpDirAsHomeHook,
 
   bundles,
@@ -45,7 +46,9 @@
   profileDefaultProfile ? null,
   # bundleCheckProfiles from the mkProfileArtifacts call that built profileSeeder.
   profileBundleCheckProfiles ? null,
-  runtimeRoot ? null,
+  # Shared installation (pkgs.dsh.dsh-runtime) to launch instead of composing
+  # the kernel with bundles.
+  runtime ? null,
   pname ? "dsh",
   meta ? { },
 }:
@@ -65,6 +68,7 @@ let
       gnugrep
       dshBundleResolver
       headlessBundle
+      jq
       lib
       linkFarm
       runCommand
@@ -76,6 +80,7 @@ let
       webBundle
       yq-go
       ;
+    installation = dsh-runtime;
   };
 
   baseBundle = bundles.base;
@@ -229,15 +234,15 @@ stdenvNoCC.mkDerivation (finalAttrs: {
           '';
     in
     (
-      if runtimeRoot != null then
+      if runtime != null then
         ''
           appDir="$out/lib/deepseek-harness"
-          packageRoot=${lib.escapeShellArg "${runtimeRoot}/node_modules/@deepseek-ai/dsh"}
+          packageRoot=${lib.escapeShellArg "${runtime}/node_modules/@deepseek-ai/dsh"}
           mkdir -p "$appDir"
           for entry in lib package.json; do
             ln -s "$packageRoot/$entry" "$appDir/$entry"
           done
-          ln -s ${lib.escapeShellArg "${runtimeRoot}/node_modules"} "$appDir/node_modules"
+          ln -s ${lib.escapeShellArg "${runtime}/node_modules"} "$appDir/node_modules"
         ''
       else
         ''
@@ -350,8 +355,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     seedProfiles = if profileSeeder == null then profileArtifacts.seedProfiles else profileSeeder;
 
     nodeModules =
-      if runtimeRoot != null then
-        "${runtimeRoot}/node_modules"
+      if runtime != null then
+        "${runtime}/node_modules"
       else
         symlinkJoin {
           name = "dsh-node-modules";
@@ -374,12 +379,16 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       nodeModules = finalAttrs.passthru.nodeModules;
     };
 
-    runtimeDeps = lib.unique (
-      dsh-kernel.passthru.runtimeDeps
-      ++ composition.runtimeDeps (lib.reverseList finalAttrs.passthru.composedBundles)
-      ++ composition.runtimeDeps (lib.reverseList finalAttrs.passthru.switchedOffBundles)
-      ++ [ pnpmWorkspaceDeploy ]
-    );
+    runtimeDeps =
+      if runtime != null then
+        runtime.passthru.runtimeDeps
+      else
+        lib.unique (
+          dsh-kernel.passthru.runtimeDeps
+          ++ composition.runtimeDeps (lib.reverseList finalAttrs.passthru.composedBundles)
+          ++ composition.runtimeDeps (lib.reverseList finalAttrs.passthru.switchedOffBundles)
+          ++ [ pnpmWorkspaceDeploy ]
+        );
 
     # pkgs.dsh.dsh.withProfiles { tui.bundles = b: with b; [ tui ]; }
     # materializes the profile as nix-tui.

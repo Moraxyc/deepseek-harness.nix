@@ -213,7 +213,7 @@ programs.dsh.desktop.enable = true;
 确保 `dsh` CLI 仍然可用。如只需桌面应用，可显式设置 `programs.dsh.enable = false`。
 模块将 `pkgs.dsh.dsh-desktop-official` 加入 `environment.systemPackages`；
 可通过 `programs.dsh.desktop.package` 覆盖安装包。
-使用官方桌面包时，CLI 复用桌面内嵌的 dsh 运行时，不再额外保留一套 kernel 和 bundles。
+使用官方桌面包时，CLI 与桌面共用 `pkgs.dsh.dsh-runtime` 安装。
 使用 `desktop.profile` 选择现有声明式 profile；桌面与 CLI 的默认选择独立：
 
 ```nix
@@ -228,11 +228,12 @@ programs.dsh = {
 ```
 
 也可引用 `config.programs.dsh.profiles.desktop.materializedName`。
-模块自动加入 Web 应用依赖，并将 profile 的 bundles 打包进官方桌面 runtime。
+模块自动加入 Web 应用依赖。安装中没有的 bundle 会链接进 profile，
+因此桌面包本身不随配置变化，只由启动器选择 profile。
 从命令行或应用菜单启动时，桌面先按 `programs.dsh.home` 初始化选中的 profile、
 其引用的 `agentPresets` 和 home 级 `patch`，再启动 host。
 修改配置后需重新启动桌面应用。
 
 `desktop.profile` 默认为 `null`，此时保留上游 `profiles/desktop` 行为。
-该集成要求 `desktop.package` 支持官方包的 `dshHost` 和 `desktopProfile` 参数。
+该集成要求 `desktop.package` 像官方包一样读取 `DSH_NIX_DESKTOP_PROFILE_CONFIG`。
 `programs.dsh.defaultProfile` 仍只控制 CLI。
