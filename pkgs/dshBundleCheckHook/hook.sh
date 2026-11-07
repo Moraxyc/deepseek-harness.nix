@@ -28,6 +28,26 @@ dshBundleCheckHook() {
   : "${dshBundleCheckArgs:=--help}"
   : "${dshBundleCheckWebArgs:=--no-open --port 0}"
   mkdir -p "$dshBundleCheckHome"
+  # External bundles need the network, so the sandbox boots without them.
+  export DSH_NIX_EXTERNAL_INSTALL=0
+
+  local -a externalSkips=()
+  local externalBundle
+  if [[ -n "${dshBundleCheckExternalBundles-}" ]]; then
+    for externalBundle in $dshBundleCheckExternalBundles; do
+      externalSkips+=(-e "skipping profile bundle \"$externalBundle\":")
+    done
+  fi
+
+  dropped_rows() {
+    local logFile=$1
+    if [[ "${#externalSkips[@]}" -eq 0 ]]; then
+      grep -F -e 'skipping profile bundle' -e 'disabling profile plugin' "$logFile"
+    else
+      grep -F -e 'skipping profile bundle' -e 'disabling profile plugin' "$logFile" \
+        | grep -v -F "${externalSkips[@]}"
+    fi
+  }
 
   local -a profiles=()
   if [[ -n "${dshBundleCheckProfile-}" ]]; then
@@ -155,7 +175,7 @@ dshBundleCheckHook() {
     # dsh boots without bundles or plugin rows it cannot load or whose dsh
     # requirements are unmet, so a successful boot alone does not prove they mounted.
     if [[ "$status" -eq 0 ]] \
-      && grep -F -e 'skipping profile bundle' -e 'disabling profile plugin' "$logFile" >&2; then
+      && dropped_rows "$logFile" >&2; then
       echo "dshBundleCheckHook: dsh profile $profile dropped a bundle or plugin row" >&2
       status=1
     fi

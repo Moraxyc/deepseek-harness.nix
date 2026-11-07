@@ -115,25 +115,46 @@ let
           )
       ) patch (lib.filter lib.isAttrs patch);
 
+  parseExternalBundle =
+    location: declaration:
+    let
+      parts = builtins.match "(@?[^@]+)(@(.*))?" declaration;
+      name = if parts == null then null else builtins.elemAt parts 0;
+      spec = if parts == null then null else builtins.elemAt parts 2;
+    in
+    if
+      name == null || builtins.match "(@[a-z0-9][a-z0-9._~-]*/)?[a-z0-9][a-z0-9._~-]*" name == null
+    then
+      throw "dsh profile: ${location} has an invalid external bundle name: ${declaration}"
+    else if spec == "" then
+      throw "dsh profile: ${location} has an empty external bundle spec: ${declaration}"
+    else
+      {
+        inherit name;
+        spec = if spec == null then "latest" else spec;
+      };
+
+  nixBundlesOf = profile: lib.filter (bundle: !lib.isString bundle) (profile.bundles or [ ]);
+
   profileNeedsWeb =
     profile:
     (profile.requiresWeb or false)
     || (profile.agentPreset or null) != null
-    || lib.any (bundle: bundle.passthru.requiresWeb or false) (profile.bundles or [ ]);
+    || lib.any (bundle: bundle.passthru.requiresWeb or false) (nixBundlesOf profile);
 
   profileNeedsTui =
     profile:
     (profile.requiresTui or false)
-    || lib.any (bundle: bundle.passthru.requiresTui or false) (profile.bundles or [ ]);
+    || lib.any (bundle: bundle.passthru.requiresTui or false) (nixBundlesOf profile);
 
   profileNeedsTty =
     profile:
     (profile.requiresTty or false)
     || profileNeedsTui profile
-    || lib.any (bundle: bundle.passthru.requiresTty or false) (profile.bundles or [ ]);
+    || lib.any (bundle: bundle.passthru.requiresTty or false) (nixBundlesOf profile);
 
-  profileBundles =
-    profile:
+  profileLayers =
+    name: profile:
     let
       needsWeb = profileNeedsWeb profile;
       needsTui = profileNeedsTui profile;
@@ -145,8 +166,13 @@ let
       # plain CLI profiles non-interactive instead of letting dsh fall back to
       # its interactive entrypoint during headless checks and service use.
       ++ lib.optional (!needsWeb && !needsTui) headless
-      ++ (profile.bundles or [ ])
+      ++ map (
+        bundle:
+        if lib.isString bundle then parseExternalBundle "profiles.${name}.bundles" bundle else bundle
+      ) (profile.bundles or [ ])
     );
+
+  isExternalLayer = layer: !lib.isDerivation layer && layer ? spec;
 
   makeAgentPresetPatch =
     id: definition:
@@ -202,7 +228,9 @@ let
     let
       targetName = profileName name;
       agentPreset = profileAgentPreset agentPresets name profile;
-      bundles = profileBundles profile;
+      layers = profileLayers name profile;
+      bundles = lib.filter (layer: !isExternalLayer layer) layers;
+      externalBundles = lib.filter isExternalLayer layers;
       mode = validateMode (profile.mode or "managed");
       managedDesktopOnboardingPatchFile =
         if targetName == desktopProfile && mode == "managed" then
@@ -217,9 +245,19 @@ let
           ]
         else
           null;
-      # The manifest argument order is the Cordis patch order. Keep the base
+      # The argument order is the Cordis patch order. Keep the base
       # layer first, then apply profile bundles in their declared order.
-      bundleManifests = map (bundle: "${bundle}/nix-support/dsh-bundles.json") ([ base ] ++ bundles);
+      layerArguments = lib.concatMap (
+        layer:
+        if isExternalLayer layer then
+          [
+            "--external"
+            layer.name
+            layer.spec
+          ]
+        else
+          [ "${layer}/nix-support/dsh-bundles.json" ]
+      ) ([ base ] ++ layers);
       rawPatch = warnPatchMigrations "profiles.${name}.patch" (profile.patch or [ ]);
       agentPresetPatchFile =
         if agentPreset == null then null else makeAgentPresetPatch agentPreset.id agentPreset.definition;
@@ -260,13 +298,18 @@ let
         mkdir -p "$out"
         ${lib.getExe dshBundleResolver} profile "$out/package.json" \
           ${lib.escapeShellArg targetName} \
-          ${lib.concatStringsSep " " (map lib.escapeShellArg bundleManifests)}
+          ${lib.escapeShellArgs layerArguments}
       '';
+      externalFile = writeText "dsh-profile-${targetName}-external" (
+        lib.concatMapStrings (layer: "${layer.name}\t${layer.spec}\n") externalBundles
+      );
     in
     {
       inherit
         agentPreset
         bundles
+        externalBundles
+        externalFile
         mode
         packageJson
         patchFile
@@ -303,6 +346,7 @@ let
         ' "$out/.nix-links" > "$out/package.json"
         cp ${lib.escapeShellArg spec.patchFile} "$out/cordis.patch.yml"
         cp ${lib.escapeShellArg spec.workspaceFile} "$out/pnpm-workspace.yaml"
+        cp ${lib.escapeShellArg spec.externalFile} "$out/.nix-external"
         # Fingerprint the rendered files, not the store paths, so a rebuild
         # that leaves the profile content unchanged stays a no-op.
         fingerprint=$(
@@ -454,7 +498,7 @@ let
           local file
 
           [ -d "$source" ] || die "managed profile source is missing: $source"
-          for file in ${lib.concatStringsSep " " managedFiles} .nix-managed .nix-links; do
+          for file in ${lib.concatStringsSep " " managedFiles} .nix-managed .nix-links .nix-external; do
             [ -f "$source/$file" ] || die "managed profile source is missing: $source/$file"
           done
         }
@@ -520,6 +564,38 @@ let
           done < "$source/.nix-links"
         }
 
+        # Only the dsh launcher sets DSH_REAL. Activation reports instead of
+        # installing because it may run without network access.
+        install_external_bundles() {
+          local profile=$1
+          local source=$2
+          local destination=$3
+          local mode=$4
+          local declared stamp="$destination/.nix-external-installed" file
+
+          [ -s "$source/.nix-external" ] || return 0
+          declared=$(sha256sum < "$source/.nix-external" | cut -d' ' -f1)
+          [ "$(cat -- "$stamp" 2>/dev/null)" != "$declared" ] || return 0
+
+          if [ -z "''${DSH_REAL:-}" ] || [ "''${DSH_NIX_EXTERNAL_INSTALL:-1}" = 0 ]; then
+            printf 'dsh: external bundles of %s are not installed; run: dsh plugin --profile %s install\n' "$profile" "$profile" >&2
+            return 0
+          fi
+
+          printf 'dsh: installing external bundles for profile: %s\n' "$profile" >&2
+          if ! DSH_NIX_EXTERNAL_INSTALL=0 "$DSH_REAL" plugin --profile "$profile" install >&2; then
+            printf 'dsh: warning: failed to install external bundles for %s; retrying on next launch\n' "$profile" >&2
+            return 0
+          fi
+          # pnpm may rewrite these files, so managed profiles restore the declaration.
+          if [ "$mode" = managed ]; then
+            for file in ${lib.concatStringsSep " " managedFiles}; do
+              copy_owned_file "$source/$file" "$destination/$file"
+            done
+          fi
+          printf '%s\n' "$declared" > "$stamp"
+        }
+
         sync_managed_profile() {
           local profile=$1
           local source=$2
@@ -531,6 +607,7 @@ let
           if [ ! -e "$destination" ]; then
             install_profile_dir "$source" "$destination"
             sync_profile_links "$source" "$destination"
+            install_external_bundles "$profile" "$source" "$destination" managed
             return 0
           fi
 
@@ -541,6 +618,7 @@ let
 
           if profile_is_current "$source" "$destination"; then
             sync_profile_links "$source" "$destination"
+            install_external_bundles "$profile" "$source" "$destination" managed
             return 0
           fi
 
@@ -551,6 +629,7 @@ let
           )}
           copy_owned_file "$source/.nix-managed" "$destination/.nix-managed"
           sync_profile_links "$source" "$destination"
+          install_external_bundles "$profile" "$source" "$destination" managed
         }
 
         seed_mutable_profile() {
@@ -562,11 +641,13 @@ let
 
           if [ -e "$destination" ] || [ -L "$destination" ]; then
             validate_profile_dir "$profile" "$destination"
+            install_external_bundles "$profile" "$source" "$destination" mutable
             return 0
           fi
 
           install_profile_dir "$source" "$destination"
           sync_profile_links "$source" "$destination"
+          install_external_bundles "$profile" "$source" "$destination" mutable
         }
 
         requested_profile=''${1:-}
@@ -599,12 +680,15 @@ let
       profiles ? { },
     }:
     let
-      workspace = {
-        packages = [ "." ];
-        nodeLinker = "hoisted";
-        autoInstallPeers = false;
-      };
-      workspaceFile = writers.writeYAML "dsh-profile-pnpm-workspace.yaml" workspace;
+      # pnpm 11 fails to rewrite this file after install when it starts with
+      # the `%YAML` header that writers.writeYAML emits.
+      workspaceFile = writeText "dsh-profile-pnpm-workspace.yaml" ''
+        packages:
+          - .
+
+        nodeLinker: hoisted
+        autoInstallPeers: false
+      '';
       profileSpecs = lib.mapAttrs (
         name: profile:
         (profileSpec agentPresets desktopProfile name profile)
@@ -618,6 +702,9 @@ let
       # Profile classes for dshBundleCheckHook. Seeded runtimes carry no static
       # profiles, so they receive these lists explicitly.
       bundleCheckProfiles = {
+        external = lib.unique (
+          lib.concatMap (spec: map (layer: layer.name) spec.externalBundles) (lib.attrValues profileSpecs)
+        );
         all = managedProfileNames;
         tty = profileNamesWhere profileNeedsTty;
         web = profileNamesWhere profileNeedsWeb;

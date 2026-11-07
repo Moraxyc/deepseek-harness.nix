@@ -325,6 +325,32 @@ ID 以后一次定义为准。它可以放在 `withProfiles` 前面或后面：
 }
 ```
 
+### 外部 Bundle
+
+`bundles` 中的字符串声明一个由 pnpm 而非 Nix 安装到 profile 的 bundle。写
+`name` 使用最新版本，写 `name@spec` 使用任意 pnpm 依赖 spec。字符串与包放在
+同一个列表中，列表顺序即补丁顺序：
+
+```nix
+pkgs.dsh.dsh.withProfiles {
+  tui.bundles = [
+    pkgs.dsh.bundles.tui
+    "dsh-mnemon@^0.5.0"
+    "my-bundle@github:me/my-bundle#v2"
+  ];
+}
+```
+
+Nix 把这些 bundle 写入 profile 的 `package.json`，安装和版本锁定交给
+pnpm。声明变化后，下一次启动 `dsh` 会执行
+`dsh plugin --profile <name> install`。安装失败会在下次启动时重试，期间 dsh
+跳过缺失的 bundle。Home Manager activation 和受管 Desktop 启动器不会安装；请手动
+执行该命令或启动一次 `dsh`。设置 `DSH_NIX_EXTERNAL_INSTALL=0` 可跳过安装。
+
+`pnpm-lock.yaml` 由用户管理，版本在用 `dsh plugin` 更新前保持锁定。字符串无法
+携带 `requiresWeb` 或 `requiresTui`；外部 bundle 需要时请另外加入
+`pkgs.dsh.bundles.web-app` 或 `pkgs.dsh.bundles.tui`。
+
 ### Profile 模式
 
 - `managed`：每次运行 `dsh` 时，Nix 恢复声明的 `package.json` 和

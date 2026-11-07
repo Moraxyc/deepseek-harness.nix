@@ -338,6 +338,36 @@ of the presets:
 }
 ```
 
+### External Bundles
+
+A string in `bundles` declares a bundle that pnpm installs into the profile
+instead of Nix. Write `name` for the latest release or `name@spec` for any
+pnpm dependency spec. Strings and packages share one list, which sets the
+patch order:
+
+```nix
+pkgs.dsh.dsh.withProfiles {
+  tui.bundles = [
+    pkgs.dsh.bundles.tui
+    "dsh-mnemon@^0.5.0"
+    "my-bundle@github:me/my-bundle#v2"
+  ];
+}
+```
+
+Nix writes these bundles into the profile's `package.json` and leaves
+installation and version locking to pnpm. When the declaration changes, the next
+`dsh` launch runs `dsh plugin --profile <name> install`. A failed install
+is retried on the next launch, and dsh skips the missing bundle meanwhile.
+Home Manager activation and the managed Desktop launcher do not install; run
+the command yourself or launch `dsh` once. Set `DSH_NIX_EXTERNAL_INSTALL=0`
+to skip installation.
+
+`pnpm-lock.yaml` stays under user control, so versions remain locked until you
+update them with `dsh plugin`. A string cannot carry `requiresWeb` or
+`requiresTui`; add `pkgs.dsh.bundles.web-app` or `pkgs.dsh.bundles.tui` when
+the external bundle needs them.
+
 ### Profile Modes
 
 - `managed`: Nix restores the declared `package.json` and `cordis.patch.yml`

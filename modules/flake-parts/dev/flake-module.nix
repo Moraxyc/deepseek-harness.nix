@@ -6,6 +6,7 @@
     ./checks/bundle-helper.nix
     ./checks/cohort.nix
     ./checks/dsh-service.nix
+    ./checks/external-bundles.nix
     ./checks/merge-check.nix
     ./checks/package-ci.nix
     ./checks/optional-bundles.nix

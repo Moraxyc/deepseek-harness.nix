@@ -338,6 +338,35 @@ pkgs.dsh.dsh.withProfiles {
 }
 ```
 
+### 外部バンドル
+
+`bundles` 内の文字列は、Nix ではなく pnpm がプロファイルにインストールする
+バンドルを宣言します。最新版には `name`、任意の pnpm 依存 spec には
+`name@spec` と書きます。文字列とパッケージは同じリストに並び、その順序が
+パッチの順序になります。
+
+```nix
+pkgs.dsh.dsh.withProfiles {
+  tui.bundles = [
+    pkgs.dsh.bundles.tui
+    "dsh-mnemon@^0.5.0"
+    "my-bundle@github:me/my-bundle#v2"
+  ];
+}
+```
+
+Nix はこれらのバンドルをプロファイルの `package.json` に書き込み、インストールと
+バージョンの固定は pnpm に任せます。宣言が変わると、次回の `dsh` 起動時に
+`dsh plugin --profile <name> install` が実行されます。失敗した場合は次回起動時に
+再試行され、その間 dsh は欠けたバンドルをスキップします。Home Manager の
+activation と管理対象の Desktop ランチャーはインストールしないため、コマンドを
+手動で実行するか `dsh` を一度起動してください。`DSH_NIX_EXTERNAL_INSTALL=0` で
+インストールを省略できます。
+
+`pnpm-lock.yaml` はユーザーの管理下にあり、`dsh plugin` で更新するまでバージョンは
+固定されます。文字列には `requiresWeb` や `requiresTui` を付けられないため、必要な
+場合は `pkgs.dsh.bundles.web-app` または `pkgs.dsh.bundles.tui` を追加してください。
+
 ### プロファイルモード
 
 - `managed`: `dsh` を起動するたびに、Nix が宣言された `package.json` と

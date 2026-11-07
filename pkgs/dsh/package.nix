@@ -135,6 +135,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
               # Seed positional profile selections before the upstream parser runs.
               if [ "$#" -gt 0 ]; then
+                # `dsh plugin` runs pnpm itself, so skip the automatic install.
+                [ "$1" != plugin ] || export DSH_NIX_EXTERNAL_INSTALL=0
                 case "$1" in
                   --|-*|plugin) ;;
                   *)
@@ -221,6 +223,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   dshBundleCheckProfiles = lib.concatStringsSep " " bundleCheckProfiles.all;
   dshBundleCheckWebProfiles = lib.concatStringsSep " " bundleCheckProfiles.web;
   dshBundleCheckTtyProfiles = lib.concatStringsSep " " bundleCheckProfiles.tty;
+  dshBundleCheckExternalBundles = lib.concatStringsSep " " (bundleCheckProfiles.external or [ ]);
   installCheckPhase = ''
     runHook preInstallCheck
     DSH_HOME="$TMPDIR/dsh" "$out/bin/dsh" --version

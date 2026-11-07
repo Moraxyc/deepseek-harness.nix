@@ -73,13 +73,26 @@ let
       };
 
       bundles = lib.mkOption {
-        type = lib.types.listOf lib.types.package;
+        type = lib.types.listOf (lib.types.either lib.types.package lib.types.str);
         default = [ ];
+        example = lib.literalExpression ''
+          [
+            pkgs.dsh.bundles.tui
+            "@scope/dsh-bundle@^1.2.0"
+            "my-bundle@github:me/my-bundle#v2"
+          ]
+        '';
         description = ''
-          dsh bundle packages for this profile, e.g. `pkgs.dsh.bundles.tui`.
-          Their package manifests are resolved during the build in list
-          order and applied after the shared `@deepseek-ai/dsh-base`
-          layer; later bundles override earlier Cordis configuration.
+          dsh bundles for this profile, applied in list order after the
+          shared `@deepseek-ai/dsh-base` layer; later bundles override
+          earlier Cordis configuration.
+
+          A package, e.g. `pkgs.dsh.bundles.tui`, is a Nix-built bundle.
+          A string `name` or `name@spec` is an external bundle written to
+          the profile's `package.json` dependencies, where `spec` is any
+          pnpm dependency spec and defaults to `latest`. The `dsh` launcher
+          installs external bundles with `dsh plugin --profile <name>
+          install` when their declaration changes. Set `DSH_NIX_EXTERNAL_INSTALL=0` to skip installation.
         '';
       };
 
