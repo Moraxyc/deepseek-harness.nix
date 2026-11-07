@@ -1,6 +1,12 @@
 diff --git a/scripts/run-verify-build.mjs b/scripts/run-verify-build.mjs
 --- a/scripts/run-verify-build.mjs
 +++ b/scripts/run-verify-build.mjs
-@@ -155,1 +155,1 @@
+@@ -161,7 +161,7 @@ const FRONT = [
+ // Gates that must not share the machine with other gates. Empty today: every
+ // gate passes under full parallel load. Add a gate here, with the reason,
+ // rather than raising a timeout inside it.
 -const SERIAL = []
 +const SERIAL = ['verify:rewind-edit']
+ 
+ const root = new URL('..', import.meta.url)
+ const scripts = JSON.parse(readFileSync(new URL('package.json', root), 'utf8')).scripts ?? {}
