@@ -12,13 +12,13 @@
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-turn-rewind";
-  version = "0.3.11";
+  version = "0.3.12";
 
   src = fetchFromGitHub {
     owner = "Anionex";
     repo = "dsh-turn-rewind";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-JwqYJ3+OlaCcaYKVxLuRByPl7WdxMPuHhAaSCC6aOTU=";
+    hash = "sha256-fCp/0XSYt6L+BjOAOZ7DjNedFJQ7CrclMPIbxI+l4xU=";
   };
 
   pnpmDeps = fetchPnpmDeps {
