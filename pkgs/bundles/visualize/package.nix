@@ -15,8 +15,8 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   src = fetchFromGitHub {
     owner = "Nagi-ovo";
     repo = "dsh-visualize";
-    rev = "7496c9b1886ab37df5c7f58bc6c8b5eb92ab7696";
-    hash = "sha256-3ngQ7TGgjrLW9Ks54rLaS0uofRZwuK6ZhACTvxB+CWI=";
+    rev = "af4efe7a59a36d4562b340ff50d771d2691cdc8c";
+    hash = "sha256-PvkwTPtwFzcYXYVBN5IkqLFdzpc/3E7n8XE2yjti8Xw=";
   };
 
   pnpmDepsHash = "sha256-EkuOVSh7km8WSjXpS/B0HAsgUChwHDzVsoazHK2u1p8=";
