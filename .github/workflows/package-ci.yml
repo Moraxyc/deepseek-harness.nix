@@ -91,6 +91,9 @@ jobs:
             .#checks.x86_64-linux.dsh-optional-bundles-generated
 
       - name: Build package set
+        # macOS runners ship bash 3.2, which lacks mapfile and treats empty
+        # arrays as unset under `set -u`.
+        shell: nix shell --inputs-from . nixpkgs#bash --command bash -e {0}
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
         run: |
