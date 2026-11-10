@@ -51,13 +51,16 @@ buildDshBundle (finalAttrs: {
     pnpm = pnpm_11;
     fetcherVersion = 4;
     postPatch = finalAttrs.postPatch;
+    # --force keeps every platform's optional binaries, as in the main install,
+    # so the hash matches on all systems.
     prePnpmInstall = ''
       pnpm --dir vendor/dsh-std install \
+        --force \
         --ignore-scripts \
         --frozen-lockfile \
         --registry="$NIX_NPM_REGISTRY"
     '';
-    hash = "sha256-iPS/UIedhwUzWUSypNfMMZy0WYh6GsTBxeeAEbmDexI=";
+    hash = "sha256-dd2JdNETD+24L41n20/XJRM+iUqm/XoplIMfn8n5XoU=";
   };
 
   nativeBuildInputs = [ pnpm_11 ];

@@ -44,8 +44,20 @@ concurrency:
 
 jobs:
   build:
-    name: Build package set
-    runs-on: ubuntu-latest
+    # x86_64-linux runs every check; the other systems build the package set so
+    # Cachix also serves aarch64-linux and aarch64-darwin.
+    name: Build package set${{ matrix.system != 'x86_64-linux' && format(' ({0})', matrix.system) || '' }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - system: x86_64-linux
+            runner: ubuntu-latest
+          - system: aarch64-linux
+            runner: ubuntu-24.04-arm
+          - system: aarch64-darwin
+            runner: macos-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -66,17 +78,22 @@ jobs:
           skipPush: ${{ github.event_name == 'pull_request' }}
 
       - name: Check CI scripts
+        if: matrix.system == 'x86_64-linux'
         run: |
           nix build --no-link \
             .#checks.x86_64-linux.merge-check \
             .#checks.x86_64-linux.package-ci-selection
 
       - name: Check generated optional bundle manifest
+        if: matrix.system == 'x86_64-linux'
         run: |
           nix build --no-link --print-build-logs \
             .#checks.x86_64-linux.dsh-optional-bundles-generated
 
       - name: Build package set
+        # macOS runners ship bash 3.2, which lacks mapfile and treats empty
+        # arrays as unset under `set -u`.
+        shell: nix shell --inputs-from . nixpkgs#bash --command bash -e {0}
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
         run: |
@@ -100,12 +117,14 @@ jobs:
           nix build --no-link --print-build-logs "${build_attrs[@]}"
 
       - name: Check optional bundle composition and worktree runtime
+        if: matrix.system == 'x86_64-linux'
         run: |
           nix build --no-link --print-build-logs \
             .#checks.x86_64-linux.dsh-optional-bundles \
             .#checks.x86_64-linux.dsh-worktree-runtime
 
       - name: Check bundle helper with nixpkgs 26.05
+        if: matrix.system == 'x86_64-linux'
         run: |
           nix build --no-link --print-build-logs \
             --inputs-from ./modules/flake-parts/dev \
