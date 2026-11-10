@@ -152,11 +152,20 @@ dshBundleCheckHook() {
     if is_web_profile "$profile"; then
       check_web_profile "$profile" "$logFile" || status=$?
     elif is_tty_profile "$profile"; then
-      printf -v wrappedCommand '%q ' "$cmdProgram" --profile "$profile" "${checkArgs[@]}"
-      DSH_HOME="$dshBundleCheckHome" DSH_TELEMETRY_DISABLED=1 \
-        timeout "$dshBundleCheckTimeout" script -qefc \
-        "timeout --signal=INT --kill-after=2s ${dshBundleCheckTtyTimeout} ${wrappedCommand}" \
-        "$logFile" >/dev/null 2>&1 || status=$?
+      if [[ "$(uname -s)" == Darwin ]]; then
+        # BSD script(1) takes the command as argv and returns its exit status.
+        DSH_HOME="$dshBundleCheckHome" DSH_TELEMETRY_DISABLED=1 \
+          timeout "$dshBundleCheckTimeout" script -qF "$logFile" \
+          timeout --signal=INT --kill-after=2s "$dshBundleCheckTtyTimeout" \
+          "$cmdProgram" --profile "$profile" "${checkArgs[@]}" \
+          >/dev/null 2>&1 || status=$?
+      else
+        printf -v wrappedCommand '%q ' "$cmdProgram" --profile "$profile" "${checkArgs[@]}"
+        DSH_HOME="$dshBundleCheckHome" DSH_TELEMETRY_DISABLED=1 \
+          timeout "$dshBundleCheckTimeout" script -qefc \
+          "timeout --signal=INT --kill-after=2s ${dshBundleCheckTtyTimeout} ${wrappedCommand}" \
+          "$logFile" >/dev/null 2>&1 || status=$?
+      fi
       # Interactive profiles legitimately stay alive; a timeout means they
       # booted and remained available through the smoke window.
       if [[ "$status" -eq 124 ]]; then
