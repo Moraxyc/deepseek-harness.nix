@@ -31,13 +31,13 @@ let
 in
 buildDshBundle (finalAttrs: {
   pname = "dsh-plugin-subscriptions";
-  version = "0.9.12";
+  version = "0.9.13";
 
   src = fetchFromGitHub {
     owner = "V1ki";
     repo = "dsh-plugin-subscriptions";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-i60LInuPiK95dQfpUeSLftxxAYYpgWLbRHJEh4ANl/4=";
+    hash = "sha256-5EaGJryDD0AsBsJ7PLgizhtdX9nLWf+y2R34WQ1TsJg=";
   };
 
   # The release lockfile contains absolute links to the author's DSH checkout.
