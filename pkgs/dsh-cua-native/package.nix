@@ -1,38 +1,64 @@
 {
   lib,
-  stdenvNoCC,
-  fetchurl,
+  dsh-workspace,
+  python3,
+  rcodesign,
+  replaceVars,
+  stdenv,
+  swiftPackages,
 }:
+
 let
-  source = lib.importJSON ./source.json;
+  platformKey = with stdenv.hostPlatform.node; "${platform}-${arch}";
 in
-stdenvNoCC.mkDerivation {
+stdenv.mkDerivation (finalAttrs: {
   pname = "dsh-cua-native";
-  inherit (source) version;
+  inherit (dsh-workspace) src version;
 
-  src = fetchurl {
-    inherit (source) url hash;
-  };
-
+  sourceRoot = "${finalAttrs.src.name}/packages/experimental/cua-macos/native";
+  strictDeps = true;
   dontConfigure = true;
-  dontBuild = true;
-  # Fixup strips and rewrites Mach-O files, which would invalidate their signatures.
+  # Fixup rewrites Mach-O files and would invalidate the signature applied in installPhase.
   dontFixup = true;
+
+  patches = [
+    (replaceVars ./nix-signing.patch {
+      rcodesign = lib.getExe rcodesign;
+    })
+  ];
+
+  nativeBuildInputs = [
+    python3
+    swiftPackages.swift
+    swiftPackages.swiftpm
+    swiftPackages.swiftpmHook
+  ];
+  swiftpmFlags = [
+    "--product"
+    "dsh-cua-native"
+  ];
 
   installPhase = ''
     runHook preInstall
-    mkdir -p "$out/lib/dsh-cua-native"
-    cp -r native cua-helper.json "$out/lib/dsh-cua-native/"
+
+    python3 - "$(swiftpmBinPath)/dsh-cua-native" \
+      "$out/lib/dsh-cua-native/native/bin/${platformKey}" <<'PY'
+    import sys
+    from pathlib import Path
+    from build_app import publish
+
+    publish(Path(sys.argv[1]), Path(sys.argv[2]), "-", Path("Info.plist"))
+    PY
+
     runHook postInstall
   '';
 
   meta = {
-    description = "Upstream-signed macOS Computer Use helper for DeepSeek Harness";
-    descriptions.zh-CN = "上游签名的 macOS Computer Use 原生助手";
-    descriptions.ja = "上流の署名付き macOS Computer Use ヘルパー";
+    description = "Source-built macOS Computer Use helper for DeepSeek Harness";
+    descriptions.zh-CN = "从源码构建的 macOS Computer Use 原生辅助程序";
+    descriptions.ja = "ソースからビルドする macOS Computer Use ヘルパー";
     homepage = "https://github.com/deepseek-ai/deepseek-harness";
     license = lib.licenses.mit;
-    sourceProvenance = [ lib.sourceTypes.binaryNativeCode ];
     platforms = lib.platforms.darwin;
   };
-}
+})

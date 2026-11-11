@@ -24,6 +24,15 @@
 `installationKeep` を使用してください。インストールに既に含まれるバンドルは
 `buildDshBundle.fromInstallation` を使用し、名前で選択されます。
 
+## CUA ヘルパー
+
+`dsh-cua-native` は固定した Nixpkgs ツールチェーンを使用し、`dsh-workspace.src` から
+Swift ヘルパーをビルドします。上流の `build_app.py` が release アプリを組み立て、
+`current.json` を書き込みます。Nix パッチはその `codesign` 呼び出しを `rcodesign` による
+アドホック署名に置き換えます。ビルドはアドホック署名のみに対応し、他の署名 ID や
+キーチェーンを指定すると失敗します。インストール検査は macOS Security で署名を検証し、
+ダイジェストを確認して、改変したコピーが検証に失敗することを確かめます。検査は静的な検証のみを行います。
+
 ## 外部 pnpm ワークスペースバンドルの追加
 
 外部モノレポのバンドルには、`buildDshBundle.fromPnpmWorkspace` を使用してください。

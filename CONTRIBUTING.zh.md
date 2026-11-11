@@ -21,11 +21,13 @@ bundle 链接进 profile，从 `dsh-runtime` 安装解析 peer。设置
 保证每个包只有一个运行时实例。必须保留在 bundle 内的包写入 `installationKeep`。
 安装中已有的 bundle 使用 `buildDshBundle.fromInstallation`，按名称选用。
 
-## CUA 签名产物
+## CUA 原生辅助程序
 
-`dsh-cua-native` 提供 npm 发布版本中的 Computer Use 应用。`source.json` 固定版本与
-tarball 哈希，由 `pkgs/dsh-cua-native/update.sh` 刷新。
-不要对应用执行 strip、打补丁或重新签名。
+`dsh-cua-native` 使用 Nixpkgs 工具链，从 `dsh-workspace.src` 编译 Swift 辅助程序。
+上游 `build_app.py` 组装 release 应用并写入 `current.json`。Nix 补丁把其中的
+`codesign` 调用替换为 `rcodesign` 临时签名（ad-hoc）。构建只支持这一种签名方式，
+其他签名身份或钥匙串都会使构建失败。安装检查通过 macOS Security 验证签名、核对应用摘要，
+并确认被修改的副本验证失败。检查只做静态验证。
 
 ## 添加外部 pnpm workspace bundle
 
@@ -106,7 +108,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
    ```
 
 deploy 命令使用上述参数和注入式 workspace 布局，这是受支持的协议。部署目标
-固定为 `$out/lib`，构建产物保留在该目录下。
+设为 `$out/lib`，构建产物保留在该目录下。
 
 `pnpm deploy --ignore-scripts` 不会构建只有源码的 workspace 子包。如果选中的包
 依赖这类子包，应在 `preDeploy` 中显式构建它们（例如
@@ -126,7 +128,7 @@ deploy 命令使用上述参数和注入式 workspace 布局，这是受支持�
 失败。交互式终端循环 profile 可设置 `requiresTty = true`；hook 会在伪终端下
 运行，并视存活 smoke 窗口为启动成功。dsh 输出 `skipping profile bundle` 或
 `disabling profile plugin` 时 hook 同样失败，例如 bundle 的 `engines.dsh` 或
-`@deepseek-ai/dsh-*` peer 范围不包含当前固定的运行时版本。针对该运行时验证
+`@deepseek-ai/dsh-*` peer 范围不包含当前运行时版本。针对该运行时验证
 bundle 后，在其表达式中设置 `dshEngines = "<version>"`；builder 会将其写入
 `engines.dsh`，dsh 随后不再检查 peer 范围。
 
@@ -237,7 +239,7 @@ pnpm；用到 `pnpm_11` 时，把它写进 `disallowedReferences`。
 
 ## 添加上游 workspace bundle
 
-从固定 `dsh-workspace` 源码构建的 bundle 使用 `buildDshBundle.fromWorkspace`。
+从 `dsh-workspace` 源码构建的 bundle 使用 `buildDshBundle.fromWorkspace`。
 `dsh-workspace` 会发现所有声明 `dsh.bundle` 的上游 manifest，并部署对应包及其
 production 闭包。用准确的 npm `packageName` 选择部署结果：
 

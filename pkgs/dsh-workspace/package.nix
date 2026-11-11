@@ -29,7 +29,7 @@ let
 in
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
-  version = "0.2.2-rc.1";
+  version = "0.2.2-rc.2";
 
   __structuredAttrs = true;
   strictDeps = true;
@@ -44,7 +44,7 @@ buildNpmPackage (finalAttrs: {
     owner = "deepseek-ai";
     repo = "deepseek-harness";
     tag = "dsh-v${finalAttrs.version}";
-    hash = "sha256-pzSBQbLwcT/wnCg4ugWq7YmRngCaFOiKVCjekI5aKa0=";
+    hash = "sha256-lbRmFifO6+8YKn8kaR7gQzKeUQh9YBFu9wH/dWJ+3MA=";
   };
 
   patches = [
@@ -59,7 +59,7 @@ buildNpmPackage (finalAttrs: {
   ];
 
   env = {
-    DSH_CLIENT_COMMIT_HASH = "66491b05e3f05ad35bcdd4f6cd7ed26041d9e3db";
+    DSH_CLIENT_COMMIT_HASH = "ddac96760b6edf8fa0fe17cbdcf0b512f4c12b2c";
     PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = "false";
     DSH_WORKSPACE_OVERRIDES = "${writers.writeJSON "dsh-workspace-overrides.json" (
       finalAttrs.pnpmDeps.passthru.workspaceConfig.overrides or { }
@@ -101,9 +101,9 @@ buildNpmPackage (finalAttrs: {
   + lib.optionalString isLinux ''
     # Match the patched tarball used to populate the offline dependency store.
     yq -i '
-      .packages."@deepseek-ai/libreoffice-kit@0.1.5".resolution = load("${
+      .packages."@deepseek-ai/libreoffice-kit@0.2.3".resolution = load("${
         writers.writeJSON "libreoffice-kit-resolution.json"
-          finalAttrs.pnpmDeps.passthru.rewrittenLockfileData.packages."@deepseek-ai/libreoffice-kit@0.1.5".resolution
+          finalAttrs.pnpmDeps.passthru.rewrittenLockfileData.packages."@deepseek-ai/libreoffice-kit@0.2.3".resolution
       }")
     ' pnpm-lock.yaml
   '';
@@ -115,9 +115,9 @@ buildNpmPackage (finalAttrs: {
     workspaceJson = lib.importJSON ./pnpm-workspace.json;
     workspaceRoot = finalAttrs.src;
     packageSourceOverrides = lib.optionalAttrs isLinux {
-      "@deepseek-ai/libreoffice-kit@0.1.5" =
+      "@deepseek-ai/libreoffice-kit@0.2.3" =
         { previousSource, ... }:
-        runCommand "libreoffice-kit-0.1.5-fontconfig.tgz"
+        runCommand "libreoffice-kit-0.2.3-fontconfig.tgz"
           {
             src = previousSource;
             nativeBuildInputs = [ patch ];
@@ -152,6 +152,7 @@ buildNpmPackage (finalAttrs: {
 
   # node-pty's postinstall can't run before deploy assembles the composition.
   preInstall = ''
+    pnpm exec tsx scripts/stage-dsh-docs.ts
     pnpm config set --location=project inject-workspace-packages true
     yq -i 'del(.scripts.postinstall)' packages/subprocess/subprocess-local/package.json
   '';

@@ -401,7 +401,8 @@ managed モードでは次回起動時にこれら 3 つのファイルがすべ
 
 ## macOS Computer Use
 
-`aarch64-darwin` の宣言的なプロファイルでは、明示的に選択してください。
+Computer Use は macOS にオプションのバンドルとして同梱されます。
+宣言的なプロファイルでは、明示的に選択してください。
 
 ```nix
 programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
@@ -411,6 +412,8 @@ programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
 ```
 
 権限設定から `DSH Computer Use.app` にアクセシビリティと画面収録の権限を付与してください。
+Nix が固定ソースからビルドし、アドホック署名します。
+バイナリが変わった後、macOS が要求したら権限を再付与してください。
 
 ## オプションのサブエージェントプロバイダー
 

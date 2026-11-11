@@ -2,6 +2,7 @@
   lib,
   buildDshBundle,
   dsh-runtime,
+  dsh-cua-native,
 }:
 let
   manifest = lib.importJSON ../pkgs/dsh-workspace/optional-bundles.json;
@@ -24,7 +25,9 @@ let
         homepage = "https://github.com/deepseek-ai/deepseek-harness";
         license = lib.licenses.mit;
         platforms =
-          if entry.platforms == [ ] then
+          if packageName == "@deepseek-ai/dsh-cua-bundle" then
+            dsh-cua-native.meta.platforms
+          else if entry.platforms == [ ] then
             lib.platforms.unix
           else
             lib.concatMap (platform: lib.platforms.${platform}) entry.platforms;

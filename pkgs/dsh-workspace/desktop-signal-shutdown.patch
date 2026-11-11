@@ -29,8 +29,8 @@
    const diagnosticFile = process.env.DSH_DESKTOP_DIAGNOSTIC_FILE
 --- a/apps/desktop/src/host-process.ts
 +++ b/apps/desktop/src/host-process.ts
-@@ -195,6 +195,8 @@
-       this.primaryRuntime ?? join(this.runtimeDir, '..', 'runtime', 'primary-runtime'),
+@@ -218,6 +218,8 @@
+       this.primaryRuntime ?? '',
        ...this.packageManager === undefined ? [] : [this.packageManager.pnpm, this.packageManager.nodeBin],
      ], {
 +      // Terminal signals belong to the shell; the Host shuts down through IPC.

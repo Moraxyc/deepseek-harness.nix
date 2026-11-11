@@ -143,8 +143,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     ln -s ${dsh-runtime} "$runtimeRoot/app/dsh"
 
     mkdir -p "$runtimeRoot/runtime/bin"
-    ln -s ${dsh-runtime}/node_modules/@deepseek-ai/dsh-skill-office/assets \
-      "$runtimeRoot/runtime/office-skills"
     ln -s "${dshDesktopPnpm}/libexec/pnpm" "$runtimeRoot/runtime/pnpm"
     ln -s "${nodejs-slim}/bin/node" "$runtimeRoot/runtime/bin/node"
 
@@ -194,7 +192,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   ''
   + lib.optionalString isDarwin ''
     makeWrapper "${appExecutable}" "$out/bin/dsh-desktop" \
-      --set DSH_BUNDLED_PRIMARY_RUNTIME "$primaryRuntime" \
       --prefix PATH : "${runtimeRoot}/runtime/bin" \
       --prefix PATH : ${lib.makeBinPath finalAttrs.passthru.desktopRuntimeDeps} \
       --inherit-argv0
@@ -224,7 +221,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
           ]
         }
        --set CHROME_DEVEL_SANDBOX "${appDir}/chrome-sandbox"
-        --set DSH_BUNDLED_PRIMARY_RUNTIME "${runtimeRoot}/runtime/primary-runtime"
         --prefix PATH : "${runtimeRoot}/runtime/bin"
         --prefix PATH : ${lib.makeBinPath finalAttrs.passthru.desktopRuntimeDeps}
         --inherit-argv0

@@ -150,7 +150,7 @@ services.dsh = {
 - `profile`：服务运行的生成后 profile 名，默认 `nix-web`；
 - `listenAddress`、`port`、`trustedHosts`：监听地址、端口和浏览器信任域名；
 - `extraArguments`：追加到 `dsh` 命令的参数；
-- `user`、`group`：固定服务账号；两者都不设置时使用 `DynamicUser`；
+- `user`、`group`：指定服务账号；两者都不设置时使用 `DynamicUser`；
 - `dataDir`、`homeDirectory`、`workspace`：状态和工作路径；
 - `environment`、`environmentFile`、`credentials`：运行时环境变量和密钥来源；
 - `openFirewall`：是否打开 `port`，默认 `false`；
@@ -186,13 +186,13 @@ journalctl -u dsh-web -f
 ```
 
 服务默认使用 systemd `DynamicUser`，状态放在 `/var/lib/dsh`。反向代理、
-密钥文件、credentials、固定用户/组模式和完整服务选项见
+密钥文件、credentials、指定用户/组模式和完整服务选项见
 [高级用法](../advanced-usage/)。
 
 ## 排错
 
 - 如果 NixOS 模块求值时出现 `attribute 'dsh' missing`，检查是否导入了
-  `nixosModules.default`，以及是否有其他模块用不包含 dsh overlay 的固定
+  `nixosModules.default`，以及是否有其他模块用不包含 dsh overlay 的
   `pkgs` 替换了默认包集。
 - 如果 flake 通过 `specialArgs` 向 `nixosSystem` 传入 `pkgs`，NixOS 会忽略
   `nixpkgs.overlays`。应使用已经包含 dsh overlay 的 pkgs；复用一个已有 pkgs

@@ -57,8 +57,10 @@ in
   prune =
     { tree }:
     ''
-      # Creator and bundled skill providers read Markdown at runtime.
+      # Keep docs, src, and skill files that dsh-doc and bundled skills read at runtime.
       find "${tree}" -type f \
+        ! -path "${tree}/@deepseek-ai/*/docs/*" \
+        ! -path "${tree}/@deepseek-ai/*/src/*" \
         ! -path "${tree}/@deepseek-ai/dsh-agent-preset/skills/*" \
         ! -path "${tree}/@deepseek-ai/dsh-skill-office/assets/*" \
         ! -iname 'readme*' \( \
@@ -72,6 +74,8 @@ in
         find "${tree}" -type f -name '*.pdb' -delete
       ''}
       find "${tree}" -type d \
+        ! -path "${tree}/@deepseek-ai/*/docs/*" \
+        ! -path "${tree}/@deepseek-ai/*/src/*" \
         ! -path "${tree}/@deepseek-ai/dsh-skill-office/assets/*" \( \
         -name test -o -name tests -o -name __tests__ -o -name coverage \
       \) -prune -exec rm -rf {} +
@@ -83,10 +87,15 @@ in
     { tree }:
     ''
       find "${tree}" -type f \
+        ! -path "${tree}/@deepseek-ai/*/docs/*" \
+        ! -path "${tree}/@deepseek-ai/*/src/*" \
+        ! -path "${tree}/@deepseek-ai/dsh-agent-preset/skills/*" \
         ! -path "${tree}/@deepseek-ai/dsh-skill-office/assets/*" \( \
         -name '*.map' -o -name '*.ts' -o -name '*.tsx' -o -name '*.mts' -o -name '*.cts' \
       \) -delete
       find "${tree}" -type d \
+        ! -path "${tree}/@deepseek-ai/*/docs/*" \
+        ! -path "${tree}/@deepseek-ai/*/src/*" \
         ! -path "${tree}/@deepseek-ai/dsh-skill-office/assets/*" \( \
         -name fixtures -o -name example -o -name examples \
         -o -name benchmark -o -name benchmarks -o -name demo -o -name demos \

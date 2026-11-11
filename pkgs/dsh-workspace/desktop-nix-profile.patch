@@ -1,16 +1,17 @@
 --- a/apps/desktop/src/main.ts
 +++ b/apps/desktop/src/main.ts
-@@ -2,3 +2,4 @@
-+import { initializeNixProfile } from './nix-profile.ts'
- import { WINDOWS_TITLEBAR_HEIGHT } from './windows-layout.ts'
+@@ -1,4 +1,5 @@
  /** Electron shell: desktop project ownership, custom protocol, windows, and lifecycle. */
  
-@@ -314,8 +315,9 @@
++import { initializeNixProfile } from './nix-profile.ts'
+ import { installFileActions } from './file-actions.ts'
+ import { configurationFailure, channelSaveFailure, configurationMessage } from './update-configuration.ts'
+@@ -380,8 +381,9 @@
  }
  
  async function main(): Promise<void> {
 +  initializeNixProfile()
-   const desktopSettings = readDesktopSettings(app.getPath('userData'))
+   const desktopSettings = await readDesktopSettings(app.getPath('userData'))
    void pruneCrashReports(app.getPath('logs'))
    const journalDirectory = process.env.DSH_DESKTOP_UPDATE_JOURNAL_DIR
    const updateJournal = journalDirectory === undefined ? undefined : new DesktopUpdateJournal(journalDirectory, app.getVersion())

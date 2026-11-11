@@ -65,7 +65,7 @@ loopback，并且不打开防火墙。
 `homeDirectory` 或 `workspace`，请确保服务用户可写这些路径。
 
 除非同时设置 `user` 和 `group`，单元默认使用 systemd `DynamicUser`。
-Dynamic 模式把状态放在 `/var/lib/dsh`；固定用户模式会为配置的
+Dynamic 模式把状态放在 `/var/lib/dsh`；指定用户模式会为配置的
 `dataDir`、`homeDirectory` 和 `workspace` 创建对应目录。
 
 如果需要更严格的 systemd 沙箱，请显式启用隔离模式：
@@ -380,7 +380,8 @@ Nix Bundle 声明。
 
 ## macOS Computer Use
 
-在 `aarch64-darwin` 上使用声明式 profile 时，请显式选择它：
+Computer Use 在 macOS 上随安装作为可选 bundle 提供。
+使用声明式 profile 时，请显式选择它：
 
 ```nix
 programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
@@ -390,6 +391,7 @@ programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
 ```
 
 请通过权限设置向 `DSH Computer Use.app` 授予辅助功能和屏幕录制权限。
+Nix 从源码构建此辅助程序，并使用临时签名（ad-hoc）。二进制变更后，如 macOS 请求，请重新授予权限。
 
 ## 可选子代理提供程序
 
@@ -446,7 +448,7 @@ programs.dsh = {
 registry 的 `default` 设为 `web-subagents`，另一个 profile patch 禁用 Host 层的
 Claude Code 工具。
 
-这些 Bundle 使用 DeepSeek Harness 上游 workspace 固定的版本，不搜索
+这些 Bundle 使用 DeepSeek Harness 上游 workspace 指定的版本，不搜索
 `PATH`。如需改用某个 Nixpkgs revision 或 overlay 单独打包的二进制，可以覆盖
 Bundle input：
 
@@ -498,13 +500,13 @@ Desktop Host。CLI 和官方桌面都运行它，它不随配置变化。安装�
 ```
 
 所有 bundle 按列表顺序应用，后面的 bundle 会覆盖前面 bundle 的 Cordis 配置。
-基础层固定在最前面。
+基础层排在最前面。
 
 ### 随包携带但默认关闭的 Bundle
 
 安装中带有上游 `OPTIONAL_BUNDLES` 里支持当前平台的 bundle。
 所有 profile 都能解析它们，可在插件管理页的官方分组中启用。
-这份集合由固定的上游源码决定，无法通过 Nix 删减或扩充。
+这份集合由上游源码决定，无法通过 Nix 删减或扩充。
 
 把其中某个写进 profile 的 `bundles`，即在该 profile 中启用。
 
@@ -522,7 +524,7 @@ preset 的默认 profile。
 
 仓库打包了两个桌面应用：
 
-- `dsh-desktop-official`：由固定版本的 `dsh-workspace` 发布版中的桌面应用构建，
+- `dsh-desktop-official`：由 `dsh-workspace` 发布版中的桌面应用构建，
   支持 Linux 和 Darwin。
 - `dsh-desktop-unofficial`：由
   [`anywhere-labs/deepseek-harness-desktop`](https://github.com/anywhere-labs/deepseek-harness-desktop)

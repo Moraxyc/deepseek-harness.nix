@@ -68,11 +68,68 @@ Oh-DSH ディストリビューションとそのプラグインセットは、
 データをバックアップし、移行先ディストリビューションとの互換性を確認してください。
 必要なデータ移行は自身で行ってください。
 
+### `bundles.experimental-agent-team-profile`
+
+上流の `0.2.2-rc.2` で削除されました。バンドル選択から削除し、mutable
+プロファイルから `@deepseek-ai/dsh-experimental-agent-team-profile` も削除してください。
+組み込みのセッション単位の Team スイッチで有効にします。
+
 ### `bundles.experimental-schedule-bundle`
 
 この属性は上流の `0.2.1-alpha.1` で削除されました。バンドル選択から削除してください。
 `bundles.web-app` に Schedule が含まれるようになりました。プロファイルとパッチの変更については、
 以下の `0.2.1-alpha.1` の項目にある Schedule の手順に従ってください。
+
+## `0.2.2-rc.2`
+
+更新前に[上流のリリースノート](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.2)を読み、
+共有セッションストレージをバックアップしてください。
+
+### Team とセッションの互換性
+
+Team は名前付きサブエージェントとセッション単位のスイッチを使用します。
+サブエージェントを作成する前に、ストレージを共有する全プロセスを更新してください。
+旧版では、バージョン 3 のサブエージェントカタログの読み込みに失敗します。
+スクリプトでは `agent_id` を `agent` に変更し、委譲結果の `name` を使用します。
+割り込みツールはデフォルトでオフです。独自プラグインでは、実験版 Agent Team のパッケージ名を
+`@deepseek-ai/dsh-agent-team` と `@deepseek-ai/dsh-tool-agent-team` に置き換えてください。
+
+### ワークツリーとターミナルのプロファイル
+
+セッションのアーカイブ時に、条件を満たすクリーンなワークツリーがデフォルトで削除されます。
+ブランチとコミットは残り、無視されたファイルがあっても削除は進みます。
+ディレクトリを保持するには `worktree.config.retainOnArchive = true` を設定します。
+プロファイルのパッチ ID を `forge-worktree` から `worktree` へ、
+`optional-forge-panel` から `forge-panel` へ変更してください。
+
+`bundles.experimental-terminal-bundle` には Web/Desktop のターミナルコントローラーが必要です。
+`optional-terminal-bash` と `optional-terminal-pwsh` の上書きを
+`optional-terminal-panel` に移し、新しい設定スキーマを確認してください。
+headless では `dsh-terminal`、`dsh-terminal-bash`、`dsh-tool-terminal` を直接組み合わせます。
+エージェントが読み取れるターミナル出力は、モデルのコンテキストとセッションログに入る場合があります。
+
+### 検索、Office、Creator
+
+- Web 検索のデフォルトは DeepSeek Search API です。Exa と Perplexity の提供パッケージは
+  削除されました。独自設定を確認してください。DeepSeek Search と Fetch はそれぞれ
+  `searchBilling` / `fetchBilling` で `auto`、`account`、`api-key` を選択します。
+  デフォルトでは、他のモデルプロバイダーを使うセッションでログイン済みアカウントにフォールバックする場合があります。
+- 独自パッチでは `office-to-pdf` を `office-kit` に変更してください。Office は
+  `office_render`、`office_convert`、`office_recalculate` を使用します。
+  古い操作スキルと `skill-office.node` / `cli` 設定を削除してください。
+  保存済みの standard/PTC プリセットには `tool-office` 行が必要です。
+  文書解析は shell サンドボックス外の Host プロセスで実行されます。解析をサンドボックス内に留める場合は、このプラグインを省いてください。
+- Creator は従来の四つの開発スキルの代わりに `dsh-doc` を使用します。
+  Nix インストールには、同じバージョンの文書、パッケージソース、テンプレートが含まれます。
+
+### Computer Use
+
+CUA はオプションのバンドルで、macOS のみで動作します。
+既存の `bundles.cua-bundle` の選択はそのまま使えます。独自スクリプトと helper は同時に更新し、
+明示的なウィンドウ、文字列の要素 ID、`getAccessibilityTree()`、新しいキーボード API に対応してください。
+
+Nix ヘルパーは npm ではなく workspace のソースからビルドし、アドホック署名します。
+切り替えや更新後にバイナリが変わった場合は、macOS の要求に応じて権限を再付与してください。
 
 ## `0.2.2-rc.1`
 

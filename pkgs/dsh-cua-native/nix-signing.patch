@@ -1,0 +1,19 @@
+--- a/build_app.py
++++ b/build_app.py
+@@ -87,12 +87,11 @@
+                 key = index.read_text().strip()
+                 if retained(output, key, name) is not None:
+                     return select(output, temporary, key, name)
+-        command = ["/usr/bin/codesign", "--force", "--sign", identity, "--options", "runtime",
+-                   "--timestamp=none" if identity == "-" or variant == "dev" else "--timestamp"]
+-        if keychain is not None:
+-            command += ["--keychain", str(keychain)]
++        if identity != "-" or keychain is not None:
++            raise ValueError("Nix CUA builds only support ad-hoc signing")
++        command = ["@rcodesign@", "--config-file", "/dev/null", "sign",
++                   "--code-signature-flags", "runtime", "--timestamp-url", "none"]
+         subprocess.run([*command, str(staged)], check=True)
+-        subprocess.run(["/usr/bin/codesign", "--verify", "--strict", str(staged)], check=True)
+         key = bundle_digest(staged)
+         generation = output / key
+         application = generation / staged.name

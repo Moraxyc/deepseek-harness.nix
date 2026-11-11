@@ -15,16 +15,6 @@ fi
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
-old_src="$(nix-instantiate --eval --raw --expr \
-  "(builtins.getFlake (\"git+file://\" + toString ./.)).packages.\${builtins.currentSystem}.$attr.src.rev" \
-  2>/dev/null)"
-
-if [[ "$old_src" == refs/tags/* ]]; then
-  old_src="$(git ls-remote \
-    https://github.com/deepseek-ai/deepseek-harness.git \
-    "$old_src" | cut -f1)"
-fi
-
 nix-update \
   --flake \
   --version=unstable \
@@ -53,11 +43,6 @@ if [[ "$new_src" == refs/tags/* ]]; then
   }
 fi
 
-if [ "$old_src" = "$new_src" ]; then
-  printf 'dsh-workspace: src unchanged (%s); skipping pnpm-lock regeneration\n' "$old_src"
-  exit 0
-fi
-
 src="$(nix build --no-link --print-out-paths ".#$attr.src")"
 
 if ! nix build --impure --no-link --print-build-logs --expr "
@@ -77,8 +62,6 @@ if ! nix build --impure --no-link --print-build-logs --expr "
   exit 1
 fi
 printf 'dsh-workspace: source patches verified\n'
-
-"$repo_root/pkgs/dsh-cua-native/update.sh" "$src"
 
 system_version="$(jq -er '.version | strings' "$src/native/system/package.json")"
 # dsh-system is an internal package and is not exposed as a flake output.

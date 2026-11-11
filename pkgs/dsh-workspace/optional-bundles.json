@@ -1,12 +1,14 @@
 {
-  "@deepseek-ai/dsh-experimental-agent-team-profile": {
-    "attr": "experimental-agent-team-profile",
-    "pname": "dsh-experimental-agent-team-profile",
-    "description": "Lets the agent you talk to split a job among named teammates, track it on a shared task board, and report back with their results.",
-    "descriptionZh": "让与你对话的智能体把工作分给有名字的队友，在共享任务看板上跟踪进度，并汇总队友的结果向你汇报。",
-    "descriptionJa": "対話しているエージェントが、仕事を名前付きのチームメイトに分担させ、共有タスクボードで進捗を追跡し、チームメイトの結果をまとめて報告します。",
+  "@deepseek-ai/dsh-cua-bundle": {
+    "attr": "cua-bundle",
+    "pname": "dsh-cua-bundle",
+    "description": "Currently supports macOS; Windows support is in development. Loads computer use for existing and new PTC sessions. Switch to PTC mode and grant Accessibility and Screen Recording permissions to use it.",
+    "descriptionZh": "目前仅支持 macOS，Windows 支持正在开发中。为已有及新建 PTC 会话加载 Computer Use。请切换到 PTC 模式来使用，并授予辅助功能和屏幕录制权限。",
+    "descriptionJa": "現在は macOS のみ対応し、Windows 対応は開発中です。既存および新規の PTC セッションに Computer Use を読み込みます。PTC モードに切り替え、アクセシビリティと画面収録の権限を許可して使用してください。",
     "requiresWeb": true,
-    "platforms": []
+    "platforms": [
+      "darwin"
+    ]
   },
   "@deepseek-ai/dsh-experimental-auto-review": {
     "attr": "experimental-auto-review",
@@ -101,9 +103,9 @@
   "@deepseek-ai/dsh-experimental-terminal-bundle": {
     "attr": "experimental-terminal-bundle",
     "pname": "dsh-experimental-terminal-bundle",
-    "description": "Gives the agent terminals whose processes keep running in the background between tool calls, so it can start a dev server or REPL and come back later to read output or type input.",
-    "descriptionZh": "为智能体提供终端，进程在多次工具调用之间持续在后台运行，因此它可以启动开发服务器或 REPL，稍后再读取输出或继续输入。",
-    "descriptionJa": "エージェントにターミナルを提供します。プロセスはツール呼び出し間もバックグラウンドで実行され続けるため、エージェントは開発サーバーや REPL を起動し、後から出力を読んだり入力したりできます。",
+    "description": "Gives the agent terminals that open as sidebar tabs you can watch and take over by typing in them. Processes keep running between tool calls, so it can start a dev server or REPL and come back later to read output; it can also read terminals you open yourself.",
+    "descriptionZh": "为智能体提供以侧栏标签页打开的终端，你可以旁观，也可以直接在其中键入来接管。进程在多次工具调用之间持续运行，因此它可以启动开发服务器或 REPL，稍后再读取输出；它也能读取你自己打开的终端。",
+    "descriptionJa": "エージェントに、サイドバーのタブとして開くターミナルを提供します。様子を見守ることができ、入力すれば操作を引き継げます。プロセスはツール呼び出し間も実行され続けるため、開発サーバーや REPL を起動して後から出力を読めます。あなたが自分で開いたターミナルも読み取れます。",
     "requiresWeb": false,
     "platforms": []
   },

@@ -400,7 +400,8 @@ profile; keep managed mode declarative and add profile plugins as Nix Bundles.
 
 ## macOS Computer Use
 
-Select the Computer Use bundle explicitly for a declarative profile on `aarch64-darwin`:
+Computer Use ships as an optional bundle on macOS. Select it explicitly
+for a declarative profile:
 
 ```nix
 programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
@@ -410,7 +411,9 @@ programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [
 ```
 
 Grant Accessibility and Screen Recording permissions to `DSH Computer Use.app`
-through the permission setup.
+through the permission setup. Nix builds this helper from the pinned source and
+signs it ad hoc. After the binary changes, grant the permissions again when
+macOS asks.
 
 ## Optional Subagent Providers
 

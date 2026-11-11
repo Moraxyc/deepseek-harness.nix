@@ -41,6 +41,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   dontBuild = true;
   strictDeps = true;
   disallowedReferences = [ nodejs ] ++ storeReferencesToStrip;
+  stripExclude = [ "*/DSH Computer Use.app/*" ];
 
   nativeBuildInputs = [
     nodejs-slim
@@ -99,6 +100,32 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   ''
   + ''
     postFixupHooks+=(sealDesktopRuntime)
+  '';
+
+  doInstallCheck = true;
+  installCheckPhase = ''
+    runHook preInstallCheck
+
+    for path in \
+      dsh/docs/user/index.md \
+      dsh/docs/upgrade-guide/README.md \
+      dsh/src/bin.ts \
+      dsh-agent-preset/skills/dsh-doc/SKILL.md \
+      dsh-agent-preset/skills/dsh-doc/references/locate-docs.md; do
+      test -f "$out/node_modules/@deepseek-ai/$path" || {
+        printf 'dsh-runtime: missing documentation resource: %s\n' "$path" >&2
+        exit 1
+      }
+    done
+
+  ''
+  + lib.optionalString isDarwin ''
+    diff -r \
+      ${dsh-workspace.runtime}/node_modules/@deepseek-ai/dsh-experimental-cua-macos/native/bin \
+      "$out/node_modules/@deepseek-ai/dsh-experimental-cua-macos/native/bin"
+  ''
+  + ''
+    runHook postInstallCheck
   '';
 
   passthru = {

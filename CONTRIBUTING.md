@@ -25,12 +25,16 @@ which keeps one runtime instance per package. Use `installationKeep` for
 packages the bundle must keep locally. Bundles the installation already
 carries use `buildDshBundle.fromInstallation` and are selected by name.
 
-## Signed CUA payload
+## CUA helper
 
-`dsh-cua-native` packages the Computer Use application from the published npm
-release. `source.json` pins its version and tarball hash, and
-`pkgs/dsh-cua-native/update.sh` refreshes them. Do not strip, patch, or re-sign
-the applications.
+`dsh-cua-native` compiles the Swift helper from `dsh-workspace.src` with the
+pinned Nixpkgs toolchain. Upstream's `build_app.py` assembles the release
+application and writes `current.json`. The Nix patch replaces its `codesign`
+calls with ad-hoc signing through `rcodesign`. The build supports only ad-hoc
+signing and fails for any other signing identity or keychain. The install check
+verifies the signature with macOS Security, confirms the bundle digest, and
+confirms that a modified copy fails verification. The check is static
+verification only.
 
 ## Adding an external pnpm workspace bundle
 

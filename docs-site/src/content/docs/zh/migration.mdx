@@ -59,11 +59,60 @@ NixOS 和 Home Manager 模块的默认值不变。
 移除该 bundle 后，已有数据保留在原位置。切换发行版前，请备份数据并确认目标发行版的
 兼容性；如需迁移数据，请自行完成。
 
+### `bundles.experimental-agent-team-profile`
+
+上游在 `0.2.2-rc.2` 中移除了此包。请从 bundle 选择中删除它，并从 mutable
+profile 中删除 `@deepseek-ai/dsh-experimental-agent-team-profile`。
+在内置界面中使用会话级 Team 开关启用 Team。
+
 ### `bundles.experimental-schedule-bundle`
 
 该属性已在上游 `0.2.1-alpha.1` 中移除。请从 bundle 选择中删除它；
 `bundles.web-app` 现在直接包含 Schedule。profile 和 patch 的调整方法见下方
 `0.2.1-alpha.1` 条目的 Schedule 说明。
+
+## `0.2.2-rc.2`
+
+升级前请阅读[上游发行说明](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.2)，并备份共享的会话存储。
+
+### Team 与会话兼容性
+
+Team 使用具名子代理和会话级开关。创建子代理前，请升级所有共享会话存储的进程，
+旧版本读取第 3 版子代理目录时会失败。脚本应将 `agent_id` 改为 `agent`，
+并从委派结果中读取 `name`。中断工具默认关闭。自定义插件应将实验版 Agent Team
+包名替换为 `@deepseek-ai/dsh-agent-team` 和 `@deepseek-ai/dsh-tool-agent-team`。
+
+### 工作树与终端 profile
+
+归档会话时，默认删除符合条件的干净工作树，分支与提交保留。即使存在被忽略的文件，
+删除也会继续。需要保留目录时，设置 `worktree.config.retainOnArchive = true`。
+将 profile patch 的 ID 从 `forge-worktree` 改为 `worktree`，
+从 `optional-forge-panel` 改为 `forge-panel`。
+
+`bundles.experimental-terminal-bundle` 需要 Web 或 Desktop 终端控制器。
+将 `optional-terminal-bash` 和 `optional-terminal-pwsh` 的覆盖迁移到
+`optional-terminal-panel`，并检查其新配置结构。headless profile 直接组合
+`dsh-terminal`、`dsh-terminal-bash` 和 `dsh-tool-terminal`。
+智能体可读取的终端输出可能进入模型上下文和会话记录。
+
+### 搜索、Office 与创造模式
+
+- 网页搜索默认使用 DeepSeek Search API。Exa 与 Perplexity 提供方包已移除，请检查自定义搜索配置。
+  DeepSeek Search 和 Fetch 分别接受 `searchBilling` / `fetchBilling`，取值为
+  `auto`、`account` 或 `api-key`。默认设置可能在使用其他模型提供方的会话中回退到已登录账号计费。
+- 在自定义 patch 中，将 `office-to-pdf` 替换为 `office-kit`。Office 使用
+  `office_render`、`office_convert` 和 `office_recalculate`。删除旧操作技能以及
+  `skill-office.node`、`cli` 配置。已保存的 standard 与 PTC 预设需要添加 `tool-office` 行。
+  文档解析在 Host 进程中运行，绕过 shell 沙箱；如需让解析留在沙箱内，请省略此插件。
+- 创造模式使用 `dsh-doc` 替代原有四个开发技能。Nix 安装保留与当前版本一致的文档、包源码和模板。
+
+### Computer Use
+
+CUA 是可选 bundle，仅支持 macOS。已有的 `bundles.cua-bundle` 选择继续有效。
+请同步升级自定义脚本和 helper，适配显式窗口、字符串元素 ID、`getAccessibilityTree()` 和新键盘 API。
+
+Nix 辅助程序从 workspace 源码构建，并进行临时签名（ad-hoc）。
+切换或更新二进制后，macOS 请求时请重新授予权限。
 
 ## `0.2.2-rc.1`
 
@@ -244,7 +293,7 @@ invariant ID，Nix 会发出警告。原始 YAML 字符串和运行时管理的�
 ### Session 日志上传
 
 官方 DeepSeek 请求字段 `dsh_session_log` 改为通过有字节上限的 OTLP 通道上传，端点为
-`dsh-otel-collector.deepseeksvc.com`；`enabled` 也从启动时固定改为运行时可变更。
+`dsh-otel-collector.deepseeksvc.com`；`enabled` 也从仅在启动时设定改为运行时可变更。
 默认仍然开启。
 
 `DSH_TELEMETRY_DISABLED` 依旧只关闭 `session-telemetry-otel` 这一行，不会停止该上传。

@@ -72,11 +72,74 @@ Removing this bundle leaves existing data in place. Before switching
 distributions, back up your data and check compatibility with the target
 distribution. Carry out any required data migration yourself.
 
+### `bundles.experimental-agent-team-profile`
+
+Upstream removed this package in `0.2.2-rc.2`. Remove it from bundle selections
+and remove `@deepseek-ai/dsh-experimental-agent-team-profile` from mutable
+profiles. Enable Team per session with the built-in switch.
+
 ### `bundles.experimental-schedule-bundle`
 
 This attribute was removed in upstream `0.2.1-alpha.1`. Remove it from your
 bundle selections; `bundles.web-app` now includes Schedule. Follow the Schedule
 instructions in the `0.2.1-alpha.1` entry below for profile and patch changes.
+
+## `0.2.2-rc.2`
+
+Before upgrading, read the [upstream release notes](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.2)
+and back up shared session storage.
+
+### Team and session compatibility
+
+Team uses named subagents and a per-session switch. Upgrade every process that
+shares session storage before creating subagents, because earlier releases fail
+to read the version 3 subagent catalog. Scripts pass `agent` instead of
+`agent_id` and read `name` from delegation results. The interrupt tool is off by
+default. Replace the experimental Agent Team package names in custom plugins
+with `@deepseek-ai/dsh-agent-team` and `@deepseek-ai/dsh-tool-agent-team`.
+
+### Worktrees and terminal profiles
+
+Archiving a session removes eligible clean worktrees by default. Branches and
+commits remain, and removal proceeds even when ignored files exist. Set
+`worktree.config.retainOnArchive = true` to keep the directories. Rename profile
+patch IDs `forge-worktree` to `worktree` and `optional-forge-panel` to
+`forge-panel`.
+
+`bundles.experimental-terminal-bundle` requires a Web or Desktop terminal
+controller. Move overrides for `optional-terminal-bash` and
+`optional-terminal-pwsh` to `optional-terminal-panel`, and check its updated
+schema. Headless profiles compose `dsh-terminal`, `dsh-terminal-bash`, and
+`dsh-tool-terminal` directly. Terminal output the agent is allowed to read can
+enter model context and session logs.
+
+### Search, Office, and Creator
+
+- Web search uses the DeepSeek Search API by default. The Exa and Perplexity
+  provider packages were removed, so review custom search settings. DeepSeek
+  Search and Fetch accept `searchBilling` and `fetchBilling` set to `auto`,
+  `account`, or `api-key`. The default can fall back to a signed-in account in
+  sessions that use other model providers.
+- In custom patches, replace `office-to-pdf` with `office-kit`. Office uses
+  `office_render`, `office_convert`, and `office_recalculate`. Remove the old
+  operation skills and the `skill-office.node` and `cli` settings. Saved standard
+  and PTC presets need a `tool-office` row. Document parsing runs in the host
+  process, outside the shell sandbox. To keep parsing inside the sandbox, omit
+  this plugin.
+- Creator uses `dsh-doc` in place of the four former development skills. The Nix
+  installation keeps documentation, package sources, and templates that match
+  the same version.
+
+### Computer Use
+
+CUA is an optional bundle that runs only on macOS. Existing `bundles.cua-bundle`
+selections keep working. Upgrade custom scripts and helpers together to use
+explicit windows, string element IDs, `getAccessibilityTree()`, and the new
+keyboard API.
+
+The Nix helper is built from the workspace source and ad-hoc signed instead of
+fetched from npm. Regrant macOS permissions when macOS asks after switching or
+updating the binary.
 
 ## `0.2.2-rc.1`
 
