@@ -8,7 +8,7 @@
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-better-sidebar";
-  version = "0.30.1";
+  version = "0.32.0";
   deployPackage = "dsh-better-sidebar";
   stripPrepareScripts = true;
   installation = dsh-runtime;
@@ -17,10 +17,10 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     owner = "omdsh-dev";
     repo = "DSH-better-sidebar";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-BGRoZhN5D68/pGaHBUCAl91jDbsBvH5pNjmSIBDL5jk=";
+    hash = "sha256-myscKMuydZokoddxsqE4UQqepU9rXzjRy+ylTs4W290=";
   };
 
-  pnpmDepsHash = "sha256-VABgBZJGAxObvlJ53ZNwvf9ozj4HSF/VgdX/OmHGoks=";
+  pnpmDepsHash = "sha256-cTq8mirDUcb2NYIsDAOWCd8lKZOfBHOSzO2ePpTskrc=";
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
