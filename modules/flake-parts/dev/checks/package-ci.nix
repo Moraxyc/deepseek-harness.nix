@@ -26,6 +26,19 @@
       );
     in
     {
+      checks.dsh-engines-update =
+        pkgs.runCommand "dsh-engines-update"
+          {
+            nativeBuildInputs = [
+              pkgs.nodejs
+              pkgs.ast-grep
+            ];
+          }
+          ''
+            node --test ${../../../../scripts}/update-dsh-engines.test.mjs
+            touch "$out"
+          '';
+
       checks.package-ci-selection =
         pkgs.runCommand "package-ci-selection"
           {

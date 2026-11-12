@@ -189,6 +189,25 @@ jobs:
             echo "updated=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Test and update dshEngines grants
+        id: compatibility
+        if: steps.changes.outputs.updated == 'true' && (matrix.name == 'dsh-workspace' || startsWith(matrix.label, 'bundles.'))
+        continue-on-error: true
+        env:
+          UPDATE_LABEL: ${{ matrix.label }}
+          BUNDLE_NAME: ${{ matrix.name }}
+        run: |
+          set -euo pipefail
+          report="$RUNNER_TEMP/dsh-engines-report.md"
+          echo "report=$report" >> "$GITHUB_OUTPUT"
+          args=()
+          if [[ "$UPDATE_LABEL" == bundles.* ]]; then
+            args+=("$BUNDLE_NAME")
+          fi
+          nix shell --inputs-from . nixpkgs#nodejs-slim nixpkgs#ast-grep \
+            -c node scripts/update-dsh-engines.mjs "${args[@]}" \
+            | tee "$report" -a "$GITHUB_STEP_SUMMARY"
+
       # A runtime bump can build cleanly while dsh skips bundles at runtime or
       # upstream drops rows and exports that downstream code still uses.
       - name: Report dsh-workspace impact
@@ -228,6 +247,8 @@ jobs:
           TITLE: ${{ matrix.title }}
           IMPACT_REPORT: ${{ steps.impact.outputs.report }}
           IMPACT_ACTIONS: ${{ steps.impact.outputs.actions }}
+          COMPATIBILITY_REPORT: ${{ steps.compatibility.outputs.report }}
+          COMPATIBILITY_FAILED: ${{ steps.compatibility.outcome == 'failure' }}
         run: |
           set -euo pipefail
 
@@ -247,8 +268,13 @@ jobs:
           git push --force origin "HEAD:$BRANCH"
 
           body="Automated update. Package CI runs before auto-merge."
-          if [ "${IMPACT_ACTIONS:-false}" = true ]; then
+          if [ "${COMPATIBILITY_FAILED:-false}" = true ]; then
+            body="Automated update. Auto-merge is off because compatibility checks failed. / 兼容性检查失败，已关闭自动合并。"
+          elif [ "${IMPACT_ACTIONS:-false}" = true ]; then
             body="Automated update. Auto-merge is off because the impact report lists downstream actions."
+          fi
+          if [ -n "${COMPATIBILITY_REPORT:-}" ]; then
+            body="$(printf '%s\n\n%s' "$body" "$(head -c 4000 "$COMPATIBILITY_REPORT")")"
           fi
           if [ -n "${IMPACT_REPORT:-}" ]; then
             # GitHub limits a PR body to 65536 characters.
@@ -280,7 +306,7 @@ jobs:
             pr_number="$(printf '%s\n' "$pr_url" | sed -n 's#.*/pull/\([0-9][0-9]*\).*#\1#p')"
           fi
 
-          if [ "${IMPACT_ACTIONS:-false}" = true ]; then
+          if [ "${IMPACT_ACTIONS:-false}" = true ] || [ "${COMPATIBILITY_FAILED:-false}" = true ]; then
             gh pr merge "$pr_number" --repo "$GITHUB_REPOSITORY" --disable-auto || true
           else
             gh pr merge "$pr_number" \
