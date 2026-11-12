@@ -17,8 +17,16 @@ buildDshBundle (finalAttrs: {
   };
 
   npmDepsHash = "sha256-6OxgwIYjrKN8L9wI15CUi4EYE7nw/BVhWyzbTWz6fJk=";
+  __darwinAllowLocalNetworking = true;
+  doCheck = true;
+  checkPhase = ''
+    runHook preCheck
+    node --test "tests/**/*.test.ts"
+    runHook postCheck
+  '';
+
   # The upstream peer ranges exclude this verified runtime.
-  dshEngines = "0.2.2-rc.1";
+  dshEngines = "0.2.2-rc.2";
   installation = dsh-runtime;
 
   passthru.requiresWeb = true;

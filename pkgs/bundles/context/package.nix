@@ -3,6 +3,7 @@
   fetchFromGitHub,
   fetchPnpmDeps,
   buildDshBundle,
+  copyTree,
   dsh-runtime,
   pnpmConfigHook,
   pnpm_11,
@@ -37,8 +38,14 @@ buildDshBundle (finalAttrs: {
     runHook preInstall
 
     appDir="$out/lib/node_modules/dsh-context"
-    mkdir -p "$appDir"
-    cp -r LICENSE README.md cordis.patch.yml package.json lib "$appDir/"
+    mkdir -p "$appDir/node_modules"
+    archive=$(npm pack --ignore-scripts --loglevel error \
+      --cache "$TMPDIR/npm-cache" --pack-destination "$TMPDIR")
+    tar -xzf "$TMPDIR/$archive" --strip-components=1 -C "$appDir"
+    ${copyTree.followLinks {
+      src = "node_modules/zod";
+      dest = "$appDir/node_modules/zod";
+    }}
 
     runHook postInstall
   '';

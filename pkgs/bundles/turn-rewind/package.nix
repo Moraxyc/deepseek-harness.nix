@@ -31,12 +31,21 @@ buildDshBundle (finalAttrs: {
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
-  nativeBuildInputs = [ pnpm_11 ];
+  nativeBuildInputs = [
+    pnpm_11
+    git
+  ];
   disallowedReferences = [ pnpm_11 ];
+  doCheck = true;
+  checkPhase = ''
+    runHook preCheck
+    DSH_TURN_REWIND_HOST_ID="$(printf '%064d' 1)" node --test tests/*.test.mjs
+    runHook postCheck
+  '';
 
   # The peer and web client packages are supplied by the DSH installation.
   # The upstream peer ranges exclude this verified runtime.
-  dshEngines = "0.2.2-rc.1";
+  dshEngines = "0.2.2-rc.2";
   installation = dsh-runtime;
   runtimeDeps = [ git ];
 

@@ -15,7 +15,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   version = "0.1.49";
   deployPackage = "@anionex/dsh-vision-toolkit";
   # The upstream peer ranges exclude this verified runtime.
-  dshEngines = "0.2.2-rc.1";
+  dshEngines = "0.2.2-rc.2";
   installation = dsh-runtime;
 
   src = fetchFromGitHub {
@@ -34,6 +34,13 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
 
   nativeBuildInputs = [ jq ];
   buildInputs = [ python3 ];
+  __darwinAllowLocalNetworking = true;
+  doCheck = true;
+  checkPhase = ''
+    runHook preCheck
+    pnpm exec vitest run tests/tools.spec.ts tests/credentials-compat.spec.ts
+    runHook postCheck
+  '';
 
   postNormalizeDeploy = ''
     webRuntime="${dsh-workspace}/lib/dsh-workspace/runtime-bundles/@deepseek-ai/dsh-web-app/node_modules"

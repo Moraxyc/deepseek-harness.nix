@@ -25,6 +25,14 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   npmBuildScript = "build";
   installation = dsh-runtime;
 
+  __darwinAllowLocalNetworking = true;
+  doCheck = true;
+  checkPhase = ''
+    runHook preCheck
+    pnpm exec vitest run tests/activation-agent-compat.spec.ts tests/subagent-start.spec.ts
+    runHook postCheck
+  '';
+
   # The root build does not build the source-only plugin workspaces, while
   # deploy intentionally skips dependency lifecycle scripts.
   preDeploy = ''

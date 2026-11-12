@@ -41,10 +41,16 @@ dshBundleCheckHook() {
 
   dropped_rows() {
     local logFile=$1
+    local -a failures=(
+      -e 'skipping profile bundle'
+      -e 'disabling profile plugin'
+      -e 'failed to import:'
+      -e 'entries did not activate'
+    )
     if [[ "${#externalSkips[@]}" -eq 0 ]]; then
-      grep -F -e 'skipping profile bundle' -e 'disabling profile plugin' "$logFile"
+      grep -F "${failures[@]}" "$logFile"
     else
-      grep -F -e 'skipping profile bundle' -e 'disabling profile plugin' "$logFile" \
+      grep -F "${failures[@]}" "$logFile" \
         | grep -v -F "${externalSkips[@]}"
     fi
   }

@@ -24,6 +24,8 @@ other installation packages, with links into it,
 which keeps one runtime instance per package. Use `installationKeep` for
 packages the bundle must keep locally. Bundles the installation already
 carries use `buildDshBundle.fromInstallation` and are selected by name.
+When pnpm deploy removes peer metadata, the helper exposes only the
+installation's SDK libraries in that namespace.
 
 ## CUA helper
 
@@ -31,10 +33,20 @@ carries use `buildDshBundle.fromInstallation` and are selected by name.
 pinned Nixpkgs toolchain. Upstream's `build_app.py` assembles the release
 application and writes `current.json`. The Nix patch replaces its `codesign`
 calls with ad-hoc signing through `rcodesign`. The build supports only ad-hoc
-signing and fails for any other signing identity or keychain. The install check
-verifies the signature with macOS Security, confirms the bundle digest, and
-confirms that a modified copy fails verification. The check is static
-verification only.
+signing and fails for any other signing identity or keychain.
+Toolchain references are removed before signing. During runtime fixups the
+signed generation stays outside the output tree until sealing, so the receipt
+matches the signed content.
+
+## Platform notes
+
+- Darwin: `importPnpmLock` aggregates tarballs in bounded batches to stay below
+  the sandbox profile size limit.
+- The workspace runtime deploys under `$TMPDIR` and then moves to its output,
+  because pnpm creates sibling temporary directories.
+- aarch64 Linux: aggregate build checks run serially to limit peak memory.
+- Tests that bind or resolve localhost set `__darwinAllowLocalNetworking = true`
+  and keep the Darwin sandbox enabled.
 
 ## Adding an external pnpm workspace bundle
 
@@ -149,6 +161,8 @@ bundle's `engines.dsh` or `@deepseek-ai/dsh-*` peer ranges exclude the pinned
 runtime. After verifying such a bundle against that runtime, set
 `dshEngines = "<version>"` in its expression; the builder writes it to
 `engines.dsh`, and dsh then ignores the peer ranges.
+The hook also fails on `failed to import:` or `entries did not activate` in the
+log, regardless of the web endpoint's response.
 
 `buildDshBundle.fromPnpmWorkspace` automatically excludes `nodejs` and pnpm
 from the runtime closure. If a workspace bundle uses `python3` during its
@@ -353,7 +367,9 @@ after updating the pin:
   dsh-workspace PRs and leaves auto-merge off when it lists actions.
 - `scripts/dsh-bundle-probe.sh --all` boots every bundle in its own profile and
   separates bundles that only fail dsh's version check from bundles that fail
-  at runtime.
+  at runtime. The script copies the working tree to the store at startup, so a
+  run always tests the tree as it was at startup. Any `broken` result exits with
+  status 1.
 
 CI builds `bundleCompositions` alongside the bundles, so a skipped bundle fails
 the check.

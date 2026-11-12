@@ -68,6 +68,10 @@ buildNpmPackage (finalAttrs: {
   // lib.optionalAttrs cuaIsAvailable {
     # The signed CUA application and its receipt must retain identical bytes.
     stripExclude = "*/DSH Computer Use.app/*";
+  }
+  // lib.optionalAttrs (isLinux && stdenv.hostPlatform.isAarch64) {
+    # Avoid overlapping aggregate TypeScript checks on aarch64 Linux builders.
+    DSH_GATE_CONCURRENCY = "1";
   };
 
   nodejs = nodejs-slim;
@@ -163,7 +167,8 @@ buildNpmPackage (finalAttrs: {
     PNPM_CONFIG_OFFLINE=true PNPM_CONFIG_VERIFY_DEPS_BEFORE_RUN=false \
       pnpm --filter @deepseek-ai/dsh-nix-runtime deploy \
         --prod --config.node-linker=hoisted --config.link-workspace-packages=true \
-        "$runtime"
+        "$TMPDIR/dsh-runtime"
+    mv "$TMPDIR/dsh-runtime" "$runtime"
     PNPM_CONFIG_OFFLINE=true PNPM_CONFIG_VERIFY_DEPS_BEFORE_RUN=false \
       pnpm --filter @deepseek-ai/dsh-desktop deploy \
         --prod --config.node-linker=hoisted --config.link-workspace-packages=true \

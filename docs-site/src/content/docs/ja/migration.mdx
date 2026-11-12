@@ -94,6 +94,9 @@ Team は名前付きサブエージェントとセッション単位のスイッ
 割り込みツールはデフォルトでオフです。独自プラグインでは、実験版 Agent Team のパッケージ名を
 `@deepseek-ai/dsh-agent-team` と `@deepseek-ai/dsh-tool-agent-team` に置き換えてください。
 
+`bundles.tui` の `/team on` と `/team off` は現在のセッションに作用し、プロファイルのバンドルはそのまま残ります。
+メンバー一覧と会話履歴には、サブエージェントが起動したサブエージェントも表示されます。
+
 ### ワークツリーとターミナルのプロファイル
 
 セッションのアーカイブ時に、条件を満たすクリーンなワークツリーがデフォルトで削除されます。
@@ -103,7 +106,7 @@ Team は名前付きサブエージェントとセッション単位のスイッ
 `optional-forge-panel` から `forge-panel` へ変更してください。
 
 `bundles.experimental-terminal-bundle` には Web/Desktop のターミナルコントローラーが必要です。
-`optional-terminal-bash` と `optional-terminal-pwsh` の上書きを
+Nix プロファイルで選択すると `web-app` も追加されます。`optional-terminal-bash` と `optional-terminal-pwsh` の上書きを
 `optional-terminal-panel` に移し、新しい設定スキーマを確認してください。
 headless では `dsh-terminal`、`dsh-terminal-bash`、`dsh-tool-terminal` を直接組み合わせます。
 エージェントが読み取れるターミナル出力は、モデルのコンテキストとセッションログに入る場合があります。
@@ -121,6 +124,32 @@ headless では `dsh-terminal`、`dsh-terminal-bash`、`dsh-tool-terminal` を�
   文書解析は shell サンドボックス外の Host プロセスで実行されます。解析をサンドボックス内に留める場合は、このプラグインを省いてください。
 - Creator は従来の四つの開発スキルの代わりに `dsh-doc` を使用します。
   Nix インストールには、同じバージョンの文書、パッケージソース、テンプレートが含まれます。
+
+### アカウント、LiveShare、独自プラグイン
+
+アカウント:
+
+- `@deepseek-ai/dsh-deepseek-account-platform` を `@deepseek-ai/dsh-deepseek-account` に置き換えます。
+- `account-controller` 行と `@deepseek-ai/dsh-api-account-controller` 依存を削除します。
+- `ui-settings-account` から `bonusAckRetryDelayMs` と `bonusAckRetryMaxDelayMs` を削除します。
+
+ログイン状態はそのまま維持されます。`bundles.tui` はサーバーから届く通知文とアクションを表示します。
+
+LiveShare:
+
+- `liveshare-viewer-declarations` の上書きを削除します。
+- LiveShare プラグインのメソッド権限を設定し直します。
+- owner と relay で同じプロトコルバージョンを使用します。
+
+閲覧モードでも、PTC プログラムは共有ディレクトリ外のファイルを読み取れます。セッションは信頼できる相手とだけ共有してください。
+
+独自プラグイン:
+
+- 通知プラグインは新しい通知 API を使用します。アカウント watcher は `{ type, state }` イベントを発行します。
+- `Session.append` ラッパーは単一のイベントとイベント配列を受け付けます。
+- `BundleInfo.updatable` は `BundleInfo.update` に名前が変わりました。ツールのエラー型も変更されたため、これを判定するコードを更新してください。
+- Stagehand は拡張を自動検出し、`extensionId` を無視します。
+- PTC プログラムはツール呼び出しの上限に達すると停止し、保存された状態が消去されます。完了済みの操作はそのまま有効です。
 
 ### Computer Use
 

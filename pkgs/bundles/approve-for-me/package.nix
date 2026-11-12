@@ -26,6 +26,13 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
 
+  doCheck = true;
+  checkPhase = ''
+    runHook preCheck
+    pnpm exec vitest run
+    runHook postCheck
+  '';
+
   # The upstream plugin declares this as a peer but imports it from its host
   # module. The installation does not ship these browser client peers.
   postNormalizeDeploy = ''

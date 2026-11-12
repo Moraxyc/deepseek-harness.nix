@@ -41,7 +41,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   dontBuild = true;
   strictDeps = true;
   disallowedReferences = [ nodejs ] ++ storeReferencesToStrip;
-  stripExclude = [ "*/DSH Computer Use.app/*" ];
 
   nativeBuildInputs = [
     nodejs-slim
@@ -90,13 +89,19 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     }
   ''
   + lib.optionalString isDarwin ''
+    # Keep the signed CUA generation outside all mutating fixup hooks.
+    cuaBin="$out/node_modules/@deepseek-ai/dsh-experimental-cua-macos/native/bin"
+    mv "$cuaBin" "$TMPDIR/cua-bin"
+    restoreCuaApplication() {
+      mv "$TMPDIR/cua-bin" "$cuaBin"
+    }
     stripRuntimeReferences() {
       find "$out" -type f -exec ${lib.getExe removeReferencesTo} ${
         lib.concatMapStringsSep " " (reference: "-t ${lib.escapeShellArg reference}") storeReferencesToStrip
       } {} +
     }
     # Rewrite binaries before signing, then record their final bytes.
-    postFixupHooks=(stripRuntimeReferences "''${postFixupHooks[@]}")
+    postFixupHooks=(stripRuntimeReferences "''${postFixupHooks[@]}" restoreCuaApplication)
   ''
   + ''
     postFixupHooks+=(sealDesktopRuntime)

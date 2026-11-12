@@ -20,14 +20,24 @@ bundle 链接进 profile，从 `dsh-runtime` 安装解析 peer。设置
 `installation = dsh-runtime` 后，helper 会把安装中的 `@deepseek-ai` 包和同版本的其他包改为指向安装的链接，
 保证每个包只有一个运行时实例。必须保留在 bundle 内的包写入 `installationKeep`。
 安装中已有的 bundle 使用 `buildDshBundle.fromInstallation`，按名称选用。
+pnpm deploy 移除 peer 元数据时，helper 在该命名空间中只提供安装中的 SDK 库。
 
 ## CUA 原生辅助程序
 
 `dsh-cua-native` 使用 Nixpkgs 工具链，从 `dsh-workspace.src` 编译 Swift 辅助程序。
 上游 `build_app.py` 组装 release 应用并写入 `current.json`。Nix 补丁把其中的
 `codesign` 调用替换为 `rcodesign` 临时签名（ad-hoc）。构建只支持这一种签名方式，
-其他签名身份或钥匙串都会使构建失败。安装检查通过 macOS Security 验证签名、核对应用摘要，
-并确认被修改的副本验证失败。检查只做静态验证。
+其他签名身份或钥匙串都会使构建失败。签名前先移除工具链引用。
+runtime fixup 期间，已签名的 generation 暂存在输出目录之外，封装时再放回，
+使 receipt 与签名内容一致。
+
+## 平台说明
+
+- Darwin：`importPnpmLock` 分批聚合 tarball，使沙箱 profile 保持在大小限制以内。
+- workspace runtime 先部署到 `$TMPDIR`，再移动到输出路径，因为 pnpm 会创建同级临时目录。
+- aarch64 Linux：聚合构建检查串行运行，以限制峰值内存。
+- 需要监听或解析 localhost 的测试设置 `__darwinAllowLocalNetworking = true`，
+  Darwin 沙箱保持开启。
 
 ## 添加外部 pnpm workspace bundle
 
@@ -131,6 +141,7 @@ deploy 命令使用上述参数和注入式 workspace 布局，这是受支持�
 `@deepseek-ai/dsh-*` peer 范围不包含当前运行时版本。针对该运行时验证
 bundle 后，在其表达式中设置 `dshEngines = "<version>"`；builder 会将其写入
 `engines.dsh`，dsh 随后不再检查 peer 范围。
+日志中出现 `failed to import:` 或 `entries did not activate` 时，无论 Web 端点是否响应，hook 都判定失败。
 
 `buildDshBundle.fromPnpmWorkspace` 会把 `nodejs` 和 pnpm 排除在运行时闭包
 之外。如果 workspace bundle 构建期间使用 `python3`，把 `python3` 加入 bundle
@@ -325,6 +336,7 @@ in
   以及 dsh 是否接受每个 bundle。自动更新工作流会把该报告附在 dsh-workspace PR
   中，报告列出待办时不开启自动合并。
 - `scripts/dsh-bundle-probe.sh --all` 在独立 profile 中逐个启动 bundle，区分只是
-  未通过 dsh 版本检查的 bundle 与运行时失败的 bundle。
+  未通过 dsh 版本检查的 bundle 与运行时失败的 bundle。脚本启动时把工作区复制到 store，
+  本次运行始终测试启动时的工作区内容。存在 `broken` 结果时，脚本以状态 1 退出。
 
 CI 会同时构建 `bundleCompositions`，被跳过的 bundle 会让检查失败。

@@ -27,6 +27,8 @@ buildDshBundle (finalAttrs: {
     # into an optional bundle.
     ./alpha2-liangshen-delegation.patch
     ./btw-side-question-settle.patch
+    ./rc2-account-notifications.patch
+    ./rc2-team-subagents.patch
     ./verify-source-files.patch
     ./verify-host-contract-node-shebang.patch
     ./verify-rewind-edit-serial.patch
@@ -66,9 +68,10 @@ buildDshBundle (finalAttrs: {
   nativeBuildInputs = [ pnpm_11 ];
   disallowedReferences = [ pnpm_11 ];
   installation = dsh-runtime;
+  __darwinAllowLocalNetworking = true;
   # Upstream peer ranges stop at 0.2.1-rc.5. Raise this only after the TUI
   # boots every bundled preset on the new dsh release.
-  dshEngines = "0.2.2-rc.1";
+  dshEngines = "0.2.2-rc.2";
   installationKeep = [
     "ansi-styles"
     # dsh-tui compiles against React 19, while the installation carries React 18.
@@ -80,6 +83,12 @@ buildDshBundle (finalAttrs: {
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
+  postBuild = ''
+    node scripts/verify-rc2-runtime.mjs
+    node --import tsx/esm scripts/verify-agent-team-channel.ts
+    node --import tsx/esm scripts/verify-dsh-child-transcript.ts
+    node --import tsx/esm scripts/verify-agent-teams-compat-0.2.0.ts
+  '';
 
   installPhase = ''
     runHook preInstall

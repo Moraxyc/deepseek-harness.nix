@@ -40,6 +40,9 @@ buildDshBundle (finalAttrs: {
     hash = "sha256-5EaGJryDD0AsBsJ7PLgizhtdX9nLWf+y2R34WQ1TsJg=";
   };
 
+  # rc.2 restricts error constructors and removes the public anchor hook.
+  patches = [ ./rc2-runtime-contracts.patch ];
+
   # The release lockfile contains absolute links to the author's DSH checkout.
   # Replace only those development links; the pinned installation supplies the same
   # peers for type checking and runtime composition.
@@ -87,20 +90,29 @@ buildDshBundle (finalAttrs: {
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
+  doCheck = true;
+  checkPhase = ''
+    runHook preCheck
+    pnpm exec tsc -p tsconfig.test.json
+    node --test lib-test/test/pool.spec.js lib-test/test/antigravity-images.spec.js \
+      lib-test/test/rate-limit.spec.js lib-test/test/pool-health.spec.js \
+      lib-test/test/models.spec.js lib-test/test/subagent-speed.spec.js
+    runHook postCheck
+  '';
   nativeBuildInputs = [
     jq
     pnpm_11
     yq-go
   ];
   disallowedReferences = [ pnpm_11 ];
+  # The compatibility patch uses the rc.2 host error factory.
+  dshEngines = "0.2.2-rc.2";
   installation = dsh-runtime;
 
   preBuild = ''
     rm -rf node_modules/@deepseek-ai
-    ${copyTree.followLinks {
-      src = "${dsh-workspace.runtime}/node_modules/@deepseek-ai";
-      dest = "node_modules/@deepseek-ai";
-    }}
+    mkdir -p node_modules/@deepseek-ai
+    ln -s ${dsh-workspace.runtime}/node_modules/@deepseek-ai/* node_modules/@deepseek-ai/
     ${dshCohort.installPackages { names = clientPackages; }}
   '';
 

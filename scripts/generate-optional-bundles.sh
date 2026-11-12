@@ -68,16 +68,20 @@ while IFS= read -r manifest; do
   fi
 done < <(find "$src/packages" -mindepth 3 -maxdepth 3 -name package.json)
 
+needs_web_client() {
+  jq -e '.dsh.client.platform == "web" or ((.peerDependencies // {}) | has("@deepseek-ai/dsh-api-terminal-controller"))' "$1" >/dev/null
+}
+
 requires_web() {
   local manifest="$1" dependency dependency_dir
-  if [ "$(jq -r '.dsh.client.platform // empty' "$manifest")" = web ]; then
+  if needs_web_client "$manifest"; then
     return 0
   fi
   while IFS= read -r dependency; do
     [ -n "$dependency" ] || continue
     dependency_dir="${package_dirs[$dependency]:-}"
     [ -n "$dependency_dir" ] || continue
-    if [ "$(jq -r '.dsh.client.platform // empty' "$dependency_dir/package.json")" = web ]; then
+    if needs_web_client "$dependency_dir/package.json"; then
       return 0
     fi
   done < <(jq -r '(.dependencies // {}) | keys[]' "$manifest")

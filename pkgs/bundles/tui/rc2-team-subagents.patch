@@ -1,0 +1,1215 @@
+--- a/src/dsh-adapter/team-mode.ts
++++ b/src/dsh-adapter/team-mode.ts
+@@ -1,81 +1,27 @@
+-/**
+- * Agent Teams status at run time (issue #1241, see
+- * docs/agent-teams-design.md「开关机制」).
+- *
+- * Switching is the upstream team bundle itself: `/plugin enable|disable`
+- * selects or drops its layer through the host plugin manager, which persists
+- * to the profile and, with `hmr` mounted, applies at once. `/team` is the
+- * read-only side: it reports the bundle, the service and this session's
+- * teammates, and is exposed only while the `agentTeams` service is mounted —
+- * the same availability the desktop UI gives the feature. A typed `/team`
+- * before that still answers with the enable route instead of reaching the
+- * model.
+- *
+- * What stays here besides the command is the one decision that cannot live in
+- * a preset — which legacy delegation tools a request carries.
+- *
+- * @module
+- */
+ import type { Context } from '@deepseek-ai/cordis'
+ import type { LocalCommand } from '../commands.js'
+ import { t } from '../i18n.js'
+ import type { TeamActiveMembers } from './plugin-manage.js'
+-import { pluginManagerOf } from './plugin-manager.js'
+ import { cell } from './plugins-info.js'
+-import { TEAM_BUNDLE } from './team-roster.js'
+ import { TEAM_SPAWN_TOOL } from './team-tools.js'
+ 
+-/** The slash-command name this module owns. */
+ const TEAM_COMMAND_NAME = 'team'
+ 
+-/**
+- * Whether the team service is mounted. This is the one signal `/team` appears
+- * on: the desktop UI shows the same feature only while its service is there.
+- * @param ctx - Host context of the composition root.
+- */
+ export function teamServiceActive(ctx: Context): boolean {
+   return ctx.get('agentTeams', false) !== undefined
+ }
+ 
+-/**
+- * Hide `/team` from Help and `/` completion while the service is not mounted.
+- * The typed form stays a local command (`isLocalCommandName` still knows the
+- * name), so it can answer with the enable route instead of becoming text sent
+- * to the model.
+- * @param commands - The current command catalog.
+- * @param visible - Whether the team service is mounted.
+- * @returns The catalog with `/team` removed when it is not.
+- */
+ export function withTeamCommandVisibility(commands: readonly LocalCommand[], visible: boolean): readonly LocalCommand[] {
+   return visible ? commands : commands.filter(command => command.name !== TEAM_COMMAND_NAME)
+ }
+ 
+-/**
+- * Legacy delegation tools that `spawn_teammate` replaces. The four control
+- * tools the team shares names with (`send_message`, `list_agents`,
+- * `interrupt_agent`, `wait_agent`) need no entry: the team copies live in the
+- * Agent's own scope and shadow the preset's, in the assembly and at execution.
+- */
+ const TEAM_REPLACED_TOOLS: ReadonlySet<string> = new Set(['subagent', 'subagent_fork'])
+ 
+-/**
+- * Keep one delegation tool set per request. Presets keep their legacy rows,
+- * so whether the team replaces them is decided where the tools are known: a
+- * registry carrying `spawn_teammate` drops `subagent` / `subagent_fork` on the
+- * agent's own scope (the assembly no longer carries tool declarations since
+- * 0.2.2). This follows a bundle toggled at run time into the sessions already
+- * joined (a preset revision cannot), and a team service that never activated
+- * leaves the legacy tools in place.
+- *
+- * @param registered - Effective agent tool names, including inherited preset tools.
+- * @returns The replaced tool names to deny, empty when the team is inactive.
+- */
+ export function teamReplacedToolDeny(registered: ReadonlySet<string>): readonly string[] {
+   if (!registered.has(TEAM_SPAWN_TOOL)) return []
+   return [...TEAM_REPLACED_TOOLS].filter(name => registered.has(name))
+ }
+ 
+-/** Keep the legacy final-assembly seam; new presentations carry no tools. */
+ export function filterTeamReplacedTools<T extends {
+   readonly sections: readonly unknown[]
+   readonly tools?: readonly { readonly name: string }[]
+@@ -86,10 +32,8 @@
+   return tools.length === assembly.tools.length ? assembly : { ...assembly, tools }
+ }
+ 
+-/** What `/team` was asked. */
+ export type TeamCommand =
+   | { readonly kind: 'status' }
+-  /** `on` / `off`: the switch moved to `/plugin enable|disable`. */
+   | { readonly kind: 'switch' }
+   | { readonly kind: 'unknown'; readonly sub: string }
+ 
+@@ -100,107 +44,38 @@
+   return { kind: 'unknown', sub }
+ }
+ 
+-/** What the screen supplies: the bound session's live team counts. */
+ export interface TeamCommandSink {
+-  /** Teammates of the bound session, how many are running or provisioning, and how many may be running. */
+   readonly members: () => { readonly total: number } & TeamActiveMembers
+ }
+ 
+-/** The entry the screen calls: argument text in, report lines out. */
+ export type TeamCommandEntry = (args: string, sink: TeamCommandSink) => Promise<readonly string[]>
+ 
+-/**
+- * Wire `/team` to the running composition. The command only reports; the
+- * bundle switch is `/plugin enable|disable`, which shares the lifecycle flow
+- * and its confirmations.
+- * @param ctx - Host context of the composition root.
+- * @param options - The profile a CLI route names.
+- * @returns the command entry the screen calls.
+- */
++interface TeamModeService {
++  isEnabled(agent: unknown): boolean
++  setEnabled(agent: unknown, enabled: boolean, signal?: AbortSignal): Promise<void>
++}
++
++/** Team mode belongs to the exact live Session, not its profile's bundles. */
+ export function createTeamCommandEntry(
+   ctx: Context,
+-  options: { readonly profileName?: string | undefined } = {},
++  options: { readonly sessionId: () => string | undefined },
+ ): TeamCommandEntry {
+-  const profile = options.profileName ?? 'dsh-tui'
+   return async (args, sink) => {
+     const parsed = parseTeamArgs(args)
+-    if (parsed.kind === 'unknown') {
+-      return [t('team-cmd-usage', { sub: cell(parsed.sub) })]
+-    }
+-    // The mounted service is the only state `/team` reports on.
+-    if (parsed.kind === 'status' && teamServiceActive(ctx)) {
+-      return teamStatusLines(ctx, sink)
+-    }
+-    // Everything else answers where the switch is: but only with a route this
+-    // launch can take. Without the profile plugin service that route cannot run
+-    // here, and a bundle the running installation does not ship has no target
+-    // at all (`/plugin` would answer with every addressable name).
+-    return teamSwitchRouteLines(ctx, profile, parsed.kind === 'switch' ? 'switch' : 'not-enabled')
+-  }
+-}
+-
+-/**
+- * Where the switch went, checked against this launch: the in-session lifecycle
+- * command only when the plugin service can run it and the installation lists
+- * the bundle; the CLI route or the DSH-line reason otherwise. A bundle the
+- * profile already selects is not told to enable itself: with no service running
+- * the answer is the restart or the failed activation.
+- */
+-async function teamSwitchRouteLines(
+-  ctx: Context,
+-  profile: string,
+-  kind: 'switch' | 'not-enabled',
+-): Promise<readonly string[]> {
+-  const manager = pluginManagerOf(ctx)
+-  if (manager === undefined) {
+-    return [t('team-cmd-no-manager-route', { profile: cell(profile), bundle: TEAM_BUNDLE })]
+-  }
+-  let listed = true
+-  let selected = false
+-  try {
+-    const bundle = (await manager.listBundles()).find(candidate => candidate.name === TEAM_BUNDLE)
+-    listed = bundle !== undefined
+-    selected = bundle?.enabled === true
+-  } catch {
+-    // A failing read is the status path's to report; name the general route.
+-  }
+-  if (!listed) return [t('team-cmd-bundle-absent', { bundle: TEAM_BUNDLE })]
+-  // Selected but nothing runs: `/plugin enable` would be a no-op, so name the
+-  // state instead (a restart, or an activation that failed — see the log).
+-  if (kind === 'not-enabled' && selected) return [t('team-cmd-pending-on')]
+-  return [t(kind === 'switch' ? 'team-cmd-switch-moved' : 'team-cmd-not-enabled', { bundle: TEAM_BUNDLE })]
+-}
+-
+-/**
+- * `/team` and `/team status`: whether the profile selects the bundle and the
+- * bound session's team. The caller only runs this while the service is mounted,
+- * so the service line states that state instead of re-reading it.
+- */
+-async function teamStatusLines(ctx: Context, sink: TeamCommandSink): Promise<readonly string[]> {
+-  const manager = pluginManagerOf(ctx)
+-  const lines: string[] = []
+-  if (manager === undefined) {
+-    lines.push(t('team-cmd-service', { state: t('team-cmd-running') }))
+-    lines.push(t('team-cmd-no-manager'))
+-  } else {
+-    let selected: boolean | undefined
+-    try {
+-      const bundle = (await manager.listBundles()).find(candidate => candidate.name === TEAM_BUNDLE)
+-      selected = bundle?.enabled
+-      lines.push(selected === undefined
+-        ? t('team-cmd-bundle-unknown')
+-        : t('team-cmd-bundle', { state: t(selected ? 'team-cmd-on' : 'team-cmd-off') }))
+-    } catch (error) {
+-      lines.push(t('plugins-service-error', { err: cell(error instanceof Error ? error.message : String(error)) }))
+-    }
+-    lines.push(t('team-cmd-service', { state: t('team-cmd-running') }))
+-    // The service is mounted (the caller gates on that), so a profile that
+-    // already deselected the bundle is the case that waits for a restart.
+-    if (selected === false) lines.push(t('team-cmd-pending-off'))
++    if (parsed.kind === 'unknown') return [t('team-cmd-usage', { sub: cell(parsed.sub) })]
++    const teams = ctx.get('agentTeams', false) as TeamModeService | undefined
++    const agents = ctx.get('agents') as { get(id: string): unknown } | undefined
++    const id = options.sessionId()
++    const agent = id === undefined ? undefined : agents?.get(id)
++    if (teams === undefined || agent === undefined) return [t('team-cmd-unavailable')]
++    if (parsed.kind === 'switch') await teams.setEnabled(agent, args.trim().split(/\s+/)[0] === 'on')
++    const { total, active, unseen } = sink.members()
++    return [
++      t('team-cmd-bundle', { state: t(teams.isEnabled(agent) ? 'team-cmd-on' : 'team-cmd-off') }),
++      total === 0 ? t('team-cmd-no-members')
++        : t(unseen === 0 ? 'team-cmd-members' : 'team-cmd-members-unseen', {
++          total: String(total), active: String(active), unseen: String(unseen),
++        }),
++    ]
+   }
+-  const { total, active, unseen } = sink.members()
+-  lines.push(total === 0
+-    ? t('team-cmd-no-members')
+-    : t(unseen === 0 ? 'team-cmd-members' : 'team-cmd-members-unseen', { total: String(total), active: String(active), unseen: String(unseen) }))
+-  return lines
+ }
+--- a/src/dsh-adapter/team-roster.ts
++++ b/src/dsh-adapter/team-roster.ts
+@@ -1,36 +1,17 @@
+-/**
+- * Read side of DSH's experimental Agent Teams: the Lead session's `agentTeam`
+- * projection (roster + non-deleted task board), folded for the session on
+- * screen. Inside a teammate it reads the Lead's value, found through the
+- * teammate header's `parentSession` (another child of the Lead reads none).
+- *
+- * The wire value is narrowed locally (`@deepseek-ai/dsh-experimental-agent-team`
+- * is never imported); a composition without the team service never publishes
+- * the key and the store stays empty.
+- *
+- * @module
+- */
+-
+ import type { Context } from '@deepseek-ai/cordis'
+ import type { TeamMember, TeamTask, TeamView } from '../adapter/ports/channel-view.js'
+ import { attachSessionProjection, createSessionProjectionStore, type SessionProjectionStore, type WatchedSession } from './session-projection-store.js'
+ 
+ export const TEAM_PROJECTION_KEY = 'agentTeam'
+-
+-/** The upstream bundle that mounts the team service and tools: the team-mode switch. */
++/** Retired identifier, retained for cleanup of existing profile declarations. */
+ export const TEAM_BUNDLE = '@deepseek-ai/dsh-experimental-agent-team-profile'
+ 
+-/** What the channel reads: the team of one session, if any. */
+ export interface TeamSource {
+-  /** The team of `sessionId` — `undefined` unless it is the session last
+-   *  seeded (a non-DSH session never seeds, so it never reads a stale team). */
+   teamOf(sessionId: string): TeamView | undefined
+   subscribe(listener: () => void): () => void
+ }
+ 
+ export type TeamRosterStore = SessionProjectionStore<TeamView> & TeamSource
+-
+-const PHASES: ReadonlySet<string> = new Set(['provisioning', 'active', 'failed'])
+ const TASK_STATUSES: ReadonlySet<string> = new Set(['pending', 'in_progress', 'completed'])
+ 
+ function isRecord(value: unknown): value is Record<string, unknown> {
+@@ -41,15 +22,6 @@
+   return Array.isArray(value) && value.every(item => typeof item === 'string')
+ }
+ 
+-function asMember(value: unknown): TeamMember | undefined {
+-  if (!isRecord(value)) return undefined
+-  const { id, name, role, phase, error } = value
+-  if (typeof id !== 'string' || typeof name !== 'string') return undefined
+-  if (role !== 'lead' && role !== 'teammate') return undefined
+-  if (typeof phase !== 'string' || !PHASES.has(phase)) return undefined
+-  return { id, name, role, phase: phase as TeamMember['phase'], ...typeof error === 'string' ? { error } : {} }
+-}
+-
+ function asTask(value: unknown): TeamTask | undefined {
+   if (!isRecord(value)) return undefined
+   const { id, revision, subject, description, status, blockedBy, writeScopes, ownerName, ready, writeScopeWarnings } = value
+@@ -62,93 +34,109 @@
+   }
+ }
+ 
+-/**
+- * Narrow one `agentTeam` value into the view the UI renders. A session's
+- * implicit team (the Lead alone, no task, no failure) is no team: every root
+- * session publishes that baseline once the service is mounted.
+- * @param value - Raw projection value.
+- * @param leadSessionId - The session the value was published for.
+- * @returns the team view, or `undefined` when there is nothing to show.
+- */
+-export function asTeamView(value: unknown, leadSessionId: string): TeamView | undefined {
+-  if (!isRecord(value) || !Array.isArray(value.members) || !Array.isArray(value.tasks)) return undefined
+-  const members = value.members.map(asMember)
++export function asTeamView(value: unknown, leadSessionId: string, members: readonly TeamMember[] = []): TeamView | undefined {
++  if (!isRecord(value) || value.enabled !== true || !Array.isArray(value.tasks)) return undefined
+   const tasks = value.tasks.map(asTask)
+-  if (members.includes(undefined) || tasks.includes(undefined)) return undefined
++  if (tasks.includes(undefined)) return undefined
+   const failure = typeof value.failure === 'string' ? value.failure : undefined
+-  const roster = members as TeamMember[]
+-  const board = tasks as TeamTask[]
+-  if (!roster.some(member => member.role === 'teammate') && board.length === 0 && failure === undefined) return undefined
+-  return { leadSessionId, members: roster, tasks: board, ...failure === undefined ? {} : { failure } }
+-}
+-
+-interface SessionLike {
+-  readonly id: unknown
+-  readonly header?: { readonly origin?: unknown; readonly parentSession?: unknown }
+-}
+-
+-interface AgentsLike {
+-  list(): Iterable<{ readonly session: { readonly id: unknown } }>
+-}
+-
+-/**
+- * The team a bound session belongs to is rooted at itself, or — for a
+- * delegated child — at its parent: teammates are direct children of the Lead.
+- * @param session - The bound session.
+- * @param agents - Live agents, to find the Lead's session object for a baseline.
+- * @returns the session whose `agentTeam` value to read.
+- */
+-export function teamRootOf(session: unknown, agents: AgentsLike | undefined): WatchedSession {
+-  const own = session as SessionLike
+-  const parent = own.header?.origin === 'subagent' ? own.header.parentSession : undefined
+-  if (typeof parent !== 'string') return { id: String(own.id), session }
+-  for (const agent of agents?.list() ?? []) {
+-    if (String(agent.session.id) === parent) return { id: parent, session: agent.session }
+-  }
+-  return { id: parent }
++  return { leadSessionId, members: [...members], tasks: tasks as TeamTask[], ...failure === undefined ? {} : { failure } }
++}
++
++interface AgentLike {
++  readonly id: string
++  readonly session: { readonly id: unknown }
++}
++interface AgentsLike { get(id: string): AgentLike | undefined }
++interface SubagentsLike {
++  rootOf(agent: AgentLike): AgentLike
++  listDescendants(id: string, signal: AbortSignal): Promise<readonly {
++    readonly kind: 'child' | 'diagnostic'
++    readonly id: string
++    readonly mode?: string
++    readonly path?: string
++    readonly name?: string
++    readonly reason?: string
++  }[]>
++}
++
++export function teamRootOf(session: unknown, agents: AgentsLike | undefined, subagents: SubagentsLike | undefined): WatchedSession {
++  const own = session as { readonly id: unknown }
++  const agent = agents?.get(String(own.id))
++  if (agent === undefined || subagents === undefined) return { id: String(own.id), session }
++  const root = subagents.rootOf(agent)
++  return { id: root.id, session: root.session }
+ }
+ 
+-/**
+- * The watched team as seen from `sessionId`: the Lead's own, or a listed
+- * teammate's. Any other child of the Lead (a plain subagent, a workflow
+- * spawn) is watched at the same parent but belongs to no team.
+- * @param team - The watched session's team.
+- * @param sessionId - The bound session.
+- * @returns the team, or `undefined` when the session is not on it.
+- */
+ export function teamFor(team: TeamView | undefined, sessionId: string): TeamView | undefined {
+   if (team === undefined || team.leadSessionId === sessionId) return team
+-  return team.members.some(member => member.role === 'teammate' && member.id === sessionId) ? team : undefined
++  return team.members.some(member => member.id === sessionId) ? team : undefined
+ }
+ 
+-/**
+- * Create the composition root's team store and wire it to the host.
+- * @param ctx - Host context of the composition root.
+- * @returns the store the channel reads from.
+- */
++/** The Team projection owns tasks; the recursive subagent catalog owns membership. */
+ export function createTeamRosterStore(ctx: Context): TeamRosterStore {
+-  const store = createSessionProjectionStore<TeamView>({
++  let members: TeamMember[] = []
++  let memberRoot: string | undefined
++  let failure: string | undefined
++  let pending: AbortController | undefined
++  const agents = () => ctx.get('agents') as unknown as AgentsLike | undefined
++  const subagents = () => ctx.get('subagents') as unknown as SubagentsLike | undefined
++  const base = createSessionProjectionStore<TeamView>({
+     key: TEAM_PROJECTION_KEY,
+-    // A team bundle switched off at run time takes the service down before
+-    // (or while) its projection definition leaves: no service, no team.
+-    narrow: (value, leadSessionId) => (ctx.get('agentTeams', false) === undefined ? undefined : asTeamView(value, leadSessionId)),
+-    watch: session => teamRootOf(session, ctx.get('agents') as AgentsLike | undefined),
++    narrow: (value, root) => {
++      if (ctx.get('agentTeams', false) === undefined) return undefined
++      if (memberRoot !== root) {
++        memberRoot = root
++        members = [{ id: root, name: 'lead', role: 'lead', phase: 'active' }]
++        failure = undefined
++      }
++      const team = asTeamView(value, root, members)
++      return team === undefined || failure === undefined ? team : { ...team, failure: team.failure ?? failure }
++    },
++    watch: session => teamRootOf(session, agents(), subagents()),
+     warn: message => { ctx.logger.warn(message) },
+   })
++  const refresh = async (): Promise<void> => {
++    pending?.abort()
++    const id = base.watchedId
++    const service = subagents()
++    if (id === undefined || service === undefined) return
++    const abort = new AbortController()
++    pending = abort
++    try {
++      const entries = await service.listDescendants(id, AbortSignal.any([abort.signal, AbortSignal.timeout(10_000)]))
++      if (abort.signal.aborted || base.watchedId !== id) return
++      members = [{ id, name: 'lead', role: 'lead', phase: 'active' }, ...entries
++        .filter(entry => entry.kind === 'child' && entry.mode === 'continuable')
++        .map(entry => ({ id: entry.id, name: entry.path ?? entry.name ?? entry.id, role: 'teammate' as const, phase: 'active' as const }))]
++      failure = entries.filter(entry => entry.kind === 'diagnostic')
++        .map(entry => `${entry.id}: ${entry.reason}`).join('; ') || undefined
++      base.reseed()
++    } catch (error) {
++      if (!abort.signal.aborted) {
++        failure = error instanceof Error ? error.message : String(error)
++        base.noteReadFailure(error)
++        base.reseed()
++      }
++    }
++  }
++  const store = Object.assign(Object.create(base) as TeamRosterStore, {
++    seed(session: unknown) { base.seed(session); void refresh() },
++    update(id: string, value: unknown) { base.update(id, value); if (id === base.watchedId) void refresh() },
++    reseed() { base.reseed(); void refresh() },
++    attachRegistry(registry: Parameters<typeof base.attachRegistry>[0]) { base.attachRegistry(registry); void refresh() },
++    teamOf: (id: string) => base.boundId === id ? teamFor(base.read(), id) : undefined,
++  })
+   attachSessionProjection(ctx, TEAM_PROJECTION_KEY, store as SessionProjectionStore<unknown>)
+-  // The plugin manager announces every profile write it applied (`/team`,
+-  // `/plugin`, the Web UI). Unregistering a projection emits nothing on the
+-  // change feed, so the bound session is read again: an unmounted team clears
+-  // the view, a remounted one comes back from the Lead's log.
++  const changed = (info: { parentSessionId: string }): void => {
++    const parent = agents()?.get(info.parentSessionId)
++    if (parent !== undefined && subagents()?.rootOf(parent).id === base.watchedId) void refresh()
++  }
++  ctx.on('subagent/start' as never, changed as never)
++  ctx.on('subagent/end' as never, changed as never)
+   ctx.on('plugin-manager/changed', () => { store.reseed() })
+-  // Not every service change is announced there (an HMR-applied CLI or hand
+-  // edit, a late or recovered activation), and the narrow reads the service:
+-  // follow it directly. A service that comes back before its projection
+-  // definition reads absent here; the manager event above reads it again.
+   ctx.on('internal/service' as never, ((name: unknown) => {
+-    if (name === 'agentTeams') store.reseed()
++    if (name === 'agentTeams' || name === 'subagents') store.reseed()
+   }) as never)
+-  return Object.assign(store, {
+-    teamOf: (sessionId: string) => (store.boundId === sessionId ? teamFor(store.read(), sessionId) : undefined),
+-  })
++  ctx.effect(() => () => { pending?.abort() })
++  return store
+ }
+--- a/src/dsh-adapter/plugin.ts
++++ b/src/dsh-adapter/plugin.ts
+@@ -2763,10 +2763,8 @@
+     onPluginManage: createPluginManageEntry(ctx, {
+       profileName: profile ?? resolveDshProfileName(),
+     }),
+-    // `/team [status]`: the live team report (team-mode.ts). The bundle switch
+-    // is `/plugin enable|disable`, which shares the lifecycle flow.
+     onTeamCommand: createTeamCommandEntry(ctx, {
+-      profileName: profile ?? resolveDshProfileName(),
++      sessionId: () => channel.sessionId,
+     }),
+     kernelPinned: backendPinned,
+     // Only a `dsh --profile <name>` launch has a profile installation for
+--- a/src/dsh-adapter/channel/subagent-projection.ts
++++ b/src/dsh-adapter/channel/subagent-projection.ts
+@@ -48,14 +48,18 @@
+   }, signal: AbortSignal): Promise<{ readonly messageId: string }>
+   /** Durable direct-child catalog read; no Agent is loaded, so the rows
+    *  carry no liveness guarantee. */
+-  listChildren?(parentSessionId: string, signal?: AbortSignal): Promise<readonly SubagentCatalogEntryView[]>
++  listDescendants?(parentSessionId: string, signal?: AbortSignal): Promise<readonly SubagentCatalogEntryView[]>
+ }
+ 
+-/** One `listChildren` catalog row (SubagentCatalogEntry, structural). */
++/** One recursive catalog row, including branch diagnostics. */
+ export interface SubagentCatalogEntryView {
+   readonly id: string
+-  readonly createdAt: number
+-  readonly mode: 'one-shot' | 'continuable' | 'unknown'
++  readonly kind: 'child' | 'diagnostic'
++  readonly parentId: string
++  readonly depth: number
++  readonly path?: string
++  readonly reason?: string
++  readonly mode?: 'one-shot' | 'continuable' | 'external'
+   readonly label?: string
+ }
+ 
+@@ -149,16 +153,16 @@
+    */
+   const listTargets = async (): Promise<readonly AgentIdentity[]> => {
+     const service = deps.subagents()
+-    if (service?.listChildren === undefined) throw new Error('dsh-tui: the subagents continuation service is unavailable')
+-    const entries = await service.listChildren(String(deps.agent().session.id))
++    if (service?.listDescendants === undefined) throw new Error('dsh-tui: the subagents continuation service is unavailable')
++    const entries = await service.listDescendants(String(deps.agent().session.id), deps.ownerSignal)
+     return entries
+-      .filter(entry => entry.mode === 'continuable')
++      .filter(entry => entry.kind === 'child' && entry.mode === 'continuable')
+       .map(entry => {
+         const status = active.store.get(entry.id)?.status
+         return {
+           agentId: entry.id,
+           sessionId: entry.id,
+-          ...(entry.label === undefined ? {} : { label: entry.label }),
++          ...(entry.path === undefined && entry.label === undefined ? {} : { label: entry.path ?? entry.label }),
+           mode: 'continuable' as const,
+           ...(status === undefined ? {} : { status }),
+         }
+--- a/src/dsh-adapter/channel/subagent-transcript.ts
++++ b/src/dsh-adapter/channel/subagent-transcript.ts
+@@ -9,7 +9,7 @@
+  * the raw session-log file readers are not used.
+  *
+  * Read shape (every step bounded and fenced):
+- *  1. ownership: the parent-owned `subagents.listChildren(parentId)` roster
++ *  1. ownership: the parent-owned `subagents.listDescendants(parentId)` roster
+  *     must name the child; a UI-supplied id is never opened on its own;
+  *  2. durability: when the agents registry still holds the child's exact
+  *     live Session, the public `ctx.sessions.flush(session)` barrier runs
+@@ -185,14 +185,15 @@
+   signal?.throwIfAborted()
+ 
+   const service = deps.subagents()
+-  if (service?.listChildren === undefined) throw new Error('dsh-tui: the subagents continuation service is unavailable')
++  if (service?.listDescendants === undefined) throw new Error('dsh-tui: the subagents continuation service is unavailable')
+   const persistence = deps.persistence()
+   if (persistence === undefined) throw new Error('dsh-tui: session persistence is unavailable')
+ 
+   // 1. ownership: only a child this parent's own catalog names is opened.
+-  const roster = await service.listChildren(capture.sessionId, signal)
++  const roster = await service.listDescendants(capture.sessionId, signal)
+   guard()
+-  if (!Array.from(roster ?? []).some(entry => entry?.id === agentId)) return null
++  const child = roster.find(entry => entry.kind === 'child' && entry.id === agentId)
++  if (child === undefined) return null
+ 
+   // 2. durability barrier for a still-live child (best effort; when it fails
+   //    the read below sees whatever prefix is already persisted).
+@@ -225,7 +226,7 @@
+     if (String(header.id ?? '') !== agentId) throw new Error('dsh-tui: the stored child session id does not match the catalog id')
+     if (header.version !== SESSION_FORMAT_VERSION) throw new Error('dsh-tui: the stored child session format is not supported')
+     const statedParent = header.parentSession
+-    if (statedParent !== undefined && statedParent !== null && String(statedParent) !== capture.sessionId) {
++    if (statedParent !== undefined && statedParent !== null && String(statedParent) !== child.parentId) {
+       throw new Error('dsh-tui: the stored child session belongs to another parent')
+     }
+     // The fork-inherited prefix is part of the stored log but not the child's
+@@ -305,7 +306,7 @@
+     return {
+       events: lane,
+       // The parent is a verified fact (roster + stored lineage), never inferred.
+-      parentAgentId: capture.sessionId,
++      parentAgentId: child.parentId,
+       uuids,
+       hasOlder: skippedFromStart > 0,
+       skippedFromStart,
+--- a/src/dsh-adapter/channel/local-actions.ts
++++ b/src/dsh-adapter/channel/local-actions.ts
+@@ -32,22 +32,23 @@
+     },
+     async listSubagents(): Promise<string[]> {
+       const service = ctx.get('subagents') as {
+-        listChildren(sessionId: unknown, signal?: AbortSignal): Promise<Array<{ mode: string; label?: string; activity: string; id: string | { value?: string } }>>
++        listDescendants(sessionId: unknown, signal?: AbortSignal): Promise<Array<{ kind: string; mode?: string; path?: string; label?: string; activity?: string; reason?: string; id: string | { value?: string } }>>
+       } | undefined
+       if (!service) return [t('subagent-not-mounted')]
+       const capture = binding.capture()
+       try {
+-        const children = await service.listChildren((binding.agent.session as { id?: unknown }).id)
++        const children = await service.listDescendants((binding.agent.session as { id?: unknown }).id)
+         if (!current(capture)) throw new Error('dsh-tui: Channel lifetime has ended')
+         if (children.length === 0) return [t('subagent-none')]
+         return children.map(child => {
+           const id = typeof child.id === 'string' ? child.id : (child.id.value ?? '')
++          if (child.kind === 'diagnostic') return t('subagent-query-failed', { err: `${id}: ${child.reason}` })
+           // The host's non-running activity is not proof that a child was
+           // archived: continuable children can be idle or temporarily unknown.
+           // Prefer the live projection when this process still owns the run.
+           const running = state.subagents.some(sub => sub.agentId === id && sub.status === 'running')
+           const activity = running || child.activity === 'running' ? t('subagent-running') : t('subagent-unknown')
+-          return t('subagent-row', { mode: child.mode === 'continuable' ? t('subagent-resumable') : t('subagent-oneshot'), label: child.label ? `「${child.label}」` : '', activity, id: id.slice(0, 8) })
++          return t('subagent-row', { mode: child.mode === 'continuable' ? t('subagent-resumable') : t('subagent-oneshot'), label: child.path || child.label ? `「${child.path ?? child.label}」` : '', activity, id: id.slice(0, 8) })
+         })
+       } catch (error) {
+         if (!current(capture)) throw error
+--- a/src/i18n.ts
++++ b/src/i18n.ts
+@@ -2018,37 +2018,12 @@
+   'team-task-blocked': { zh: '阻塞', en: 'blocked' },
+   'team-failure': { zh: '团队记录被拒：{{failure}}', en: 'Team record rejected: {{failure}}' },
+ 
+-  // ── /team：团队状态（开关是 /plugin enable|disable，见 docs/agent-teams-design.md「开关机制」）──
+-  'team-cmd-unavailable': { zh: '当前内核没有 Agent Teams。', en: 'The current kernel has no Agent Teams.' },
+-  'team-cmd-usage': { zh: '未知子命令「{{sub}}」。用法：/team [status]', en: 'Unknown subcommand "{{sub}}". Usage: /team [status]' },
+-  'team-cmd-switch-moved': {
+-    zh: '团队开关已改为 /plugin enable|disable {{bundle}}；/team 只报告状态。',
+-    en: 'The team switch moved to /plugin enable|disable {{bundle}}; /team only reports status.',
+-  },
+-  'team-cmd-not-enabled': {
+-    zh: '团队服务未运行（bundle 未启用、启用后尚未生效，或激活失败）。开启/应用：/plugin enable {{bundle}}；需要时重启。',
+-    en: 'The team service is not running (bundle off, enabled but not applied yet, or activation failed). Enable/apply with /plugin enable {{bundle}}; restart if needed.',
+-  },
+-  'team-cmd-no-manager-route': {
+-    zh: '本次启动没有 profile 插件服务，无法在会话内切换。在终端用 dsh plugin --profile {{profile}} add {{bundle}}@<已装 DSH 版本>（关闭用 remove），然后重启；版本须与已装 DSH 完全一致。',
+-    en: 'This launch has no profile plugin service, so the team cannot be switched here. In a terminal run dsh plugin --profile {{profile}} add {{bundle}}@<your DSH version> (remove to switch off), then restart; the version must match the installed DSH exactly.',
+-  },
+-  'team-cmd-bundle-absent': {
+-    zh: '本次运行的 DSH 安装不自带团队包（/plugin list 不显示它）：先把 DSH 换到自带团队包的版本线，再重启并开启。',
+-    en: 'The running DSH installation does not ship the team bundle (/plugin list does not show it): switch DSH to a line that ships the team packages first, then restart and enable it.',
+-  },
+-  'team-cmd-no-manager': {
+-    zh: '本次启动没有 profile 插件服务：只能报告团队服务状态。',
+-    en: 'This launch has no profile plugin service: only the team service state can be reported.',
+-  },
+-  'team-cmd-bundle': { zh: '团队 bundle：{{state}}', en: 'Team bundle: {{state}}' },
+-  'team-cmd-bundle-unknown': { zh: '团队 bundle：未知（插件服务没有列出该包）', en: 'Team bundle: unknown (the plugin service does not list it)' },
++  // /team: per-session mode
++  'team-cmd-unavailable': { zh: '团队模式需要 live DSH 会话及其团队服务。', en: 'Team mode requires a live DSH session and its Team service.' },
++  'team-cmd-usage': { zh: '未知子命令「{{sub}}」。用法：/team [status|on|off]', en: 'Unknown subcommand "{{sub}}". Usage: /team [status|on|off]' },
++  'team-cmd-bundle': { zh: '本会话团队模式：{{state}}', en: 'Session Team mode: {{state}}' },
+   'team-cmd-on': { zh: '已开启', en: 'on' },
+   'team-cmd-off': { zh: '已关闭', en: 'off' },
+-  'team-cmd-service': { zh: '团队服务：{{state}}', en: 'Team service: {{state}}' },
+-  'team-cmd-running': { zh: '运行中', en: 'running' },
+-  'team-cmd-pending-on': { zh: 'profile 已开启团队，但服务没有运行：重启后生效，或服务激活失败（见日志）。', en: 'The profile has the team on but the service is not running: it applies after a restart, or the service failed to activate (see the log).' },
+-  'team-cmd-pending-off': { zh: 'profile 已关闭团队，但服务仍在运行：重启后生效。', en: 'The profile has the team off but the service is still running: it applies after a restart.' },
+   'team-cmd-no-members': { zh: '本会话没有 teammate。', en: 'No teammates in this session.' },
+   'team-cmd-members': { zh: '本会话 teammate：{{total}} 个，其中 {{active}} 个运行中或准备中。', en: 'Teammates in this session: {{total}}, {{active}} running or provisioning.' },
+   'team-cmd-members-unseen': {
+--- a/scripts/verify-agent-teams-compat-0.2.0.ts
++++ b/scripts/verify-agent-teams-compat-0.2.0.ts
+@@ -113,7 +113,7 @@
+     const stateStub = { rows: [], subagents: [] as unknown[], subagentCost: [], emitCount: 0, emit() { this.emitCount += 1 }, emitStream() {} }
+     const agent = { id: 'ag-1', status: 'idle', session: { id: LEAD } }
+     const childSession = { id: 'sess-child-1' }
+-    const service = { prompt: async () => ({ messageId: 'msg-1' }), listChildren: async () => [] }
++    const service = { prompt: async () => ({ messageId: 'msg-1' }), listDescendants: async () => [] }
+     const projection = createSubagentProjection(() => stateStub as never, { rowIds: { value: 0 }, agent: () => agent as never, subagents: () => service, lookupChild: () => undefined })
+     projection.store.onSpawned('child-1', 'subagent')
+     projection.store.linkSession('child-1', childSession)
+@@ -128,7 +128,7 @@
+   const parentFolded = (event: unknown) => {
+     const stateStub = { rows: [], subagents: [] as unknown[], subagentCost: [], emitCount: 0, emit() { this.emitCount += 1 }, emitStream() {} }
+     const agent = { id: 'ag-1', status: 'idle', session: { id: LEAD } }
+-    const service = { prompt: async () => ({ messageId: 'msg-1' }), listChildren: async () => [] }
++    const service = { prompt: async () => ({ messageId: 'msg-1' }), listDescendants: async () => [] }
+     const projection = createSubagentProjection(() => stateStub as never, { rowIds: { value: 0 }, agent: () => agent as never, subagents: () => service, lookupChild: () => undefined })
+     projection.onParentEvent(event, false, LEAD)
+     return projection.control.message!.messages().map(view => view.text)
+--- a/scripts/verify-agent-team-channel.ts
++++ b/scripts/verify-agent-team-channel.ts
+@@ -11,7 +11,7 @@
+  *     into views (parent-directed and child-directed), the direct
+  *     continuable prompt submit (receipt → queued; RemoteError codes →
+  *     stable reasons; one-shot fail-closed; service absent = no capability),
+- *     listChildren roster filtering (continuable only), reset clears;
++ *     listDescendants roster filtering (continuable only), reset clears;
+  *  C. the Claude SendMessage observation: input parsing (no recipient or no
+  *     body = no message), a call is only ever issued, result states
+  *     (explicit error → refused, structured field → its state, bare success
+@@ -131,10 +131,10 @@
+       }
+       return { messageId: 'msg-77' }
+     },
+-    listChildren: async () => [
+-      { id: 'child-cont', createdAt: 1, mode: 'continuable', label: 'Scanner' },
+-      { id: 'child-shot', createdAt: 2, mode: 'one-shot', label: 'Burner' },
+-      { id: 'child-unk', createdAt: 3, mode: 'unknown' },
++    listDescendants: async () => [
++      { kind: 'child', id: 'child-cont', parentId: 'parent', depth: 1, mode: 'continuable', label: 'Scanner' },
++      { kind: 'child', id: 'child-shot', parentId: 'parent', depth: 1, mode: 'one-shot', label: 'Burner' },
++      { kind: 'diagnostic', id: 'child-unk', parentId: 'parent', depth: 1, reason: 'unsupported' },
+     ],
+   }
+   const projection = createSubagentProjection(() => stateStub as never, {
+--- a/scripts/verify-dsh-child-transcript.ts
++++ b/scripts/verify-dsh-child-transcript.ts
+@@ -171,7 +171,7 @@
+   return { deps, flipGeneration: () => { generation += 1 } }
+ }
+ const rosterService = (ids: readonly string[]) => ({
+-  listChildren: async () => ids.map((id, i) => ({ id, createdAt: i, mode: i === 0 ? 'continuable' : 'one-shot' })),
++  listDescendants: async () => ids.map((id, i) => ({ kind: 'child' as const, id, parentId: PARENT, depth: 1, mode: i === 0 ? 'continuable' as const : 'one-shot' as const })),
+ })
+ 
+ // ── Section T: lane translation fixtures ───────────────────────────────────
+@@ -407,9 +407,9 @@
+   // generation fence mid-read: the roster resolving flips the binding away
+   const fenced = makeDeps({ persistence: () => memory.source })
+   fenced.deps.subagents = () => ({
+-    listChildren: async () => {
++    listDescendants: async () => {
+       fenced.flipGeneration()
+-      return [{ id: CHILD, createdAt: 1, mode: 'continuable' }]
++      return [{ kind: 'child', id: CHILD, parentId: PARENT, depth: 1, mode: 'continuable' }]
+     },
+   })
+   await rejects('G1 a binding generation switch mid-read discards the page', () => readChildTranscriptPage(fenced.deps, CHILD), 'binding changed')
+--- a/scripts/verify-team-mode.ts
++++ b/scripts/verify-team-mode.ts
+@@ -1,340 +1 @@
+-/**
+- * Agent Teams at run time (issue #1241, docs/agent-teams-design.md
+- * 「开关机制」): the per-assembly choice of delegation tools, the team store
+- * following the service across a plugin-manager change, `/team status` and its
+- * service-gated visibility, and the confirmation that disabling the team
+- * bundle asks while teammates are active (through `/plugin disable`). The
+- * plugin manager and the registry are fakes; the live toggle itself was
+- * measured against the real 0.2.0-rc.2 bundle (see the design doc).
+- *
+- * Run: node --import tsx/esm scripts/verify-team-mode.ts
+- */
+-process.env.DSH_TUI_LANG = 'en'
+-const [{ mkdtempSync, rmSync }, { tmpdir }, { join }, assertModule] = await Promise.all([
+-  import('node:fs'),
+-  import('node:os'),
+-  import('node:path'),
+-  import('node:assert/strict'),
+-])
+-const assert = assertModule.default
+-const dataDir = mkdtempSync(join(tmpdir(), 'verify-team-mode-data-'))
+-process.env.HOME = dataDir
+-process.env.USERPROFILE = dataDir
+-
+-const [teamMode, roster, manage] = await Promise.all([
+-  import('../src/dsh-adapter/team-mode.js'),
+-  import('../src/dsh-adapter/team-roster.js'),
+-  import('../src/dsh-adapter/plugin-manage.js'),
+-])
+-const {
+-  createTeamCommandEntry, filterTeamReplacedTools, parseTeamArgs,
+-  teamReplacedToolDeny, teamServiceActive, withTeamCommandVisibility,
+-} = teamMode
+-const { createTeamRosterStore, TEAM_BUNDLE, TEAM_PROJECTION_KEY } = roster
+-const { createPluginManageEntry } = manage
+-type PluginManagerView = import('../src/dsh-adapter/plugin-manager.js').PluginManagerView
+-type BundleInfo = Awaited<ReturnType<PluginManagerView['listBundles']>>[number]
+-
+-try {
+-  // ── delegation tools per assembly ──────────────────────────────────────
+-  {
+-    assert.deepEqual(teamReplacedToolDeny(new Set(['subagent', 'subagent_fork', 'spawn_teammate'])), ['subagent', 'subagent_fork'])
+-    assert.deepEqual(teamReplacedToolDeny(new Set(['subagent', 'subagent_fork'])), [])
+-    const tool = (name: string) => ({ name })
+-    const assembly = (...names: string[]) => ({ sections: [], contexts: [], variables: {}, tools: names.map(tool) }) as never
+-    const on = assembly('bash', 'subagent', 'subagent_fork', 'spawn_teammate', 'send_message', 'list_agents')
+-    assert.deepEqual(filterTeamReplacedTools(on).tools.map((t: { name: string }) => t.name),
+-      ['bash', 'spawn_teammate', 'send_message', 'list_agents'],
+-      'with spawn_teammate the legacy spawners leave; the shared-name controls are the shadowing team copies')
+-    const off = assembly('bash', 'subagent', 'subagent_fork', 'send_message')
+-    assert.equal(filterTeamReplacedTools(off), off, 'without the team tools the assembly is untouched')
+-    const teamOnly = assembly('bash', 'spawn_teammate')
+-    assert.equal(filterTeamReplacedTools(teamOnly), teamOnly, 'nothing to drop keeps the reference')
+-    console.log('PASS delegation tools follow spawn_teammate per assembly')
+-  }
+-
+-  // ── team store follows the service across a plugin-manager change ──────
+-  {
+-    const LEAD = 'lead-1'
+-    const team = {
+-      members: [{ id: LEAD, name: 'lead', role: 'lead', phase: 'active' }, { id: 'm1', name: 'builder', role: 'teammate', phase: 'active' }],
+-      tasks: [],
+-    }
+-    let mounted = true
+-    let changed: (() => void) | undefined
+-    const ctx = {
+-      get: (name: string) => (name === 'agentTeams' ? (mounted ? {} : undefined) : name === 'agents' ? { list: () => [] } : undefined),
+-      logger: { warn: () => undefined },
+-      inject(_deps: unknown, callback: (ctx: unknown) => void) {
+-        callback({
+-          sessionProjections: {
+-            onChanged: () => () => undefined,
+-            // An unregistered definition is absent from the snapshot.
+-            snapshot: () => ({ values: mounted ? { [TEAM_PROJECTION_KEY]: team } : {} }),
+-          },
+-          effect: () => undefined,
+-        })
+-      },
+-      on(name: string, listener: () => void) {
+-        if (name === 'plugin-manager/changed') changed = listener
+-        return () => undefined
+-      },
+-    }
+-    const store = createTeamRosterStore(ctx as never)
+-    let emits = 0
+-    store.subscribe(() => { emits++ })
+-    store.seed({ id: LEAD })
+-    assert.equal(store.read()?.members.length, 2)
+-    assert.ok(changed !== undefined, 'the store listens for plugin-manager changes')
+-    mounted = false
+-    changed!()
+-    assert.equal(store.read(), undefined, 'switched off: the view clears')
+-    assert.equal(emits, 2)
+-    mounted = true
+-    changed!()
+-    assert.equal(store.read()?.members[1]?.name, 'builder', 'switched on again: the Lead team comes back')
+-    assert.equal(emits, 3)
+-    console.log('PASS team store clears and comes back on plugin-manager/changed')
+-
+-    // The service can leave while the projection definition is still
+-    // registered, the host then handing back the same cached value: the
+-    // narrow (which checks the service) must still run on a reseed.
+-    let service = true
+-    let notify: (() => void) | undefined
+-    const sameRef = createTeamRosterStore({
+-      ...ctx,
+-      get: (name: string) => (name === 'agentTeams' ? (service ? {} : undefined) : name === 'agents' ? { list: () => [] } : undefined),
+-      inject(_deps: unknown, callback: (ctx: unknown) => void) {
+-        callback({ sessionProjections: { onChanged: () => () => undefined, snapshot: () => ({ values: { [TEAM_PROJECTION_KEY]: team } }) }, effect: () => undefined })
+-      },
+-      on(name: string, listener: () => void) {
+-        if (name === 'plugin-manager/changed') notify = listener
+-        return () => undefined
+-      },
+-    } as never)
+-    sameRef.seed({ id: LEAD })
+-    assert.equal(sameRef.read()?.members.length, 2)
+-    service = false
+-    notify!()
+-    assert.equal(sameRef.read(), undefined, 'the service gone with the definition still registered: the view clears')
+-    service = true
+-    notify!()
+-    assert.equal(sameRef.read()?.members.length, 2, 'and comes back on the same cached value')
+-    console.log('PASS team store re-narrows an unchanged projection value on plugin-manager/changed')
+-
+-    // A service change the plugin manager never announces (an HMR-applied
+-    // CLI edit, a late activation) is followed through `internal/service`.
+-    let present = true
+-    let serviceChanged: ((name: unknown) => void) | undefined
+-    const quiet = createTeamRosterStore({
+-      ...ctx,
+-      get: (name: string) => (name === 'agentTeams' ? (present ? {} : undefined) : name === 'agents' ? { list: () => [] } : undefined),
+-      inject(_deps: unknown, callback: (ctx: unknown) => void) {
+-        callback({ sessionProjections: { onChanged: () => () => undefined, snapshot: () => ({ values: { [TEAM_PROJECTION_KEY]: team } }) }, effect: () => undefined })
+-      },
+-      on(name: string, listener: (name: unknown) => void) {
+-        if (name === 'internal/service') serviceChanged = listener
+-        return () => undefined
+-      },
+-    } as never)
+-    quiet.seed({ id: LEAD })
+-    assert.equal(quiet.read()?.members.length, 2)
+-    present = false
+-    serviceChanged!('agents')
+-    assert.equal(quiet.read()?.members.length, 2, 'another service changing reads nothing again')
+-    serviceChanged!('agentTeams')
+-    assert.equal(quiet.read(), undefined, 'the team service gone without a manager event: the view clears')
+-    present = true
+-    serviceChanged!('agentTeams')
+-    assert.equal(quiet.read()?.members.length, 2, 'and comes back with it')
+-    console.log('PASS team store follows the agentTeams service through internal/service')
+-
+-    // A teammate whose Lead is not live has no snapshot to read: a reseed
+-    // still narrows the value it holds, so a stopped service clears it.
+-    let up = true
+-    let feed: ((session: unknown, key: string, value: unknown) => void) | undefined
+-    let onService: ((name: unknown) => void) | undefined
+-    const orphan = createTeamRosterStore({
+-      ...ctx,
+-      get: (name: string) => (name === 'agentTeams' ? (up ? {} : undefined) : name === 'agents' ? { list: () => [] } : undefined),
+-      inject(_deps: unknown, callback: (ctx: unknown) => void) {
+-        callback({
+-          sessionProjections: {
+-            onChanged: (listener: typeof feed) => { feed = listener; return () => undefined },
+-            snapshot: () => { throw new Error('no snapshot for a session that is not live') },
+-          },
+-          effect: () => undefined,
+-        })
+-      },
+-      on(name: string, listener: (name: unknown) => void) {
+-        if (name === 'internal/service') onService = listener
+-        return () => undefined
+-      },
+-    } as never)
+-    orphan.seed({ id: 'm1', header: { origin: 'subagent', parentSession: LEAD } })
+-    assert.equal(orphan.watchedId, LEAD)
+-    feed!({ id: LEAD }, TEAM_PROJECTION_KEY, team)
+-    assert.equal(orphan.read()?.members.length, 2, 'the Lead value arrives on the feed')
+-    up = false
+-    onService!('agentTeams')
+-    assert.equal(orphan.read(), undefined, 'no snapshot to read: the held value is narrowed again and clears')
+-    up = true
+-    onService!('agentTeams')
+-    assert.equal(orphan.read()?.members.length, 2, 'and comes back from the same held value')
+-    console.log('PASS team store re-narrows the held value when the watched Lead has no snapshot')
+-  }
+-
+-  // ── /team ──────────────────────────────────────────────────────────────
+-  assert.deepEqual(parseTeamArgs(''), { kind: 'status' })
+-  assert.deepEqual(parseTeamArgs(' status '), { kind: 'status' })
+-  assert.deepEqual(parseTeamArgs('on'), { kind: 'switch' })
+-  assert.deepEqual(parseTeamArgs('off now'), { kind: 'switch' })
+-  assert.deepEqual(parseTeamArgs('toggle'), { kind: 'unknown', sub: 'toggle' })
+-
+-  // `/team` is a service-gated row: hidden from Help and `/` completion while
+-  // `agentTeams` is absent, restored by the signal the team store also reads.
+-  {
+-    const commands = [{ name: 'team', description: '' }, { name: 'plugin', description: '' }]
+-    assert.deepEqual(withTeamCommandVisibility(commands, true), commands)
+-    assert.deepEqual(withTeamCommandVisibility(commands, false).map(command => command.name), ['plugin'])
+-    assert.equal(teamServiceActive({ get: () => undefined } as never), false)
+-    assert.equal(teamServiceActive({ get: () => ({}) } as never), true)
+-    console.log('PASS /team visibility helper follows the agentTeams service')
+-  }
+-
+-  const teamBundle = (enabled: boolean): BundleInfo => ({
+-    name: TEAM_BUNDLE, version: '0.2.0-rc.2', enabled, installed: true, optional: false, removable: true, rows: [], overrides: [],
+-  }) as BundleInfo
+-  function rig(options: { bundles?: BundleInfo[]; service?: boolean; manager?: boolean } = {}) {
+-    const manager = {
+-      listBundles: () => Promise.resolve(options.bundles ?? [teamBundle(true)]),
+-      listPlugins: () => Promise.resolve([]),
+-    } as unknown as PluginManagerView
+-    const ctx = {
+-      get: (name: string) => (name === 'pluginManager' ? (options.manager === false ? undefined : manager)
+-        : name === 'agentTeams' ? (options.service === false ? undefined : {}) : undefined),
+-    }
+-    return { ctx, manager }
+-  }
+-  const sink = (members: { total: number; active: number; unseen?: number }) => ({
+-    members: () => ({ unseen: 0, ...members }),
+-  })
+-  const linesOf = async (
+-    entry: ReturnType<typeof createTeamCommandEntry>,
+-    args: string,
+-    members: { total: number; active: number; unseen?: number } = { total: 0, active: 0 },
+-  ): Promise<string[]> => [...await entry(args, sink(members))]
+-
+-  {
+-    // Mounted service, selected bundle: the full report.
+-    const entry = createTeamCommandEntry(rig().ctx as never)
+-    const status = (await linesOf(entry, '', { total: 2, active: 1 })).join('\n')
+-    assert.match(status, /Team bundle: on/)
+-    assert.match(status, /Team service: running/)
+-    assert.match(status, /Teammates in this session: 2, 1 running or provisioning/)
+-  }
+-
+-  {
+-    // Service still mounted after the bundle was switched off: say which wins.
+-    const entry = createTeamCommandEntry(rig({ bundles: [teamBundle(false)] }).ctx as never)
+-    const pending = (await linesOf(entry, 'status')).join('\n')
+-    assert.match(pending, /Team bundle: off/)
+-    assert.match(pending, /Team service: running/)
+-    assert.match(pending, /profile has the team off but the service is still running/)
+-  }
+-
+-  {
+-    // No plugin manager: still report the service and this session's team.
+-    const entry = createTeamCommandEntry(rig({ manager: false }).ctx as never)
+-    const unmanaged = (await linesOf(entry, '')).join('\n')
+-    assert.match(unmanaged, /Team service: running/)
+-    assert.match(unmanaged, /no profile plugin service/)
+-    assert.match(unmanaged, /No teammates in this session/)
+-  }
+-
+-  {
+-    // A service with no listed bundle: say unknown, not "installed off".
+-    const entry = createTeamCommandEntry(rig({ bundles: [] }).ctx as never)
+-    const unknown = (await linesOf(entry, '')).join('\n')
+-    assert.match(unknown, /Team bundle: unknown/)
+-    assert.match(unknown, /Team service: running/)
+-  }
+-
+-  {
+-    // Hidden but typed, bundle still selected: the profile already has it on, so
+-    // the answer is why no service runs — never an enable command that is a no-op.
+-    const entry = createTeamCommandEntry(rig({ service: false }).ctx as never)
+-    const hidden = (await linesOf(entry, '')).join('\n')
+-    assert.match(hidden, /The profile has the team on but the service is not running/)
+-    assert.doesNotMatch(hidden, /\/plugin enable/)
+-    assert.doesNotMatch(hidden, /Team bundle:/)
+-    assert.doesNotMatch(hidden, /\/plugin disable/, 'it is already on: off is not the route either')
+-  }
+-
+-  {
+-    // Hidden but typed, bundle off: the enable route this launch can run.
+-    const entry = createTeamCommandEntry(rig({ service: false, bundles: [teamBundle(false)] }).ctx as never)
+-    const hidden = (await linesOf(entry, '')).join('\n')
+-    assert.match(hidden, /The team service is not running/)
+-    assert.match(hidden, new RegExp(`/plugin enable ${TEAM_BUNDLE}`))
+-    assert.doesNotMatch(hidden, /Team bundle:/)
+-  }
+-
+-  {
+-    // Hidden because the launch has no profile plugin service: the in-session
+-    // command cannot run at all, so the hint must name the CLI route instead
+-    // (a `/plugin enable` here would only fail).
+-    const entry = createTeamCommandEntry(rig({ service: false, manager: false }).ctx as never)
+-    const unmanaged = (await linesOf(entry, '')).join('\n')
+-    assert.match(unmanaged, new RegExp(`dsh plugin --profile dsh-tui add ${TEAM_BUNDLE}@`))
+-    assert.doesNotMatch(unmanaged, /\/plugin enable/)
+-    assert.match((await linesOf(entry, 'off')).join('\n'), new RegExp(`dsh plugin --profile dsh-tui add ${TEAM_BUNDLE}@`))
+-  }
+-
+-  {
+-    // The installation does not ship the bundle: `/plugin enable` would answer
+-    // with its generic "no such target", so say what is missing instead.
+-    const entry = createTeamCommandEntry(rig({ service: false, bundles: [] }).ctx as never)
+-    const absent = (await linesOf(entry, '')).join('\n')
+-    assert.match(absent, /The running DSH installation does not ship the team bundle/)
+-    assert.doesNotMatch(absent, /\/plugin enable/)
+-  }
+-
+-  {
+-    // on / off moved: answer with the new route, mounted or not, and write nothing.
+-    for (const service of [true, false]) {
+-      const entry = createTeamCommandEntry(rig({ service }).ctx as never)
+-      const moved = (await linesOf(entry, 'on')).join('\n')
+-      assert.match(moved, new RegExp(`/plugin enable\\|disable ${TEAM_BUNDLE}`))
+-      assert.match(moved, /\/team only reports status/)
+-      assert.doesNotMatch(moved, /Team service:/)
+-    }
+-  }
+-
+-  {
+-    const entry = createTeamCommandEntry(rig().ctx as never)
+-    assert.match((await linesOf(entry, 'toggle')).join('\n'), /Usage: \/team \[status\]/)
+-  }
+-
+-  {
+-    // From a teammate: siblings that may be running are counted as possibly running.
+-    const status = (await linesOf(createTeamCommandEntry(rig().ctx as never), '', { total: 2, active: 0, unseen: 1 })).join('\n')
+-    assert.match(status, /Teammates in this session: 2, 0 running or provisioning, 1 may be running \(not visible from a teammate\)/)
+-  }
+-
+-  {
+-    // `/plugin disable <team bundle>` asks the same question; another bundle does not.
+-    const { manager } = rig({ bundles: [teamBundle(true), { ...teamBundle(true), name: 'other-bundle' }] })
+-    const plugin = createPluginManageEntry({ get: (name: string) => (name === 'pluginManager' ? manager : undefined) } as never, { profileName: 'dsh-tui' })
+-    const pluginSink = { binding: () => 1, busy: () => false, onLines: () => undefined, teamActiveMembers: () => ({ active: 1, unseen: 0 }) }
+-    const team = plugin(`disable ${TEAM_BUNDLE}`, pluginSink)
+-    const step = await team!.begin()
+-    assert.deepEqual(step.kind === 'confirm' ? step.question : undefined, { kind: 'team-active', members: 1, unseen: 0 })
+-    const other = await plugin('disable other-bundle', pluginSink)!.begin()
+-    assert.equal(other.kind, 'done', 'only the team bundle asks')
+-  }
+-  console.log('PASS /team status (bundle, service, pending, no manager, unknown, hidden hint, CLI route, bundle-absent reason, moved switch, usage) and /plugin disable team-active')
+-} finally {
+-  rmSync(dataDir, { recursive: true, force: true })
+-}
+-console.log('ALL PASS')
++import "./verify-rc2-runtime.mjs"
+--- /dev/null
++++ b/scripts/verify-rc2-runtime.mjs
+@@ -0,0 +1,154 @@
++import assert from "node:assert/strict";
++import { pathToFileURL, fileURLToPath } from "node:url";
++import { createRequire } from "node:module";
++import { mkdtempSync, rmSync } from "node:fs";
++import { tmpdir } from "node:os";
++import { join } from "node:path";
++
++const home = mkdtempSync(join(tmpdir(), "dsh-tui-rc2-"));
++Object.assign(process.env, {
++  HOME: home, USERPROFILE: home, DSH_HOME: join(home, "dsh"),
++  DSH_TUI_DATA_DIR: join(home, "tui"), DSH_TUI_LANG: "en",
++});
++process.on("exit", () => rmSync(home, { recursive: true, force: true }));
++
++const packageRoot = process.argv[2] ?? fileURLToPath(new URL("..", import.meta.url));
++
++const require = createRequire(`${packageRoot}/lib/types/dsh-adapter/channel/subagent-transcript.js`);
++const { SESSION_FORMAT_VERSION } = await import(pathToFileURL(require.resolve("@deepseek-ai/dsh-session")));
++
++const load = (file) => import(pathToFileURL(`${packageRoot}/lib/types/${file}.js`));
++const { createTeamCommandEntry, parseTeamArgs, teamReplacedToolDeny, withTeamCommandVisibility } = await load("dsh-adapter/team-mode");
++assert.deepEqual(parseTeamArgs("on"), { kind: "switch" });
++assert.deepEqual(parseTeamArgs("status"), { kind: "status" });
++assert.deepEqual(teamReplacedToolDeny(new Set(["subagent", "subagent_fork"])), []);
++assert.deepEqual(teamReplacedToolDeny(new Set(["spawn_teammate", "subagent"])), ["subagent"]);
++assert.deepEqual(withTeamCommandVisibility([{ name: "team" }, { name: "plugin" }], false).map((item) => item.name), ["plugin"]);
++const { asTeamView, createTeamRosterStore } = await load("dsh-adapter/team-roster");
++const { createLocalActions } = await load("dsh-adapter/channel/local-actions");
++const { readChildTranscriptPage } = await load("dsh-adapter/channel/subagent-transcript");
++
++const root = { id: "root", session: { id: "root" } };
++const nested = { id: "nested", session: { id: "nested" } };
++const other = { id: "other", session: { id: "other" } };
++const agents = new Map([root, nested, other].map((agent) => [agent.id, agent]));
++const modes = new Map();
++const changedModes = [];
++const teams = {
++  isEnabled: (agent) => modes.get(agent.id) === true,
++  setEnabled: async (agent, enabled) => {
++    assert.notEqual(agent, nested);
++    modes.set(agent.id, enabled);
++    changedModes.push([agent.id, enabled]);
++  },
++};
++const rows = [
++  { kind: "child", id: "nested", parentId: "child", depth: 2, path: "scout/reviewer", mode: "continuable", label: "Nested review", activity: "inactive" },
++  { kind: "diagnostic", id: "unreadable", parentId: "root", depth: 1, reason: "corrupt" },
++];
++let resolveOld;
++let holdOld = false;
++const subagents = {
++  rootOf: (agent) => agent === nested ? root : agent,
++  listDescendants: async (id) => {
++    if (holdOld && id === root.id) return new Promise((resolve) => { resolveOld = resolve; });
++    return id === root.id ? rows : [];
++  },
++};
++const releases = [];
++const listeners = new Map();
++const registry = {
++  snapshot: () => ({ values: { agentTeam: { enabled: true, tasks: [] } } }),
++  onChanged: () => () => {},
++};
++let available = true;
++const ctx = {
++  get: (name) => ({ agentTeams: available ? teams : undefined, agents, subagents })[name],
++  sessionProjections: registry,
++  inject: (_names, apply) => apply(ctx),
++  effect: (factory) => { releases.push(factory()); },
++  on: (name, listener) => { listeners.set(name, listener); return () => listeners.delete(name); },
++  logger: { warn: (message) => { throw new Error(message); } },
++};
++let selected = root.id;
++const command = createTeamCommandEntry(ctx, { sessionId: () => selected });
++const sink = { members: () => ({ total: 1, active: 0, unseen: 0 }) };
++await command("on", sink);
++selected = other.id;
++await command("off", sink);
++assert.deepEqual(changedModes, [[root.id, true], [other.id, false]]);
++assert.equal(modes.get(root.id), true);
++selected = "missing";
++assert.match((await command("on", sink)).join(" "), /Team mode requires a live DSH session/);
++assert.equal(changedModes.length, 2);
++assert.equal(asTeamView({ enabled: false, tasks: [] }, root.id), undefined);
++assert.deepEqual(asTeamView({ enabled: true, tasks: [] }, root.id)?.tasks, []);
++
++const store = createTeamRosterStore(ctx);
++store.seed(nested.session);
++await new Promise(setImmediate);
++assert.equal(store.watchedId, root.id);
++assert.equal(store.teamOf(nested.id)?.members[1]?.name, "scout/reviewer");
++assert.match(store.teamOf(nested.id)?.failure ?? "", /unreadable: corrupt/);
++available = false;
++listeners.get("internal/service")("agentTeams");
++assert.equal(store.read(), undefined);
++available = true;
++listeners.get("internal/service")("agentTeams");
++await new Promise(setImmediate);
++assert.equal(store.teamOf(nested.id)?.members.length, 2);
++holdOld = true;
++store.seed(root.session);
++store.seed(other.session);
++await new Promise(setImmediate);
++resolveOld(rows);
++await new Promise(setImmediate);
++assert.deepEqual(store.teamOf(other.id)?.members.map((member) => member.id), [other.id]);
++assert.equal(store.teamOf(other.id)?.failure, undefined);
++
++const capture = {};
++const actions = createLocalActions({
++  ctx,
++  owner: { current: () => true },
++  binding: { capture: () => capture, isCurrent: () => true, agent: root },
++  state: { subagents: [] },
++  presenters: {},
++  foldBack: () => 0,
++});
++holdOld = false;
++const listed = await actions.listSubagents();
++assert.ok(listed.some((line) => line.includes("scout/reviewer")));
++assert.ok(listed.some((line) => line.includes("unreadable: corrupt")));
++
++let opened = 0;
++let closed = 0;
++let storedParent = "child";
++const deps = {
++  capture: () => ({ sessionId: root.id, generation: 1, session: root.session }),
++  isCurrent: () => true,
++  subagents: () => subagents,
++  sessionsStore: () => undefined,
++  lookupChild: () => undefined,
++  persistence: () => ({
++    stat: async () => ({ eventCount: 0 }),
++    open: async () => {
++      opened++;
++      return {
++        header: { id: nested.id, version: SESSION_FORMAT_VERSION, parentSession: storedParent, isSeeded: false },
++        inheritedEventCount: 0,
++        read: async () => ({ events: [] }),
++        close: async () => { closed++; },
++      };
++    },
++  }),
++  createTranslator: () => ({ translateEvent: () => [] }),
++};
++const page = await readChildTranscriptPage(deps, nested.id);
++assert.equal(page?.parentAgentId, "child");
++assert.equal(await readChildTranscriptPage(deps, "foreign"), null);
++assert.equal(await readChildTranscriptPage(deps, "unreadable"), null);
++assert.equal(opened, 1);
++storedParent = "foreign";
++await assert.rejects(readChildTranscriptPage(deps, nested.id), /another parent/);
++assert.equal(closed, 2);
++for (const release of releases.reverse()) await release?.();

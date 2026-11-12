@@ -2,6 +2,7 @@
   lib,
   stdenv,
   fetchFromGitHub,
+  fetchpatch2,
   buildDshBundle,
   dsh-runtime,
   importPnpmLock,
@@ -22,6 +23,23 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     tag = "v${finalAttrs.version}";
     hash = "sha256-mvk4VhghjMShZs3THtF77u8AMDclb3T2OAEJOImsR+U=";
   };
+
+  patches = [
+    (fetchpatch2 {
+      url = "https://github.com/zhu1090093659/dsh-web-ui/commit/971cc3e1f6f5b52bbcd86802a9be0e0c50fc32f1.patch";
+      hash = "sha256-/jkgzKLBXq3y5v7SzKgmsAfhlXkHpmhJG41h1QAbuHM=";
+      includes = [
+        "packages/dsh-agents/src/index.ts"
+        "packages/dsh-agents/src/team/index.ts"
+        "packages/dsh-agents/src/team/roster.ts"
+        "packages/dsh-agents/tests/apply-inject.spec.ts"
+        "packages/dsh-agents/tests/team-runtime.spec.ts"
+        "packages/dsh-agents/tsdown.config.ts"
+        "packages/dsh-liangshen/presets/liangshen/dispatch-guard.mjs"
+        "packages/dsh-liangshen/tests/dispatch-guard.test.ts"
+      ];
+    })
+  ];
 
   postPatch = ''
     yq -o=yaml '.' ${./pnpm-lock.json} > pnpm-lock.yaml
@@ -52,6 +70,15 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
       [ -d "$d" ] || continue
       patchShebangs "$d"
     done
+  '';
+
+  __darwinAllowLocalNetworking = true;
+  doCheck = true;
+  checkPhase = ''
+    runHook preCheck
+    pnpm --dir packages/dsh-agents exec vitest run tests/apply-inject.spec.ts tests/team-runtime.spec.ts
+    pnpm --dir packages/dsh-liangshen exec vitest run tests/dispatch-guard.test.ts
+    runHook postCheck
   '';
 
   postNormalizeDeploy = ''

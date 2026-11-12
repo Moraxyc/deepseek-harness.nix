@@ -1,0 +1,323 @@
+--- a/src/providers/common.ts
++++ b/src/providers/common.ts
+@@ -151,7 +151,7 @@
+   if (reset === undefined && rateLimited) {
+     options.onWarn?.(`${label}: ${rateLimitDiagnostics(response, body)}`)
+   }
+-  return new LlmError(message, code, {
++  return LlmError.fromFailure({ message, code,
+     status: response.status,
+     ...reset === undefined ? {} : { providerRetryAfterMs: waitFromReset(reset, now) },
+   })
+--- a/src/providers/pool.ts
++++ b/src/providers/pool.ts
+@@ -287,7 +287,7 @@
+         }
+         if (first.value.type === 'finish' && first.value.reason.kind === 'error') {
+           const failure = first.value.reason.failure
+-          throw new LlmError(failure.message, failure.code, failure)
++          throw LlmError.fromFailure(failure)
+         }
+       } catch (error: unknown) {
+         try { await iterator.return?.() } catch { /* preserve the attempt failure */ }
+@@ -461,7 +461,7 @@
+     }
+     const failure = last?.error instanceof LlmError ? last.error.failure : undefined
+     this.options.onWarn(message)
+-    return new LlmError(message, code, {
++    return LlmError.fromFailure({ message, code,
+       ...retryAfterMs === undefined ? {} : { providerRetryAfterMs: retryAfterMs },
+       ...failure?.status === undefined ? {} : { status: failure.status },
+       ...failure?.requestId === undefined ? {} : { requestId: failure.requestId },
+--- a/src/translate/antigravity-images.ts
++++ b/src/translate/antigravity-images.ts
+@@ -14,36 +14,36 @@
+   async save(value: unknown): Promise<ImageBlock> {
+     this.signal?.throwIfAborted()
+     if (value === null || typeof value !== 'object') {
+-      throw new LlmError('Antigravity returned invalid inlineData', 'INVALID_IMAGE_RESPONSE')
++      throw LlmError.fromFailure({ message: 'Antigravity returned invalid inlineData', code: 'INVALID_IMAGE_RESPONSE' })
+     }
+     const { mimeType, data } = value as { mimeType?: unknown; data?: unknown }
+     if (typeof mimeType !== 'string' || !MEDIA_TYPES.includes(mimeType)
+       || typeof data !== 'string' || data.length === 0) {
+-      throw new LlmError('Antigravity returned an unsupported image MIME type or empty image', 'INVALID_IMAGE_RESPONSE')
++      throw LlmError.fromFailure({ message: 'Antigravity returned an unsupported image MIME type or empty image', code: 'INVALID_IMAGE_RESPONSE' })
+     }
+     const store = this.attachments
+     if (store === undefined) {
+-      throw new LlmError('Antigravity image output requires the DSH attachment store', 'UNSUPPORTED')
++      throw LlmError.fromFailure({ message: 'Antigravity image output requires the DSH attachment store', code: 'UNSUPPORTED' })
+     }
+     const limits = store.imageLimits
+     const byteBudget = Math.min(limits.maxImageBytes, limits.maxMessageImageBytes - this.bytes)
+     if (this.count >= limits.maxImagesPerMessage || data.length > Math.ceil(byteBudget / 3) * 4) {
+-      throw new LlmError('Antigravity image output exceeds host attachment limits', 'IMAGE_OUTPUT_LIMIT')
++      throw LlmError.fromFailure({ message: 'Antigravity image output exceeds host attachment limits', code: 'IMAGE_OUTPUT_LIMIT' })
+     }
+     // Buffer's decoder is permissive; require canonical, padded base64 and reject
+     // data URLs, whitespace, invalid padding and truncated encodings explicitly.
+     if (data.length % 4 !== 0 || !/^[A-Za-z0-9+/]*={0,2}$/.test(data)) {
+-      throw new LlmError('Antigravity returned invalid image base64', 'INVALID_IMAGE_RESPONSE')
++      throw LlmError.fromFailure({ message: 'Antigravity returned invalid image base64', code: 'INVALID_IMAGE_RESPONSE' })
+     }
+     const bytes = Buffer.from(data, 'base64')
+     if (bytes.toString('base64') !== data) {
+-      throw new LlmError('Antigravity returned non-canonical image base64', 'INVALID_IMAGE_RESPONSE')
++      throw LlmError.fromFailure({ message: 'Antigravity returned non-canonical image base64', code: 'INVALID_IMAGE_RESPONSE' })
+     }
+     if (bytes.length > byteBudget) {
+-      throw new LlmError('Antigravity image output exceeds host attachment limits', 'IMAGE_OUTPUT_LIMIT')
++      throw LlmError.fromFailure({ message: 'Antigravity image output exceeds host attachment limits', code: 'IMAGE_OUTPUT_LIMIT' })
+     }
+     if (!limits.mediaTypes.includes(mimeType as ImageMediaType)) {
+-      throw new LlmError('Antigravity image MIME type is disabled by the host', 'INVALID_IMAGE_RESPONSE')
++      throw LlmError.fromFailure({ message: 'Antigravity image MIME type is disabled by the host', code: 'INVALID_IMAGE_RESPONSE' })
+     }
+     // The store verifies MIME against decoded pixels, dimensions and integrity.
+     // Local admission/storage failures must not penalize a subscription account.
+@@ -52,7 +52,7 @@
+       attachment = await store.saveImage({ data: bytes, mediaType: mimeType as ImageMediaType })
+     } catch {
+       this.signal?.throwIfAborted()
+-      throw new LlmError('Could not validate or persist Antigravity output image', 'IMAGE_OUTPUT_STORAGE')
++      throw LlmError.fromFailure({ message: 'Could not validate or persist Antigravity output image', code: 'IMAGE_OUTPUT_STORAGE' })
+     }
+     this.signal?.throwIfAborted()
+     this.count += 1
+--- a/src/translate/resolved.ts
++++ b/src/translate/resolved.ts
+@@ -174,14 +174,11 @@
+     ? !('offloaded' in block && block.offloaded === true)
+     : block.type === 'tool-result' && block.content.some(hasRetainedImage)
+   if (attachments === undefined && messages.some(message => message.content.some(hasRetainedImage))) {
+-    throw new LlmError(
+-      'dsh-plugin-subscriptions: the request carries an image but no attachments service is mounted; '
+-      + 'image input requires the harness attachment store',
+-      'UNSUPPORTED',
+-    )
++    throw LlmError.fromFailure({ message: 'dsh-plugin-subscriptions: the request carries an image but no attachments service is mounted; '
++      + 'image input requires the harness attachment store', code: 'UNSUPPORTED' })
+   }
+   const readForRequest = async (ref: ImageAttachmentRef) => {
+-    if (attachments === undefined) throw new LlmError('No attachment service for retained image', 'UNSUPPORTED')
++    if (attachments === undefined) throw LlmError.fromFailure({ message: 'No attachment service for retained image', code: 'UNSUPPORTED' })
+     const target = limit === undefined ? undefined : imageRequestTarget(ref, limit)
+     if (target !== undefined) {
+       try {
+--- a/src/client/SubscriptionUsageBadge.tsx
++++ b/src/client/SubscriptionUsageBadge.tsx
+@@ -31,7 +31,8 @@
+ import type { PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
+ import type { ConnectionHandle } from '@deepseek-ai/dsh-api-remotes/client'
+ import * as primitives from '@deepseek-ai/dsh-client-ui-primitives'
+-import { useAnchoredPosition, useDismissOnOutsidePointer } from '@deepseek-ai/dsh-client-ui-primitives'
++import { useDismissOnOutsidePointer } from '@deepseek-ai/dsh-client-ui-primitives'
++import { useAnchoredPosition } from './useAnchoredPosition.js'
+ import { callSubscriptionsAuth, usageBarColor } from './SubscriptionsSection.js'
+ import type { AccountStatus, ProviderStatus, ProviderUsage, SubscriptionProvider, UsageWindow } from './SubscriptionsSection.js'
+ import type { ModelDirectoriesLike } from './SpeedSelect.js'
+--- a/test/pool-health.spec.ts
++++ b/test/pool-health.spec.ts
+@@ -66,7 +66,7 @@
+ 
+ test('classifyPoolFailure: auth failures park the account until re-login', () => {
+   for (const code of ['AUTH', 'INVALID_CREDENTIAL', 'MISSING_CREDENTIAL']) {
+-    assert.deepEqual(classifyPoolFailure(new LlmError('denied', code), 'claude'), {
++    assert.deepEqual(classifyPoolFailure(LlmError.fromFailure({ message: 'denied', code }), 'claude'), {
+       action: 'switch',
+       cooldownMs: AUTH_COOLDOWN_MS,
+       reason: code,
+@@ -77,7 +77,7 @@
+ 
+ test('classifyPoolFailure: transient server failures cool the member briefly', () => {
+   for (const code of ['SERVER', 'TIMEOUT']) {
+-    assert.deepEqual(classifyPoolFailure(new LlmError('oops', code), 'codex'), {
++    assert.deepEqual(classifyPoolFailure(LlmError.fromFailure({ message: 'oops', code }), 'codex'), {
+       action: 'switch',
+       cooldownMs: TRANSIENT_COOLDOWN_MS,
+       reason: code,
+@@ -96,7 +96,7 @@
+ 
+ test('classifyPoolFailure: plan/model availability switches the member', () => {
+   for (const code of ['HTTP_402', 'HTTP_404']) {
+-    assert.deepEqual(classifyPoolFailure(new LlmError('unavailable', code), 'codex'), {
++    assert.deepEqual(classifyPoolFailure(LlmError.fromFailure({ message: 'unavailable', code }), 'codex'), {
+       action: 'switch',
+       cooldownMs: TRANSIENT_COOLDOWN_MS,
+       reason: code,
+@@ -107,7 +107,7 @@
+ 
+ test('classifyPoolFailure: request-fault and unknown failures rethrow', () => {
+   for (const code of ['CONTEXT_WINDOW_EXCEEDED', 'ABORTED', 'HTTP_400']) {
+-    assert.deepEqual(classifyPoolFailure(new LlmError('bad request', code), 'codex'), { action: 'throw' })
++    assert.deepEqual(classifyPoolFailure(LlmError.fromFailure({ message: 'bad request', code }), 'codex'), { action: 'throw' })
+   }
+   assert.deepEqual(classifyPoolFailure(new Error('plain'), 'codex'), { action: 'throw' })
+   assert.deepEqual(classifyPoolFailure('string failure', 'codex'), { action: 'throw' })
+--- a/test/subagent-speed.spec.ts
++++ b/test/subagent-speed.spec.ts
+@@ -48,7 +48,7 @@
+     const call = (endpoint: string, payload: unknown) => connection.handler(endpoint, payload, new AbortController().signal)
+     const register = (id: string, header: Record<string, unknown>, provider = 'codex') => {
+       const agent = { id, ctx, options: { provider }, session: { id, header: { id, ...header } } } as unknown as Agent
+-      agents!.enter(agent, undefined)
++      agents!.enter(agent)
+     }
+     if (agents) {
+       register('parent', {}, 'claude')
+--- /dev/null
++++ b/src/client/useAnchoredPosition.ts
+@@ -0,0 +1,120 @@
++/** Synchronous placement for body-portaled panels with a viewport fixed-position containing block. */
++import { useLayoutEffect, useState, type CSSProperties, type RefObject } from 'react'
++import { overlayTopMargin } from './overlay-top-margin.js'
++
++/** Inputs for {@link useAnchoredPosition}. */
++export interface AnchoredPositionOptions {
++  /** Whether the panel is mounted and should track its anchor. */
++  open: boolean
++  /** Element whose viewport rect anchors the panel. */
++  anchorRef: RefObject<HTMLElement | null>
++  /** Body-portaled, fixed-position panel; its ancestors must not establish a containing block. */
++  panelRef: RefObject<HTMLElement | null>
++  /** Preferred anchor edge; right-side panels align their top edges. */
++  side?: 'top' | 'bottom' | 'right'
++  /** Horizontal alignment for panels above or below the anchor. */
++  align?: 'start' | 'end'
++  /** Distance from the preferred anchor edge, in CSS pixels. */
++  gap: number
++  /** Minimum viewport inset; desktop frame clearance can increase the top inset. */
++  margin: number
++  /** Reserve desktop frame clearance in addition to the margin; false keeps only the viewport margin. Defaults to true. */
++  frameClearance?: boolean
++  /** Host-supplied client rect; null hides the panel until the anchor is available. */
++  getAnchorRect?: () => DOMRect | null
++  /** Re-measure a committed content change before paint. */
++  layoutKey?: string | number
++  /** Minimum panel width follows the anchor, bounded by the visible viewport. */
++  minWidthFromAnchor?: boolean
++}
++
++/**
++ * Keep a fixed panel aligned and constrained to the visible viewport.
++ * Panel CSS consumes `--dsh-anchored-max-width` and `--dsh-anchored-max-height` for size limits.
++ * The hook owns those inline variables and optional min-width while open, restoring them on cleanup.
++ * @param options - Open state, element refs, placement, and optional host rect or content change key.
++ * @returns Fixed left/top coordinates, or null while closed or awaiting an anchor; the first measurement completes before paint.
++ */
++export function useAnchoredPosition(options: AnchoredPositionOptions): CSSProperties | null {
++  const { open, anchorRef, panelRef, side = 'bottom', align = 'start', gap, margin,
++    getAnchorRect, layoutKey, minWidthFromAnchor = false, frameClearance = true } = options
++  const [position, setPosition] = useState<CSSProperties | null>(null)
++  useLayoutEffect(() => {
++    if (!open) {
++      setPosition(null)
++      return
++    }
++    const anchor = anchorRef.current
++    const panel = panelRef.current
++    if (anchor === null || panel === null) return
++    const win = anchor.ownerDocument.defaultView
++    if (win === null) return
++    const viewport = win.visualViewport
++    // WebKit client rects use the visual origin; viewport-fixed CSS uses the layout origin.
++    const visualOrigin = typeof win.CSS !== 'undefined' && win.CSS.supports('-webkit-backdrop-filter', 'none')
++    const properties = ['--dsh-anchored-max-width', '--dsh-anchored-max-height', ...minWidthFromAnchor ? ['min-width'] : []]
++    const previous = properties.map(name => [name, panel.style.getPropertyValue(name), panel.style.getPropertyPriority(name)] as const)
++    let active = true
++    let lastRect: Pick<DOMRect, 'x' | 'y' | 'width' | 'height'> | null = null
++    const readRect = () => getAnchorRect === undefined ? anchor.getBoundingClientRect() : getAnchorRect()
++    const place = (rect: DOMRect | null): void => {
++      lastRect = rect === null ? null : { x: rect.x, y: rect.y, width: rect.width, height: rect.height }
++      let next: CSSProperties | null = null
++      if (rect !== null) {
++        const x = viewport?.offsetLeft ?? 0
++        const y = viewport?.offsetTop ?? 0
++        const width = viewport?.width ?? (anchor.ownerDocument.documentElement.clientWidth || win.innerWidth)
++        const height = viewport?.height ?? (anchor.ownerDocument.documentElement.clientHeight || win.innerHeight)
++        const topMargin = frameClearance ? overlayTopMargin(margin, rect, gap) : margin
++        const maxWidth = Math.max(0, width - margin * 2)
++        panel.style.setProperty('--dsh-anchored-max-width', `${maxWidth}px`)
++        panel.style.setProperty('--dsh-anchored-max-height', `${Math.max(0, height - topMargin - margin)}px`)
++        if (minWidthFromAnchor) panel.style.minWidth = `${Math.min(rect.width, maxWidth)}px`
++        const panelWidth = panel.offsetWidth
++        const panelHeight = panel.offsetHeight
++        const offsetX = visualOrigin ? x : 0
++        const offsetY = visualOrigin ? y : 0
++        const left = offsetX + (side === 'right' ? rect.right + gap : align === 'end' ? rect.right - panelWidth : rect.left)
++        const top = offsetY + (side === 'right' ? rect.top : side === 'top' ? rect.top - gap - panelHeight : rect.bottom + gap)
++        next = {
++          left: Math.max(x + margin, Math.min(left, x + width - margin - panelWidth)),
++          top: Math.max(y + topMargin, Math.min(top, y + height - margin - panelHeight)),
++        }
++      }
++      setPosition(current => current?.left === next?.left && current?.top === next?.top ? current : next)
++    }
++    const update = (): void => {
++      if (!active) return
++      place(readRect())
++    }
++    update()
++    win.addEventListener('scroll', update, true)
++    win.addEventListener('resize', update)
++    viewport?.addEventListener('scroll', update)
++    viewport?.addEventListener('resize', update)
++    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update)
++    observer?.observe(anchor)
++    observer?.observe(panel)
++    // Transforms and surrounding layout can move an anchor without resizing either element.
++    let frame = 0
++    const track = (): void => {
++      if (!active) return
++      const rect = readRect()
++      if (rect?.x !== lastRect?.x || rect?.y !== lastRect?.y
++        || rect?.width !== lastRect?.width || rect?.height !== lastRect?.height) place(rect)
++      frame = win.requestAnimationFrame(track)
++    }
++    frame = win.requestAnimationFrame(track)
++    return () => {
++      active = false
++      win.cancelAnimationFrame(frame)
++      observer?.disconnect()
++      win.removeEventListener('scroll', update, true)
++      win.removeEventListener('resize', update)
++      viewport?.removeEventListener('scroll', update)
++      viewport?.removeEventListener('resize', update)
++      for (const [name, value, priority] of previous) panel.style.setProperty(name, value, priority)
++    }
++  }, [open, anchorRef, panelRef, side, align, gap, margin, getAnchorRect, layoutKey, minWidthFromAnchor, frameClearance])
++  return position
++}
+--- /dev/null
++++ b/src/client/overlay-top-margin.ts
+@@ -0,0 +1,18 @@
++/** Shared viewport inset for overlays, derived from the desktop frame's reserved top strip. */
++
++/**
++ * Resolve the top margin an overlay keeps from the viewport edge.
++ * @param min - the overlay's own viewport margin in px, used as the floor.
++ * @param anchor - the overlay's anchor rect in viewport coordinates. While the anchor's top edge is inside the
++ * viewport, the margin never exceeds `anchor.bottom + gap`, so an overlay opened from a control inside the top strip
++ * stays next to it.
++ * @param gap - the distance the overlay keeps below `anchor`.
++ * @returns the frame clearance plus 20px (20px in fullscreen), capped by a visible `anchor`, but never below `min`.
++ */
++export function overlayTopMargin(min: number, anchor?: { readonly top: number; readonly bottom: number }, gap = 0): number {
++  const root = document.documentElement
++  const clearance = Number.parseFloat(getComputedStyle(root).getPropertyValue('--dsh-frame-top-clearance'))
++  if (Number.isNaN(clearance)) return min
++  const cap = anchor !== undefined && anchor.top >= 0 ? anchor.bottom + gap : Number.POSITIVE_INFINITY
++  return Math.max(min, Math.min((root.hasAttribute('data-fullscreen') ? 0 : clearance) + 20, cap))
++}
+--- /dev/null
++++ b/test/llm-purposes.d.ts
+@@ -0,0 +1,8 @@
++import '@deepseek-ai/dsh-llm'
++
++declare module '@deepseek-ai/dsh-llm' {
++  interface LlmRequestPurposeMap {
++    compaction: true
++    'session-title': true
++  }
++}

@@ -24,13 +24,15 @@ EOF
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 system="$(nix eval --raw --impure --expr builtins.currentSystem)"
+# Copy the working tree to the store once; every build below reads that copy.
+flake_root="$(nix flake archive --json --no-write-lock-file "git+file://$repo_root" | jq -er .path)"
 
 attrs=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --all)
       mapfile -t -O "${#attrs[@]}" attrs < <(
-        nix eval --json ".#legacyPackages.$system.ciPackageAttrs.bundles" | jq -r 'keys[]'
+        nix eval --json "path:$flake_root#legacyPackages.$system.ciPackageAttrs.bundles" | jq -r 'keys[]'
       )
       ;;
     -h | --help | -*) usage ;;
@@ -52,7 +54,7 @@ log() {
 
 cat >"$work/probe.nix" <<EOF
 let
-  flake = builtins.getFlake "git+file://$repo_root";
+  flake = builtins.getFlake "path:$flake_root";
   dsh = flake.packages.$system.dsh;
   bundles = flake.legacyPackages.$system.bundles;
   compose =
@@ -150,7 +152,7 @@ run_profile() {
 diagnostics() {
   sed 's/\x1b\[[0-9;?<>=]*[a-zA-Z]//g; s/\x1b[()][AB0]//g; s/\x1b\][^\x07]*\x07//g' "$1" |
     tr '\r' '\n' |
-    grep -E 'skipping profile bundle|disabling profile plugin|startup failed|never started|web endpoint never' |
+    grep -E 'skipping profile bundle|disabling profile plugin|failed to import:|entries did not activate|startup failed|never started|web endpoint never' |
     sort -u || true
 }
 
@@ -162,10 +164,12 @@ rejected_versions() {
 }
 
 printf '| bundle | result | detail |\n| --- | --- | --- |\n' >"$results/summary.md"
+failed=0
 for attr in "${attrs[@]}"; do
   out="$(nix eval --impure --raw --file "$work/probe.nix" "$attr.outPath" 2>/dev/null || true)"
   if [ -z "$out" ] || [ ! -x "$out/bin/dsh" ]; then
     printf '| %s | broken | composition does not build |\n' "$attr" >>"$results/summary.md"
+    failed=1
     continue
   fi
   mode="$(nix eval --impure --raw --file "$work/probe.nix" "$attr.probeMode")"
@@ -195,7 +199,9 @@ for attr in "${attrs[@]}"; do
   detail="$(printf '%s' "$found" | cut -c1-160 | paste -sd ' ' - | sed 's/|/\\|/g')"
   [ -n "$detail" ] || detail="exit status $status"
   printf '| %s | broken | %s |\n' "$attr" "$detail" >>"$results/summary.md"
+  failed=1
 done
 
 cat "$results/summary.md"
 log "logs in $results"
+exit "$failed"

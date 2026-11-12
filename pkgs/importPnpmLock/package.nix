@@ -402,12 +402,35 @@ let
 
   sourcesById = listToAttrs (map (pkg: nameValuePair pkg.id (fetchSource pkg)) fetchedPackages);
   kindById = listToAttrs (map (pkg: nameValuePair pkg.id pkg.kind) fetchedPackages);
+  tarballName = id: "${builtins.hashString "sha256" id}.tgz";
+  sourceEntries = mapAttrsToList (id: source: { inherit id source; }) sourcesById;
+  # Darwin limits sandbox profiles to 64 KiB. Copy bounded batches so later
+  # builders need one tarball directory instead of thousands of store inputs.
+  sourceBatches = lib.genList (
+    index:
+    runCommand "pnpm-tarballs-${toString index}" { } ''
+      mkdir -p "$out"
+      ${lib.concatMapStringsSep "\n" (entry: ''
+        cp ${lib.escapeShellArg (toString entry.source)} "$out/${tarballName entry.id}"
+      '') (lib.sublist (index * 128) 128 sourceEntries)}
+    ''
+  ) (builtins.div (builtins.length sourceEntries + 127) 128);
+  packageSources = runCommand "pnpm-tarballs" { } ''
+    mkdir -p "$out"
+    ${lib.concatMapStringsSep "\n" (batch: ''
+      cp ${batch}/* "$out/"
+    '') sourceBatches}
+  '';
 
   rewritePackage =
     id: v:
     if builtins.hasAttr id sourcesById then
       let
-        src = sourcesById.${id};
+        src =
+          if stdenvNoCC.hostPlatform.isDarwin then
+            "${packageSources}/${tarballName id}"
+          else
+            sourcesById.${id};
         kind = kindById.${id};
         overrideKey = overrideKeysById.${id} or null;
         baseResolution = v.resolution or { };

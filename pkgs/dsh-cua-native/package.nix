@@ -1,7 +1,9 @@
 {
   lib,
+  apple-sdk,
   dsh-workspace,
   python3,
+  removeReferencesTo,
   rcodesign,
   replaceVars,
   stdenv,
@@ -17,6 +19,10 @@ stdenv.mkDerivation (finalAttrs: {
 
   sourceRoot = "${finalAttrs.src.name}/packages/experimental/cua-macos/native";
   strictDeps = true;
+  disallowedReferences = [
+    stdenv.cc
+    apple-sdk
+  ];
   dontConfigure = true;
   # Fixup rewrites Mach-O files and would invalidate the signature applied in installPhase.
   dontFixup = true;
@@ -37,6 +43,11 @@ stdenv.mkDerivation (finalAttrs: {
     "--product"
     "dsh-cua-native"
   ];
+
+  postBuild = ''
+    ${lib.getExe removeReferencesTo} -t ${stdenv.cc} -t ${apple-sdk} \
+      "$(swiftpmBinPath)/dsh-cua-native"
+  '';
 
   installPhase = ''
     runHook preInstall

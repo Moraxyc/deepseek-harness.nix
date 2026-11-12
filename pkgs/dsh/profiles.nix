@@ -108,22 +108,30 @@ let
             }
             .${if lib.isString id then id else ""} or null;
         in
-        lib.warnIf (replacement != null)
-          "dsh: ${location} targets ${toString id}, which changed in 0.2.2-rc.2. Migrate this override to ${toString replacement}; its configuration may also have changed. See https://moraxyc.github.io/deepseek-harness.nix/migration/#022-rc2"
+        lib.warnIf
+          (lib.elem id [
+            "account-controller"
+            "liveshare-viewer-declarations"
+          ])
+          "dsh: ${location} targets ${toString id}, which upstream removed in 0.2.2-rc.2. Remove this override and migrate custom account or LiveShare integrations. See https://moraxyc.github.io/deepseek-harness.nix/migration/#022-rc2"
           (
-            lib.warnIf (id == "time-context")
-              "dsh: ${location} targets top-level time-context, which moved into agent presets in 0.2.1-alpha.1. Remove the old override or configure the preset's time-context row."
+            lib.warnIf (replacement != null)
+              "dsh: ${location} targets ${toString id}, which changed in 0.2.2-rc.2. Migrate this override to ${toString replacement}; its configuration may also have changed. See https://moraxyc.github.io/deepseek-harness.nix/migration/#022-rc2"
               (
-                lib.warnIf
-                  (lib.elem id [
-                    "invariants"
-                    "session-invariant"
-                    "agent-invariant"
-                    "scope-invariant"
-                    "agent-loop-invariant"
-                  ])
-                  "dsh: ${location} targets ${toString id}, which upstream removed in 0.2.1-alpha.1. Remove this override and any @deepseek-ai/dsh-invariants or /invariant plugin declarations."
-                  result
+                lib.warnIf (id == "time-context")
+                  "dsh: ${location} targets top-level time-context, which moved into agent presets in 0.2.1-alpha.1. Remove the old override or configure the preset's time-context row."
+                  (
+                    lib.warnIf
+                      (lib.elem id [
+                        "invariants"
+                        "session-invariant"
+                        "agent-invariant"
+                        "scope-invariant"
+                        "agent-loop-invariant"
+                      ])
+                      "dsh: ${location} targets ${toString id}, which upstream removed in 0.2.1-alpha.1. Remove this override and any @deepseek-ai/dsh-invariants or /invariant plugin declarations."
+                      result
+                  )
               )
           )
       ) patch (lib.filter lib.isAttrs patch);

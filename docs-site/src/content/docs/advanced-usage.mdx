@@ -400,8 +400,8 @@ profile; keep managed mode declarative and add profile plugins as Nix Bundles.
 
 ## macOS Computer Use
 
-Computer Use ships as an optional bundle on macOS. Select it explicitly
-for a declarative profile:
+Computer Use ships as an optional bundle on Apple silicon Macs
+(`aarch64-darwin`). Select it explicitly for a declarative profile:
 
 ```nix
 programs.dsh.profiles.web.bundles = with pkgs.dsh.bundles; [

@@ -1,0 +1,542 @@
+--- a/src/dsh-adapter/oauth/bonus.ts
++++ b/src/dsh-adapter/oauth/bonus.ts
+@@ -1,76 +1,162 @@
+-import type { DeepSeekAccount, AccountBonusOrderId, AccountUserId } from '@deepseek-ai/dsh-deepseek-account'
++import type { AccountClientMetadata, AccountView } from '@deepseek-ai/dsh-deepseek-account'
+ import { deepSeekClientMetadata } from './deepseek.js'
++import { openInBrowser } from './opener.js'
++import { subscribeLang } from '../../i18n.js'
++
++interface NotificationAction {
++  readonly label: string
++  readonly style: 'primary' | 'secondary'
++  readonly target: { readonly type: 'app_route'; readonly name: 'account' } | { readonly type: 'dismiss' }
++}
+ 
+ export interface WhaleCouponNotice {
+-  readonly accountId: AccountUserId
+-  readonly orderId: AccountBonusOrderId
+-  readonly amount: string
+-  readonly currency: 'CNY' | 'USD'
+-  readonly expiresAt: string
++  readonly orderId: string
++  readonly title: string
++  readonly body: string
++  readonly actions: readonly NotificationAction[]
++  readonly displayUntil: string | null
+ }
+ 
+-type BonusAccount = Pick<DeepSeekAccount, 'getUnnotifiedBonuses' | 'ackBonusNotified'>
++interface HostNotification {
++  readonly id: string
++  readonly title: string
++  readonly body: string
++  readonly displayUntil: string | null
++  readonly actions: readonly NotificationAction[]
++}
+ 
+-/** TUI-only presentation of a Platform-confirmed login grant. */
++export interface NotificationAccount {
++  getState(): Promise<AccountView>
++  getNotificationContent(id: string, client: AccountClientMetadata): Promise<HostNotification | null>
++  getNotifications(client: AccountClientMetadata): Promise<{
++    readonly nextPollAfterSeconds: number
++    readonly notifications: readonly HostNotification[]
++  } | null>
++  reportNotificationEvent(id: string, event: 'displayed' | 'cta_clicked' | 'dismissed', client: AccountClientMetadata): Promise<unknown>
++}
++
++/** Account notifications retain the existing TUI modal entry point. */
+ export class WhaleCouponStore {
+   private readonly listeners = new Set<() => void>()
+-  private readonly seen = new Set<string>()
++  private readonly reported = new Set<string>()
++  private readonly dismissed = new Set<string>()
+   private notice: WhaleCouponNotice | null = null
+-  private account: BonusAccount | undefined
++  private account: NotificationAccount | undefined
+   private generation = 0
++  private timer: ReturnType<typeof setTimeout> | undefined
++  private pollAfterSeconds = 600
++  private stopLanguage: (() => void) | undefined
++
++  constructor(private readonly openAccount: (url: string) => boolean = openInBrowser) {}
+ 
+   readonly subscribe = (listener: () => void): (() => void) => {
+     this.listeners.add(listener)
+-    return () => { this.listeners.delete(listener) }
++    this.stopLanguage ??= subscribeLang(() => { void this.relocalize() })
++    if (this.account !== undefined && this.listeners.size === 1) void this.refresh(this.account)
++    return () => {
++      this.listeners.delete(listener)
++      if (this.listeners.size === 0) {
++        this.generation++
++        clearTimeout(this.timer)
++        this.stopLanguage?.()
++        this.stopLanguage = undefined
++      }
++    }
+   }
+ 
+   readonly getSnapshot = (): WhaleCouponNotice | null => this.notice
+ 
+-  async refresh(account: BonusAccount): Promise<void> {
++  async refresh(account: NotificationAccount): Promise<void> {
+     const generation = ++this.generation
++    this.account = account
++    clearTimeout(this.timer)
+     if (this.listeners.size === 0) return
+     let batch
+-    try { batch = await account.getUnnotifiedBonuses(deepSeekClientMetadata()) }
+-    catch { return }
++    try { batch = await account.getNotifications(deepSeekClientMetadata()) }
++    catch {
++      if (generation === this.generation) this.schedule(account)
++      return
++    }
+     if (generation !== this.generation || batch === null) return
+-    const granted = batch.bonuses.find(bonus => bonus.campaign === 'dsh_login_bonus'
+-      && !this.seen.has(`${batch.accountId}:${bonus.orderId}`)
+-      && (Number.isNaN(Date.parse(bonus.expiresAt)) || Date.parse(bonus.expiresAt) > Date.now()))
+-    if (granted === undefined) return
+-    this.account = account
+-    this.notice = {
+-      accountId: batch.accountId, orderId: granted.orderId,
+-      amount: granted.amount, currency: granted.currency, expiresAt: granted.expiresAt,
++    this.pollAfterSeconds = batch.nextPollAfterSeconds
++    this.schedule(account)
++    if (this.notice !== null && this.notice.displayUntil !== null
++      && Date.parse(this.notice.displayUntil) <= Date.now()) {
++      this.notice = null
++      this.emit()
+     }
++    const notification = batch.notifications.find(item => !this.dismissed.has(item.id)
++      && (item.displayUntil === null || Date.parse(item.displayUntil) > Date.now()))
++    if (this.notice !== null || notification === undefined) return
++    this.notice = { orderId: notification.id, title: notification.title, body: notification.body, actions: notification.actions, displayUntil: notification.displayUntil }
+     this.emit()
+   }
+ 
+-  /** Called only after the modal has painted; a read alone never acknowledges. */
+-  shown(orderId: AccountBonusOrderId): void {
+-    const notice = this.notice
+-    if (notice?.orderId !== orderId || this.account === undefined) return
+-    const key = `${notice.accountId}:${notice.orderId}`
+-    if (this.seen.has(key)) return
+-    this.seen.add(key)
+-    void this.account.ackBonusNotified(notice.accountId, orderId, deepSeekClientMetadata()).catch(() => false)
++  shown(orderId: string): void {
++    if (this.notice?.orderId === orderId) this.report(orderId, 'displayed')
+   }
+ 
+-  dismiss(orderId: AccountBonusOrderId): void {
++  dismiss(orderId: string): void {
+     if (this.notice?.orderId !== orderId) return
+-    this.shown(orderId)
+-    const account = this.account
++    this.dismissed.add(orderId)
++    this.report(orderId, 'dismissed')
+     this.notice = null
+     this.emit()
+-    if (account !== undefined) void this.refresh(account)
++    if (this.account !== undefined) void this.refresh(this.account)
++  }
++
++  async act(orderId: string, index: number): Promise<void> {
++    if (this.notice?.orderId !== orderId || this.account === undefined) return
++    const action = this.notice.actions[index]
++    if (action === undefined) return
++    if (action.target.type === 'dismiss') {
++      this.dismiss(orderId)
++      return
++    }
++    this.report(orderId, 'cta_clicked')
++    const generation = this.generation
++    const state = await this.account.getState()
++    if (generation === this.generation && !this.openAccount(state.links.usageUrl)) {
++      throw new Error(`Open the account page: ${state.links.usageUrl}`)
++    }
+   }
+ 
+   clear(): void {
+     this.generation++
++    clearTimeout(this.timer)
+     this.notice = null
+     this.account = undefined
+-    this.seen.clear()
++    this.reported.clear()
++    this.dismissed.clear()
+     this.emit()
+   }
+ 
++  private async relocalize(): Promise<void> {
++    const account = this.account
++    const id = this.notice?.orderId
++    const generation = this.generation
++    if (account === undefined || id === undefined) return
++    let notification
++    try { notification = await account.getNotificationContent(id, deepSeekClientMetadata()) }
++    catch { return }
++    if (generation !== this.generation || this.notice?.orderId !== id || notification === null) return
++    this.notice = { orderId: notification.id, title: notification.title, body: notification.body,
++      actions: notification.actions, displayUntil: notification.displayUntil }
++    this.emit()
++  }
++
++  private schedule(account: NotificationAccount): void {
++    if (this.listeners.size === 0) return
++    this.timer = setTimeout(() => { void this.refresh(account) }, this.pollAfterSeconds * 1000)
++    this.timer.unref()
++  }
++
++  private report(id: string, event: 'displayed' | 'cta_clicked' | 'dismissed'): void {
++    const key = `${id}:${event}`
++    if (this.reported.has(key) || this.account === undefined) return
++    this.reported.add(key)
++    void this.account.reportNotificationEvent(id, event, deepSeekClientMetadata()).catch(() => undefined)
++  }
++
+   private emit(): void { for (const listener of this.listeners) listener() }
+ }
+--- a/src/dsh-adapter/oauth/deepseek.ts
++++ b/src/dsh-adapter/oauth/deepseek.ts
+@@ -14,16 +14,19 @@
+ import type { WebServer } from '@deepseek-ai/dsh-host-webserver'
+ import { getLang } from '../../i18n.js'
+ import { QuestionBridge, type AskFn, type QuestionBridgeHelpers } from './interaction.js'
++import type { NotificationAccount } from './bonus.js'
+ 
+ export const DEEPSEEK_ACCOUNT_PROVIDER = 'deepseek-account'
+ 
+ /** Only the account operations this interaction surface consumes. */
+-export type DeepSeekAccountAuth = Pick<DeepSeekAccount, 'getState' | 'startSignIn' | 'cancelSignIn' | 'signOut' | 'watch'>
+-  & Partial<Pick<DeepSeekAccount, 'getUnnotifiedBonuses' | 'ackBonusNotified'>>
++export type DeepSeekAccountAuth = Pick<DeepSeekAccount, 'getState' | 'startSignIn' | 'cancelSignIn' | 'signOut'>
++  & NotificationAccount & {
++    watch(signal: AbortSignal): AsyncIterable<{ type: 'snapshot' | 'credentials-changed'; state: AccountView }>
++  }
+ 
+ /** Resolve late: the account provider is absent on older DSH hosts. */
+ export function deepSeekAccountFrom(ctx: Context): DeepSeekAccountAuth | undefined {
+-  return ctx.get('deepseekAccount')
++  return ctx.get('deepseekAccount') as unknown as DeepSeekAccountAuth | undefined
+ }
+ 
+ /** The Host webServer may be shared, supplied by the TUI row, or mounted as a fallback. */
+@@ -159,7 +162,7 @@
+     runAbort.signal.throwIfAborted()
+     let shownUrl: string | undefined
+     try {
+-      for await (const state of account.watch(runAbort.signal)) {
++      for await (const { state } of account.watch(runAbort.signal)) {
+         const attempt = state.attempt
+         if (attempt?.id !== id) throw new Error('DeepSeek sign-in attempt was replaced')
+         if (attempt.phase === 'waiting-browser' && attempt.authorizeUrl !== undefined
+--- a/src/dsh-adapter/oauth/service.ts
++++ b/src/dsh-adapter/oauth/service.ts
+@@ -236,11 +236,7 @@
+           }
+           await loginDeepSeekAccount(account, callbackOrigin, ask, runSignal)
+           deps.coupons?.clear()
+-          const getUnnotifiedBonuses = account.getUnnotifiedBonuses?.bind(account)
+-          const ackBonusNotified = account.ackBonusNotified?.bind(account)
+-          if (getUnnotifiedBonuses !== undefined && ackBonusNotified !== undefined) {
+-            void deps.coupons?.refresh({ getUnnotifiedBonuses, ackBonusNotified })
+-          }
++          void deps.coupons?.refresh(account)
+           return { provider: target, oauthLabel: 'DeepSeek', expiresAt: undefined }
+         })()
+       ).finally(() => { inflight.delete(target) })
+--- a/src/dsh-adapter/oauth/index.ts
++++ b/src/dsh-adapter/oauth/index.ts
+@@ -233,6 +233,24 @@
+   })
+   service.api = api
+ 
++  ctx.inject(['deepseekAccount'], (childCtx: Context) => {
++    const account = deepSeekAccountFrom(childCtx)!
++    const abort = new AbortController()
++    const watching = (async () => {
++      for await (const update of account.watch(abort.signal)) {
++        if (abort.signal.aborted) break
++        if (update.type === 'credentials-changed' || update.state.status === 'signed-out') service.coupons.clear()
++        if (update.state.status === 'credential-stored') await service.coupons.refresh(account)
++      }
++    })()
++    void watching.catch(error => { if (!abort.signal.aborted) childCtx.logger.error(error) })
++    childCtx.effect(() => async () => {
++      abort.abort()
++      service.coupons.clear()
++      await watching
++    })
++  })
++
+   ctx.effect(function* () {
+     // LIFO disposal: release command registration, drain started logins, then
+     // close a fallback callback listener only this module mounted.
+--- a/src/components/StarPrompt.tsx
++++ b/src/components/StarPrompt.tsx
+@@ -316,89 +316,51 @@
+   )
+ }
+ 
+-/** The star modal's card and maid art, used only for a confirmed login grant. */
+-function couponExpiry(expiresAt: string): { month: string; day: string; time: string } | null {
+-  const date = new Date(expiresAt)
+-  if (Number.isNaN(date.getTime())) return null
+-  const parts = new Intl.DateTimeFormat('en-US', {
+-    timeZone: 'Asia/Shanghai', month: 'numeric', day: 'numeric',
+-    hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+-  }).formatToParts(date)
+-  const part = (type: string): string | undefined => parts.find(item => item.type === type)?.value
+-  const month = part('month')
+-  const day = part('day')
+-  const hour = part('hour')
+-  const minute = part('minute')
+-  return month === undefined || day === undefined || hour === undefined || minute === undefined
+-    ? null : { month, day, time: `${hour}:${minute}` }
+-}
+-
+-export function WhaleCouponPrompt({
+-  notice,
+-  onShown,
+-  onClose,
+-}: {
++/** Account notification text and actions are localized by the Host. */
++export function WhaleCouponPrompt({ notice, onShown, onAction, onClose }: {
+   readonly notice: WhaleCouponNotice
+-  readonly onShown: (orderId: WhaleCouponNotice['orderId']) => void
++  readonly onShown: (orderId: string) => void
++  readonly onAction: (index: number) => void
+   readonly onClose: () => void
+ }): React.ReactNode {
+-  const lang = React.useSyncExternalStore(subscribeLang, getLang)
++  React.useSyncExternalStore(subscribeLang, getLang)
+   const { columns, rows } = useTerminalSize()
+-  const imagesAvailable = useTerminalImages()
+-  const portraits = useMaidPortraits(true, getActiveBrand() === 'claude' ? CLAUDE_GIRL_ASSETS : MAID_ASSETS)
+   const background = useTerminalBackground()
+-  const withArt = columns >= MIN_ART_COLUMNS && rows >= MIN_ART_ROWS
+-  const textColumns = withArt ? TEXT_COLUMNS : Math.max(1, Math.min(TEXT_COLUMNS, columns - 6))
+-  const cardColumns = withArt ? 96 : Math.min(columns, textColumns + 6)
+-  const cardRows = withArt ? ART_ROWS + 2 : Math.min(rows, 15)
+-  const left = Math.max(0, Math.floor((columns - cardColumns) / 2))
+-  const bottom = Math.max(0, Math.min(Math.floor((rows - cardRows) / 2), rows - cardRows))
+-  const amount = notice.amount.replace(/(\.\d*?)0+$/u, '$1').replace(/\.$/u, '')
+-  const unit = lang === 'zh' ? notice.currency === 'CNY' ? '元' : '美元' : notice.currency
+-  const expiry = couponExpiry(notice.expiresAt)
+-
++  const [selected, setSelected] = React.useState(0)
++  const width = Math.min(columns, 76)
++  const height = Math.min(rows, 24)
+   React.useEffect(() => {
+     const timer = setTimeout(() => onShown(notice.orderId), 0)
+     return () => { clearTimeout(timer) }
+   }, [notice.orderId, onShown])
+   useInput((_input, key) => {
+-    if (key.return || key.escape) onClose()
++    if (key.escape) onClose()
++    else if (key.upArrow && notice.actions.length > 0) setSelected(index => (index + notice.actions.length - 1) % notice.actions.length)
++    else if ((key.downArrow || key.tab) && notice.actions.length > 0) setSelected(index => (index + 1) % notice.actions.length)
++    else if (key.return) {
++      if (notice.actions.length === 0) onClose()
++      else onAction(selected)
++    }
+   })
+-
+   return (
+     <>
+       <Box position="absolute" bottom={0} left={0} width="100%" height={rows}
+         flexShrink={0} backdrop="dim" onClick={onClose} />
+-      <Box position="absolute" left={left} bottom={bottom} width={cardColumns} height={cardRows}
+-        flexDirection="column" flexShrink={0} overflow="hidden" backgroundColor={background} opaque
++      <Box position="absolute" left={Math.max(0, Math.floor((columns - width) / 2))}
++        bottom={Math.max(0, Math.floor((rows - height) / 2))} width={width} height={height}
++        flexDirection="column" flexShrink={0} overflow="hidden" backgroundColor={background}
++        borderStyle="round" borderColor="inactive" paddingX={2} opaque
+         onClick={event => { event.stopImmediatePropagation() }}>
+-        <Box flexDirection="row" gap={2} alignItems="center" justifyContent="center"
+-          borderStyle="round" borderColor="inactive" paddingX={2} backgroundColor={background}>
+-          {withArt && (
+-            <Box width={ART_COLUMNS} height={ART_ROWS} flexShrink={0} flexDirection="column"
+-              alignItems="center" justifyContent="center" backgroundColor={background} opaque>
+-              <Confetti width={ART_COLUMNS} />
+-              {imagesAvailable && portraits?.happy !== undefined
+-                ? <MaidPortrait source={portraits.happy} maxColumns={ART_COLUMNS}
+-                    maxRows={ART_ROWS - CONFETTI_ROWS} presentation="preview" />
+-                : <WhaleGirlHappyArt source={portraits?.happy} width={ART_COLUMNS} />}
+-            </Box>
+-          )}
+-          <Box flexDirection="column" width={textColumns} {...(withArt ? { height: ART_ROWS } : {})}>
+-            <Text color="accent" bold wrap="truncate-end">{t('coupon-modal-title')}</Text>
+-            <Box height={1} />
+-            <Text color="success" bold wrap="wrap">{t('coupon-modal-received', { amount, unit })}</Text>
+-            {expiry !== null && (
+-              <>
+-                <Box height={1} />
+-                <Text wrap="wrap">{t('coupon-modal-expiry', expiry)}</Text>
+-              </>
+-            )}
+-            <Box flexGrow={1} />
+-            <Divider width={textColumns} />
+-            <Text dimColor wrap="truncate-end"><HintLine text={t('coupon-modal-hint')} /></Text>
+-          </Box>
+-        </Box>
++        <Text color="accent" bold wrap="wrap">{notice.title}</Text>
++        <Box height={1} />
++        <Box flexGrow={1} overflow="hidden"><Text wrap="wrap">{notice.body}</Text></Box>
++        {notice.actions.map((action, index) => (
++          <ListItem key={index} isFocused={selected === index} onClick={() => onAction(index)}>
++            {action.label}
++          </ListItem>
++        ))}
++        <Divider width={Math.max(1, width - 6)} />
++        <Text dimColor><HintLine text={t('coupon-modal-hint')} /></Text>
+       </Box>
+     </>
+   )
+--- a/src/screens/Chat.tsx
++++ b/src/screens/Chat.tsx
+@@ -7582,7 +7582,12 @@
+         />
+       )}
+       {couponVisible && coupon !== null && (
+-        <WhaleCouponPrompt notice={coupon} onShown={markCouponShown} onClose={closeCoupon} />
++        <WhaleCouponPrompt notice={coupon} onShown={markCouponShown} onClose={closeCoupon}
++          onAction={index => {
++            void bonusNotices?.act(coupon.orderId, index).catch(error => {
++              channel.notify(String(error), { color: 'error' })
++            })
++          }} />
+       )}
+     </Box>
+   )
+--- a/src/i18n.ts
++++ b/src/i18n.ts
+@@ -1046,10 +1046,7 @@
+   'star-modal-thanks-3': { zh: '这颗 Star 会变成 dshTUI 继续成长的动力。', en: 'This Star becomes fuel for dsh-TUI to keep growing.' },
+   'star-modal-thanks-4': { zh: '希望以后，它也能继续陪你走很久。', en: 'May it keep you company for a long time to come.' },
+   'star-modal-thanks-hint': { zh: '**Enter** / **Esc** 关闭', en: '**Enter** / **Esc** to close' },
+-  'coupon-modal-title': { zh: '鲸鱼券', en: 'Whale coupon' },
+-  'coupon-modal-received': { zh: 'DeepSeek 送你的 {{amount}} {{unit}}鲸鱼券到账啦～', en: 'Your {{amount}} {{unit}} whale coupon from DeepSeek is here ~' },
+-  'coupon-modal-expiry': { zh: 'Deepy提醒：这张券 {{month}} 月 {{day}} 日 {{time}} 就要过期啦，别忘记用掉哦～', en: 'Deepy says: this coupon expires on {{month}}/{{day}} at {{time}}. Do not forget to use it ~' },
+-  'coupon-modal-hint': { zh: '**Enter** / **Esc** 收好鲸鱼券', en: '**Enter** / **Esc** to tuck it away' },
++  'coupon-modal-hint': { zh: '**↑/↓** 选择 · **Enter** 确认 · **Esc** 关闭', en: '**↑/↓** Select · **Enter** Confirm · **Esc** Close' },
+   'logo-tip-prefix': { zh: '提示：', en: 'Tip: ' },
+   'logo-tip-more': { zh: '更多技巧', en: 'more tips' },
+   // Upstream-drift notice (merged one-liner under the tip; copy explains
+--- a/scripts/verify-oauth.mjs
++++ b/scripts/verify-oauth.mjs
+@@ -91,6 +91,9 @@
+     current: () => state,
+     update,
+     getState: async () => state,
++    getNotifications: async () => ({ nextPollAfterSeconds: 600, notifications: [] }),
++    getNotificationContent: async () => null,
++    reportNotificationEvent: async () => ({ acked: true }),
+     startSignIn: async (client, origin, source) => {
+       calls.starts.push({ client, origin, source })
+       update({ status: 'signed-out', links, attempt: { id, phase: 'initializing' } })
+@@ -113,7 +116,7 @@
+       while (!signal.aborted) {
+         if (revision !== seen) {
+           seen = revision
+-          yield state
++          yield { type: 'snapshot', state }
+           continue
+         }
+         await new Promise(resolve => {
+@@ -810,13 +813,17 @@
+     'Host failure surfaces its safe code without cancelling a settled attempt')
+ 
+   const facadeAccount = fakeDeepSeekAccount()
+-  const coupons = new WhaleCouponStore()
++  const openedAccounts = []
++  const coupons = new WhaleCouponStore(url => { openedAccounts.push(url); return true })
+   const couponEvents = []
+   const stopCoupons = coupons.subscribe(() => couponEvents.push(coupons.getSnapshot()))
+-  const granted = { orderId: 'coupon-order-1', campaign: 'dsh_login_bonus', amount: '5.00', currency: 'CNY', expiresAt: '2099-01-01T00:00:00Z' }
++  const granted = { id: 'notification-1', title: 'Account update', body: 'A notification from the Host', displayUntil: null,
++    actions: [{ label: 'Account', style: 'primary', target: { type: 'app_route', name: 'account' } },
++      { label: 'Close', style: 'secondary', target: { type: 'dismiss' } }] }
+   const acknowledgements = []
+-  facadeAccount.getUnnotifiedBonuses = async () => ({ accountId: 'coupon-account-1', bonuses: [granted] })
+-  facadeAccount.ackBonusNotified = async (...args) => { acknowledgements.push(args); return true }
++  facadeAccount.getNotifications = async () => ({ nextPollAfterSeconds: 600, notifications: [granted] })
++  facadeAccount.reportNotificationEvent = async (...args) => { acknowledgements.push(args); return { acked: true } }
++  facadeAccount.getNotificationContent = async (id, client) => ({ ...granted, title: client.locale })
+   facadeAccount.startSignIn = async (client, origin, source) => {
+     facadeAccount.calls.starts.push({ client, origin, source })
+     facadeAccount.update({ ...facadeAccount.current(), status: 'credential-stored',
+@@ -840,18 +847,29 @@
+     && facadeAccount.calls.starts[0].source === 'desktop'
+     && (await accountApi.providers())[0].signedIn === true,
+   'facade login delegates with the Desktop source and reports a non-expiring account grant')
+-  ok(await settled(() => coupons.getSnapshot()?.orderId === granted.orderId)
+-    && coupons.getSnapshot()?.amount === '5.00' && acknowledgements.length === 0,
+-  'a Platform-confirmed login bonus is offered without acknowledging an unseen card')
+-  coupons.shown(granted.orderId)
+-  coupons.shown(granted.orderId)
++  ok(await settled(() => coupons.getSnapshot()?.orderId === granted.id)
++    && coupons.getSnapshot()?.body === granted.body && acknowledgements.length === 0,
++  'a Host notification is offered without acknowledging an unseen card')
++  coupons.shown(granted.id)
++  coupons.shown(granted.id)
+   ok(await settled(() => acknowledgements.length === 1)
+-    && acknowledgements[0][0] === 'coupon-account-1' && acknowledgements[0][1] === granted.orderId,
+-  'the displayed order is acknowledged once with its account identity')
+-  coupons.dismiss(granted.orderId)
++    && acknowledgements[0][0] === granted.id && acknowledgements[0][1] === 'displayed',
++  'the opaque notification identity is reported once after display')
++  setLang('zh')
++  ok(await settled(() => coupons.getSnapshot()?.title === 'zh-CN') && acknowledgements.length === 1,
++    'language changes refresh consumed notification text without another display event')
++  setLang('en')
++  await settled(() => coupons.getSnapshot()?.title === 'en-US')
++  await coupons.act(granted.id, 0)
++  ok(openedAccounts[0] === facadeAccount.current().links.usageUrl
++    && coupons.getSnapshot()?.orderId === granted.id && acknowledgements[1]?.[1] === 'cta_clicked',
++  'account actions open the safe account link without dismissing the card')
++  const offeredBeforeDismiss = couponEvents.filter(event => event?.orderId === granted.id).length
++  await coupons.act(granted.id, 1)
+   ok(await settled(() => coupons.getSnapshot() === null)
+-    && couponEvents.filter(event => event?.orderId === granted.orderId).length === 1,
+-  'dismissing the card does not re-offer the same unnotified order')
++    && acknowledgements[2]?.[1] === 'dismissed'
++    && couponEvents.filter(event => event?.orderId === granted.id).length === offeredBeforeDismiss,
++  'explicit dismissal is reported and does not re-offer the same notification')
+   ok(await accountApi.logout(DEEPSEEK_ACCOUNT_PROVIDER)
+     && facadeAccount.calls.signOuts.length === 1
+     && (await apiStore.read(DEEPSEEK_ACCOUNT_PROVIDER)) === undefined,
+@@ -888,16 +906,21 @@
+ 
+   const otherCoupons = new WhaleCouponStore()
+   const stopOtherCoupons = otherCoupons.subscribe(() => undefined)
+-  await otherCoupons.refresh({
+-    getUnnotifiedBonuses: async () => ({ accountId: 'coupon-account-2', bonuses: [{ ...granted, campaign: 'unrelated' }] }),
+-    ackBonusNotified: async () => true,
+-  })
+-  ok(otherCoupons.getSnapshot() === null, 'unrelated bonus campaigns do not masquerade as login coupons')
+-  await otherCoupons.refresh({
+-    getUnnotifiedBonuses: async () => { throw new Error('offline') },
+-    ackBonusNotified: async () => true,
+-  })
+-  ok(otherCoupons.getSnapshot() === null, 'a failed bonus read does not fabricate a coupon')
++  const otherAccount = fakeDeepSeekAccount()
++  otherAccount.getNotifications = async () => ({ nextPollAfterSeconds: 600,
++    notifications: [{ ...granted, displayUntil: '2000-01-01T00:00:00Z' }] })
++  await otherCoupons.refresh(otherAccount)
++  ok(otherCoupons.getSnapshot() === null, 'expired notifications are not displayed')
++  otherAccount.getNotifications = async () => { throw new Error('offline') }
++  await otherCoupons.refresh(otherAccount)
++  ok(otherCoupons.getSnapshot() === null, 'a failed read does not fabricate a notification')
++  let releaseNotification
++  otherAccount.getNotifications = () => new Promise(resolve => { releaseNotification = resolve })
++  const pendingNotification = otherCoupons.refresh(otherAccount)
++  otherCoupons.clear()
++  releaseNotification({ nextPollAfterSeconds: 600, notifications: [granted] })
++  await pendingNotification
++  ok(otherCoupons.getSnapshot() === null, 'credential changes discard a late notification response')
+   stopOtherCoupons()
+ 
+   // ── public Cordis entry ──────────────────────────────────────────────────

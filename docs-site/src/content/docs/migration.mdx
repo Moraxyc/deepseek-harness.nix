@@ -98,6 +98,10 @@ to read the version 3 subagent catalog. Scripts pass `agent` instead of
 default. Replace the experimental Agent Team package names in custom plugins
 with `@deepseek-ai/dsh-agent-team` and `@deepseek-ai/dsh-tool-agent-team`.
 
+In `bundles.tui`, `/team on` and `/team off` apply to the current session and
+leave the profile's bundles unchanged. The member list and transcripts also
+show subagents started by other subagents.
+
 ### Worktrees and terminal profiles
 
 Archiving a session removes eligible clean worktrees by default. Branches and
@@ -107,7 +111,7 @@ patch IDs `forge-worktree` to `worktree` and `optional-forge-panel` to
 `forge-panel`.
 
 `bundles.experimental-terminal-bundle` requires a Web or Desktop terminal
-controller. Move overrides for `optional-terminal-bash` and
+controller. Selecting it in a Nix profile also selects `web-app`. Move overrides for `optional-terminal-bash` and
 `optional-terminal-pwsh` to `optional-terminal-panel`, and check its updated
 schema. Headless profiles compose `dsh-terminal`, `dsh-terminal-bash`, and
 `dsh-tool-terminal` directly. Terminal output the agent is allowed to read can
@@ -129,6 +133,40 @@ enter model context and session logs.
 - Creator uses `dsh-doc` in place of the four former development skills. The Nix
   installation keeps documentation, package sources, and templates that match
   the same version.
+
+### Accounts, LiveShare, and custom plugins
+
+Accounts:
+
+- Replace `@deepseek-ai/dsh-deepseek-account-platform` with
+  `@deepseek-ai/dsh-deepseek-account`.
+- Remove `account-controller` rows and `@deepseek-ai/dsh-api-account-controller`
+  dependencies.
+- Remove `bonusAckRetryDelayMs` and `bonusAckRetryMaxDelayMs` from
+  `ui-settings-account`.
+
+You stay signed in. `bundles.tui` shows notification text and actions sent by
+the server.
+
+LiveShare:
+
+- Remove `liveshare-viewer-declarations` overrides.
+- Set the LiveShare plugin method permissions again.
+- Run the same protocol version on the owner and the relay.
+
+In view mode, PTC programs can still read files outside the shared directory.
+Share sessions only with people you trust.
+
+Custom plugins:
+
+- Notification plugins use the new notification API. Account watchers emit
+  `{ type, state }` events.
+- `Session.append` wrappers accept a single event or an array of events.
+- `BundleInfo.updatable` is now `BundleInfo.update`. Tool error types have
+  changed; update code that checks them.
+- Stagehand finds extensions automatically and ignores `extensionId`.
+- When a PTC program reaches its tool-call limit, it stops and its saved state
+  is cleared. Operations it already completed stay in effect.
 
 ### Computer Use
 

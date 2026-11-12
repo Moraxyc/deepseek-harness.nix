@@ -82,6 +82,9 @@ Team 使用具名子代理和会话级开关。创建子代理前，请升级所
 并从委派结果中读取 `name`。中断工具默认关闭。自定义插件应将实验版 Agent Team
 包名替换为 `@deepseek-ai/dsh-agent-team` 和 `@deepseek-ai/dsh-tool-agent-team`。
 
+在 `bundles.tui` 中，`/team on` 和 `/team off` 作用于当前会话，profile 的 bundle 保持不变。
+成员列表和对话记录也会显示由子代理启动的子代理。
+
 ### 工作树与终端 profile
 
 归档会话时，默认删除符合条件的干净工作树，分支与提交保留。即使存在被忽略的文件，
@@ -90,7 +93,7 @@ Team 使用具名子代理和会话级开关。创建子代理前，请升级所
 从 `optional-forge-panel` 改为 `forge-panel`。
 
 `bundles.experimental-terminal-bundle` 需要 Web 或 Desktop 终端控制器。
-将 `optional-terminal-bash` 和 `optional-terminal-pwsh` 的覆盖迁移到
+在 Nix profile 中选择它时，会同时加入 `web-app`。将 `optional-terminal-bash` 和 `optional-terminal-pwsh` 的覆盖迁移到
 `optional-terminal-panel`，并检查其新配置结构。headless profile 直接组合
 `dsh-terminal`、`dsh-terminal-bash` 和 `dsh-tool-terminal`。
 智能体可读取的终端输出可能进入模型上下文和会话记录。
@@ -105,6 +108,32 @@ Team 使用具名子代理和会话级开关。创建子代理前，请升级所
   `skill-office.node`、`cli` 配置。已保存的 standard 与 PTC 预设需要添加 `tool-office` 行。
   文档解析在 Host 进程中运行，绕过 shell 沙箱；如需让解析留在沙箱内，请省略此插件。
 - 创造模式使用 `dsh-doc` 替代原有四个开发技能。Nix 安装保留与当前版本一致的文档、包源码和模板。
+
+### 账号、LiveShare 与自定义插件
+
+账号：
+
+- 将 `@deepseek-ai/dsh-deepseek-account-platform` 替换为 `@deepseek-ai/dsh-deepseek-account`。
+- 删除 `account-controller` 行和 `@deepseek-ai/dsh-api-account-controller` 依赖。
+- 从 `ui-settings-account` 删除 `bonusAckRetryDelayMs` 和 `bonusAckRetryMaxDelayMs`。
+
+登录状态保持。`bundles.tui` 显示服务器下发的通知文案和操作。
+
+LiveShare：
+
+- 删除 `liveshare-viewer-declarations` 覆盖。
+- 重新设置 LiveShare 插件的方法权限。
+- owner 与 relay 使用相同的协议版本。
+
+查看模式下，PTC 程序仍可读取共享目录以外的文件。请只与信任的人共享会话。
+
+自定义插件：
+
+- 通知插件使用新的通知 API。账号 watcher 发出 `{ type, state }` 事件。
+- `Session.append` 包装函数接受单个事件或事件数组。
+- `BundleInfo.updatable` 改名为 `BundleInfo.update`。工具错误类型已变化，检查这些类型的代码需要更新。
+- Stagehand 自动发现扩展，并忽略 `extensionId`。
+- PTC 程序达到工具调用上限时会停止，保存的状态被清空；已完成的操作保持有效。
 
 ### Computer Use
 

@@ -1,12 +1,26 @@
 {
   lib,
   fetchFromGitHub,
+  fetchurl,
   buildDshBundle,
   dsh-runtime,
   nodejs,
   nix-update-script,
 }:
 
+let
+  # Runtime dependencies pinned by the upstream package-lock.json.
+  runtimeDependencies = {
+    morphicons = fetchurl {
+      url = "https://registry.npmjs.org/morphicons/-/morphicons-1.7.1.tgz";
+      hash = "sha512-q5ylxy5/d7vBg0OAzanlooXf05PekovMYDuuQVpr6vAQZxl99lrJbaIi+jJ32PXQf9WEEaDO2pbNBsx1ZhEnFQ==";
+    };
+    yaml = fetchurl {
+      url = "https://registry.npmjs.org/yaml/-/yaml-2.9.1.tgz";
+      hash = "sha512-3NxN8+78OdzbT7C/WjGsyfPAtJaN3FNDsWxv7Y7mcDsT/oOmgW8BpyQQFFBnvZE3j9Y2Sdz1ULFLezL7Eb2yFw==";
+    };
+  };
+in
 assert lib.versionAtLeast nodejs.version "24";
 
 buildDshBundle (finalAttrs: {
@@ -36,10 +50,16 @@ buildDshBundle (finalAttrs: {
     runHook preInstall
 
     appDir="$out/lib/node_modules/@modusensus/dsh-mneme"
-    mkdir -p "$appDir"
+    mkdir -p "$appDir/node_modules"
+    archive=$(npm pack --ignore-scripts --loglevel error \
+      --cache "$TMPDIR/npm-cache" --pack-destination "$TMPDIR" ./dsh-mneme)
+    tar -xzf "$TMPDIR/$archive" --strip-components=1 -C "$appDir"
 
-    cp dsh-mneme/package.json dsh-mneme/cordis.patch.yml "$appDir/"
-    cp -r dsh-mneme/lib "$appDir/"
+    ${lib.concatMapStringsSep "\n" (name: ''
+      mkdir -p "$appDir/node_modules/${name}"
+      tar -xzf ${runtimeDependencies.${name}} --strip-components=1 \
+        -C "$appDir/node_modules/${name}"
+    '') (builtins.attrNames runtimeDependencies)}
 
     runHook postInstall
   '';
