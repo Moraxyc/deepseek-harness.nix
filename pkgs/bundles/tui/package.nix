@@ -83,6 +83,10 @@ buildDshBundle (finalAttrs: {
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
+  preBuild = ''
+    # Use Nix's CPU budget instead of the builder's full CPU count.
+    export DSH_TUI_VERIFY_JOBS="$NIX_BUILD_CORES"
+  '';
   postBuild = ''
     node scripts/verify-rc2-runtime.mjs
     node --import tsx/esm scripts/verify-agent-team-channel.ts
