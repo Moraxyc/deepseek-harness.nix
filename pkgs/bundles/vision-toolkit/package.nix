@@ -12,7 +12,7 @@
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-vision-toolkit";
-  version = "0.1.49";
+  version = "0.1.50";
   deployPackage = "@anionex/dsh-vision-toolkit";
   # The upstream peer ranges exclude this verified runtime.
   dshEngines = "0.2.2-rc.2";
@@ -22,7 +22,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     owner = "Anionex";
     repo = "dsh-vision-toolkit";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-70gOzVXFNz7U1UBBJQvYZ6Xjf4q42KUcDy3hJbI5Prg=";
+    hash = "sha256-4+cnRcWwDWXpVrW8x1VR9rlRlxbUUWfYuJVsQRkXu70=";
   };
 
   pnpmDepsHash = "sha256-Po+i2W4gi0rlatvcOfXpDsvF8oAgTBfKaOV2TwZc1Ow=";
