@@ -71,7 +71,7 @@ buildDshBundle (finalAttrs: {
   __darwinAllowLocalNetworking = true;
   # Upstream peer ranges stop at 0.2.1-rc.5. Raise this only after the TUI
   # boots every bundled preset on the new dsh release.
-  dshEngines = "0.2.2-rc.2";
+  dshEngines = "0.2.2-rc.3";
   installationKeep = [
     "ansi-styles"
     # dsh-tui compiles against React 19, while the installation carries React 18.

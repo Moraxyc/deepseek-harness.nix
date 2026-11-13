@@ -106,7 +106,7 @@ buildDshBundle (finalAttrs: {
   ];
   disallowedReferences = [ pnpm_11 ];
   # The compatibility patch uses the rc.2 host error factory.
-  dshEngines = "0.2.2-rc.2";
+  dshEngines = "0.2.2-rc.3";
   installation = dsh-runtime;
 
   preBuild = ''
