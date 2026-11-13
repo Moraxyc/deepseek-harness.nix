@@ -10,6 +10,15 @@
       "darwin"
     ]
   },
+  "@deepseek-ai/dsh-deepseek-chat-import": {
+    "attr": "deepseek-chat-import",
+    "pname": "dsh-deepseek-chat-import",
+    "description": "Upload a chat export ZIP from the DeepSeek website with the button next to New session; each conversation becomes a session in the workspace you choose.",
+    "descriptionZh": "点击“新建会话”旁的按钮上传 DeepSeek 官网导出的 ZIP 文件，每段对话都会成为所选工作区中的一个会话。",
+    "descriptionJa": "「新規セッション」の横にあるボタンから DeepSeek ウェブサイトのチャットエクスポート ZIP をアップロードすると、各会話が選択したワークスペースのセッションになります。",
+    "requiresWeb": true,
+    "platforms": []
+  },
   "@deepseek-ai/dsh-experimental-auto-review": {
     "attr": "experimental-auto-review",
     "pname": "dsh-experimental-auto-review",

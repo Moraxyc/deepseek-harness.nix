@@ -26,7 +26,7 @@ buildDshBundle (finalAttrs: {
   '';
 
   # The upstream peer ranges exclude this verified runtime.
-  dshEngines = "0.2.2-rc.2";
+  dshEngines = "0.2.2-rc.3";
   installation = dsh-runtime;
 
   passthru.requiresWeb = true;
