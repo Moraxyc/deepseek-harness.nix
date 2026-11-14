@@ -394,14 +394,15 @@
     },
     "dsh-workspace": {
       "pname": "dsh-workspace",
-      "version": "0.2.2-rc.2",
-      "rawVersion": "0.2.2-rc.2",
+      "version": "0.2.2-rc.3",
+      "rawVersion": "0.2.2-rc.3",
+      "date": "2026-11-13",
       "src": {
         "fetcher": "github",
         "owner": "deepseek-ai",
         "repo": "deepseek-harness",
-        "tag": "dsh-v0.2.2-rc.2",
-        "hash": "sha256-lbRmFifO6+8YKn8kaR7gQzKeUQh9YBFu9wH/dWJ+3MA="
+        "tag": "dsh-v0.2.2-rc.3",
+        "hash": "sha256-0stwYEjQsZ3dfQbIhEN8kR1B/WxsnWDMZ84HIBDbnKg="
       },
       "artifacts": {
         "client-commit.json": "dsh-workspace/client-commit.json",
@@ -409,7 +410,7 @@
         "pnpm-lock.json": "dsh-workspace/pnpm-lock.json",
         "pnpm-workspace.json": "dsh-workspace/pnpm-workspace.json"
       },
-      "fingerprint": "sha256-JcBziKRF5sRaAABGVzhWiB2bKK95fVN54tdqLEsFofk="
+      "fingerprint": "sha256-CQgI2orrf+4WWBBe5waocTsZHg+EZgDo/1i0jev4NWk="
     }
   }
 }

@@ -58,8 +58,6 @@ buildDshBundle (finalAttrs: {
   disallowedReferences = [ pnpm_11 ];
   installation = dsh-runtime;
   __darwinAllowLocalNetworking = true;
-  # Some upstream peers require rc.3; verify all presets before changing this grant.
-  dshEngines = "0.2.2-rc.2";
   installationKeep = [
     "ansi-styles"
     # dsh-tui compiles against React 19, while the installation carries React 18.

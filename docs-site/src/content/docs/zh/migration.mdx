@@ -96,6 +96,16 @@ profile 中删除 `@deepseek-ai/dsh-experimental-agent-team-profile`。
 跨会话记忆请选择 `bundles.mneme` 或 `bundles.mnemon`。删除 bundle 不会删除这些插件
 写入数据目录的内容；切换前请备份 `$DSH_HOME` 或所配置的数据目录。
 
+## `0.2.2-rc.3`
+
+升级前请阅读[上游发行说明](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.3)。
+
+### 会话导入
+
+上游新增实验性的 DeepSeek 会话导入 bundle：上传会话导出 ZIP 后，每段对话都会成为所选工作区中的一个会话。
+本安装以可选 bundle `deepseek-chat-import` 提供，默认关闭，可在插件管理器的官方分组中启用。
+它与导入其他 Agent 工具历史的 `bundles.chat-import` 不是同一个 bundle。
+
 ## `0.2.2-rc.2`
 
 升级前请阅读[上游发行说明](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.2)，并备份共享的会话存储。

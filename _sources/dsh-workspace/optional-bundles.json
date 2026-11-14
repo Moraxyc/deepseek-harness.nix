@@ -6,7 +6,18 @@
     "descriptionZh": "目前仅支持 macOS，Windows 支持正在开发中。为已有及新建 PTC 会话加载 Computer Use。请切换到 PTC 模式来使用，并授予辅助功能和屏幕录制权限。",
     "descriptionJa": "現在は macOS のみ対応し、Windows 対応は開発中です。既存および新規の PTC セッションに Computer Use を読み込みます。PTC モードに切り替え、アクセシビリティと画面収録の権限を許可して使用してください。",
     "requiresWeb": true,
-    "platforms": ["darwin"]
+    "platforms": [
+      "darwin"
+    ]
+  },
+  "@deepseek-ai/dsh-deepseek-chat-import": {
+    "attr": "deepseek-chat-import",
+    "pname": "dsh-deepseek-chat-import",
+    "description": "Upload a chat export ZIP from the DeepSeek website with the button next to New session; each conversation becomes a session in the workspace you choose.",
+    "descriptionZh": "点击“新建会话”旁的按钮上传 DeepSeek 官网导出的 ZIP 文件，每段对话都会成为所选工作区中的一个会话。",
+    "descriptionJa": "「新規セッション」の横にあるボタンから DeepSeek ウェブサイトのチャットエクスポート ZIP をアップロードすると、各会話が選択したワークスペースのセッションになります。",
+    "requiresWeb": true,
+    "platforms": []
   },
   "@deepseek-ai/dsh-experimental-auto-review": {
     "attr": "experimental-auto-review",

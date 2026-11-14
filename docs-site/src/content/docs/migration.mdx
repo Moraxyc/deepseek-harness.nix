@@ -115,6 +115,19 @@ For cross-session memory, select `bundles.mneme` or `bundles.mnemon`. Data these
 bundles wrote under the data directory is not deleted by removing them; back up
 `$DSH_HOME` or the configured data directory before switching.
 
+## `0.2.2-rc.3`
+
+Before upgrading, read the [upstream release notes](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.3).
+
+### Chat import
+
+Upstream adds an experimental DeepSeek chat import bundle that uploads a chat
+export ZIP and stores each conversation as a session in a chosen workspace.
+This installation carries it as the optional `deepseek-chat-import` bundle: it is
+shipped switched off and enabled from the plugin manager's official group. It is
+separate from `bundles.chat-import`, which imports histories from other agent
+tools.
+
 ## `0.2.2-rc.2`
 
 Before upgrading, read the [upstream release notes](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.2)
