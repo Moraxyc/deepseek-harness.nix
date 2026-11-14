@@ -3,15 +3,15 @@
   "packages": {
     "bundles.ads": {
       "pname": "dsh-ads",
-      "version": "0.1.4-unstable-2026-11-06",
-      "rawVersion": "76a3bcec64ba83abecbacbd114ce08861921ade4",
-      "date": "2026-11-06",
+      "version": "0.1.5-unstable-2026-11-13",
+      "rawVersion": "a58182019dba40fcfcf83c1fc22f63151cc0412b",
+      "date": "2026-11-13",
       "src": {
         "fetcher": "github",
         "owner": "Nagi-ovo",
         "repo": "dsh-ads",
-        "rev": "76a3bcec64ba83abecbacbd114ce08861921ade4",
-        "hash": "sha256-Bi1YSRKdFEsCoXf9l5LSWhwqZtOivPg0bJTN/2IoIc8="
+        "rev": "a58182019dba40fcfcf83c1fc22f63151cc0412b",
+        "hash": "sha256-eskCKKcVd2hLrE6xwWQwBfzuSCDjsogfvqC1hPyrETU="
       },
       "derived": {
         "pnpmDepsHash": {
