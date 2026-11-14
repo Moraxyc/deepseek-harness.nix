@@ -312,14 +312,15 @@
     },
     "bundles.vision-toolkit": {
       "pname": "dsh-vision-toolkit",
-      "version": "0.1.50",
-      "rawVersion": "0.1.50",
+      "version": "0.1.51",
+      "rawVersion": "0.1.51",
+      "date": "2026-11-13",
       "src": {
         "fetcher": "github",
         "owner": "Anionex",
         "repo": "dsh-vision-toolkit",
-        "tag": "v0.1.50",
-        "hash": "sha256-4+cnRcWwDWXpVrW8x1VR9rlRlxbUUWfYuJVsQRkXu70="
+        "tag": "v0.1.51",
+        "hash": "sha256-k5rCxwR/DTklKUH9MruUtDFacNCa+53/6tawepcpZgo="
       },
       "derived": {
         "pnpmDepsHash": {
