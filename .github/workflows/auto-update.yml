@@ -207,15 +207,28 @@ jobs:
       - name: Check for changes
         id: changes
         env:
+          NAME: ${{ matrix.name }}
           UPDATE_FAILED: ${{ steps.package.outcome == 'failure' || steps.locks.outcome == 'failure' }}
         run: |
           set -euo pipefail
+          placeholder=".github/auto-update-failures/$NAME.md"
+          if [ "$UPDATE_FAILED" != true ]; then
+            rm -f "$placeholder"
+          elif [ -f "$placeholder" ] || { git diff --quiet origin/main && [ -z "$(git status --porcelain --untracked-files=all)" ]; }; then
+            mkdir -p "$(dirname "$placeholder")"
+            {
+              printf '# Auto-update failed / 自动更新失败: %s\n\n' "$NAME"
+              printf 'Update failed without generated changes; this file keeps a repair PR open. / 更新失败且未生成改动，此文件用于创建修复 PR。\n\n'
+              printf '[Logs / 日志](%s/%s/actions/runs/%s/attempts/%s)\n\n' \
+                "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT"
+              printf 'Remove this file after repairing the update. / 修复更新后删除此文件。\n'
+            } > "$placeholder"
+            echo "placeholder=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::Update failed; preserving a placeholder for a repair PR / 更新失败，生成占位文件以创建修复 PR"
+          fi
           if git diff --quiet origin/main && [ -z "$(git status --porcelain --untracked-files=all)" ]; then
             echo "updated=false" >> "$GITHUB_OUTPUT"
-            echo "No changes for ${{ matrix.name }}"
-            if [ "$UPDATE_FAILED" = true ]; then
-              echo "::warning::Update failed without generated changes; no PR created / 更新失败且未生成改动，无法创建 PR"
-            fi
+            echo "No changes for $NAME"
           else
             echo "updated=true" >> "$GITHUB_OUTPUT"
           fi
@@ -245,10 +258,14 @@ jobs:
           ATTR: ${{ matrix.attr }}
           OLD_VERSION: ${{ matrix.version }}
           DEFAULT_TITLE: ${{ matrix.title }}
+          NAME: ${{ matrix.name }}
+          PLACEHOLDER: ${{ steps.changes.outputs.placeholder }}
         run: |
           set -euo pipefail
           title="$DEFAULT_TITLE"
-          if [ -n "$ATTR" ]; then
+          if [ "$PLACEHOLDER" = true ]; then
+            title="chore: repair failed auto-update for $NAME"
+          elif [ -n "$ATTR" ]; then
             new_version="$(jq -r --arg label "$LABEL" '.packages[$label].version' _sources/lock.json)"
             title="$LABEL: $OLD_VERSION -> $new_version"
           fi
@@ -331,6 +348,7 @@ jobs:
           BRANCH: auto-update/${{ matrix.name }}
           TITLE: ${{ steps.commit.outputs.title }}
           PR_ONLY: ${{ matrix.prOnly }}
+          PLACEHOLDER: ${{ steps.changes.outputs.placeholder }}
           UPDATE_FAILED: ${{ steps.package.outcome == 'failure' || steps.locks.outcome == 'failure' }}
           COMPATIBILITY_REPORT: ${{ steps.compatibility.outputs.report }}
           VALIDATION_FAILED: ${{ steps.validate.outcome == 'failure' }}
@@ -343,7 +361,9 @@ jobs:
           fi
           git push --force --no-verify origin "HEAD:$BRANCH"
 
-          if [ "${UPDATE_FAILED:-false}" = true ]; then
+          if [ "${PLACEHOLDER:-false}" = true ]; then
+            reason="Update command failed; a placeholder report is included. Remove it after repair. / 更新命令失败，已生成占位报告，修复后请删除。"
+          elif [ "${UPDATE_FAILED:-false}" = true ]; then
             reason="Update command failed; generated changes are preserved. / 更新命令失败，已保留生成的改动。"
           elif [ "${PR_ONLY:-false}" = true ]; then
             reason="Runtime update requires downstream review. / 运行时更新需要检查下游兼容性。"
@@ -393,7 +413,6 @@ jobs:
           NAME: ${{ matrix.name }}
           RESULT: ${{ job.status }}
           UPDATED: ${{ steps.changes.outputs.updated }}
-          UPDATE_FAILED: ${{ steps.package.outcome == 'failure' || steps.locks.outcome == 'failure' }}
           COLLECTED: ${{ steps.collect.outcome }}
           PR_URL: ${{ steps.pull-request.outputs.url }}
           PR_REASON: ${{ steps.pull-request.outputs.reason }}
@@ -409,8 +428,6 @@ jobs:
               printf '%s\n\n[PR](%s): CI and auto-merge off; manual repair required. / 不运行 CI，不自动合并，等待手动修复。\n' "$PR_REASON" "$PR_URL"
             elif [ "$COLLECTED" = success ]; then
               echo 'Validated; queued for publishing. / 验证通过，等待汇总发布。'
-            elif [ "$UPDATED" = false ] && [ "$UPDATE_FAILED" = true ]; then
-              echo 'Update failed without generated changes; no PR created. / 更新失败且未生成改动，无法创建 PR。'
             elif [ "$UPDATED" = false ]; then
               echo 'No changes. / 无改动。'
             else
@@ -439,6 +456,9 @@ jobs:
     if: ${{ !cancelled() && needs.discover.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      actions: write
+      contents: read
     steps:
       - name: Download update results
         uses: actions/download-artifact@v8
@@ -496,6 +516,7 @@ jobs:
           bash scripts/publish-auto-updates.sh "$RUNNER_TEMP/auto-updates"
 
       - name: Summarize updates
+        id: summary
         if: ${{ !cancelled() }}
         env:
           UPDATE_RESULT: ${{ needs.update.result }}
@@ -514,3 +535,22 @@ jobs:
               cat "$report"
             done
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Delete intermediate update reports
+        if: ${{ !cancelled() && steps.summary.outcome == 'success' }}
+        continue-on-error: true
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const artifacts = await github.paginate(
+              github.rest.actions.listWorkflowRunArtifacts,
+              { ...context.repo, run_id: context.runId, per_page: 100 },
+            );
+            for (const artifact of artifacts) {
+              if (artifact.name.startsWith('update-report-')) {
+                await github.rest.actions.deleteArtifact({
+                  ...context.repo,
+                  artifact_id: artifact.id,
+                });
+              }
+            }

@@ -29,7 +29,7 @@ open_pr() {
     pr_number="${pr_url##*/}"
   fi
   gh pr merge "$pr_number" --repo "$GITHUB_REPOSITORY" --disable-auto
-  printf '- %s: [PR #%s](%s/%s/pull/%s), CI and auto-merge off / 不运行 CI，不自动合并。%s / %s\n' \
+  printf -- '- %s: [PR #%s](%s/%s/pull/%s), CI and auto-merge off / 不运行 CI，不自动合并。%s / %s\n' \
     "$branch" "$pr_number" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$pr_number" \
     "$reason" "$3" >> "$PUBLISH_REPORT"
 }
@@ -92,7 +92,7 @@ for result in "${conflicts[@]}"; do
 done
 if [ "$pushed" = true ]; then
   for result in "${accepted[@]}"; do
-    printf '- %s: published to main / 已发布到 main。\n' \
+    printf -- '- %s: published to main / 已发布到 main。\n' \
       "$(jq -r .branch "$result")" >> "$PUBLISH_REPORT"
     cleanup "$result"
   done
