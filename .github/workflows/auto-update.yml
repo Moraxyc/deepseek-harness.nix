@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.discover.outputs.matrix }}
+      git-name: ${{ steps.app-identity.outputs.name }}
+      git-email: ${{ steps.app-identity.outputs.email }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -93,6 +95,25 @@ jobs:
 
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
 
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Resolve GitHub App identity
+        id: app-identity
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          set -euo pipefail
+          login="${APP_SLUG}[bot]"
+          user_id="$(gh api "/users/$login" --jq .id)"
+          echo "name=$login" >> "$GITHUB_OUTPUT"
+          echo "email=${user_id}+${login}@users.noreply.github.com" >> "$GITHUB_OUTPUT"
+
   update:
     needs: discover
     name: Update ${{ matrix.name }}
@@ -120,8 +141,7 @@ jobs:
             extra-substituters = https://nix-cache.qaq.li/fetchrix
             extra-trusted-public-keys = fetchrix:VDPvJo80cjEoWiPDXAKKrNu3RXet40rlcXFZFvbsscM=
 
-      # Validation builds the changed packages here, so it fills the cache that
-      # the main-branch run reads again.
+      # The final main-branch run reuses these validation builds.
       - name: Configure Cachix
         uses: cachix/cachix-action@v17
         with:
@@ -129,10 +149,13 @@ jobs:
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Configure git
+        env:
+          GIT_NAME: ${{ needs.discover.outputs.git-name }}
+          GIT_EMAIL: ${{ needs.discover.outputs.git-email }}
         run: |
           set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "$GIT_NAME"
+          git config user.email "$GIT_EMAIL"
 
       - name: Reuse update branch
         env:
@@ -226,14 +249,6 @@ jobs:
           fi
           echo "report=$report" >> "$GITHUB_OUTPUT"
 
-      - name: Generate GitHub App Token
-        id: app-token
-        if: steps.changes.outputs.updated == 'true'
-        uses: actions/create-github-app-token@v3
-        with:
-          client-id: ${{ secrets.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-
       - name: Commit update
         id: commit
         if: steps.changes.outputs.updated == 'true'
@@ -286,58 +301,48 @@ jobs:
               ".#checks.$system.dsh-optional-bundles-generated"
           fi
 
-      - name: Push to main
-        id: push-main
+      - name: Collect validated update
+        id: collect
         if: >-
           steps.changes.outputs.updated == 'true' &&
           steps.validate.outcome == 'success' &&
           steps.compatibility.outcome != 'failure' &&
           steps.impact.outputs.actions != 'true'
-        continue-on-error: true
         env:
-          BRANCH: auto-update/${{ matrix.name }}
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          NAME: ${{ matrix.name }}
+          TITLE: ${{ steps.commit.outputs.title }}
         run: |
           set -euo pipefail
-          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          # Other update jobs push to main during this run. Rebase and retry so
-          # each push stays a fast-forward; an update only touches its own
-          # package, so the rebase does not invalidate the build.
-          pushed=false
-          for attempt in 1 2 3 4 5; do
-            git fetch --quiet origin main
-            if ! git rebase origin/main; then
-              git rebase --abort
-              echo "::warning::Rebase onto main failed; opening a pull request"
-              exit 1
-            fi
-            if git push --no-verify origin "HEAD:main"; then
-              pushed=true
-              break
-            fi
-            sleep "$((attempt * 10))"
-          done
-          if [ "$pushed" = false ]; then
-            echo "::warning::Push to main was rejected; opening a pull request"
-            exit 1
-          fi
-          # Earlier runs may have left a pull request for this update.
-          # Cleanup is best effort; the update is already on main.
-          pr_numbers="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" \
-            --state open --json number --jq '.[].number' || true)"
-          for pr in $pr_numbers; do
-            gh pr close "$pr" --repo "$GITHUB_REPOSITORY" --delete-branch || true
-          done
-          git push --no-verify origin --delete "$BRANCH" 2>/dev/null || true
+          mkdir -p "$RUNNER_TEMP/auto-update/$NAME"
+          git bundle create "$RUNNER_TEMP/auto-update/$NAME/update.bundle" origin/main..HEAD
+          jq -n --arg branch "auto-update/$NAME" --arg title "$TITLE" \
+            '{branch: $branch, title: $title}' > "$RUNNER_TEMP/auto-update/$NAME/result.json"
+
+      - name: Upload validated update
+        if: steps.collect.outcome == 'success'
+        uses: actions/upload-artifact@v7
+        with:
+          name: auto-update-${{ matrix.name }}
+          path: ${{ runner.temp }}/auto-update/
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 7
+
+      - name: Generate GitHub App Token
+        id: app-token
+        if: steps.changes.outputs.updated == 'true' && steps.collect.outcome == 'skipped'
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
       - name: Open or update pull request
-        if: steps.changes.outputs.updated == 'true' && steps.push-main.outcome != 'success'
+        if: steps.changes.outputs.updated == 'true' && steps.collect.outcome == 'skipped'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           BRANCH: auto-update/${{ matrix.name }}
           TITLE: ${{ steps.commit.outputs.title }}
           IMPACT_REPORT: ${{ steps.impact.outputs.report }}
-          IMPACT_ACTIONS: ${{ steps.impact.outputs.actions }}
           COMPATIBILITY_REPORT: ${{ steps.compatibility.outputs.report }}
           COMPATIBILITY_FAILED: ${{ steps.compatibility.outcome == 'failure' }}
           VALIDATION_FAILED: ${{ steps.validate.outcome == 'failure' }}
@@ -349,13 +354,7 @@ jobs:
           # pre-push hook; Package CI validates the branch instead.
           git push --force --no-verify origin "HEAD:$BRANCH"
 
-          auto_merge=false
-          if [ "${VALIDATION_FAILED:-false}" = false ] &&
-            [ "${COMPATIBILITY_FAILED:-false}" = false ] &&
-            [ "${IMPACT_ACTIONS:-false}" = false ]; then
-            auto_merge=true
-            body="Automated update. Validation passed, but pushing to main was rejected; auto-merge is on."
-          elif [ "${VALIDATION_FAILED:-false}" = true ]; then
+          if [ "${VALIDATION_FAILED:-false}" = true ]; then
             body="Automated update. Auto-merge is off because validation failed."
           elif [ "${COMPATIBILITY_FAILED:-false}" = true ]; then
             body="Automated update. Auto-merge is off because compatibility checks failed. / 兼容性检查失败，已关闭自动合并。"
@@ -395,12 +394,56 @@ jobs:
             pr_number="$(printf '%s\n' "$pr_url" | sed -n 's#.*/pull/\([0-9][0-9]*\).*#\1#p')"
           fi
 
-          if [ "$auto_merge" = true ]; then
-            gh pr merge "$pr_number" \
-              --repo "$GITHUB_REPOSITORY" \
-              --auto \
-              --squash \
-              --delete-branch
-          else
-            gh pr merge "$pr_number" --repo "$GITHUB_REPOSITORY" --disable-auto || true
-          fi
+          gh pr merge "$pr_number" --repo "$GITHUB_REPOSITORY" --disable-auto
+
+  publish:
+    needs: [discover, update]
+    if: ${{ !cancelled() && needs.discover.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download validated updates
+        uses: actions/download-artifact@v8
+        with:
+          pattern: auto-update-*
+          path: ${{ runner.temp }}/auto-updates
+          merge-multiple: true
+
+      - name: Check for validated updates
+        id: collected
+        run: |
+          for result in "$RUNNER_TEMP"/auto-updates/*/result.json; do
+            if [ -f "$result" ]; then
+              echo "found=true" >> "$GITHUB_OUTPUT"
+              break
+            fi
+          done
+
+      - name: Checkout repository
+        if: steps.collected.outputs.found == 'true'
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Generate GitHub App Token
+        id: app-token
+        if: steps.collected.outputs.found == 'true'
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Publish collected updates
+        if: steps.collected.outputs.found == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GIT_NAME: ${{ needs.discover.outputs.git-name }}
+          GIT_EMAIL: ${{ needs.discover.outputs.git-email }}
+        run: |
+          set -euo pipefail
+          git config user.name "$GIT_NAME"
+          git config user.email "$GIT_EMAIL"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          bash scripts/publish-auto-updates.sh "$RUNNER_TEMP/auto-updates"
