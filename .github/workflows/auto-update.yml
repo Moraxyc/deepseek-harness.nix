@@ -184,7 +184,9 @@ jobs:
           git remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git"
 
       - name: Update flake locks
+        id: locks
         if: matrix.command != ''
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -192,7 +194,9 @@ jobs:
           ${{ matrix.command }}
 
       - name: Update package
+        id: package
         if: matrix.attr != ''
+        continue-on-error: true
         env:
           LABEL: ${{ matrix.label }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -202,18 +206,26 @@ jobs:
 
       - name: Check for changes
         id: changes
+        env:
+          UPDATE_FAILED: ${{ steps.package.outcome == 'failure' || steps.locks.outcome == 'failure' }}
         run: |
           set -euo pipefail
           if git diff --quiet origin/main && [ -z "$(git status --porcelain --untracked-files=all)" ]; then
             echo "updated=false" >> "$GITHUB_OUTPUT"
             echo "No changes for ${{ matrix.name }}"
+            if [ "$UPDATE_FAILED" = true ]; then
+              echo "::warning::Update failed without generated changes; no PR created / 更新失败且未生成改动，无法创建 PR"
+            fi
           else
             echo "updated=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Test and update dshEngines grants
         id: compatibility
-        if: steps.changes.outputs.updated == 'true' && startsWith(matrix.label, 'bundles.')
+        if: >-
+          steps.changes.outputs.updated == 'true' &&
+          steps.package.outcome != 'failure' &&
+          startsWith(matrix.label, 'bundles.')
         continue-on-error: true
         env:
           BUNDLE_NAME: ${{ matrix.name }}
@@ -223,7 +235,7 @@ jobs:
           echo "report=$report" >> "$GITHUB_OUTPUT"
           nix shell --inputs-from . nixpkgs#nodejs-slim nixpkgs#ast-grep \
             -c node scripts/update-dsh-engines.mjs "$BUNDLE_NAME" \
-            | tee "$report" -a "$GITHUB_STEP_SUMMARY"
+            | tee "$report"
 
       - name: Commit update
         id: commit
@@ -237,7 +249,7 @@ jobs:
           set -euo pipefail
           title="$DEFAULT_TITLE"
           if [ -n "$ATTR" ]; then
-            new_version="$(nix eval --raw --impure ".#$ATTR.version")"
+            new_version="$(jq -r --arg label "$LABEL" '.packages[$label].version' _sources/lock.json)"
             title="$LABEL: $OLD_VERSION -> $new_version"
           fi
           if [ -n "$(git status --porcelain --untracked-files=all)" ]; then
@@ -254,7 +266,9 @@ jobs:
       # cannot provide. Build what Package CI would build for the change instead.
       - name: Validate update
         id: validate
-        if: steps.changes.outputs.updated == 'true' && matrix.prOnly != true
+        if: >-
+          steps.changes.outputs.updated == 'true' && matrix.prOnly != true &&
+          steps.package.outcome != 'failure' && steps.locks.outcome != 'failure'
         continue-on-error: true
         run: |
           set -euo pipefail
@@ -274,6 +288,7 @@ jobs:
         if: >-
           steps.changes.outputs.updated == 'true' &&
           matrix.prOnly != true &&
+          steps.package.outcome != 'failure' && steps.locks.outcome != 'failure' &&
           steps.validate.outcome == 'success' &&
           steps.compatibility.outcome != 'failure'
         env:
@@ -282,6 +297,10 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/auto-update/$NAME"
+          message="$(git log -1 --format=%B)"
+          if [[ "$message" == *'[skip ci]'* ]]; then
+            git commit --amend --no-verify -m "${message//\[skip ci\]/}"
+          fi
           git bundle create "$RUNNER_TEMP/auto-update/$NAME/update.bundle" origin/main..HEAD
           jq -n --arg branch "auto-update/$NAME" --arg title "$TITLE" \
             '{branch: $branch, title: $title}' > "$RUNNER_TEMP/auto-update/$NAME/result.json"
@@ -305,29 +324,36 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
       - name: Open or update pull request
+        id: pull-request
         if: steps.changes.outputs.updated == 'true' && steps.collect.outcome == 'skipped'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           BRANCH: auto-update/${{ matrix.name }}
           TITLE: ${{ steps.commit.outputs.title }}
           PR_ONLY: ${{ matrix.prOnly }}
+          UPDATE_FAILED: ${{ steps.package.outcome == 'failure' || steps.locks.outcome == 'failure' }}
           COMPATIBILITY_REPORT: ${{ steps.compatibility.outputs.report }}
           VALIDATION_FAILED: ${{ steps.validate.outcome == 'failure' }}
         run: |
           set -euo pipefail
 
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          # Runner Nix cannot run the container checks behind the repository
-          # pre-push hook; pull-request-only updates are not validated at all.
+          if ! git log -1 --format=%B | grep -Fq '[skip ci]'; then
+            git commit --amend --no-verify -m "$(git log -1 --format=%B)" -m '[skip ci]'
+          fi
           git push --force --no-verify origin "HEAD:$BRANCH"
 
-          if [ "${PR_ONLY:-false}" = true ]; then
-            body="Automated update. Not validated, no CI, no auto-merge. / 自动更新。未验证，不运行 CI，不自动合并。"
+          if [ "${UPDATE_FAILED:-false}" = true ]; then
+            reason="Update command failed; generated changes are preserved. / 更新命令失败，已保留生成的改动。"
+          elif [ "${PR_ONLY:-false}" = true ]; then
+            reason="Runtime update requires downstream review. / 运行时更新需要检查下游兼容性。"
           elif [ "${VALIDATION_FAILED:-false}" = true ]; then
-            body="Automated update. Auto-merge is off because validation failed."
+            reason="Validation failed. / 验证失败。"
           else
-            body="Automated update. Auto-merge is off because compatibility checks failed. / 兼容性检查失败，已关闭自动合并。"
+            reason="Compatibility checks failed. / 兼容性检查失败。"
           fi
+          body="$reason CI and auto-merge are off; manual repair required. / 不运行 CI，不自动合并，等待手动修复。"
+          body="$(printf '%s\n\n%s' "$body" "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}")"
           if [ -n "${COMPATIBILITY_REPORT:-}" ]; then
             body="$(printf '%s\n\n%s' "$body" "$(head -c 4000 "$COMPATIBILITY_REPORT")")"
           fi
@@ -354,10 +380,59 @@ jobs:
                 --title "$TITLE" \
                 --body "$body"
             )"
-            pr_number="$(printf '%s\n' "$pr_url" | sed -n 's#.*/pull/\([0-9][0-9]*\).*#\1#p')"
+            pr_number="${pr_url##*/}"
           fi
 
           gh pr merge "$pr_number" --repo "$GITHUB_REPOSITORY" --disable-auto
+          echo "url=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/pull/$pr_number" >> "$GITHUB_OUTPUT"
+          echo "reason=$reason" >> "$GITHUB_OUTPUT"
+
+      - name: Record update result
+        if: ${{ !cancelled() }}
+        env:
+          NAME: ${{ matrix.name }}
+          RESULT: ${{ job.status }}
+          UPDATED: ${{ steps.changes.outputs.updated }}
+          UPDATE_FAILED: ${{ steps.package.outcome == 'failure' || steps.locks.outcome == 'failure' }}
+          COLLECTED: ${{ steps.collect.outcome }}
+          PR_URL: ${{ steps.pull-request.outputs.url }}
+          PR_REASON: ${{ steps.pull-request.outputs.reason }}
+          COMPATIBILITY_REPORT: ${{ steps.compatibility.outputs.report }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/update-reports"
+          {
+            printf '### %s\n\n' "$NAME"
+            if [ "$RESULT" = failure ]; then
+              echo 'Failed; see job logs. / 失败，请查看任务日志。'
+            elif [ -n "$PR_URL" ]; then
+              printf '%s\n\n[PR](%s): CI and auto-merge off; manual repair required. / 不运行 CI，不自动合并，等待手动修复。\n' "$PR_REASON" "$PR_URL"
+            elif [ "$COLLECTED" = success ]; then
+              echo 'Validated; queued for publishing. / 验证通过，等待汇总发布。'
+            elif [ "$UPDATED" = false ] && [ "$UPDATE_FAILED" = true ]; then
+              echo 'Update failed without generated changes; no PR created. / 更新失败且未生成改动，无法创建 PR。'
+            elif [ "$UPDATED" = false ]; then
+              echo 'No changes. / 无改动。'
+            else
+              echo 'Incomplete; see job logs. / 未完成，请查看任务日志。'
+            fi
+            if [ -n "$COMPATIBILITY_REPORT" ] && [ -f "$COMPATIBILITY_REPORT" ]; then
+              printf '\n<details><summary>Compatibility / 兼容性</summary>\n\n'
+              head -c 20000 "$COMPATIBILITY_REPORT"
+              printf '\n</details>\n'
+            fi
+            printf '\n'
+          } > "$RUNNER_TEMP/update-reports/$NAME.md"
+
+      - name: Upload update result
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: update-report-${{ matrix.name }}
+          path: ${{ runner.temp }}/update-reports/
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 7
 
   publish:
     needs: [discover, update]
@@ -365,6 +440,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Download update results
+        uses: actions/download-artifact@v8
+        with:
+          pattern: update-report-*
+          path: ${{ runner.temp }}/update-reports
+          merge-multiple: true
+
       - name: Download validated updates
         uses: actions/download-artifact@v8
         with:
@@ -399,14 +481,36 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
       - name: Publish collected updates
+        id: publish
         if: steps.collected.outputs.found == 'true'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           GIT_NAME: ${{ needs.discover.outputs.git-name }}
           GIT_EMAIL: ${{ needs.discover.outputs.git-email }}
+          PUBLISH_REPORT: ${{ runner.temp }}/auto-update-publish.md
         run: |
           set -euo pipefail
           git config user.name "$GIT_NAME"
           git config user.email "$GIT_EMAIL"
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           bash scripts/publish-auto-updates.sh "$RUNNER_TEMP/auto-updates"
+
+      - name: Summarize updates
+        if: ${{ !cancelled() }}
+        env:
+          UPDATE_RESULT: ${{ needs.update.result }}
+          PUBLISH_RESULT: ${{ steps.publish.outcome }}
+        run: |
+          set -euo pipefail
+          {
+            printf '## Auto Update / 自动更新\n\n'
+            printf 'Update jobs / 更新任务: %s; publish / 发布: %s\n\n' "$UPDATE_RESULT" "$PUBLISH_RESULT"
+            if [ -f "$RUNNER_TEMP/auto-update-publish.md" ]; then
+              cat "$RUNNER_TEMP/auto-update-publish.md"
+              printf '\n'
+            fi
+            for report in "$RUNNER_TEMP"/update-reports/*.md; do
+              [ -f "$report" ] || continue
+              cat "$report"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"

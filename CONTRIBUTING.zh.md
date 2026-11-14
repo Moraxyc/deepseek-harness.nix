@@ -352,10 +352,13 @@ in
   export、bundle 行、官方 bundle 列表、构建输入、本地 workspace 补丁的目标文件，
   以及 dsh 是否接受每个 bundle。它是自动更新 PR 的待办清单。
 - dsh-workspace 自动更新执行 `nix develop -c fetchrix update dsh-workspace` 后就开
-  PR：不添加 `dshEngines` 授权，不生成影响报告，不做验证构建，不运行 Package CI
-  和 Merge Check，也不自动合并。审阅者按本节流程处理完才算完成升级。
-- 其他自动更新会收集验证通过的更新，以 GitHub App bot 身份统一推送到 main，不跳过
-  CI。验证失败和汇总冲突的更新改为单独开 PR。
+  PR：不添加 `dshEngines` 授权，不生成影响报告，不做验证构建，通过 `[skip ci]`
+  跳过 CI，也不自动合并。审阅者按本节流程处理完才算完成升级。
+- 其他自动更新会收集验证通过的更新，以 GitHub App bot 身份统一推送到 main，main
+  不跳过 CI。更新未完成、验证失败、汇总冲突或推送失败时，改为单独开 PR，统一添加
+  `[skip ci]`、关闭自动合并，等待手动修复。即使更新命令失败，也会原样提交 fetchrix
+  已生成的改动。修复提交不带 `[skip ci]` 即可运行 CI。更新结果和兼容性报告统一在
+  publish 任务的 Summary 中展示。
 - bundle 自动更新时，`scripts/update-dsh-engines.mjs` 对已声明 `dshEngines` 的被
   更新 bundle 尝试新的 workspace 精确版本。候选版本必须通过 `bundleCompositions`
   构建和沙箱启动检查，不使用兼容性豁免。失败候选会还原，更新改为走 PR 而不是 main；

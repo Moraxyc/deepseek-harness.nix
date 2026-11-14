@@ -9,11 +9,15 @@ if [ "${#results[@]}" -eq 0 ]; then
 fi
 
 open_pr() {
-  local result="$1" reason="$2" auto_merge="$3"
+  local result="$1" reason="$2"
   local branch title body pr_number pr_url
   branch="$(jq -r .branch "$result")"
   title="$(jq -r .title "$result")"
-  body="Automated update. $reason / 自动更新。$4"
+  body="Automated update. $reason CI and auto-merge are off; manual repair required. / 自动更新。$3 不运行 CI，不自动合并，等待手动修复。"
+  git switch "$branch"
+  if ! git log -1 --format=%B | grep -Fq '[skip ci]'; then
+    git commit --amend --no-verify -m "$(git log -1 --format=%B)" -m '[skip ci]'
+  fi
   git push --force --no-verify origin "$branch:$branch"
   pr_number="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$branch" \
     --state open --json number --jq '.[0].number // empty')"
@@ -24,11 +28,10 @@ open_pr() {
       --title "$title" --body "$body")"
     pr_number="${pr_url##*/}"
   fi
-  if [ "$auto_merge" = true ]; then
-    gh pr merge "$pr_number" --repo "$GITHUB_REPOSITORY" --auto --squash --delete-branch
-  else
-    gh pr merge "$pr_number" --repo "$GITHUB_REPOSITORY" --disable-auto
-  fi
+  gh pr merge "$pr_number" --repo "$GITHUB_REPOSITORY" --disable-auto
+  printf '- %s: [PR #%s](%s/%s/pull/%s), CI and auto-merge off / 不运行 CI，不自动合并。%s / %s\n' \
+    "$branch" "$pr_number" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$pr_number" \
+    "$reason" "$3" >> "$PUBLISH_REPORT"
 }
 
 cleanup() {
@@ -84,17 +87,19 @@ fi
 # Persist every fallback before attempting best-effort cleanup.
 for result in "${conflicts[@]}"; do
   open_pr "$result" \
-    "Combining validated updates caused a conflict. Auto-merge is off." false \
-    "合并已验证更新时发生冲突，已关闭自动合并。"
+    "Combining validated updates caused a conflict." \
+    "合并已验证更新时发生冲突。"
 done
 if [ "$pushed" = true ]; then
   for result in "${accepted[@]}"; do
+    printf '- %s: published to main / 已发布到 main。\n' \
+      "$(jq -r .branch "$result")" >> "$PUBLISH_REPORT"
     cleanup "$result"
   done
 else
   for result in "${accepted[@]}"; do
     open_pr "$result" \
-      "Validation passed, but publishing the batch failed. Auto-merge is on." true \
-      "验证通过，但汇总推送失败，已启用自动合并。"
+      "Validation passed, but publishing the batch failed." \
+      "验证通过，但汇总推送失败。"
   done
 fi

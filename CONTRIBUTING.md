@@ -388,11 +388,15 @@ after updating the pin:
 - The dsh-workspace auto-update run stops after
   `nix develop -c fetchrix update dsh-workspace` and opens a pull request. It
   adds no `dshEngines` grants, runs no impact report and no validation builds,
-  skips Package CI and Merge Check, and leaves auto-merge off. The bump is done
+  uses `[skip ci]` to skip CI, and leaves auto-merge off. The bump is done
   only once a reviewer works through this section.
 - Other auto-updates collect validated updates and push them to main once using
-  the GitHub App bot identity. CI is not skipped. Validation failures and
-  aggregation conflicts go to individual pull requests instead.
+  the GitHub App bot identity. CI is not skipped for main. Incomplete updates,
+  validation failures, aggregation conflicts, and publish failures go to individual
+  pull requests with `[skip ci]` and auto-merge disabled, pending manual repair.
+  Generated fetchrix changes are committed unchanged even if the update command
+  fails. Push the repair without `[skip ci]` to run CI. Update results and
+  compatibility reports appear only in the publish job summary.
 - During bundle auto-updates, `scripts/update-dsh-engines.mjs` tries the new
   exact workspace version for the updated bundle when it declares
   `dshEngines`. Each candidate must pass its `bundleCompositions` build and
