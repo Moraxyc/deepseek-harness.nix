@@ -169,19 +169,19 @@
     },
     "bundles.harbor": {
       "pname": "dsh-harbor",
-      "version": "0.1.0-rc.4-unstable-2026-11-13",
-      "rawVersion": "277d61dfe504cf04730b393f95069252dce5936d",
-      "date": "2026-11-13",
+      "version": "0.1.0-rc.4-unstable-2026-11-14",
+      "rawVersion": "c409fc3323d97f39fbc1e740084e33b01a282a24",
+      "date": "2026-11-14",
       "src": {
         "fetcher": "github",
         "owner": "ZSeven-W",
         "repo": "dsh-harbor",
-        "rev": "277d61dfe504cf04730b393f95069252dce5936d",
-        "hash": "sha256-CZHcpVCrmJYG0pNfi2v8xQud7zBVRG0cI2lAnSmdwmc="
+        "rev": "c409fc3323d97f39fbc1e740084e33b01a282a24",
+        "hash": "sha256-j4uEbaNtQ4vuahYVPBxbq8BSrKwkPMGR5gDMgBoQmQI="
       },
       "derived": {
         "npmDepsHash": {
-          "hash": "sha256-/dgs+2SkBnbIwz/euo7VGjobobBB5iV6zmS7n1nYQh4="
+          "hash": "sha256-nAVnmP2XYRKRCtw10Ww3U3/tlXhfXCMGchQ7RKD9Hz8="
         }
       },
       "fingerprint": "sha256-4foia8OCrwTQiBxblTot+zbmSNDLlNuqGyEVwgKk4UA="
