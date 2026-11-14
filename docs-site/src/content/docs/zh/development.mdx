@@ -40,8 +40,8 @@ profile 的 `dsh`；安装中已有的 bundle 不再生成。它用于验证 bun
 nix develop
 ```
 
-默认开发 shell 包含 `jq`、`nix-update`、`nixfmt`、`pre-commit` 和
-`yq-go`。pre-commit 和 flake checks 会在提交/推送前运行。
+默认开发 shell 包含 `fetchrix`、`jq`、`nixfmt`、`pre-commit`、`yq-go`
+和准备步骤所需工具。pre-commit 和 flake checks 会在提交/推送前运行。
 
 ## 常用命令
 
@@ -60,6 +60,18 @@ npm run build
 nix flake update
 nix flake update --flake ./modules/flake-parts/dev
 ```
+
+## 更新包
+
+```sh
+nix develop -c fetchrix update dsh-workspace
+nix develop -c fetchrix update bundles.tui
+```
+
+`fetchrix.toml` 声明版本发现、`prepare` 产物和 `derive` 哈希。包表达式通过
+`dshSources` 读取 `_sources/lock.json` 和产物，`fetchrixPackages` 用新源码求值。
+将 `_sources/` 与包改动一起提交。fetchrix 仅固定在开发 flake 中；CI 使用同一入口，
+跳过标记为 broken 的包。
 
 ## 移除 Bundle
 

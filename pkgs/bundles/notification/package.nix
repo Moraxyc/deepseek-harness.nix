@@ -1,6 +1,6 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   importPnpmLock,
   buildDshBundle,
   copyTree,
@@ -26,14 +26,7 @@ let
 in
 buildDshBundle (finalAttrs: {
   pname = "dsh-notification";
-  version = "0.1.4";
-
-  src = fetchFromGitHub {
-    owner = "omdsh-dev";
-    repo = "dsh-notification";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-rs6hWEds6wlH3psDqNPdZLdzhpWcAAqBkrKwJ0hkNXo=";
-  };
+  inherit (dshSources."bundles.notification") version src;
 
   patches = [ ./invariant-compat.patch ];
 
@@ -46,6 +39,7 @@ buildDshBundle (finalAttrs: {
       package.json > package.json.tmp
     mv package.json.tmp package.json
 
+    # The pnpm install reads the source lockfile, so it needs the same peers.
     yq -i '
       .importers.".".devDependencies |= with_entries(
         select(.key | test("^@deepseek-ai/") | not)
@@ -57,8 +51,8 @@ buildDshBundle (finalAttrs: {
   pnpmDeps = importPnpmLock {
     inherit (finalAttrs) pname version;
     pnpm = pnpm_11;
-    lockfileJson = ./pnpm-lock.json;
-    workspaceJson = lib.importJSON ./pnpm-workspace.json;
+    lockfileJson = dshSources."bundles.notification".artifacts."pnpm-lock.json";
+    workspaceJson = lib.importJSON dshSources."bundles.notification".artifacts."pnpm-workspace.json";
     fetcherVersion = 4;
   };
 
@@ -96,7 +90,6 @@ buildDshBundle (finalAttrs: {
   '';
 
   passthru.requiresWeb = true;
-  passthru.updateScript = ./update.sh;
 
   meta = {
     description = "Browser desktop notifications for completed DeepSeek Harness turns with outcome and keyword filters";

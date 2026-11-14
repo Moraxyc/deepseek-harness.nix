@@ -1,26 +1,18 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   buildDshBundle,
   dsh-runtime,
   pnpmConfigHook,
-  nix-update-script,
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-better-sidebar";
-  version = "0.32.1";
+  inherit (dshSources."bundles.better-sidebar") version src;
   deployPackage = "dsh-better-sidebar";
   stripPrepareScripts = true;
   installation = dsh-runtime;
 
-  src = fetchFromGitHub {
-    owner = "omdsh-dev";
-    repo = "DSH-better-sidebar";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-PfZAv548WWD8nuGAtkQmMP1nCRC0LK/BV3uYsdLak3I=";
-  };
-
-  pnpmDepsHash = "sha256-dRT2GD0ephYT+rOYjjroEf5Ju9QdihVLYJGlAfgM66Y=";
+  pnpmDepsHash = dshSources."bundles.better-sidebar".pnpmDepsHash;
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
@@ -37,9 +29,6 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   '';
 
   passthru.requiresWeb = true;
-  passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
-  };
 
   meta = {
     description = "VSCode-like right sidebar for the DSH web UI";

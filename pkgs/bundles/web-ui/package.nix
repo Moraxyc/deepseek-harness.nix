@@ -1,28 +1,20 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  dshSources,
   fetchpatch2,
   buildDshBundle,
   dsh-runtime,
   importPnpmLock,
   pnpmConfigHook,
-  yq-go,
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-web-ui";
-  version = "0.4.16";
+  inherit (dshSources."bundles.web-ui") version src;
   deployPackage = "@linxin666/dsh-web-all";
   stripPrepareScripts = true;
   disableChildBundlePatches = true;
   installation = dsh-runtime;
-
-  src = fetchFromGitHub {
-    owner = "zhu1090093659";
-    repo = "dsh-web-ui";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-mvk4VhghjMShZs3THtF77u8AMDclb3T2OAEJOImsR+U=";
-  };
 
   patches = [
     (fetchpatch2 {
@@ -42,7 +34,6 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   ];
 
   postPatch = ''
-    yq -o=yaml '.' ${./pnpm-lock.json} > pnpm-lock.yaml
     printf '%s\n' \
       'manage-package-manager-versions=false' \
       'node-linker=hoisted' \
@@ -51,9 +42,9 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
 
   pnpmDeps = importPnpmLock {
     inherit (finalAttrs) pname version;
-    package = lib.importJSON ./package.json;
-    lockfileJson = ./pnpm-lock.json;
-    workspaceJson = lib.importJSON ./pnpm-workspace.json;
+    package = lib.importJSON dshSources."bundles.web-ui".artifacts."package.json";
+    lockfileJson = dshSources."bundles.web-ui".artifacts."pnpm-lock.json";
+    workspaceJson = lib.importJSON dshSources."bundles.web-ui".artifacts."pnpm-workspace.json";
     workspaceRoot = finalAttrs.src;
     fetcherVersion = 4;
     targetPlatform =
@@ -63,7 +54,6 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
-  nativeBuildInputs = [ yq-go ];
 
   preBuild = ''
     for d in packages/*/node_modules; do
@@ -87,7 +77,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   '';
 
   passthru = {
-    updateScript = ./update.sh;
+
     requiresWeb = true;
   };
 

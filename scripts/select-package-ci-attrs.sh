@@ -37,7 +37,7 @@ while IFS= read -r file; do
   case "$file" in
     lib/catalog.nix)
       ;;
-    .github/workflows/package-ci.yml | default.nix | flake.nix | flake.lock | lib/* | modules/* | overlays/* | scripts/select-package-ci-attrs.sh | pkgs/dsh-runtime/* | pkgs/dsh-workspace/* | pkgs/dshBundleCheckHook/* | pkgs/dshWorkspacePatchHook/* | pkgs/importPnpmLock/*)
+    .github/workflows/package-ci.yml | default.nix | flake.nix | flake.lock | lib/* | modules/* | overlays/* | scripts/select-package-ci-attrs.sh | scripts/fetchrix-prepare.sh | scripts/generate-optional-bundles.sh | fetchrix.toml | _sources/lock.json | _sources/dsh-workspace/* | pkgs/dsh-runtime/* | pkgs/dsh-workspace/* | pkgs/dshBundleCheckHook/* | pkgs/dshWorkspacePatchHook/* | pkgs/importPnpmLock/*)
       global=1
       ;;
     pkgs/dsh/*)
@@ -47,6 +47,16 @@ while IFS= read -r file; do
       name="${file#pkgs/bundles/}"
       name="${name%%/*}"
       [ -n "$name" ] && changed_bundles+=("$name")
+      ;;
+    _sources/bundles.*/*)
+      name="${file#_sources/bundles.}"
+      name="${name%%/*}"
+      [ -n "$name" ] && changed_bundles+=("$name")
+      ;;
+    _sources/*)
+      name="${file#_sources/}"
+      name="${name%%/*}"
+      [ -n "$name" ] && changed_unknown_packages+=("$name")
       ;;
     pkgs/presets/*)
       name="${file#pkgs/presets/}"

@@ -1,37 +1,23 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   buildDshBundle,
   dsh-runtime,
   pnpmConfigHook,
-  nix-update-script,
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-visualize";
-  version = "0.1.9-unstable-2026-11-07";
+  inherit (dshSources."bundles.visualize") version src;
   deployPackage = "@nagi-ovo/dsh-visualize";
   installation = dsh-runtime;
 
-  src = fetchFromGitHub {
-    owner = "Nagi-ovo";
-    repo = "dsh-visualize";
-    rev = "af4efe7a59a36d4562b340ff50d771d2691cdc8c";
-    hash = "sha256-PvkwTPtwFzcYXYVBN5IkqLFdzpc/3E7n8XE2yjti8Xw=";
-  };
-
-  pnpmDepsHash = "sha256-EkuOVSh7km8WSjXpS/B0HAsgUChwHDzVsoazHK2u1p8=";
+  pnpmDepsHash = dshSources."bundles.visualize".pnpmDepsHash;
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
 
   passthru.requiresWeb = true;
-  passthru.updateScript = nix-update-script {
-    extraArgs = [
-      "--flake"
-      "--version=branch"
-    ];
-  };
 
   meta = {
     description = "DSH inline visualization plugin: render interactive HTML fragments as sandboxed cards";

@@ -1,22 +1,14 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   buildDshBundle,
   dsh-runtime,
-  nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-remote";
-  version = "1.0.0";
+  inherit (dshSources."bundles.remote") version src;
 
-  src = fetchFromGitHub {
-    owner = "flymysql";
-    repo = "dsh-remote";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-oVMQjTVMS5sPgVcNqw++0+hV7rsc9sktotT2yaPtUak=";
-  };
-
-  npmDepsHash = "sha256-rbX75AffbyARdoy1cVz61HlNMINaCL95EkZQvh+3lO0=";
+  npmDepsHash = dshSources."bundles.remote".npmDepsHash;
   npmFlags = [ "--legacy-peer-deps" ];
   dontNpmBuild = true;
   installation = dsh-runtime;
@@ -24,9 +16,6 @@ buildDshBundle (finalAttrs: {
   installationKeep = [ "dsh-better-sidebar" ];
 
   passthru.requiresWeb = true;
-  passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
-  };
 
   meta = {
     description = "SSH/SFTP remote workspaces, file operations, synchronization, and port forwarding for DeepSeek Harness";

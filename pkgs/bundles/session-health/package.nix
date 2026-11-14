@@ -1,21 +1,14 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   buildDshBundle,
   dsh-runtime,
-  nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-session-health";
-  version = "0-unstable-2026-09-10";
+  inherit (dshSources."bundles.session-health") version src;
 
-  src = fetchFromGitHub {
-    owner = "omdsh-dev";
-    repo = "dsh-session-health";
-    rev = "aedcb3db1279554ff3e6d11d2597553b9f131175";
-    hash = "sha256-mHzQnWqAKYxlubZ0I8QKem9zH+049IIQ8y318rOhQMA=";
-  };
-  npmDepsHash = "sha256-J8l4N+zHM7iogI0osS7cLaS1cgMvYIw1wKGBdeuUuds=";
+  npmDepsHash = dshSources."bundles.session-health".npmDepsHash;
   npmBuildScript = "build";
   installation = dsh-runtime;
 
@@ -28,13 +21,6 @@ buildDshBundle (finalAttrs: {
 
     runHook postInstall
   '';
-
-  passthru.updateScript = nix-update-script {
-    extraArgs = [
-      "--flake"
-      "--version=branch"
-    ];
-  };
 
   meta = {
     description = "Read-only DSH session health checker for multi-frame zstd logs";

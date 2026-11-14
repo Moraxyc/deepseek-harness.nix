@@ -1,5 +1,24 @@
 # 貢献ガイド
 
+## パッケージの更新
+
+```sh
+nix develop -c fetchrix update dsh-workspace
+nix develop -c fetchrix update bundles.tui
+```
+
+`fetchrix.toml` でバージョン検出、準備 hook、派生ハッシュを定義します。
+パッケージは `dshSources` を通じて `_sources/lock.json` と宣言された生成物を読み込みます。
+fetchrix は開発 flake に固定され、CI も同じコマンドを使用し、broken のパッケージを除外します。
+
+JSON 生成物が YAML 変換とフィールド抽出を行います。`fetchrixPackages` は新しい
+`{ src, version, artifacts }` を既存のパッケージ定義に渡し、`derive.select` が通常の
+パッチ処理を含む FOD を選択します。hook には DSH 固有の準備処理だけを残します。
+
+`_sources/` はパッケージ変更と一緒にコミットしてください。fetchrix は hook プログラムと
+宣言された `inputs` の内容を追跡します。hook が読む追加ファイルは `inputs` に列挙します。
+`fetchrix verify PACKAGE` はバージョンを更新せずにパッケージ変更を検証できます。
+
 ## バンドルビルダーの選択
 
 バンドルのソースの由来に応じたビルダーを使用してください。
@@ -102,11 +121,8 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
    ビルドします。`pnpm` を上書きするのは、互換性のある別バージョンを使う場合だけに
    してください。`pnpmDepsHash` の代わりに `pnpmDeps` を渡すのは、ロックファイルに
    `importPnpmLock` などのカスタムフェッチャーが必要な場合だけです。このような
-   バンドルでは、`pnpm-lock.json` と、アップストリームに存在する場合は
-   `pnpm-workspace.json` を `package.nix` と同じディレクトリに同梱し、それぞれ
-   `lockfileJson` と `workspaceJson` として渡します。また、
-   `passthru.updateScript` を、バージョン更新のたびに両ファイルを再生成する
-   `update.sh` に書き換えます。
+   バンドルでは、`pnpm-lock.json` と `pnpm-workspace.json` を fetchrix の準備生成物として
+   宣言し、`dshSources` のパスを `lockfileJson` と `workspaceJson` に渡します。
 4. 次を実行します。
 
    ```sh

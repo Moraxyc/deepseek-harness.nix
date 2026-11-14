@@ -1,36 +1,28 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   fetchNpmDeps,
   buildDshBundle,
   dsh-runtime,
   yq-go,
-  nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-graph-memory";
-  version = "2.0.0-unstable-2026-10-01";
-
-  src = fetchFromGitHub {
-    owner = "adoresever";
-    repo = "graph-memory";
-    rev = "5841b1987c3967998818764c9d4238add5f3aa7c";
-    hash = "sha256-2l7dSv1T+bSKAYIu2dj+NVnqzsLiTMCNaL8R3yB1bhI=";
-  };
+  inherit (dshSources."bundles.graph-memory") version src;
 
   postPatch = ''
     yq -o=json \
       '.scripts |= del(.prepare, .prepack) | .devDependencies |= del(.vitest)' \
       package.json > package.json.tmp
     mv package.json.tmp package.json
-    cp ${./package-lock.json} package-lock.json
+    cp ${dshSources."bundles.graph-memory".artifacts."package-lock.json"} package-lock.json
   '';
 
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
     nativeBuildInputs = [ yq-go ];
-    hash = "sha256-oVguMvpw8jXwizeynHD8L5FM5KuUtW5kPoGFWJb8gpo=";
+    hash = dshSources."bundles.graph-memory".npmDepsHash;
   };
 
   nativeBuildInputs = [
@@ -48,14 +40,6 @@ buildDshBundle (finalAttrs: {
 
     runHook postInstall
   '';
-
-  passthru.updateScript = nix-update-script {
-    extraArgs = [
-      "--flake"
-      "--version=branch"
-      "--generate-lockfile"
-    ];
-  };
 
   meta = {
     description = "Native DSH graph memory with SQLite, FTS5 fallback, graph traversal, PageRank, and cross-session recall";

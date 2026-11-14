@@ -6,7 +6,7 @@ set -euo pipefail
 usage='usage: generate-optional-bundles.sh <upstream-source-root> [output]'
 src=${1?"$usage"}
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-dest=${2:-"$repo_root/pkgs/dsh-workspace/optional-bundles.json"}
+dest=${2:-"$repo_root/_sources/dsh-workspace/optional-bundles.json"}
 
 fail() {
   printf 'generate-optional-bundles: %s\n' "$1" >&2

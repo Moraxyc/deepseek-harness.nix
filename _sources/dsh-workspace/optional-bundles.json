@@ -6,9 +6,7 @@
     "descriptionZh": "目前仅支持 macOS，Windows 支持正在开发中。为已有及新建 PTC 会话加载 Computer Use。请切换到 PTC 模式来使用，并授予辅助功能和屏幕录制权限。",
     "descriptionJa": "現在は macOS のみ対応し、Windows 対応は開発中です。既存および新規の PTC セッションに Computer Use を読み込みます。PTC モードに切り替え、アクセシビリティと画面収録の権限を許可して使用してください。",
     "requiresWeb": true,
-    "platforms": [
-      "darwin"
-    ]
+    "platforms": ["darwin"]
   },
   "@deepseek-ai/dsh-experimental-auto-review": {
     "attr": "experimental-auto-review",

@@ -1,6 +1,6 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   fetchPnpmDeps,
   buildDshBundle,
   copyTree,
@@ -8,24 +8,16 @@
   git,
   pnpmConfigHook,
   pnpm_11,
-  nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-turn-rewind";
-  version = "0.3.13";
-
-  src = fetchFromGitHub {
-    owner = "Anionex";
-    repo = "dsh-turn-rewind";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-rFGgEC99vl+CAd4IRPcnkxP7X2xf24F/fxFJtaGBLz8=";
-  };
+  inherit (dshSources."bundles.turn-rewind") version src;
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-Ex99ufX83CIlxKD6UitEogoGt3U9SCrHBuguWyHtlUw=";
+    hash = dshSources."bundles.turn-rewind".pnpmDepsHash;
   };
 
   npmDeps = null;
@@ -64,9 +56,6 @@ buildDshBundle (finalAttrs: {
   '';
 
   passthru.requiresWeb = true;
-  passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
-  };
 
   meta = {
     description = "Turn-level conversation and workspace rewind for DeepSeek Harness";

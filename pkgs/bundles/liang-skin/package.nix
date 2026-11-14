@@ -1,26 +1,17 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   buildDshBundle,
   dsh-runtime,
-  nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-client-liang-intensity-skin";
-  version = "0.1.21";
+  inherit (dshSources."bundles.liang-skin") version src;
 
-  src = fetchFromGitHub {
-    owner = "kingOfSoySauce";
-    repo = "dsh-liang-skin";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-mUUW8npQY7XM91hcXpWSBjUY4N29mQwmA4FMnqGvfvM=";
-  };
-
-  npmDepsHash = "sha256-anndCuFGSaxC3r42iDH6OnpSA1rrIdAFJi7zxxpJAAA=";
+  npmDepsHash = dshSources."bundles.liang-skin".npmDepsHash;
   installation = dsh-runtime;
 
   passthru.requiresWeb = true;
-  passthru.updateScript = nix-update-script { extraArgs = [ "--flake" ]; };
 
   meta = {
     description = "Liang intensity reasoning slider skin for DeepSeek Harness";

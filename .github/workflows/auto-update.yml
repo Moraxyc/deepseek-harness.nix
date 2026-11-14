@@ -39,50 +39,29 @@ jobs:
               let
                 f = import ./default.nix;
                 system = builtins.currentSystem;
-                hasUpdateScript = p: (p.passthru or { }).updateScript or null != null;
-                # nix-update refuses to evaluate broken packages, and package CI
-                # skips them, so an update could not be validated before
-                # auto-merge.
-                isBuildable = p: !((p.meta or { }).broken or false);
+                lib = (builtins.getFlake ("git+file://" + toString ./.)).inputs.nixpkgs.lib;
+                names = builtins.attrNames (lib.importTOML ./fetchrix.toml).packages;
                 packageSet = builtins.getAttr system f.packages;
-                legacyPackages = builtins.getAttr system f.legacyPackages;
-                bundleSet = builtins.removeAttrs legacyPackages.bundles (
-                  builtins.attrNames (import ./lib/removed-bundles.nix)
-                );
-                brokenButUpdatable = pkgSet: builtins.filter (
-                  name:
-                  hasUpdateScript (builtins.getAttr name pkgSet)
-                  && !isBuildable (builtins.getAttr name pkgSet)
-                ) (builtins.attrNames pkgSet);
-                # Report the skips so a package cannot stay out of the matrix
-                # unnoticed.
-                skipped =
-                  map (name: "packages." + name) (brokenButUpdatable packageSet)
-                  ++ map (name: "bundles." + name) (brokenButUpdatable bundleSet);
-                packages = builtins.filter (
-                  name:
-                  name != "pnpmWorkspaceDeploy"
-                  && name != "dsh-desktop"
-                  && isBuildable (builtins.getAttr name packageSet)
-                  && hasUpdateScript (builtins.getAttr name packageSet)
-                ) (builtins.attrNames packageSet);
-                bundles = builtins.filter (
-                  name:
-                  isBuildable (builtins.getAttr name bundleSet)
-                  && hasUpdateScript (builtins.getAttr name bundleSet)
-                ) (builtins.attrNames bundleSet);
-                toAttrs = labelPrefix: attrPrefix: names: pkgSet: map (name: {
-                  inherit name;
-                  attr = attrPrefix + "." + name;
-                  label = if labelPrefix == "" then name else labelPrefix + "." + name;
-                  version = (builtins.getAttr name pkgSet).version or "";
-                }) names;
+                bundleSet = (builtins.getAttr system f.legacyPackages).bundles;
+                packageFor = label:
+                  if lib.hasPrefix "bundles." label then
+                    bundleSet.${lib.removePrefix "bundles." label}
+                  else packageSet.${label};
+                isBuildable = label:
+                  let package = packageFor label;
+                  in !((package.meta or { }).broken or false);
+                skipped = builtins.filter (label: !isBuildable label) names;
+                updatable = map (label: {
+                  name = lib.removePrefix "bundles." label;
+                  attr = if lib.hasPrefix "bundles." label then
+                    "legacyPackages." + system + "." + label
+                  else "packages." + system + "." + label;
+                  inherit label;
+                  version = (packageFor label).version or "";
+                }) (builtins.filter isBuildable names);
               in
               {
-                inherit skipped;
-                updatable =
-                  (toAttrs "" ("packages." + system) packages packageSet)
-                  ++ (toAttrs "bundles" ("legacyPackages." + system + ".bundles") bundles bundleSet);
+                inherit skipped updatable;
               }
             '
           )"
@@ -170,13 +149,11 @@ jobs:
       - name: Update package
         if: matrix.attr != ''
         env:
-          ATTR: ${{ matrix.attr }}
+          LABEL: ${{ matrix.label }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          NIX_PATH="nixpkgs=$(nix flake metadata --json --inputs-from . nixpkgs | jq -r .path)"
-          export NIX_PATH
-          nix shell nixpkgs#nix-update --inputs-from . -c nix-update --flake --use-update-script "$ATTR"
+          nix develop -c fetchrix update "$LABEL"
 
       - name: Check for changes
         id: changes

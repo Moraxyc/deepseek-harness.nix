@@ -1,30 +1,22 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   fetchPnpmDeps,
   buildDshBundle,
   copyTree,
   dsh-runtime,
   pnpmConfigHook,
   pnpm_11,
-  nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-modsearch";
-  version = "5.10.12";
-
-  src = fetchFromGitHub {
-    owner = "liustack";
-    repo = "modsearch";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-FsscpWFlQaR63j4VdmvcH+Qf2mKl5noGj551BHiBmAQ=";
-  };
+  inherit (dshSources."bundles.modsearch") version src;
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-IrnTqej0JBHhZvkn88rF8QcpR2JcNmx1sxL/u0QIayc=";
+    hash = dshSources."bundles.modsearch".pnpmDepsHash;
   };
 
   npmDeps = null;
@@ -53,9 +45,6 @@ buildDshBundle (finalAttrs: {
   '';
 
   passthru.requiresWeb = true;
-  passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
-  };
 
   meta = {
     description = "Native DSH web-search provider with X search and focused page-reading tools";

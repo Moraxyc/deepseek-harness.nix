@@ -1,29 +1,21 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   fetchPnpmDeps,
   buildDshBundle,
   dsh-runtime,
   pnpmConfigHook,
   pnpm_10,
-  nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-agent-teams";
-  version = "0.1.30";
-
-  src = fetchFromGitHub {
-    owner = "NanmiCoder";
-    repo = "dsh-agent-teams";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-YvgD9ulSjKpWo4PkqEdc3DuNi7z3YI7rKN0fygBw4Y0=";
-  };
+  inherit (dshSources."bundles.agent-teams") version src;
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_10;
     fetcherVersion = 4;
-    hash = "sha256-U+FF/izpDQ4yr/ML2+1gTLH+qXhMr4bnASVAV7BfHD4=";
+    hash = dshSources."bundles.agent-teams".pnpmDepsHash;
   };
 
   npmDeps = null;
@@ -45,9 +37,6 @@ buildDshBundle (finalAttrs: {
   '';
 
   passthru.requiresWeb = true;
-  passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
-  };
 
   meta = {
     description = "Multi-agent team collaboration for DeepSeek Harness";

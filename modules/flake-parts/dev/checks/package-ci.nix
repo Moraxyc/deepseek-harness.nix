@@ -24,6 +24,20 @@
       expected = pkgs.writeText "dsh-dependent-attrs" (
         lib.concatStringsSep "\n" (lib.sort builtins.lessThan (lib.unique expectedAttrs)) + "\n"
       );
+      expectedBundle = pkgs.writeText "dsh-bundle-attrs" (
+        lib.concatStringsSep "\n" (
+          lib.sort builtins.lessThan (
+            lib.unique (
+              [
+                packageSet.bundles.tui
+                packageSet.bundleCompositions.tui
+              ]
+              ++ packageSet.bundleDependents.tui
+            )
+          )
+        )
+        + "\n"
+      );
     in
     {
       checks.dsh-engines-update =
@@ -63,6 +77,16 @@
 
             bash ${../../../../scripts/select-package-ci-attrs.sh} "$base" > selected
             cmp ${expected} selected
+
+            # A fetchrix pin change selects the bundle it belongs to.
+            git reset --hard "$base" >/dev/null
+            mkdir -p _sources/bundles.tui
+            printf '{\n  "schema": 1,\n  "packages": {}\n}\n' > _sources/bundles.tui/pnpm-lock.json
+            git add _sources/bundles.tui/pnpm-lock.json
+            git commit -m "Update the tui pin"
+
+            bash ${../../../../scripts/select-package-ci-attrs.sh} "$base" > selected-bundle
+            cmp ${expectedBundle} selected-bundle
             touch "$out"
           '';
     };

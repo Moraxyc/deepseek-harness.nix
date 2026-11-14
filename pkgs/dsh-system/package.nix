@@ -13,7 +13,7 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "dsh-system";
-  version = "0.1.2";
+  version = (lib.importJSON "${dsh-workspace.src}/native/system/package.json").version;
 
   inherit (dsh-workspace) src;
 

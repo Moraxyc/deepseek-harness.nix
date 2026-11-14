@@ -12,9 +12,7 @@
         prettier = {
           enable = true;
           excludes = [
-            "pkgs/**/pnpm-lock.json"
-            "pkgs/**/pnpm-workspace.json"
-            "pkgs/dsh-workspace/optional-bundles.json"
+            "_sources/**"
           ];
         };
       };

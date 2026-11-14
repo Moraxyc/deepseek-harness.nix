@@ -1,29 +1,21 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   fetchPnpmDeps,
   buildDshBundle,
   dsh-runtime,
   pnpmConfigHook,
   pnpm_11,
-  nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-opentelemetry";
-  version = "0.1.3";
-
-  src = fetchFromGitHub {
-    owner = "loongsuite";
-    repo = "dsh-plugin";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-wOtGNkXspFPJbJPZi09lXhkQ0VFCy6gFDymqb5V6/OU=";
-  };
+  inherit (dshSources."bundles.opentelemetry") version src;
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-c0g6Gl3rdXDYB2wtMcdICYDZgoCEg7s5mD/RfybHqwI=";
+    hash = dshSources."bundles.opentelemetry".pnpmDepsHash;
   };
 
   npmDeps = null;
@@ -58,10 +50,6 @@ buildDshBundle (finalAttrs: {
 
     runHook postInstall
   '';
-
-  passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
-  };
 
   meta = {
     description = "OpenTelemetry tracing and metrics for DeepSeek Harness";

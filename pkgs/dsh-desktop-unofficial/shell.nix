@@ -1,7 +1,7 @@
 {
   lib,
   stdenv,
-  fetchFromGitHub,
+  dshSources,
   yarn-berry_4,
   nodejs_22,
   electron_43,
@@ -15,21 +15,14 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "dsh-desktop-shell";
-  version = "2.0.22-next-unstable-2026-11-13";
-
-  src = fetchFromGitHub {
-    owner = "anywhere-labs";
-    repo = "deepseek-harness-desktop";
-    rev = "45224f1bfbe9183314b076c3b1127afe1463dbad";
-    hash = "sha256-Nh1ni65JJp0z33iyDxWcA7J0ADuyELyaPnkVJSRId2w=";
-  };
+  inherit (dshSources.dsh-desktop-unofficial) version src;
 
   postPatch = lib.optionalString isLinux ''
     # `current` is sufficient on native Linux; Darwin keeps both for universal builds.
     sed -i -E '/^    - (x64|arm64)$/d' .yarnrc.yml
   '';
 
-  missingHashes = ./missing-hashes.json;
+  missingHashes = dshSources."dsh-desktop-unofficial".artifacts."missing-hashes.json";
 
   passthru = {
     packageJson = {
@@ -43,7 +36,7 @@ stdenv.mkDerivation (finalAttrs: {
   offlineCache =
     (yarn-berry_4.fetchYarnBerryDeps {
       inherit (finalAttrs) src missingHashes postPatch;
-      hash = "sha256-TlpITn55co/RFHq5F8jVPzwFZwcikcmgXWBb19x1xcQ=";
+      hash = dshSources.dsh-desktop-unofficial.yarnDepsHash;
     }).overrideAttrs
       (_: {
         buildPhase = ''

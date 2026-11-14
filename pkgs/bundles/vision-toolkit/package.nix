@@ -1,31 +1,23 @@
 {
   lib,
   jq,
-  fetchFromGitHub,
+  dshSources,
   buildDshBundle,
   copyTree,
   dsh-runtime,
   dsh-workspace,
   pnpmConfigHook,
   python3,
-  nix-update-script,
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-vision-toolkit";
-  version = "0.1.50";
+  inherit (dshSources."bundles.vision-toolkit") version src;
   deployPackage = "@anionex/dsh-vision-toolkit";
   # The upstream peer ranges exclude this verified runtime.
   dshEngines = "0.2.2-rc.2";
   installation = dsh-runtime;
 
-  src = fetchFromGitHub {
-    owner = "Anionex";
-    repo = "dsh-vision-toolkit";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-4+cnRcWwDWXpVrW8x1VR9rlRlxbUUWfYuJVsQRkXu70=";
-  };
-
-  pnpmDepsHash = "sha256-Po+i2W4gi0rlatvcOfXpDsvF8oAgTBfKaOV2TwZc1Ow=";
+  pnpmDepsHash = dshSources."bundles.vision-toolkit".pnpmDepsHash;
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
@@ -102,9 +94,6 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   '';
 
   passthru.requiresWeb = true;
-  passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
-  };
 
   meta = {
     description = "DeepSeek Harness-native vision toolkit with OCR, grounding, pixel diff, and UI restoration";

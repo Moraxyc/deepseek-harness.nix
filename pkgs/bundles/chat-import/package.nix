@@ -1,28 +1,17 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   buildDshBundle,
   dsh-runtime,
-  nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-chat-import";
-  version = "0.26.6";
+  inherit (dshSources."bundles.chat-import") version src;
 
-  src = fetchFromGitHub {
-    owner = "Nwflower";
-    repo = "dsh-chat-import";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-QZUI2NceXjUfDhtOhLOYb5JBBccnmC+kzoMrQKjnhvg=";
-  };
-
-  npmDepsHash = "sha256-oEnRK0sjLnn+OP75DBhe7bLID/GGBbYieslZ5PtYDbg=";
+  npmDepsHash = dshSources."bundles.chat-import".npmDepsHash;
   installation = dsh-runtime;
 
   passthru.requiresWeb = true;
-  passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
-  };
 
   meta = {
     description = "Import external agent chat histories as resumable DeepSeek Harness sessions";

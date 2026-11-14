@@ -4,7 +4,9 @@
   perSystem =
     { pkgs, ... }:
     let
-      optionalBundlesManifest = lib.importJSON ../../../../pkgs/dsh-workspace/optional-bundles.json;
+      optionalBundlesManifest =
+        lib.importJSON
+          pkgs.dsh.dshSources.dsh-workspace.artifacts."optional-bundles.json";
       optionalBundleNames = lib.attrNames (
         lib.filterAttrs (
           _: entry: lib.meta.availableOn pkgs.stdenv.hostPlatform pkgs.dsh.bundles.${entry.attr}
@@ -110,7 +112,9 @@
             bash ${generatorSource}/scripts/generate-optional-bundles.sh \
               ${pkgs.dsh.dsh-workspace.src} generated.json
             jq '.' generated.json > generated.fmt.json
-            jq '.' ${../../../../pkgs/dsh-workspace/optional-bundles.json} > optional-bundles.fmt.json
+            jq '.' ${
+              pkgs.dsh.dshSources.dsh-workspace.artifacts."optional-bundles.json"
+            } > optional-bundles.fmt.json
             cmp generated.fmt.json optional-bundles.fmt.json
             touch "$out"
           '';

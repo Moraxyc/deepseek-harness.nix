@@ -30,6 +30,10 @@ in
         scope = self;
       };
       copyTree = call ./copy-tree.nix;
+      dshSources = (import ./fetchrix.nix { inherit lib; }).load {
+        inherit pkgs;
+        dir = ../_sources;
+      };
       dshCohort = call ./dsh-cohort.nix;
       mkDsh = import ./mk-dsh.nix;
       mkDshDesktop = call ./mk-dsh-desktop.nix;

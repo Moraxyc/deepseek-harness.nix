@@ -1,13 +1,12 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   buildDshBundle,
   copyTree,
   dshCohort,
   dsh-runtime,
   dsh-workspace,
   pnpmConfigHook,
-  nix-update-script,
 }:
 let
   clientPackages = dshCohort.select [
@@ -21,18 +20,11 @@ let
 in
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-noema";
-  version = "0.1.0-rc.6";
+  inherit (dshSources."bundles.noema") version src;
   deployPackage = "@zseven-w/dsh-noema";
   installation = dsh-runtime;
 
-  src = fetchFromGitHub {
-    owner = "ZSeven-W";
-    repo = "dsh-noema";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-5y80AfGdjuqXZsIf12plz1NxFEgGP0bl8th7b+2Y5ss=";
-  };
-
-  pnpmDepsHash = "sha256-JSHpUa9ftofII5BBkl9WG7pU/vXfCzHCc9iSQr/d1Ng=";
+  pnpmDepsHash = dshSources."bundles.noema".pnpmDepsHash;
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
@@ -56,12 +48,6 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   '';
 
   passthru.requiresWeb = true;
-  passthru.updateScript = nix-update-script {
-    extraArgs = [
-      "--flake"
-      "--version=unstable"
-    ];
-  };
 
   meta = {
     description = "Noema long-term memory plugin for DSH with recall tools and a settings page";

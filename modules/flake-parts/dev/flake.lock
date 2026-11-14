@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "fetchrix": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794669121,
+        "narHash": "sha256-aKNd35sNqPfhTuPplVNmn6khkOKtv/7Mo1qhZKClZP8=",
+        "owner": "moraxyc",
+        "repo": "fetchrix",
+        "rev": "ee2d99302446c9b8298a590486f69741aa13c000",
+        "type": "github"
+      },
+      "original": {
+        "owner": "moraxyc",
+        "repo": "fetchrix",
+        "type": "github"
+      }
+    },
     "dev-flake-compat": {
       "locked": {
         "lastModified": 1767039857,
@@ -87,6 +103,7 @@
     },
     "root": {
       "inputs": {
+        "fetchrix": "fetchrix",
         "dev-flake-compat": "dev-flake-compat",
         "dev-nixpkgs": "dev-nixpkgs",
         "flake-compat": "flake-compat",

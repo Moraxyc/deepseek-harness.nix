@@ -13,17 +13,11 @@
   gtk3,
   makeDesktopItem,
   copyDesktopItems,
-  nix-update,
-  writeShellScript,
-  nix,
-  coreutils,
-  gawk,
-  yarn-berry_4,
-  git,
   imagemagick,
   libGL,
 
   copyTree,
+  dshSources,
   dsh-runtime,
   # systemd package providing systemd-run for the Linux containment shim.
   systemd ? null,
@@ -158,43 +152,10 @@ stdenvNoCC.mkDerivation (
 
     passthru = {
       variant = "unofficial";
-      shell = callPackage ./shell.nix { };
+      shell = callPackage ./shell.nix { inherit dshSources; };
       runtime = callPackage ./runtime.nix { };
       runtimeDeps = lib.optional useSystemdShim systemdRunShim ++ dsh-runtime.passthru.runtimeDeps;
 
-      updateScript = writeShellScript "dsh-desktop-update" ''
-        PATH=${
-          lib.makeBinPath [
-            coreutils
-            gawk
-            git
-            nix
-            nix-update
-            yarn-berry_4.yarn-berry-fetcher
-          ]
-        }
-        export PATH
-
-        set -euo pipefail
-
-        shell_attr="''${UPDATE_NIX_ATTR_PATH:?}.shell"
-        tmp="$(mktemp -d)"
-        trap 'rm -rf "$tmp"' EXIT
-
-        nix-update --flake --version=branch --src-only "$shell_attr"
-
-        src="$(nix build --no-link --print-out-paths .#dsh-desktop-unofficial.shell.src)"
-        awk '
-          /^".*@file:/ { skip = 1; next }
-          skip && /^$/ { skip = 0; next }
-          !skip { print }
-        ' "$src/yarn.lock" > "$tmp/yarn.lock"
-
-        yarn-berry-fetcher missing-hashes "$tmp/yarn.lock" \
-          > "$PWD/pkgs/dsh-desktop-unofficial/missing-hashes.json"
-
-        nix-update --flake --version=skip --no-src "$shell_attr"
-      '';
     };
 
     meta = {

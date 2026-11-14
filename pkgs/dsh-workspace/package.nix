@@ -2,7 +2,7 @@
   lib,
   bashInteractive,
   buildNpmPackage,
-  fetchFromGitHub,
+  dshSources,
   fontconfig,
   importPnpmLock,
   jq,
@@ -29,7 +29,7 @@ let
 in
 buildNpmPackage (finalAttrs: {
   pname = "dsh-workspace";
-  version = "0.2.2-rc.2";
+  inherit (dshSources."dsh-workspace") version src;
 
   __structuredAttrs = true;
   strictDeps = true;
@@ -39,13 +39,6 @@ buildNpmPackage (finalAttrs: {
     "runtime"
     "desktop"
   ];
-
-  src = fetchFromGitHub {
-    owner = "deepseek-ai";
-    repo = "deepseek-harness";
-    tag = "dsh-v${finalAttrs.version}";
-    hash = "sha256-lbRmFifO6+8YKn8kaR7gQzKeUQh9YBFu9wH/dWJ+3MA=";
-  };
 
   patches = [
     ./desktop-nix-profile.patch
@@ -59,7 +52,7 @@ buildNpmPackage (finalAttrs: {
   ];
 
   env = {
-    DSH_CLIENT_COMMIT_HASH = "ddac96760b6edf8fa0fe17cbdcf0b512f4c12b2c";
+    DSH_CLIENT_COMMIT_HASH = lib.importJSON dshSources.dsh-workspace.artifacts."client-commit.json";
     PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = "false";
     DSH_WORKSPACE_OVERRIDES = "${writers.writeJSON "dsh-workspace-overrides.json" (
       finalAttrs.pnpmDeps.passthru.workspaceConfig.overrides or { }
@@ -115,8 +108,8 @@ buildNpmPackage (finalAttrs: {
   pnpmDeps = importPnpmLock {
     inherit (finalAttrs) pname version;
     pnpm = pnpmWorkspaceDeploy;
-    lockfileJson = ./pnpm-lock.json;
-    workspaceJson = lib.importJSON ./pnpm-workspace.json;
+    lockfileJson = dshSources."dsh-workspace".artifacts."pnpm-lock.json";
+    workspaceJson = lib.importJSON dshSources."dsh-workspace".artifacts."pnpm-workspace.json";
     workspaceRoot = finalAttrs.src;
     packageSourceOverrides = lib.optionalAttrs isLinux {
       "@deepseek-ai/libreoffice-kit@0.2.3" =
@@ -277,7 +270,7 @@ buildNpmPackage (finalAttrs: {
 
   passthru = {
     fetchPnpmDeps = finalAttrs.pnpmDeps.passthru.fetchPnpmDeps;
-    updateScript = ./update.sh;
+
   };
 
   meta = {

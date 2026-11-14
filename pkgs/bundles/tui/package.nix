@@ -1,25 +1,16 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   fetchPnpmDeps,
   buildDshBundle,
   copyTree,
   dsh-runtime,
   pnpmConfigHook,
   pnpm_11,
-  nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-tui";
-  version = "0.19.0";
-
-  src = fetchFromGitHub {
-    owner = "ccch1mneyyy";
-    repo = "dsh-TUI";
-    rev = "refs/tags/v${finalAttrs.version}";
-    fetchSubmodules = true;
-    hash = "sha256-cWtLHrpo/EIO3runwCm3OHhllD231sY5pEAtN6GAQUk=";
-  };
+  inherit (dshSources."bundles.tui") version src;
 
   patches = [
     ./alpha2-model-selection.patch
@@ -62,7 +53,7 @@ buildDshBundle (finalAttrs: {
         --frozen-lockfile \
         --registry="$NIX_NPM_REGISTRY"
     '';
-    hash = "sha256-dd2JdNETD+24L41n20/XJRM+iUqm/XoplIMfn8n5XoU=";
+    hash = dshSources."bundles.tui".pnpmDepsHash;
   };
 
   nativeBuildInputs = [ pnpm_11 ];
@@ -146,12 +137,6 @@ buildDshBundle (finalAttrs: {
     requiresTui = true;
     requiresTty = true;
 
-    updateScript = nix-update-script {
-      extraArgs = [
-        "--flake"
-        "--override-filename=pkgs/bundles/tui/package.nix"
-      ];
-    };
   };
 
   meta = {

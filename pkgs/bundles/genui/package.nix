@@ -1,25 +1,17 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   buildDshBundle,
   dsh-runtime,
   pnpmConfigHook,
-  nix-update-script,
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-genui";
-  version = "0.16.0-unstable-2026-11-11";
+  inherit (dshSources."bundles.genui") version src;
   deployPackage = "@changfenhuang/dsh-genui";
   installation = dsh-runtime;
 
-  src = fetchFromGitHub {
-    owner = "omdsh-dev";
-    repo = "dsh-genui";
-    rev = "3cc1f153716b0ff710f1dcc9c46bab83b3911c4a";
-    hash = "sha256-+Ovjb7V5m4prumU6TaVLSTyvqTmhD70nQT2WE5R5SV0=";
-  };
-
-  pnpmDepsHash = "sha256-0QfBbAgo2LMz/6LEqxIRnxP0+n0jz9fnvVoBRDEYJKY=";
+  pnpmDepsHash = dshSources."bundles.genui".pnpmDepsHash;
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
@@ -30,12 +22,6 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   '';
 
   passthru.requiresWeb = true;
-  passthru.updateScript = nix-update-script {
-    extraArgs = [
-      "--flake"
-      "--version=branch"
-    ];
-  };
 
   meta = {
     description = "Interactive UI components rendered inline in DSH replies via the dsh-ui fence: layouts, charts, forms, quizzes, mermaid, 3D scenes, and an action event loop";

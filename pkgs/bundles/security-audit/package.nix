@@ -1,30 +1,22 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   fetchNpmDeps,
   buildDshBundle,
   dsh-runtime,
   jq,
-  nix-update-script,
   writers,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-security-audit";
-  version = "0-unstable-2026-09-10";
-
-  src = fetchFromGitHub {
-    owner = "omdsh-dev";
-    repo = "dsh-security-audit";
-    rev = "e22bd19af7d27e0f7302061808d0cbd7dc9b0914";
-    hash = "sha256-Q6z3BsYavt593OiKxvNxHE5PyDWotoqA5uLsrwxSmPQ=";
-  };
+  inherit (dshSources."bundles.security-audit") version src;
 
   # Upstream commits the generated lib. The lockfile only contains build-time
   # dependencies, which are unnecessary when that payload is used directly.
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
-    hash = "sha256-YSGPKo1Ky+PQ9FyXbJAuEcLoOcHMAqf7P/XMB/SDytM=";
+    hash = dshSources."bundles.security-audit".npmDepsHash;
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
@@ -65,12 +57,6 @@ buildDshBundle (finalAttrs: {
       };
     };
 
-    updateScript = nix-update-script {
-      extraArgs = [
-        "--flake"
-        "--version=branch"
-      ];
-    };
   };
 
   meta = {

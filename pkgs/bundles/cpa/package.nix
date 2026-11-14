@@ -1,22 +1,14 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   buildDshBundle,
   dsh-runtime,
-  nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-cpa";
-  version = "0.1.13";
+  inherit (dshSources."bundles.cpa") version src;
 
-  src = fetchFromGitHub {
-    owner = "Moraxyc";
-    repo = "dsh-cpa";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-5aY1Re3V4nGvzrV4jOoRFqJ/Sl4Cd5Ar+exPzax6j7U=";
-  };
-
-  npmDepsHash = "sha256-6OxgwIYjrKN8L9wI15CUi4EYE7nw/BVhWyzbTWz6fJk=";
+  npmDepsHash = dshSources."bundles.cpa".npmDepsHash;
   __darwinAllowLocalNetworking = true;
   doCheck = true;
   checkPhase = ''
@@ -30,9 +22,6 @@ buildDshBundle (finalAttrs: {
   installation = dsh-runtime;
 
   passthru.requiresWeb = true;
-  passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
-  };
 
   meta = {
     description = "CLI Proxy API provider and runtime plugin for dsh";

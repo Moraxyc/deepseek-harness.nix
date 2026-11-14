@@ -632,7 +632,7 @@ if (pkgs.bin.length)
   );
 if (pkgs.bundle.length || Object.keys(report.officialLists).length)
   actions.push(
-    "Official bundle set changed: run generate-optional-bundles.sh (update.sh does) and check removed-bundles.nix, presets, and migration docs.",
+    "Official bundle set changed: run `fetchrix update dsh-workspace` and check removed-bundles.nix, presets, and migration docs.",
   );
 if (pkgs.removed.length || pkgs.removedExports.length || pkgs.moved.length)
   actions.push(

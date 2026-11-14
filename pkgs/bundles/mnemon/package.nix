@@ -1,24 +1,16 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   buildDshBundle,
   dsh-runtime,
   pnpmConfigHook,
-  nix-update-script,
 }:
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-mnemon";
-  version = "0.5.45";
+  inherit (dshSources."bundles.mnemon") version src;
   deployPackage = "dsh-mnemon";
 
-  src = fetchFromGitHub {
-    owner = "omdsh-dev";
-    repo = "dsh-mnemon";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-Nvomg7Pzrryr6IfA9g+8FDwqQvPWZGzyfP7pm1nPoNw=";
-  };
-
-  pnpmDepsHash = "sha256-H+IBGNuymboUzmw2E8lfqsfRdSlpCTd16eKkiWYQ6C4=";
+  pnpmDepsHash = dshSources."bundles.mnemon".pnpmDepsHash;
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
@@ -40,9 +32,6 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   '';
 
   passthru.requiresWeb = true;
-  passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
-  };
 
   meta = {
     description = "Composable three-tier memory control plane for DeepSeek Harness";

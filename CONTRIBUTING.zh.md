@@ -1,5 +1,24 @@
 # 贡献指南
 
+## 更新包
+
+```sh
+nix develop -c fetchrix update dsh-workspace
+nix develop -c fetchrix update bundles.tui
+```
+
+`fetchrix.toml` 定义版本发现、准备 hook 和派生哈希。包通过 `dshSources` 读取
+`_sources/lock.json` 及声明的产物。fetchrix 固定在开发 flake 中；CI 使用同一入口，
+跳过标记为 broken 的包。
+
+JSON 产物负责 YAML 转换和字段提取。`fetchrixPackages` 将新的
+`{ src, version, artifacts }` 传入现有包定义，`derive.select` 选择 FOD，
+沿用包本身的补丁阶段。hook 只保留 DSH 特有的准备逻辑。
+
+将 `_sources/` 与包改动一起提交。fetchrix 会追踪 hook 程序及其声明的 `inputs`
+内容；hook 读取的其他文件应列入 `inputs`。可用 `fetchrix verify PACKAGE`
+在不更新版本的情况下验证打包改动。
+
 ## 选择 bundle builder
 
 按 bundle 来源选择 builder：
@@ -103,10 +122,8 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
    当 nixpkgs 的 `pnpm_11` 较旧时，`pnpmWorkspaceDeploy` 从 npm tarball 构建
    11.22.0。只有需要换成其他仍满足版本要求的 pnpm 时才覆盖 `pnpm`。只有当
    lockfile 需要自定义 fetcher（例如 `importPnpmLock`）时才改用 `pnpmDeps`。
-   这类 bundle 在 `package.nix` 旁存放 `pnpm-lock.json`，上游有
-   `pnpm-workspace.yaml` 时一并存放 `pnpm-workspace.json`，分别通过
-   `lockfileJson` 和 `workspaceJson` 传入，并把 `passthru.updateScript`
-   换成每次升级版本时重新生成这两个文件的 `update.sh`。
+   这类 bundle 将 `pnpm-lock.json` 和 `pnpm-workspace.json` 声明为 fetchrix
+   准备产物，通过 `dshSources` 获取路径，分别传入 `lockfileJson` 和 `workspaceJson`。
 4. 运行：
 
    ```sh

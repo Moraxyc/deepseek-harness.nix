@@ -1,11 +1,10 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   fetchurl,
   buildDshBundle,
   dsh-runtime,
   nodejs,
-  nix-update-script,
 }:
 
 let
@@ -25,15 +24,9 @@ assert lib.versionAtLeast nodejs.version "24";
 
 buildDshBundle (finalAttrs: {
   pname = "dsh-mneme";
-  version = "0.14.0";
+  inherit (dshSources."bundles.mneme") version src;
 
   # The runtime package lives under dsh-mneme/ in the upstream repository.
-  src = fetchFromGitHub {
-    owner = "modusensus";
-    repo = "dsh-mneme";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-0oC056b84bu61xAUWndIA9+1kFnbl3q7bCKwVEzLRMw=";
-  };
 
   npmDeps = null;
   dontPatch = true;
@@ -65,9 +58,6 @@ buildDshBundle (finalAttrs: {
   '';
 
   passthru.requiresWeb = true;
-  passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
-  };
 
   meta = {
     description = "Persistent cross-session memory for DeepSeek Harness with local Markdown storage and autoDream consolidation";

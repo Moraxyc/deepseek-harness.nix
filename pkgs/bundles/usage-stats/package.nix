@@ -1,30 +1,22 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   fetchNpmDeps,
   buildDshBundle,
   dsh-runtime,
   jq,
-  nix-update-script,
   writers,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-usage-stats";
-  version = "0.3.8";
-
-  src = fetchFromGitHub {
-    owner = "Ychris12138";
-    repo = "dsh-usage-stats";
-    rev = "16a683d1b6b7d5390e04e27afe3626d44e7b7804";
-    hash = "sha256-3Htc/u/wBEPNnMlZl4vmwmSHqy2KLM22afKTtUeJ5yk=";
-  };
+  inherit (dshSources."bundles.usage-stats") version src;
 
   # The upstream repository commits the generated server and browser payloads.
   # Its lockfile contains only development-time React test dependencies.
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
-    hash = "sha256-UKIo4yCnlIc/K2Od67Ny6Uw3iKTDhKlSktN3NdzLDNA=";
+    hash = dshSources."bundles.usage-stats".npmDepsHash;
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
@@ -66,9 +58,6 @@ buildDshBundle (finalAttrs: {
       };
     };
 
-    updateScript = nix-update-script {
-      extraArgs = [ "--flake" ];
-    };
   };
 
   meta = {

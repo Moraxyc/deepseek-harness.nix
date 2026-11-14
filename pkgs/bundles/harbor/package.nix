@@ -1,12 +1,11 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   fetchNpmDeps,
   buildDshBundle,
   dshCohort,
   dsh-runtime,
   jq,
-  nix-update-script,
   writers,
 }:
 let
@@ -14,14 +13,7 @@ let
 in
 buildDshBundle (finalAttrs: {
   pname = "dsh-harbor";
-  version = "0.1.0-rc.4-unstable-2026-11-13";
-
-  src = fetchFromGitHub {
-    owner = "ZSeven-W";
-    repo = "dsh-harbor";
-    rev = "277d61dfe504cf04730b393f95069252dce5936d";
-    hash = "sha256-CZHcpVCrmJYG0pNfi2v8xQud7zBVRG0cI2lAnSmdwmc=";
-  };
+  inherit (dshSources."bundles.harbor") version src;
 
   # The upstream repository commits both the ESM host source and the generated
   # React module-loader payload, and its lockfile lists development-time tooling
@@ -30,7 +22,7 @@ buildDshBundle (finalAttrs: {
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
-    hash = "sha256-/dgs+2SkBnbIwz/euo7VGjobobBB5iV6zmS7n1nYQh4=";
+    hash = dshSources."bundles.harbor".npmDepsHash;
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
@@ -79,12 +71,6 @@ buildDshBundle (finalAttrs: {
       };
     };
 
-    updateScript = nix-update-script {
-      extraArgs = [
-        "--flake"
-        "--version=branch"
-      ];
-    };
   };
 
   meta = {

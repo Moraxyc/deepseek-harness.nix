@@ -1,6 +1,6 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   importPnpmLock,
   buildDshBundle,
   copyTree,
@@ -31,14 +31,7 @@ let
 in
 buildDshBundle (finalAttrs: {
   pname = "dsh-plugin-subscriptions";
-  version = "0.9.13";
-
-  src = fetchFromGitHub {
-    owner = "V1ki";
-    repo = "dsh-plugin-subscriptions";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-5EaGJryDD0AsBsJ7PLgizhtdX9nLWf+y2R34WQ1TsJg=";
-  };
+  inherit (dshSources."bundles.subscriptions") version src;
 
   # rc.2 restricts error constructors and removes the public anchor hook.
   patches = [ ./rc2-runtime-contracts.patch ];
@@ -47,7 +40,9 @@ buildDshBundle (finalAttrs: {
   # Replace only those development links; the pinned installation supplies the same
   # peers for type checking and runtime composition.
   postPatch = ''
-    yq -o=yaml '.' ${./pnpm-workspace.json} > pnpm-workspace.yaml
+    yq -o=yaml '.pnpm' ${
+      dshSources."bundles.subscriptions".artifacts."pnpm-workspace.json"
+    } > pnpm-workspace.yaml
 
     jq '
       . as $root
@@ -61,6 +56,7 @@ buildDshBundle (finalAttrs: {
     ' package.json > package.json.tmp
     mv package.json.tmp package.json
 
+    # The pnpm install reads the source lockfile, so it needs the same peers.
     yq -i '
       .importers.".".devDependencies |= with_entries(
         select(
@@ -82,8 +78,9 @@ buildDshBundle (finalAttrs: {
   pnpmDeps = importPnpmLock {
     inherit (finalAttrs) pname version;
     pnpm = pnpm_11;
-    lockfileJson = ./pnpm-lock.json;
-    workspaceJson = lib.importJSON ./pnpm-workspace.json;
+    lockfileJson = dshSources."bundles.subscriptions".artifacts."pnpm-lock.json";
+    workspaceJson =
+      (lib.importJSON dshSources."bundles.subscriptions".artifacts."pnpm-workspace.json").pnpm;
     fetcherVersion = 4;
   };
 
@@ -131,7 +128,6 @@ buildDshBundle (finalAttrs: {
   '';
 
   passthru.requiresWeb = true;
-  passthru.updateScript = ./update.sh;
 
   meta = {
     description = "Use ChatGPT, Claude, Grok, and GitHub Copilot subscriptions as DSH providers with OAuth login and a web settings UI";

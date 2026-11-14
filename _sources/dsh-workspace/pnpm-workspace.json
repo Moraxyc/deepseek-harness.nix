@@ -1,35 +1,15 @@
 {
-  "packages": [
-    "vendor/*",
-    "packages/*/*",
-    "native/system",
-    "native/system/packages/*",
-    "apps/*",
-    "benchmarks",
-    "website",
-    "python/sdk-runtime"
-  ],
-  "overrides": {
-    "extract-zip>yauzl": "3.4.0",
-    "@deepseek-ai/cosmokit": "link:vendor/cosmokit",
-    "@deepseek-ai/schemastery": "link:vendor/schemastery"
-  },
-  "peerDependencyRules": {
-    "allowedVersions": {
-      "typescript": ">=5 <7"
-    }
-  },
   "allowBuilds": {
-    "esbuild": true,
-    "lefthook": true,
-    "node-pty": true,
-    "@google/genai": false,
-    "protobufjs": false,
-    "node-addon-require-builtin": false,
-    "koffi": true,
     "@deepseek-ai/dsh-subprocess-local@file:packages/subprocess/subprocess-local": true,
+    "@google/genai": false,
     "electron-winstaller": false,
-    "msgpackr-extract": false
+    "esbuild": true,
+    "koffi": true,
+    "lefthook": true,
+    "msgpackr-extract": false,
+    "node-addon-require-builtin": false,
+    "node-pty": true,
+    "protobufjs": false
   },
   "minimumReleaseAgeExclude": [
     "@botiverse/oar@0.67.0",
@@ -73,6 +53,21 @@
     "electron@44.7.0",
     "@browserbasehq/stagehand@4.4.0"
   ],
+  "overrides": {
+    "@deepseek-ai/cosmokit": "link:vendor/cosmokit",
+    "@deepseek-ai/schemastery": "link:vendor/schemastery",
+    "extract-zip>yauzl": "3.4.0"
+  },
+  "packages": [
+    "vendor/*",
+    "packages/*/*",
+    "native/system",
+    "native/system/packages/*",
+    "apps/*",
+    "benchmarks",
+    "website",
+    "python/sdk-runtime"
+  ],
   "patchedDependencies": {
     "@botiverse/oar@0.67.0": "patches/@botiverse__oar@0.67.0.patch",
     "@earendil-works/pi-ai@1.3.0": "patches/@earendil-works__pi-ai@1.3.0.patch",
@@ -86,5 +81,10 @@
     "mdast-util-gfm-autolink-literal@2.0.1": "patches/mdast-util-gfm-autolink-literal@2.0.1.patch",
     "micromark-extension-gfm-autolink-literal@2.1.0": "patches/micromark-extension-gfm-autolink-literal@2.1.0.patch",
     "node-pty@1.2.0-beta.15": "patches/node-pty@1.2.0-beta.15.patch"
+  },
+  "peerDependencyRules": {
+    "allowedVersions": {
+      "typescript": ">=5 <7"
+    }
   }
 }

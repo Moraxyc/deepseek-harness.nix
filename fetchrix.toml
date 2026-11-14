@@ -1,0 +1,350 @@
+[packages."bundles.ads"]
+pname = "dsh-ads"
+version = { source = "git", url = "https://github.com/Nagi-ovo/dsh-ads.git", unstable = { stable = { source = "github-tag", repo = "Nagi-ovo/dsh-ads", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+.*$" } } }
+fetch = { type = "github", repo = "Nagi-ovo/dsh-ads", rev = "{version}" }
+
+[packages."bundles.ads".derive.pnpmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.ads\""
+select = "pnpmDeps"
+
+[packages."bundles.agent-teams"]
+pname = "dsh-agent-teams"
+version = { source = "github-tag", repo = "NanmiCoder/dsh-agent-teams", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+fetch = { type = "github", repo = "NanmiCoder/dsh-agent-teams", tag = "v{version}" }
+
+[packages."bundles.agent-teams".derive.pnpmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.agent-teams\""
+select = "pnpmDeps"
+
+[packages."bundles.annotation"]
+pname = "dsh-annotation"
+version = { source = "git", url = "https://github.com/omdsh-dev/dsh-annotation.git", unstable = { stable = { source = "github-tag", repo = "omdsh-dev/dsh-annotation", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+.*$" } } }
+fetch = { type = "github", repo = "omdsh-dev/dsh-annotation", rev = "{version}" }
+
+[packages."bundles.annotation".derive.npmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.annotation\""
+select = "npmDeps"
+
+[packages."bundles.approve-for-me"]
+pname = "dsh-approve-for-me"
+version = { source = "git", url = "https://github.com/timeance/dsh-approve-for-me.git", unstable = {  } }
+fetch = { type = "github", repo = "timeance/dsh-approve-for-me", rev = "{version}" }
+
+[packages."bundles.approve-for-me".derive.pnpmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.approve-for-me\""
+select = "pnpmDeps"
+
+[packages."bundles.at-file"]
+pname = "dsh-at-file"
+version = { source = "github-tag", repo = "omdsh-dev/dsh-at-file", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+fetch = { type = "github", repo = "omdsh-dev/dsh-at-file", tag = "v{version}" }
+
+[packages."bundles.at-file".derive.pnpmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.at-file\""
+select = "pnpmDeps"
+
+[packages."bundles.better-sidebar"]
+pname = "dsh-better-sidebar"
+version = { source = "github-tag", repo = "omdsh-dev/DSH-better-sidebar", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+fetch = { type = "github", repo = "omdsh-dev/DSH-better-sidebar", tag = "v{version}" }
+
+[packages."bundles.better-sidebar".derive.pnpmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.better-sidebar\""
+select = "pnpmDeps"
+
+[packages."bundles.chat-import"]
+pname = "dsh-chat-import"
+version = { source = "github-tag", repo = "Nwflower/dsh-chat-import", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+fetch = { type = "github", repo = "Nwflower/dsh-chat-import", tag = "v{version}" }
+
+[packages."bundles.chat-import".derive.npmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.chat-import\""
+select = "npmDeps"
+
+[packages."bundles.context"]
+pname = "dsh-context"
+version = { source = "github-tag", repo = "bowenliang123/dsh-context", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+fetch = { type = "github", repo = "bowenliang123/dsh-context", tag = "v{version}" }
+
+[packages."bundles.context".derive.pnpmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.context\""
+select = "pnpmDeps"
+
+[packages."bundles.cpa"]
+pname = "dsh-cpa"
+version = { source = "github-tag", repo = "Moraxyc/dsh-cpa", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+fetch = { type = "github", repo = "Moraxyc/dsh-cpa", tag = "v{version}" }
+
+[packages."bundles.cpa".derive.npmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.cpa\""
+select = "npmDeps"
+
+[packages."bundles.genui"]
+pname = "dsh-genui"
+version = { source = "git", url = "https://github.com/omdsh-dev/dsh-genui.git", unstable = { stable = { source = "github-tag", repo = "omdsh-dev/dsh-genui", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+.*$" } } }
+fetch = { type = "github", repo = "omdsh-dev/dsh-genui", rev = "{version}" }
+
+[packages."bundles.genui".derive.pnpmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.genui\""
+select = "pnpmDeps"
+
+[packages."bundles.graph-memory"]
+pname = "dsh-graph-memory"
+version = { source = "git", url = "https://github.com/adoresever/graph-memory.git", unstable = { stable = { source = "github-tag", repo = "adoresever/graph-memory", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+.*$" } } }
+fetch = { type = "github", repo = "adoresever/graph-memory", rev = "{version}" }
+
+[packages."bundles.graph-memory".prepare]
+steps = [{ type = "hook", run = ["./scripts/fetchrix-prepare.sh", "bundles.graph-memory"] }, { type = "npm-lock" }]
+artifacts."package-lock.json" = { type = "file", path = "package-lock.json" }
+
+[packages."bundles.graph-memory".derive.npmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.graph-memory\""
+select = "npmDeps"
+
+[packages."bundles.harbor"]
+pname = "dsh-harbor"
+version = { source = "git", url = "https://github.com/ZSeven-W/dsh-harbor.git", unstable = { stable = { source = "github-tag", repo = "ZSeven-W/dsh-harbor", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+.*$" } } }
+fetch = { type = "github", repo = "ZSeven-W/dsh-harbor", rev = "{version}" }
+
+[packages."bundles.harbor".derive.npmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.harbor\""
+select = "npmDeps"
+
+[packages."bundles.liang-saint-slider"]
+pname = "dsh-plugin-liang-calibrator"
+version = { source = "git", url = "https://github.com/BruzWJ/Liang-Saint-Slider.git", unstable = {  } }
+fetch = { type = "github", repo = "BruzWJ/Liang-Saint-Slider", rev = "{version}" }
+
+[packages."bundles.liang-saint-slider".derive.npmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.liang-saint-slider\""
+select = "npmDeps"
+
+[packages."bundles.liang-skin"]
+pname = "dsh-client-liang-intensity-skin"
+version = { source = "github-tag", repo = "kingOfSoySauce/dsh-liang-skin", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+fetch = { type = "github", repo = "kingOfSoySauce/dsh-liang-skin", tag = "v{version}" }
+
+[packages."bundles.liang-skin".derive.npmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.liang-skin\""
+select = "npmDeps"
+
+[packages."bundles.memento"]
+pname = "dsh-memento"
+version = { source = "github-tag", repo = "PerryLink/dsh-memento", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+fetch = { type = "github", repo = "PerryLink/dsh-memento", tag = "v{version}" }
+
+[packages."bundles.mneme"]
+pname = "dsh-mneme"
+version = { source = "github-tag", repo = "modusensus/dsh-mneme", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+fetch = { type = "github", repo = "modusensus/dsh-mneme", tag = "v{version}" }
+
+[packages."bundles.mnemon"]
+pname = "dsh-mnemon"
+version = { source = "github-tag", repo = "omdsh-dev/dsh-mnemon", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+fetch = { type = "github", repo = "omdsh-dev/dsh-mnemon", tag = "v{version}" }
+
+[packages."bundles.mnemon".derive.pnpmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.mnemon\""
+select = "pnpmDeps"
+
+[packages."bundles.modlens"]
+pname = "dsh-modlens"
+version = { source = "github-tag", repo = "liustack/modlens", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+fetch = { type = "github", repo = "liustack/modlens", tag = "v{version}" }
+
+[packages."bundles.modlens".derive.pnpmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.modlens\""
+select = "pnpmDeps"
+
+[packages."bundles.modsearch"]
+pname = "dsh-modsearch"
+version = { source = "github-tag", repo = "liustack/modsearch", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+fetch = { type = "github", repo = "liustack/modsearch", tag = "v{version}" }
+
+[packages."bundles.modsearch".derive.pnpmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.modsearch\""
+select = "pnpmDeps"
+
+[packages."bundles.noema"]
+pname = "dsh-noema"
+version = { source = "github-tag", repo = "ZSeven-W/dsh-noema", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+.*$" }
+fetch = { type = "github", repo = "ZSeven-W/dsh-noema", tag = "v{version}" }
+
+[packages."bundles.noema".derive.pnpmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.noema\""
+select = "pnpmDeps"
+
+[packages."bundles.notification"]
+pname = "dsh-notification"
+version = { source = "github-tag", repo = "omdsh-dev/dsh-notification", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+fetch = { type = "github", repo = "omdsh-dev/dsh-notification", tag = "v{version}" }
+
+[packages."bundles.notification".prepare]
+steps = [{ type = "hook", run = ["./scripts/fetchrix-prepare.sh", "bundles.notification"] }]
+artifacts."pnpm-lock.json" = { type = "json", path = "pnpm-lock.yaml", format = "yaml" }
+artifacts."pnpm-workspace.json" = { type = "json", path = "pnpm-workspace.yaml", format = "yaml" }
+
+[packages."bundles.opentelemetry"]
+pname = "dsh-opentelemetry"
+version = { source = "github-tag", repo = "loongsuite/dsh-plugin", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+fetch = { type = "github", repo = "loongsuite/dsh-plugin", tag = "v{version}" }
+
+[packages."bundles.opentelemetry".derive.pnpmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.opentelemetry\""
+select = "pnpmDeps"
+
+[packages."bundles.plugin-check"]
+pname = "dsh-plugin-check"
+version = { source = "git", url = "https://github.com/omdsh-dev/dsh-plugin-check.git", unstable = {  } }
+fetch = { type = "github", repo = "omdsh-dev/dsh-plugin-check", rev = "{version}" }
+
+[packages."bundles.plugin-check".derive.npmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.plugin-check\""
+select = "npmDeps"
+
+[packages."bundles.remote"]
+pname = "dsh-remote"
+version = { source = "github-tag", repo = "flymysql/dsh-remote", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+fetch = { type = "github", repo = "flymysql/dsh-remote", tag = "v{version}" }
+
+[packages."bundles.remote".derive.npmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.remote\""
+select = "npmDeps"
+
+[packages."bundles.security-audit"]
+pname = "dsh-security-audit"
+version = { source = "git", url = "https://github.com/omdsh-dev/dsh-security-audit.git", unstable = {  } }
+fetch = { type = "github", repo = "omdsh-dev/dsh-security-audit", rev = "{version}" }
+
+[packages."bundles.security-audit".derive.npmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.security-audit\""
+select = "npmDeps"
+
+[packages."bundles.session-health"]
+pname = "dsh-session-health"
+version = { source = "git", url = "https://github.com/omdsh-dev/dsh-session-health.git", unstable = {  } }
+fetch = { type = "github", repo = "omdsh-dev/dsh-session-health", rev = "{version}" }
+
+[packages."bundles.session-health".derive.npmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.session-health\""
+select = "npmDeps"
+
+[packages."bundles.subscriptions"]
+pname = "dsh-plugin-subscriptions"
+version = { source = "github-tag", repo = "V1ki/dsh-plugin-subscriptions", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+fetch = { type = "github", repo = "V1ki/dsh-plugin-subscriptions", tag = "v{version}" }
+
+[packages."bundles.subscriptions".prepare]
+steps = [{ type = "hook", run = ["./scripts/fetchrix-prepare.sh", "bundles.subscriptions"] }]
+artifacts."pnpm-lock.json" = { type = "json", path = "pnpm-lock.yaml", format = "yaml" }
+artifacts."pnpm-workspace.json" = { type = "json", path = "package.json", fields = ["/pnpm"] }
+
+[packages."bundles.tui"]
+pname = "dsh-tui"
+version = { source = "github-tag", repo = "ccch1mneyyy/dsh-TUI", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+fetch = { type = "github", repo = "ccch1mneyyy/dsh-TUI", rev = "refs/tags/v{version}", submodules = true }
+
+[packages."bundles.tui".derive.pnpmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.tui\""
+select = "pnpmDeps"
+
+[packages."bundles.turn-rewind"]
+pname = "dsh-turn-rewind"
+version = { source = "github-tag", repo = "Anionex/dsh-turn-rewind", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+fetch = { type = "github", repo = "Anionex/dsh-turn-rewind", tag = "v{version}" }
+
+[packages."bundles.turn-rewind".derive.pnpmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.turn-rewind\""
+select = "pnpmDeps"
+
+[packages."bundles.usage-stats"]
+pname = "dsh-usage-stats"
+version = { source = "github-release", repo = "Ychris12138/dsh-usage-stats", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+transform = ["strip-v"]
+fetch = { type = "github", repo = "Ychris12138/dsh-usage-stats", rev = "{version}" }
+
+[packages."bundles.usage-stats".derive.npmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.usage-stats\""
+select = "npmDeps"
+
+[packages."bundles.vision-toolkit"]
+pname = "dsh-vision-toolkit"
+version = { source = "github-tag", repo = "Anionex/dsh-vision-toolkit", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+fetch = { type = "github", repo = "Anionex/dsh-vision-toolkit", tag = "v{version}" }
+
+[packages."bundles.vision-toolkit".derive.pnpmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.vision-toolkit\""
+select = "pnpmDeps"
+
+[packages."bundles.visualize"]
+pname = "dsh-visualize"
+version = { source = "git", url = "https://github.com/Nagi-ovo/dsh-visualize.git", unstable = { stable = { source = "github-tag", repo = "Nagi-ovo/dsh-visualize", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+.*$" } } }
+fetch = { type = "github", repo = "Nagi-ovo/dsh-visualize", rev = "{version}" }
+
+[packages."bundles.visualize".derive.pnpmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.visualize\""
+select = "pnpmDeps"
+
+[packages."bundles.web-ui"]
+pname = "dsh-web-ui"
+version = { source = "github-tag", repo = "zhu1090093659/dsh-web-ui", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+fetch = { type = "github", repo = "zhu1090093659/dsh-web-ui", tag = "v{version}" }
+
+[packages."bundles.web-ui".prepare]
+artifacts."pnpm-lock.json" = { type = "json", path = "pnpm-lock.yaml", format = "yaml" }
+artifacts."pnpm-workspace.json" = { type = "json", path = "pnpm-workspace.yaml", format = "yaml" }
+artifacts."package.json" = { type = "json", path = "package.json", fields = ["/name", "/version", "/private"] }
+
+[packages."dsh-desktop-unofficial"]
+pname = "dsh-desktop-shell"
+version = { source = "git", url = "https://github.com/anywhere-labs/deepseek-harness-desktop.git", unstable = { stable = { source = "github-tag", repo = "anywhere-labs/deepseek-harness-desktop", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+.*$" } } }
+fetch = { type = "github", repo = "anywhere-labs/deepseek-harness-desktop", rev = "{version}" }
+
+[packages."dsh-desktop-unofficial".prepare]
+steps = [{ type = "hook", run = ["./scripts/fetchrix-prepare.sh", "dsh-desktop-unofficial"] }]
+artifacts."missing-hashes.json" = { type = "file", path = ".fetchrix/missing-hashes.json" }
+
+[packages."dsh-desktop-unofficial".derive.yarnDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"dsh-desktop-unofficial\""
+select = "shell.offlineCache"
+
+[packages."dsh-workspace"]
+pname = "dsh-workspace"
+version = { source = "github-tag", repo = "deepseek-ai/deepseek-harness", strip_prefix = "dsh-v", filter = "^dsh-v[0-9]+\\.[0-9]+\\.[0-9]+.*$" }
+fetch = { type = "github", repo = "deepseek-ai/deepseek-harness", tag = "dsh-v{version}" }
+
+[packages."dsh-workspace".prepare]
+steps = [{ type = "hook", run = ["./scripts/fetchrix-prepare.sh", "dsh-workspace"], inputs = ["scripts/generate-optional-bundles.sh"] }]
+artifacts."pnpm-lock.json" = { type = "json", path = "pnpm-lock.yaml", format = "yaml" }
+artifacts."pnpm-workspace.json" = { type = "json", path = "pnpm-workspace.yaml", format = "yaml" }
+artifacts."optional-bundles.json" = { type = "file", path = ".fetchrix/optional-bundles.json" }
+artifacts."client-commit.json" = { type = "file", path = ".fetchrix/client-commit.json" }

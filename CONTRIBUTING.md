@@ -1,5 +1,27 @@
 # Contributing
 
+## Updating packages
+
+```sh
+nix develop -c fetchrix update dsh-workspace
+nix develop -c fetchrix update bundles.tui
+```
+
+`fetchrix.toml` defines version discovery, preparation artifacts, and derived
+hashes. `_sources/lock.json` and declared artifacts are consumed through
+`dshSources`.
+Fetchrix is pinned in the development flake. CI uses the same commands and
+skips broken packages.
+
+JSON artifacts handle YAML conversion and field projection. `fetchrixPackages`
+binds the new `{ src, version, artifacts }` to existing package definitions;
+`derive.select` chooses the FOD, including its normal patch phase. Hooks retain
+only DSH-specific preparation.
+
+Commit `_sources/` with the package changes. Fetchrix fingerprints hook programs
+and their declared `inputs`; list any other files a hook reads there. Use
+`fetchrix verify PACKAGE` to check packaging changes without updating versions.
+
 ## Choosing a bundle builder
 
 Use the builder that matches where the bundle source comes from:
@@ -116,10 +138,9 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
    builds 11.22.0 from the npm tarball. Override `pnpm` only for a different,
    still-compatible version. Pass `pnpmDeps` instead of `pnpmDepsHash` only
    when the lockfile needs a custom fetcher, such as `importPnpmLock`. Such a
-   bundle vendors `pnpm-lock.json` and, when upstream has one,
-   `pnpm-workspace.json` next to `package.nix`, passes them as `lockfileJson`
-   and `workspaceJson`, and rewrites `passthru.updateScript` to an `update.sh`
-   that regenerates both files on every version bump.
+   bundle declares `pnpm-lock.json` and `pnpm-workspace.json` as fetchrix
+   preparation artifacts and passes their `dshSources` paths as `lockfileJson`
+   and `workspaceJson`.
 4. Run:
 
    ```sh

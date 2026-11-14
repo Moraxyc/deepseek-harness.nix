@@ -40,8 +40,8 @@ nix run .#dsh-desktop-official
 nix develop
 ```
 
-デフォルトの開発シェルには `jq`、`nix-update`、`nixfmt`、`pre-commit`、`yq-go` が
-含まれます。Pre-commit と flake チェックは push 前に実行されます。
+デフォルトの開発シェルには `fetchrix`、`jq`、`nixfmt`、`pre-commit`、`yq-go` と
+準備処理のツールが含まれます。Pre-commit と flake チェックは push 前に実行されます。
 
 ## よく使うコマンド
 
@@ -60,6 +60,19 @@ npm run build
 nix flake update
 nix flake update --flake ./modules/flake-parts/dev
 ```
+
+## パッケージの更新
+
+```sh
+nix develop -c fetchrix update dsh-workspace
+nix develop -c fetchrix update bundles.tui
+```
+
+`fetchrix.toml` はバージョン検出、`prepare` 生成物、`derive` ハッシュを宣言します。
+パッケージは `dshSources` を通じて `_sources/lock.json` と生成物を読み込み、
+`fetchrixPackages` が新しいソースで評価します。`_sources/` をパッケージ変更と一緒に
+コミットしてください。fetchrix は開発 flake のみに固定され、CI も同じコマンドを使用し、
+broken のパッケージを除外します。
 
 ## バンドルの削除
 

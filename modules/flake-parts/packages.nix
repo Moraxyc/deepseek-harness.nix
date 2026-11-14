@@ -22,6 +22,7 @@
       legacyPackages = {
         inherit (dsh) bundles presets;
         inherit importPnpmLock;
+        fetchrixPackages = import ../../lib/fetchrix-packages.nix { inherit lib dsh; };
         inherit bundleCompositions;
         allBundleCompositions = pkgs.linkFarm "all-compositions" (
           pkgs.lib.mapAttrsToList (name: drv: {

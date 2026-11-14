@@ -1,13 +1,12 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   buildDshBundle,
   copyTree,
   dshCohort,
   dsh-runtime,
   dsh-workspace,
   pnpmConfigHook,
-  nix-update-script,
 }:
 let
   clientPackages = dshCohort.select [
@@ -29,18 +28,11 @@ let
 in
 buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   pname = "dsh-at-file";
-  version = "0.7.0";
+  inherit (dshSources."bundles.at-file") version src;
   deployPackage = "dsh-at-file";
   installation = dsh-runtime;
 
-  src = fetchFromGitHub {
-    owner = "omdsh-dev";
-    repo = "dsh-at-file";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-JU8JH9t2+72FW4FyGsOrZebGW0tPC7VzIkZuVfhlLmE=";
-  };
-
-  pnpmDepsHash = "sha256-pTHoDj3MwGC4snJ5J8eKW0slfMdcEhvgmLgD+Kqa8eM=";
+  pnpmDepsHash = dshSources."bundles.at-file".pnpmDepsHash;
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
@@ -68,9 +60,6 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   '';
 
   passthru.requiresWeb = true;
-  passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
-  };
 
   meta = {
     description = "Codex-style @path references for the DeepSeek Harness web GUI";

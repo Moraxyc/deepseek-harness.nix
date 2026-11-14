@@ -1,0 +1,644 @@
+{
+  "schema": 1,
+  "packages": {
+    "bundles.ads": {
+      "pname": "dsh-ads",
+      "version": "0.1.4-unstable-2026-11-06",
+      "rawVersion": "76a3bcec64ba83abecbacbd114ce08861921ade4",
+      "date": "2026-11-06",
+      "src": {
+        "fetcher": "github",
+        "owner": "Nagi-ovo",
+        "repo": "dsh-ads",
+        "rev": "76a3bcec64ba83abecbacbd114ce08861921ade4",
+        "hash": "sha256-Bi1YSRKdFEsCoXf9l5LSWhwqZtOivPg0bJTN/2IoIc8="
+      },
+      "derived": {
+        "pnpmDepsHash": {
+          "hash": "sha256-3KYwS/IN8BAq/gMBqvZnVRzRyMJJQGkmiQ3TP4yOyrA="
+        }
+      },
+      "fingerprint": "sha256-V7I/DCOec3MTQdcgNz6wwDTF/941Z6VByZ2QKfpLDKw="
+    },
+    "bundles.agent-teams": {
+      "pname": "dsh-agent-teams",
+      "version": "0.1.30",
+      "rawVersion": "0.1.30",
+      "src": {
+        "fetcher": "github",
+        "owner": "NanmiCoder",
+        "repo": "dsh-agent-teams",
+        "tag": "v0.1.30",
+        "hash": "sha256-YvgD9ulSjKpWo4PkqEdc3DuNi7z3YI7rKN0fygBw4Y0="
+      },
+      "derived": {
+        "pnpmDepsHash": {
+          "hash": "sha256-U+FF/izpDQ4yr/ML2+1gTLH+qXhMr4bnASVAV7BfHD4="
+        }
+      },
+      "fingerprint": "sha256-81ySwq4Btsp7wfBOVStg1BBzd77F9kbnRmuZIFdlhbA="
+    },
+    "bundles.annotation": {
+      "pname": "dsh-annotation",
+      "version": "1.4.11-unstable-2026-11-03",
+      "rawVersion": "48eac63badf93641f2276b8b0068f6ebbe22ba9b",
+      "date": "2026-11-03",
+      "src": {
+        "fetcher": "github",
+        "owner": "omdsh-dev",
+        "repo": "dsh-annotation",
+        "rev": "48eac63badf93641f2276b8b0068f6ebbe22ba9b",
+        "hash": "sha256-G4vnNQ5qhha3JNjIl5X7++wMRS4oOna2vYmQweSLj9w="
+      },
+      "derived": {
+        "npmDepsHash": {
+          "hash": "sha256-67TI83N0jrQmgXi9DibBEuFW6l1nV/mYvb6tr+bOdJE="
+        }
+      },
+      "fingerprint": "sha256-w95pMcNhOooSffqNAVD9965ncXTp6CurhJ5L0MNTGr8="
+    },
+    "bundles.approve-for-me": {
+      "pname": "dsh-approve-for-me",
+      "version": "0-unstable-2026-11-06",
+      "rawVersion": "906a7e45ef7bb350049056f21c9ff4c15b142892",
+      "date": "2026-11-06",
+      "src": {
+        "fetcher": "github",
+        "owner": "timeance",
+        "repo": "dsh-approve-for-me",
+        "rev": "906a7e45ef7bb350049056f21c9ff4c15b142892",
+        "hash": "sha256-jI2RpQofncxEsfvVrdjjE/akd3Wjdho9++kNlgW7RO8="
+      },
+      "derived": {
+        "pnpmDepsHash": {
+          "hash": "sha256-iyrPUSYlVOXxMDX/eKy+QXiWeIRQAF0vySHvEmnXljo="
+        }
+      },
+      "fingerprint": "sha256-ZA0MZQEcfceZndzrur02fkEs40LnqAEkGeTIdzh9vyg="
+    },
+    "bundles.at-file": {
+      "pname": "dsh-at-file",
+      "version": "0.7.0",
+      "rawVersion": "0.7.0",
+      "src": {
+        "fetcher": "github",
+        "owner": "omdsh-dev",
+        "repo": "dsh-at-file",
+        "tag": "v0.7.0",
+        "hash": "sha256-JU8JH9t2+72FW4FyGsOrZebGW0tPC7VzIkZuVfhlLmE="
+      },
+      "derived": {
+        "pnpmDepsHash": {
+          "hash": "sha256-pTHoDj3MwGC4snJ5J8eKW0slfMdcEhvgmLgD+Kqa8eM="
+        }
+      },
+      "fingerprint": "sha256-2FEMFfDdb4B656itDFJ0jaF1y1BueeiKXWt6IUWRCZI="
+    },
+    "bundles.better-sidebar": {
+      "pname": "dsh-better-sidebar",
+      "version": "0.32.1",
+      "rawVersion": "0.32.1",
+      "src": {
+        "fetcher": "github",
+        "owner": "omdsh-dev",
+        "repo": "DSH-better-sidebar",
+        "tag": "v0.32.1",
+        "hash": "sha256-PfZAv548WWD8nuGAtkQmMP1nCRC0LK/BV3uYsdLak3I="
+      },
+      "derived": {
+        "pnpmDepsHash": {
+          "hash": "sha256-dRT2GD0ephYT+rOYjjroEf5Ju9QdihVLYJGlAfgM66Y="
+        }
+      },
+      "fingerprint": "sha256-KLTi1o/HUyZBZdFh7JQgVkLbGy9XJOjGTF427RV3hq0="
+    },
+    "bundles.chat-import": {
+      "pname": "dsh-chat-import",
+      "version": "0.26.6",
+      "rawVersion": "0.26.6",
+      "src": {
+        "fetcher": "github",
+        "owner": "Nwflower",
+        "repo": "dsh-chat-import",
+        "tag": "v0.26.6",
+        "hash": "sha256-QZUI2NceXjUfDhtOhLOYb5JBBccnmC+kzoMrQKjnhvg="
+      },
+      "derived": {
+        "npmDepsHash": {
+          "hash": "sha256-oEnRK0sjLnn+OP75DBhe7bLID/GGBbYieslZ5PtYDbg="
+        }
+      },
+      "fingerprint": "sha256-ob4Nyl6+TlePaKGCDGDj2qU2p0AHuRoxalxkfpIeJA4="
+    },
+    "bundles.context": {
+      "pname": "dsh-context",
+      "version": "0.84.1",
+      "rawVersion": "0.84.1",
+      "src": {
+        "fetcher": "github",
+        "owner": "bowenliang123",
+        "repo": "dsh-context",
+        "tag": "v0.84.1",
+        "hash": "sha256-GwQ1S5OQRGs3ATF1Rt3MSuGeMNecCPpOFNx2PAnosbM="
+      },
+      "derived": {
+        "pnpmDepsHash": {
+          "hash": "sha256-pA6dgtdvDr3mXHk+WwRNUaEyw1sCYZkaTAufhbZ6Z6U="
+        }
+      },
+      "fingerprint": "sha256-8mvs61/pq76BkchiDlI4hdx3m1tbq7XyH7LqILMI39Y="
+    },
+    "bundles.cpa": {
+      "pname": "dsh-cpa",
+      "version": "0.1.13",
+      "rawVersion": "0.1.13",
+      "src": {
+        "fetcher": "github",
+        "owner": "Moraxyc",
+        "repo": "dsh-cpa",
+        "tag": "v0.1.13",
+        "hash": "sha256-5aY1Re3V4nGvzrV4jOoRFqJ/Sl4Cd5Ar+exPzax6j7U="
+      },
+      "derived": {
+        "npmDepsHash": {
+          "hash": "sha256-6OxgwIYjrKN8L9wI15CUi4EYE7nw/BVhWyzbTWz6fJk="
+        }
+      },
+      "fingerprint": "sha256-WdmuojLkvUws8c/BAnCU3UvFvlZ5L6/5+ILWB0N5UnQ="
+    },
+    "bundles.genui": {
+      "pname": "dsh-genui",
+      "version": "0.16.0-unstable-2026-11-11",
+      "rawVersion": "3cc1f153716b0ff710f1dcc9c46bab83b3911c4a",
+      "date": "2026-11-11",
+      "src": {
+        "fetcher": "github",
+        "owner": "omdsh-dev",
+        "repo": "dsh-genui",
+        "rev": "3cc1f153716b0ff710f1dcc9c46bab83b3911c4a",
+        "hash": "sha256-+Ovjb7V5m4prumU6TaVLSTyvqTmhD70nQT2WE5R5SV0="
+      },
+      "derived": {
+        "pnpmDepsHash": {
+          "hash": "sha256-0QfBbAgo2LMz/6LEqxIRnxP0+n0jz9fnvVoBRDEYJKY="
+        }
+      },
+      "fingerprint": "sha256-qrFgY5ttb4KOz7752BzjXAfqoXWJBUtT2SrkoDtUO7g="
+    },
+    "bundles.graph-memory": {
+      "pname": "dsh-graph-memory",
+      "version": "2.0.0-unstable-2026-10-01",
+      "rawVersion": "5841b1987c3967998818764c9d4238add5f3aa7c",
+      "date": "2026-10-01",
+      "src": {
+        "fetcher": "github",
+        "owner": "adoresever",
+        "repo": "graph-memory",
+        "rev": "5841b1987c3967998818764c9d4238add5f3aa7c",
+        "hash": "sha256-2l7dSv1T+bSKAYIu2dj+NVnqzsLiTMCNaL8R3yB1bhI="
+      },
+      "derived": {
+        "npmDepsHash": {
+          "hash": "sha256-DuY5Nwn1bz65As06Dqbgr0bameujAwftYDm4rxfzxJc="
+        }
+      },
+      "artifacts": {
+        "package-lock.json": "bundles.graph-memory/package-lock.json"
+      },
+      "fingerprint": "sha256-MJiMzYmhqV1Oo4/mVOwuzqFyNEnICU0yZ/X7bpR3Dfs="
+    },
+    "bundles.harbor": {
+      "pname": "dsh-harbor",
+      "version": "0.1.0-rc.4-unstable-2026-11-13",
+      "rawVersion": "277d61dfe504cf04730b393f95069252dce5936d",
+      "date": "2026-11-13",
+      "src": {
+        "fetcher": "github",
+        "owner": "ZSeven-W",
+        "repo": "dsh-harbor",
+        "rev": "277d61dfe504cf04730b393f95069252dce5936d",
+        "hash": "sha256-CZHcpVCrmJYG0pNfi2v8xQud7zBVRG0cI2lAnSmdwmc="
+      },
+      "derived": {
+        "npmDepsHash": {
+          "hash": "sha256-/dgs+2SkBnbIwz/euo7VGjobobBB5iV6zmS7n1nYQh4="
+        }
+      },
+      "fingerprint": "sha256-4foia8OCrwTQiBxblTot+zbmSNDLlNuqGyEVwgKk4UA="
+    },
+    "bundles.liang-saint-slider": {
+      "pname": "dsh-plugin-liang-calibrator",
+      "version": "0-unstable-2026-08-19",
+      "rawVersion": "530fa661245cc82ff9f10458089a3fd3ccec2e4a",
+      "date": "2026-08-19",
+      "src": {
+        "fetcher": "github",
+        "owner": "BruzWJ",
+        "repo": "Liang-Saint-Slider",
+        "rev": "530fa661245cc82ff9f10458089a3fd3ccec2e4a",
+        "hash": "sha256-0TLswr5JtrismW1zhTiWeiz2PsW/ryL1CbACJwJbIHk="
+      },
+      "derived": {
+        "npmDepsHash": {
+          "hash": "sha256-5xQMQFMkF6yXQ2S7p/Xi4b0V/9hVBumsB55xMYiA72g="
+        }
+      },
+      "fingerprint": "sha256-x9He0cpBTYdCdarfjWmhbtvdeCz5tAz5wX5HbDRHrVo="
+    },
+    "bundles.liang-skin": {
+      "pname": "dsh-client-liang-intensity-skin",
+      "version": "0.1.21",
+      "rawVersion": "0.1.21",
+      "src": {
+        "fetcher": "github",
+        "owner": "kingOfSoySauce",
+        "repo": "dsh-liang-skin",
+        "tag": "v0.1.21",
+        "hash": "sha256-mUUW8npQY7XM91hcXpWSBjUY4N29mQwmA4FMnqGvfvM="
+      },
+      "derived": {
+        "npmDepsHash": {
+          "hash": "sha256-anndCuFGSaxC3r42iDH6OnpSA1rrIdAFJi7zxxpJAAA="
+        }
+      },
+      "fingerprint": "sha256-udTLW9CQJ4x5vKZWkZiYqfhLNfRDYVI01noBEIASTJ0="
+    },
+    "bundles.memento": {
+      "pname": "dsh-memento",
+      "version": "0.5.30",
+      "rawVersion": "0.5.30",
+      "src": {
+        "fetcher": "github",
+        "owner": "PerryLink",
+        "repo": "dsh-memento",
+        "tag": "v0.5.30",
+        "hash": "sha256-sb53SempMZ+U3GaDlt2MsQt5AAl7QcMG63yAKeuOE7g="
+      },
+      "fingerprint": "sha256-/wEh+Fid/AM+TEphUBZcsqt+c7W4IpK2sKy8YUlmI1Y="
+    },
+    "bundles.mneme": {
+      "pname": "dsh-mneme",
+      "version": "0.14.0",
+      "rawVersion": "0.14.0",
+      "src": {
+        "fetcher": "github",
+        "owner": "modusensus",
+        "repo": "dsh-mneme",
+        "tag": "v0.14.0",
+        "hash": "sha256-0oC056b84bu61xAUWndIA9+1kFnbl3q7bCKwVEzLRMw="
+      },
+      "fingerprint": "sha256-EC9bv92qQKAtFapj/JwIaoSmRIVhnh47JeDvU9aq0qs="
+    },
+    "bundles.mnemon": {
+      "pname": "dsh-mnemon",
+      "version": "0.5.45",
+      "rawVersion": "0.5.45",
+      "src": {
+        "fetcher": "github",
+        "owner": "omdsh-dev",
+        "repo": "dsh-mnemon",
+        "tag": "v0.5.45",
+        "hash": "sha256-Nvomg7Pzrryr6IfA9g+8FDwqQvPWZGzyfP7pm1nPoNw="
+      },
+      "derived": {
+        "pnpmDepsHash": {
+          "hash": "sha256-H+IBGNuymboUzmw2E8lfqsfRdSlpCTd16eKkiWYQ6C4="
+        }
+      },
+      "fingerprint": "sha256-QRaak4m5/QOo6d0Tenllw0OtxP7zWAtU1xWBlj2G9Q8="
+    },
+    "bundles.modlens": {
+      "pname": "dsh-modlens",
+      "version": "3.27.3",
+      "rawVersion": "3.27.3",
+      "src": {
+        "fetcher": "github",
+        "owner": "liustack",
+        "repo": "modlens",
+        "tag": "v3.27.3",
+        "hash": "sha256-8G+D3kmOwqPmeGh68JTUqjrGN3VxQpgNuaxkLDiTXiU="
+      },
+      "derived": {
+        "pnpmDepsHash": {
+          "hash": "sha256-SlMlFDdr/Fm8BndcKXCPzwZzmkSsoFp/6yuj5Y2XYDc="
+        }
+      },
+      "fingerprint": "sha256-rh+tByw8lvJLyy4tDU9VCzGrC4T6GXaFyBi17AJOIOU="
+    },
+    "bundles.modsearch": {
+      "pname": "dsh-modsearch",
+      "version": "5.10.12",
+      "rawVersion": "5.10.12",
+      "src": {
+        "fetcher": "github",
+        "owner": "liustack",
+        "repo": "modsearch",
+        "tag": "v5.10.12",
+        "hash": "sha256-FsscpWFlQaR63j4VdmvcH+Qf2mKl5noGj551BHiBmAQ="
+      },
+      "derived": {
+        "pnpmDepsHash": {
+          "hash": "sha256-IrnTqej0JBHhZvkn88rF8QcpR2JcNmx1sxL/u0QIayc="
+        }
+      },
+      "fingerprint": "sha256-jWk1oX2ixeJEcOb6X5YBHs+yJV3b66xWCJDJsdCSw+Q="
+    },
+    "bundles.noema": {
+      "pname": "dsh-noema",
+      "version": "0.1.0-rc.6",
+      "rawVersion": "0.1.0-rc.6",
+      "src": {
+        "fetcher": "github",
+        "owner": "ZSeven-W",
+        "repo": "dsh-noema",
+        "tag": "v0.1.0-rc.6",
+        "hash": "sha256-5y80AfGdjuqXZsIf12plz1NxFEgGP0bl8th7b+2Y5ss="
+      },
+      "derived": {
+        "pnpmDepsHash": {
+          "hash": "sha256-JSHpUa9ftofII5BBkl9WG7pU/vXfCzHCc9iSQr/d1Ng="
+        }
+      },
+      "fingerprint": "sha256-gt3Hmfy/95LOz4HSgJnvtKv0zSaElbOoj70OQRTGz/Y="
+    },
+    "bundles.notification": {
+      "pname": "dsh-notification",
+      "version": "0.1.4",
+      "rawVersion": "0.1.4",
+      "src": {
+        "fetcher": "github",
+        "owner": "omdsh-dev",
+        "repo": "dsh-notification",
+        "tag": "v0.1.4",
+        "hash": "sha256-rs6hWEds6wlH3psDqNPdZLdzhpWcAAqBkrKwJ0hkNXo="
+      },
+      "artifacts": {
+        "pnpm-lock.json": "bundles.notification/pnpm-lock.json",
+        "pnpm-workspace.json": "bundles.notification/pnpm-workspace.json"
+      },
+      "fingerprint": "sha256-69iFYcpimLjxeR48AHeldDXiCeg53hkuiisaYtR7JLI="
+    },
+    "bundles.opentelemetry": {
+      "pname": "dsh-opentelemetry",
+      "version": "0.1.3",
+      "rawVersion": "0.1.3",
+      "src": {
+        "fetcher": "github",
+        "owner": "loongsuite",
+        "repo": "dsh-plugin",
+        "tag": "v0.1.3",
+        "hash": "sha256-wOtGNkXspFPJbJPZi09lXhkQ0VFCy6gFDymqb5V6/OU="
+      },
+      "derived": {
+        "pnpmDepsHash": {
+          "hash": "sha256-c0g6Gl3rdXDYB2wtMcdICYDZgoCEg7s5mD/RfybHqwI="
+        }
+      },
+      "fingerprint": "sha256-dyKKmbgQwvEPnCmd8wa/RgRvSDzWbrp0NhxUasNeGPw="
+    },
+    "bundles.plugin-check": {
+      "pname": "dsh-plugin-check",
+      "version": "0-unstable-2026-09-10",
+      "rawVersion": "5bf7beb29a78d0211e2b3bdccfd1222e6b2bc1cc",
+      "date": "2026-09-10",
+      "src": {
+        "fetcher": "github",
+        "owner": "omdsh-dev",
+        "repo": "dsh-plugin-check",
+        "rev": "5bf7beb29a78d0211e2b3bdccfd1222e6b2bc1cc",
+        "hash": "sha256-pET/66DopMVrW+eocS8zwvueYs62Pvh7Pt0Sb8OTOck="
+      },
+      "derived": {
+        "npmDepsHash": {
+          "hash": "sha256-0GqAFyUxEiGzVLKWI53RZucjbUkgRyuwSkYTqz6oLPk="
+        }
+      },
+      "fingerprint": "sha256-43JzE7VDYisk8TH89a6nmwVKeiBUCEm9JAmCym3PgC8="
+    },
+    "bundles.remote": {
+      "pname": "dsh-remote",
+      "version": "1.0.0",
+      "rawVersion": "1.0.0",
+      "src": {
+        "fetcher": "github",
+        "owner": "flymysql",
+        "repo": "dsh-remote",
+        "tag": "v1.0.0",
+        "hash": "sha256-oVMQjTVMS5sPgVcNqw++0+hV7rsc9sktotT2yaPtUak="
+      },
+      "derived": {
+        "npmDepsHash": {
+          "hash": "sha256-rbX75AffbyARdoy1cVz61HlNMINaCL95EkZQvh+3lO0="
+        }
+      },
+      "fingerprint": "sha256-MgDuKq8if6am5/340WDABCrw8PktH0Wul0c05Gf/020="
+    },
+    "bundles.security-audit": {
+      "pname": "dsh-security-audit",
+      "version": "0-unstable-2026-09-10",
+      "rawVersion": "e22bd19af7d27e0f7302061808d0cbd7dc9b0914",
+      "date": "2026-09-10",
+      "src": {
+        "fetcher": "github",
+        "owner": "omdsh-dev",
+        "repo": "dsh-security-audit",
+        "rev": "e22bd19af7d27e0f7302061808d0cbd7dc9b0914",
+        "hash": "sha256-Q6z3BsYavt593OiKxvNxHE5PyDWotoqA5uLsrwxSmPQ="
+      },
+      "derived": {
+        "npmDepsHash": {
+          "hash": "sha256-YSGPKo1Ky+PQ9FyXbJAuEcLoOcHMAqf7P/XMB/SDytM="
+        }
+      },
+      "fingerprint": "sha256-NV4Vy19clhIwSytzqlPd8huHgYw8O/Jryb9pZ6TjwDo="
+    },
+    "bundles.session-health": {
+      "pname": "dsh-session-health",
+      "version": "0-unstable-2026-09-10",
+      "rawVersion": "aedcb3db1279554ff3e6d11d2597553b9f131175",
+      "date": "2026-09-10",
+      "src": {
+        "fetcher": "github",
+        "owner": "omdsh-dev",
+        "repo": "dsh-session-health",
+        "rev": "aedcb3db1279554ff3e6d11d2597553b9f131175",
+        "hash": "sha256-mHzQnWqAKYxlubZ0I8QKem9zH+049IIQ8y318rOhQMA="
+      },
+      "derived": {
+        "npmDepsHash": {
+          "hash": "sha256-J8l4N+zHM7iogI0osS7cLaS1cgMvYIw1wKGBdeuUuds="
+        }
+      },
+      "fingerprint": "sha256-ZFAOSRYH6PXEb+nQCpdAAYa3T0Tkch85rBSuZ5rwPdI="
+    },
+    "bundles.subscriptions": {
+      "pname": "dsh-plugin-subscriptions",
+      "version": "0.9.13",
+      "rawVersion": "0.9.13",
+      "date": "2026-11-11",
+      "src": {
+        "fetcher": "github",
+        "owner": "V1ki",
+        "repo": "dsh-plugin-subscriptions",
+        "tag": "v0.9.13",
+        "hash": "sha256-5EaGJryDD0AsBsJ7PLgizhtdX9nLWf+y2R34WQ1TsJg="
+      },
+      "artifacts": {
+        "pnpm-lock.json": "bundles.subscriptions/pnpm-lock.json",
+        "pnpm-workspace.json": "bundles.subscriptions/pnpm-workspace.json"
+      },
+      "fingerprint": "sha256-gl2jJZckyN+nmBkcrScfyhVVGoigaP/ISqkd0dC0Wv0="
+    },
+    "bundles.tui": {
+      "pname": "dsh-tui",
+      "version": "0.19.0",
+      "rawVersion": "0.19.0",
+      "src": {
+        "fetcher": "github",
+        "owner": "ccch1mneyyy",
+        "repo": "dsh-TUI",
+        "rev": "refs/tags/v0.19.0",
+        "hash": "sha256-cWtLHrpo/EIO3runwCm3OHhllD231sY5pEAtN6GAQUk=",
+        "fetchSubmodules": true
+      },
+      "derived": {
+        "pnpmDepsHash": {
+          "hash": "sha256-dd2JdNETD+24L41n20/XJRM+iUqm/XoplIMfn8n5XoU="
+        }
+      },
+      "fingerprint": "sha256-4tpzxF4Ye7Jsl5jzyoGVORhTUzasmudYchY67r34Lx4="
+    },
+    "bundles.turn-rewind": {
+      "pname": "dsh-turn-rewind",
+      "version": "0.3.13",
+      "rawVersion": "0.3.13",
+      "src": {
+        "fetcher": "github",
+        "owner": "Anionex",
+        "repo": "dsh-turn-rewind",
+        "tag": "v0.3.13",
+        "hash": "sha256-rFGgEC99vl+CAd4IRPcnkxP7X2xf24F/fxFJtaGBLz8="
+      },
+      "derived": {
+        "pnpmDepsHash": {
+          "hash": "sha256-Ex99ufX83CIlxKD6UitEogoGt3U9SCrHBuguWyHtlUw="
+        }
+      },
+      "fingerprint": "sha256-EZHc0L2M7WaldiNiwEQEzY4qeKkc6FpW0Plb8x7no1U="
+    },
+    "bundles.usage-stats": {
+      "pname": "dsh-usage-stats",
+      "version": "0.3.8",
+      "rawVersion": "16a683d1b6b7d5390e04e27afe3626d44e7b7804",
+      "src": {
+        "fetcher": "github",
+        "owner": "Ychris12138",
+        "repo": "dsh-usage-stats",
+        "rev": "16a683d1b6b7d5390e04e27afe3626d44e7b7804",
+        "hash": "sha256-3Htc/u/wBEPNnMlZl4vmwmSHqy2KLM22afKTtUeJ5yk="
+      },
+      "derived": {
+        "npmDepsHash": {
+          "hash": "sha256-UKIo4yCnlIc/K2Od67Ny6Uw3iKTDhKlSktN3NdzLDNA="
+        }
+      },
+      "fingerprint": "sha256-hvt3s+1GpG/8UF98i8oCc8oLS1G6SZbRatATPevs37I="
+    },
+    "bundles.vision-toolkit": {
+      "pname": "dsh-vision-toolkit",
+      "version": "0.1.50",
+      "rawVersion": "0.1.50",
+      "src": {
+        "fetcher": "github",
+        "owner": "Anionex",
+        "repo": "dsh-vision-toolkit",
+        "tag": "v0.1.50",
+        "hash": "sha256-4+cnRcWwDWXpVrW8x1VR9rlRlxbUUWfYuJVsQRkXu70="
+      },
+      "derived": {
+        "pnpmDepsHash": {
+          "hash": "sha256-Po+i2W4gi0rlatvcOfXpDsvF8oAgTBfKaOV2TwZc1Ow="
+        }
+      },
+      "fingerprint": "sha256-9T28cQSRqUJlMXHovzZtuialTB+S90J6k4zWt8HaPKE="
+    },
+    "bundles.visualize": {
+      "pname": "dsh-visualize",
+      "version": "0.1.9-unstable-2026-11-07",
+      "rawVersion": "af4efe7a59a36d4562b340ff50d771d2691cdc8c",
+      "date": "2026-11-07",
+      "src": {
+        "fetcher": "github",
+        "owner": "Nagi-ovo",
+        "repo": "dsh-visualize",
+        "rev": "af4efe7a59a36d4562b340ff50d771d2691cdc8c",
+        "hash": "sha256-PvkwTPtwFzcYXYVBN5IkqLFdzpc/3E7n8XE2yjti8Xw="
+      },
+      "derived": {
+        "pnpmDepsHash": {
+          "hash": "sha256-EkuOVSh7km8WSjXpS/B0HAsgUChwHDzVsoazHK2u1p8="
+        }
+      },
+      "fingerprint": "sha256-3HzYD0rfQwp51OrPCBHcTXXUE6FP1IxLExaIfvWyRWs="
+    },
+    "bundles.web-ui": {
+      "pname": "dsh-web-ui",
+      "version": "0.4.16",
+      "rawVersion": "0.4.16",
+      "src": {
+        "fetcher": "github",
+        "owner": "zhu1090093659",
+        "repo": "dsh-web-ui",
+        "tag": "v0.4.16",
+        "hash": "sha256-mvk4VhghjMShZs3THtF77u8AMDclb3T2OAEJOImsR+U="
+      },
+      "artifacts": {
+        "package.json": "bundles.web-ui/package.json",
+        "pnpm-lock.json": "bundles.web-ui/pnpm-lock.json",
+        "pnpm-workspace.json": "bundles.web-ui/pnpm-workspace.json"
+      },
+      "fingerprint": "sha256-Qakx285U4mv75gJLNeVmeCE6DJAZh2Fw5H+yFrTluFg="
+    },
+    "dsh-desktop-unofficial": {
+      "pname": "dsh-desktop-shell",
+      "version": "2.0.22-next-unstable-2026-11-13",
+      "rawVersion": "45224f1bfbe9183314b076c3b1127afe1463dbad",
+      "date": "2026-11-13",
+      "src": {
+        "fetcher": "github",
+        "owner": "anywhere-labs",
+        "repo": "deepseek-harness-desktop",
+        "rev": "45224f1bfbe9183314b076c3b1127afe1463dbad",
+        "hash": "sha256-Nh1ni65JJp0z33iyDxWcA7J0ADuyELyaPnkVJSRId2w="
+      },
+      "derived": {
+        "yarnDepsHash": {
+          "hash": "sha256-TlpITn55co/RFHq5F8jVPzwFZwcikcmgXWBb19x1xcQ="
+        }
+      },
+      "artifacts": {
+        "missing-hashes.json": "dsh-desktop-unofficial/missing-hashes.json"
+      },
+      "fingerprint": "sha256-PNSenf3caeizbjejx+HqYjm8q1+T40lYboVxZiaFiuo="
+    },
+    "dsh-workspace": {
+      "pname": "dsh-workspace",
+      "version": "0.2.2-rc.2",
+      "rawVersion": "0.2.2-rc.2",
+      "src": {
+        "fetcher": "github",
+        "owner": "deepseek-ai",
+        "repo": "deepseek-harness",
+        "tag": "dsh-v0.2.2-rc.2",
+        "hash": "sha256-lbRmFifO6+8YKn8kaR7gQzKeUQh9YBFu9wH/dWJ+3MA="
+      },
+      "artifacts": {
+        "client-commit.json": "dsh-workspace/client-commit.json",
+        "optional-bundles.json": "dsh-workspace/optional-bundles.json",
+        "pnpm-lock.json": "dsh-workspace/pnpm-lock.json",
+        "pnpm-workspace.json": "dsh-workspace/pnpm-workspace.json"
+      },
+      "fingerprint": "sha256-JcBziKRF5sRaAABGVzhWiB2bKK95fVN54tdqLEsFofk="
+    }
+  }
+}

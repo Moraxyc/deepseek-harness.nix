@@ -1,21 +1,14 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   buildDshBundle,
   dsh-runtime,
-  nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-memento";
-  version = "0.5.30";
+  inherit (dshSources."bundles.memento") version src;
 
   # The upstream package is authored JavaScript and has no compilation step.
-  src = fetchFromGitHub {
-    owner = "PerryLink";
-    repo = "dsh-memento";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-sb53SempMZ+U3GaDlt2MsQt5AAl7QcMG63yAKeuOE7g=";
-  };
 
   npmDeps = null;
   dontPatch = true;
@@ -34,9 +27,6 @@ buildDshBundle (finalAttrs: {
   '';
 
   passthru.requiresWeb = true;
-  passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
-  };
 
   meta = {
     description = "Bounded, layered, approval-gated, auditable cross-session memory for DeepSeek Harness with a local SQLite provider";

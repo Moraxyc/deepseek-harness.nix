@@ -1,16 +1,4 @@
 {
-  "packages": [
-    "shared",
-    "packages/*"
-  ],
-  "autoInstallPeers": false,
-  "linkWorkspacePackages": true,
-  "verifyDepsBeforeRun": false,
-  "overrides": {
-    "@deepseek-ai/dsh-client-store": "0.2.2-rc.1",
-    "@deepseek-ai/dsh-client-ui-primitives": "0.2.2-rc.1",
-    "@deepseek-ai/dsh-client-ui-slots": "0.2.2-rc.1"
-  },
   "allowBuilds": {
     "cloudflared": true,
     "cpu-features": true,
@@ -18,38 +6,8 @@
     "node-pty": true,
     "ssh2": true
   },
-  "packageExtensions": {
-    "@deepseek-ai/dsh-client-store@0.2.2-rc.1": {
-      "dependencies": {
-        "zustand": "~4.4.7",
-        "immer": "^10.1.1"
-      }
-    },
-    "@deepseek-ai/dsh-client-ui-primitives@0.2.2-rc.1": {
-      "dependencies": {
-        "anser": "^2.3.5",
-        "clsx": "^2.0.0",
-        "diff": "^9.0.0",
-        "katex": "^0.16.47",
-        "shiki": "^4.3.1",
-        "@shikijs/langs": "^4.3.1",
-        "mdast-util-from-markdown": "^2.0.3",
-        "mdast-util-gfm": "^3.1.0",
-        "mdast-util-math": "^3.0.0",
-        "micromark-core-commonmark": "^2.0.3",
-        "micromark-extension-gfm": "^3.0.0",
-        "micromark-extension-math": "^3.1.0",
-        "micromark-factory-space": "^2.0.1",
-        "micromark-util-character": "^2.1.1",
-        "micromark-util-classify-character": "^2.0.1",
-        "micromark-util-sanitize-uri": "^2.0.1",
-        "micromark-util-symbol": "^2.0.1",
-        "@deepseek-ai/dsh-util-workspace-path": "0.2.2-rc.1",
-        "@deepseek-ai/dsh-util-code-language": "0.2.2-rc.1",
-        "simple-icons": "16.31.0"
-      }
-    }
-  },
+  "autoInstallPeers": false,
+  "linkWorkspacePackages": true,
   "minimumReleaseAgeExclude": [
     "@deepseek-ai/cordis@4.1.0",
     "@deepseek-ai/cordis-plugin-loader@1.1.0",
@@ -136,5 +94,44 @@
     "@oxlint/binding-win32-ia32-msvc@1.88.0",
     "@oxlint/binding-win32-x64-msvc@1.88.0",
     "oxlint@1.88.0"
-  ]
+  ],
+  "overrides": {
+    "@deepseek-ai/dsh-client-store": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-primitives": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-slots": "0.2.2-rc.1"
+  },
+  "packageExtensions": {
+    "@deepseek-ai/dsh-client-store@0.2.2-rc.1": {
+      "dependencies": {
+        "immer": "^10.1.1",
+        "zustand": "~4.4.7"
+      }
+    },
+    "@deepseek-ai/dsh-client-ui-primitives@0.2.2-rc.1": {
+      "dependencies": {
+        "@deepseek-ai/dsh-util-code-language": "0.2.2-rc.1",
+        "@deepseek-ai/dsh-util-workspace-path": "0.2.2-rc.1",
+        "@shikijs/langs": "^4.3.1",
+        "anser": "^2.3.5",
+        "clsx": "^2.0.0",
+        "diff": "^9.0.0",
+        "katex": "^0.16.47",
+        "mdast-util-from-markdown": "^2.0.3",
+        "mdast-util-gfm": "^3.1.0",
+        "mdast-util-math": "^3.0.0",
+        "micromark-core-commonmark": "^2.0.3",
+        "micromark-extension-gfm": "^3.0.0",
+        "micromark-extension-math": "^3.1.0",
+        "micromark-factory-space": "^2.0.1",
+        "micromark-util-character": "^2.1.1",
+        "micromark-util-classify-character": "^2.0.1",
+        "micromark-util-sanitize-uri": "^2.0.1",
+        "micromark-util-symbol": "^2.0.1",
+        "shiki": "^4.3.1",
+        "simple-icons": "16.31.0"
+      }
+    }
+  },
+  "packages": ["shared", "packages/*"],
+  "verifyDepsBeforeRun": false
 }

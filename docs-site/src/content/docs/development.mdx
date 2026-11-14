@@ -41,8 +41,8 @@ bundle loading, not as a package to install. See
 nix develop
 ```
 
-The default dev shell includes `jq`, `nix-update`, `nixfmt`, `pre-commit`, and
-`yq-go`. Pre-commit and flake checks run before push.
+The default dev shell includes `fetchrix`, `jq`, `nixfmt`, `pre-commit`,
+`yq-go`, and the preparation tools. Pre-commit and flake checks run before push.
 
 ## Common Commands
 
@@ -61,6 +61,19 @@ Update lock files with:
 nix flake update
 nix flake update --flake ./modules/flake-parts/dev
 ```
+
+## Updating Packages
+
+```sh
+nix develop -c fetchrix update dsh-workspace
+nix develop -c fetchrix update bundles.tui
+```
+
+`fetchrix.toml` declares version discovery, `prepare` artifacts, and `derive`
+hashes. Package expressions consume `_sources/lock.json` and its artifacts through
+`dshSources`; `fetchrixPackages` evaluates them with the new source. Commit
+`_sources/` with the package changes. Fetchrix is pinned only in the development
+flake; CI uses the same commands and skips broken packages.
 
 ## Removing Bundles
 

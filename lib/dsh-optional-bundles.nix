@@ -3,9 +3,10 @@
   buildDshBundle,
   dsh-runtime,
   dsh-cua-native,
+  dshSources,
 }:
 let
-  manifest = lib.importJSON ../pkgs/dsh-workspace/optional-bundles.json;
+  manifest = lib.importJSON dshSources.dsh-workspace.artifacts."optional-bundles.json";
 
   mkBundle =
     packageName: entry:

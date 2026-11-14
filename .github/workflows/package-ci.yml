@@ -19,6 +19,9 @@ on:
       - "scripts/generate-optional-bundles.sh"
       - "scripts/select-package-ci-attrs.sh"
       - "scripts/update-dsh-engines*"
+      - "scripts/fetchrix-prepare.sh"
+      - "fetchrix.toml"
+      - "_sources/**"
       - ".github/workflows/auto-update.yml"
   pull_request:
     paths:
@@ -36,6 +39,9 @@ on:
       - "scripts/generate-optional-bundles.sh"
       - "scripts/select-package-ci-attrs.sh"
       - "scripts/update-dsh-engines*"
+      - "scripts/fetchrix-prepare.sh"
+      - "fetchrix.toml"
+      - "_sources/**"
       - ".github/workflows/auto-update.yml"
   workflow_dispatch:
 

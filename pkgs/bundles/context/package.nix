@@ -1,30 +1,22 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   fetchPnpmDeps,
   buildDshBundle,
   copyTree,
   dsh-runtime,
   pnpmConfigHook,
   pnpm_11,
-  nix-update-script,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-context";
-  version = "0.84.1";
-
-  src = fetchFromGitHub {
-    owner = "bowenliang123";
-    repo = "dsh-context";
-    tag = "v${finalAttrs.version}";
-    hash = "sha256-GwQ1S5OQRGs3ATF1Rt3MSuGeMNecCPpOFNx2PAnosbM=";
-  };
+  inherit (dshSources."bundles.context") version src;
 
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_11;
     fetcherVersion = 4;
-    hash = "sha256-pA6dgtdvDr3mXHk+WwRNUaEyw1sCYZkaTAufhbZ6Z6U=";
+    hash = dshSources."bundles.context".pnpmDepsHash;
   };
 
   npmDeps = null;
@@ -51,9 +43,6 @@ buildDshBundle (finalAttrs: {
   '';
 
   passthru.requiresWeb = true;
-  passthru.updateScript = nix-update-script {
-    extraArgs = [ "--flake" ];
-  };
 
   meta = {
     description = "Context insight and management plugin for DeepSeek Harness";

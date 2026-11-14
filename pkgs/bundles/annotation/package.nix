@@ -1,28 +1,20 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   fetchNpmDeps,
   buildDshBundle,
   dsh-runtime,
   jq,
-  nix-update-script,
   writers,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-annotation";
-  version = "1.4.11-unstable-2026-11-03";
-
-  src = fetchFromGitHub {
-    owner = "omdsh-dev";
-    repo = "dsh-annotation";
-    rev = "48eac63badf93641f2276b8b0068f6ebbe22ba9b";
-    hash = "sha256-G4vnNQ5qhha3JNjIl5X7++wMRS4oOna2vYmQweSLj9w=";
-  };
+  inherit (dshSources."bundles.annotation") version src;
 
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
-    hash = "sha256-67TI83N0jrQmgXi9DibBEuFW6l1nV/mYvb6tr+bOdJE=";
+    hash = dshSources."bundles.annotation".npmDepsHash;
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
@@ -65,12 +57,6 @@ buildDshBundle (finalAttrs: {
       };
     };
 
-    updateScript = nix-update-script {
-      extraArgs = [
-        "--flake"
-        "--version=branch"
-      ];
-    };
   };
 
   meta = {

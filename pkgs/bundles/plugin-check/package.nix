@@ -1,30 +1,22 @@
 {
   lib,
-  fetchFromGitHub,
+  dshSources,
   fetchNpmDeps,
   buildDshBundle,
   dsh-runtime,
   jq,
-  nix-update-script,
   writers,
 }:
 buildDshBundle (finalAttrs: {
   pname = "dsh-plugin-check";
-  version = "0-unstable-2026-09-10";
-
-  src = fetchFromGitHub {
-    owner = "omdsh-dev";
-    repo = "dsh-plugin-check";
-    rev = "5bf7beb29a78d0211e2b3bdccfd1222e6b2bc1cc";
-    hash = "sha256-pET/66DopMVrW+eocS8zwvueYs62Pvh7Pt0Sb8OTOck=";
-  };
+  inherit (dshSources."bundles.plugin-check") version src;
 
   # Upstream commits the generated lib and has no runtime dependencies. Its
   # lockfile omits registry metadata, so do not resolve dev-only tooling here.
   npmDeps = fetchNpmDeps {
     name = "${finalAttrs.pname}-${finalAttrs.version}-npm-deps";
     inherit (finalAttrs) src postPatch;
-    hash = "sha256-0GqAFyUxEiGzVLKWI53RZucjbUkgRyuwSkYTqz6oLPk=";
+    hash = dshSources."bundles.plugin-check".npmDepsHash;
     forceEmptyCache = true;
     nativeBuildInputs = [ jq ];
   };
@@ -65,12 +57,6 @@ buildDshBundle (finalAttrs: {
       };
     };
 
-    updateScript = nix-update-script {
-      extraArgs = [
-        "--flake"
-        "--version=branch"
-      ];
-    };
   };
 
   meta = {
