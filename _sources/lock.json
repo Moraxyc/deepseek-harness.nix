@@ -293,13 +293,14 @@
     "bundles.usage-stats": {
       "pname": "dsh-usage-stats",
       "version": "0.3.8",
-      "rawVersion": "16a683d1b6b7d5390e04e27afe3626d44e7b7804",
+      "rawVersion": "v0.3.8",
+      "date": "2026-11-08",
       "src": {
         "fetcher": "github",
         "owner": "Ychris12138",
         "repo": "dsh-usage-stats",
-        "rev": "16a683d1b6b7d5390e04e27afe3626d44e7b7804",
-        "hash": "sha256-3Htc/u/wBEPNnMlZl4vmwmSHqy2KLM22afKTtUeJ5yk="
+        "rev": "v0.3.8",
+        "hash": "sha256-KiTwmPto/No0o8XjeTgu6jOTOaz8K65nd37L3HC+F2c="
       },
       "derived": {
         "npmDepsHash": {
