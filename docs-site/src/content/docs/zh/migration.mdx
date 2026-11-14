@@ -21,6 +21,11 @@ NixOS 和 Home Manager 模块的默认值不变。
 
 两个应用之间的配置、会话和登录状态兼容性尚未验证。
 
+## TUI `0.20.1`
+
+`bundles.tui` 改用上游的账户通知与会话级 Team 支持，不再使用 Nix 兼容补丁。
+现有 profile 选择保持有效。安装后的 bundle 也包含自动化 CLI 和导出的语言文件。
+
 ## 已移除的 Bundle
 
 已移除的 `bundles.*` 属性在求值时会通过 `throw` 告知原因与处理方法。请在配置中显式选择替代 bundle。

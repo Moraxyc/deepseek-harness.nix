@@ -258,19 +258,20 @@
     },
     "bundles.tui": {
       "pname": "dsh-tui",
-      "version": "0.19.0",
-      "rawVersion": "0.19.0",
+      "version": "0.20.1",
+      "rawVersion": "0.20.1",
+      "date": "2026-11-14",
       "src": {
         "fetcher": "github",
         "owner": "ccch1mneyyy",
         "repo": "dsh-TUI",
-        "rev": "refs/tags/v0.19.0",
-        "hash": "sha256-cWtLHrpo/EIO3runwCm3OHhllD231sY5pEAtN6GAQUk=",
+        "rev": "refs/tags/v0.20.1",
+        "hash": "sha256-gygRwZ+wwVNPb4MfHmT/CLyWnjlEGojNe+XZaRR/8eQ=",
         "fetchSubmodules": true
       },
       "derived": {
         "pnpmDepsHash": {
-          "hash": "sha256-dd2JdNETD+24L41n20/XJRM+iUqm/XoplIMfn8n5XoU="
+          "hash": "sha256-SCg6v+tGk+Wi/un6Yx9WpUPDO9hQAqwDCwQHnpiu2Yc="
         }
       },
       "fingerprint": "sha256-4tpzxF4Ye7Jsl5jzyoGVORhTUzasmudYchY67r34Lx4="

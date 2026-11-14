@@ -18,8 +18,6 @@ buildDshBundle (finalAttrs: {
     # into an optional bundle.
     ./alpha2-liangshen-delegation.patch
     ./btw-side-question-settle.patch
-    ./rc2-account-notifications.patch
-    ./rc2-team-subagents.patch
     ./verify-source-files.patch
     ./verify-host-contract-node-shebang.patch
     ./verify-rewind-edit-serial.patch
@@ -60,8 +58,7 @@ buildDshBundle (finalAttrs: {
   disallowedReferences = [ pnpm_11 ];
   installation = dsh-runtime;
   __darwinAllowLocalNetworking = true;
-  # Upstream peer ranges stop at 0.2.1-rc.5. Raise this only after the TUI
-  # boots every bundled preset on the new dsh release.
+  # Some upstream peers require rc.3; verify all presets before changing this grant.
   dshEngines = "0.2.2-rc.2";
   installationKeep = [
     "ansi-styles"
@@ -78,12 +75,6 @@ buildDshBundle (finalAttrs: {
     # Use Nix's CPU budget instead of the builder's full CPU count.
     export DSH_TUI_VERIFY_JOBS="$NIX_BUILD_CORES"
   '';
-  postBuild = ''
-    node scripts/verify-rc2-runtime.mjs
-    node --import tsx/esm scripts/verify-agent-team-channel.ts
-    node --import tsx/esm scripts/verify-dsh-child-transcript.ts
-    node --import tsx/esm scripts/verify-agent-teams-compat-0.2.0.ts
-  '';
 
   installPhase = ''
     runHook preInstall
@@ -91,7 +82,8 @@ buildDshBundle (finalAttrs: {
     appDir="$out/lib/node_modules/@deepseek-harness-tui/dsh-tui"
     mkdir -p "$appDir"
 
-    cp -r package.json cordis.patch.yml cordis.yml tui-profile presets lib bin assets guide "$appDir/"
+    cp -r package.json cordis.patch.yml cordis.yml tui-profile presets lib bin cli assets locale guide "$appDir/"
+    rm -rf "$appDir/cli/test"
     cp -r node_modules "$appDir/node_modules"
 
     # Workspace links point into vendor/dsh-std, which is not installed.
@@ -107,8 +99,8 @@ buildDshBundle (finalAttrs: {
       dest = "$appDir/node_modules/@dsh-tui-vendor";
     }}
 
-    # Without a web-app row, dsh-tui registers the official presets from this
-    # dev dependency, which is pinned to the 0.2.1 line.
+    # Without a web-app row, dsh-tui registers this dependency's official presets.
+    # Keep them aligned with the installation.
     rm "$appDir/node_modules/@deepseek-ai/dsh-web-app"
     ln -s ${dsh-runtime}/node_modules/@deepseek-ai/dsh-web-app \
       "$appDir/node_modules/@deepseek-ai/dsh-web-app"
@@ -122,12 +114,18 @@ buildDshBundle (finalAttrs: {
 
     cd "$out/lib/node_modules/@deepseek-harness-tui/dsh-tui"
     node --input-type=module -e "
-      import { readFileSync } from 'node:fs';
+      import { accessSync, readFileSync } from 'node:fs';
       const manifest = JSON.parse(readFileSync('package.json', 'utf8'));
       for (const specifier of Object.keys(manifest.imports)) {
         await import(specifier);
       }
+      for (const entry of Object.values(manifest.exports)) {
+        for (const path of typeof entry === 'string' ? [entry] : Object.values(entry)) {
+          accessSync(path);
+        }
+      }
     "
+    node bin/dsh-tui.js cli --help
 
     runHook postInstallCheck
   '';
@@ -136,7 +134,6 @@ buildDshBundle (finalAttrs: {
     inherit (finalAttrs) pnpmDeps;
     requiresTui = true;
     requiresTty = true;
-
   };
 
   meta = {
