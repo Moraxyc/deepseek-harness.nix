@@ -332,15 +332,15 @@
     },
     "bundles.visualize": {
       "pname": "dsh-visualize",
-      "version": "0.1.9-unstable-2026-11-07",
-      "rawVersion": "af4efe7a59a36d4562b340ff50d771d2691cdc8c",
-      "date": "2026-11-07",
+      "version": "0.1.9-unstable-2026-11-13",
+      "rawVersion": "bd7b6f92b2fda248551f4141484cdaf27c7d5f78",
+      "date": "2026-11-13",
       "src": {
         "fetcher": "github",
         "owner": "Nagi-ovo",
         "repo": "dsh-visualize",
-        "rev": "af4efe7a59a36d4562b340ff50d771d2691cdc8c",
-        "hash": "sha256-PvkwTPtwFzcYXYVBN5IkqLFdzpc/3E7n8XE2yjti8Xw="
+        "rev": "bd7b6f92b2fda248551f4141484cdaf27c7d5f78",
+        "hash": "sha256-tjFg5AQMObwuE7A5OjQSew7I9B7qiBnlqqvXGi5PNEg="
       },
       "derived": {
         "pnpmDepsHash": {
