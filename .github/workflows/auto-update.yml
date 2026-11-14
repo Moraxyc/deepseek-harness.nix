@@ -242,7 +242,10 @@ jobs:
             echo "No new update changes; reusing rebased branch"
           fi
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          git push --force origin "HEAD:$BRANCH"
+          # The dev shell installs the pre-push `nix flake check` hook. Runner Nix
+          # lacks the uid-range feature that the container tests require, so the
+          # hook cannot pass here; Package CI validates the branch instead.
+          git push --force --no-verify origin "HEAD:$BRANCH"
 
           body="Automated update. Package CI runs before auto-merge."
           if [ "${COMPATIBILITY_FAILED:-false}" = true ]; then
