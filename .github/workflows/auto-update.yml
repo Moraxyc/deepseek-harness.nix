@@ -27,7 +27,12 @@ jobs:
         uses: cachix/install-nix-action@v31
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
-          extra_nix_config: accept-flake-config = true
+          # fetchrix builds itself from source; the public cache carries its
+          # Rust dependencies and output.
+          extra_nix_config: |
+            accept-flake-config = true
+            extra-substituters = https://nix-cache.qaq.li/fetchrix
+            extra-trusted-public-keys = fetchrix:VDPvJo80cjEoWiPDXAKKrNu3RXet40rlcXFZFvbsscM=
 
       - name: Build update matrix
         id: discover
@@ -108,7 +113,12 @@ jobs:
         uses: cachix/install-nix-action@v31
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
-          extra_nix_config: accept-flake-config = true
+          # fetchrix builds itself from source; the public cache carries its
+          # Rust dependencies and output.
+          extra_nix_config: |
+            accept-flake-config = true
+            extra-substituters = https://nix-cache.qaq.li/fetchrix
+            extra-trusted-public-keys = fetchrix:VDPvJo80cjEoWiPDXAKKrNu3RXet40rlcXFZFvbsscM=
 
       # Validation builds the changed packages here, so it fills the cache that
       # the main-branch run reads again.
