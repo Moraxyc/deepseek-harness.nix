@@ -26,6 +26,12 @@ defaults are unchanged.
 Compatibility of configuration, sessions, and login state between the
 applications has not been verified.
 
+## TUI `0.20.1`
+
+`bundles.tui` now uses upstream account-notification and per-session Team support
+instead of the Nix compatibility patches. Existing profile selections remain valid.
+The installed bundle also includes the automation CLI and exported locale files.
+
 ## Removed Bundles
 
 Removed `bundles.*` attributes throw an error when evaluated. Select
