@@ -384,15 +384,17 @@ after updating the pin:
 - `scripts/dsh-bump-report.sh NEW_VERSION` compares the pinned and new upstream
   sources: removed packages and exports, bundle rows, official bundle lists,
   build inputs, targets of the local workspace patches, and whether dsh would
-  accept each bundle. The auto-update workflow adds this report to
-  dsh-workspace PRs and leaves auto-merge off when it lists actions.
+  accept each bundle. The auto-update workflow validates the update and pushes
+  it to main; when this report lists actions it opens a dsh-workspace pull
+  request instead.
 - During workspace auto-updates, `scripts/update-dsh-engines.mjs` tries the new
   exact workspace version for buildable bundles that already declare
   `dshEngines`; bundle auto-updates only consider the updated bundle. Each
   candidate must pass its `bundleCompositions` build and sandboxed startup
   check without compatibility exemptions. Failed candidates are restored and
-  auto-merge stays off. Accepted candidates are checked together again before
-  keeping their grants. Other impact-report actions still block auto-merge.
+  the update goes to a pull request instead of main. Accepted candidates are
+  checked together again before keeping their grants. Other impact-report
+  actions keep the update off main as well.
   These checks cover startup and loading, not every feature or provider.
 - `scripts/dsh-bundle-probe.sh --all` boots every bundle in its own profile and
   separates bundles that only fail dsh's version check from bundles that fail

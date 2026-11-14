@@ -110,6 +110,14 @@ jobs:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           extra_nix_config: accept-flake-config = true
 
+      # Validation builds the changed packages here, so it fills the cache that
+      # the main-branch run reads again.
+      - name: Configure Cachix
+        uses: cachix/cachix-action@v17
+        with:
+          name: ${{ vars.CACHIX_CACHE_NAME || 'deepseek-harness-nix' }}
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+
       - name: Configure git
         run: |
           set -euo pipefail
@@ -216,41 +224,132 @@ jobs:
           client-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
-      - name: Open or update pull request
+      - name: Commit update
+        id: commit
         if: steps.changes.outputs.updated == 'true'
+        env:
+          LABEL: ${{ matrix.label }}
+          ATTR: ${{ matrix.attr }}
+          OLD_VERSION: ${{ matrix.version }}
+          DEFAULT_TITLE: ${{ matrix.title }}
+        run: |
+          set -euo pipefail
+          title="$DEFAULT_TITLE"
+          if [ -n "$ATTR" ]; then
+            new_version="$(nix eval --raw --impure ".#$ATTR.version")"
+            title="$LABEL: $OLD_VERSION -> $new_version"
+          fi
+          if [ -n "$(git status --porcelain --untracked-files=all)" ]; then
+            git add -A
+            # The dev shell installs the repository hooks. They guard local
+            # pushes, and CI cannot satisfy the container check behind them.
+            git commit --no-verify -m "$title"
+          else
+            echo "No new update changes; reusing rebased branch"
+          fi
+          echo "title=$title" >> "$GITHUB_OUTPUT"
+
+      # The container check needs the uid-range feature, which GitHub runners
+      # cannot provide. Build what Package CI would build for the change instead.
+      - name: Validate update
+        id: validate
+        if: steps.changes.outputs.updated == 'true'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          git fetch --quiet origin main
+          attrs="$(scripts/select-package-ci-attrs.sh origin/main)"
+          if [ -z "$attrs" ]; then
+            echo "No changed package attrs"
+            exit 0
+          fi
+          mapfile -t build_attrs <<< "$attrs"
+          printf 'Building %d package attrs\n' "${#build_attrs[@]}"
+          printf '%s\n' "${build_attrs[@]}"
+          nix build --no-link --print-build-logs "${build_attrs[@]}"
+
+          # A workspace bump regenerates the optional bundle manifest; the
+          # build above cannot tell a stale manifest from a fresh one.
+          if [ "${{ matrix.name }}" = dsh-workspace ]; then
+            system="$(nix eval --raw --impure --expr builtins.currentSystem)"
+            nix build --no-link --print-build-logs \
+              ".#checks.$system.dsh-optional-bundles-generated"
+          fi
+
+      - name: Push to main
+        id: push-main
+        if: >-
+          steps.changes.outputs.updated == 'true' &&
+          steps.validate.outcome == 'success' &&
+          steps.compatibility.outcome != 'failure' &&
+          steps.impact.outputs.actions != 'true'
+        continue-on-error: true
+        env:
+          BRANCH: auto-update/${{ matrix.name }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          # Other update jobs push to main during this run. Rebase and retry so
+          # each push stays a fast-forward; an update only touches its own
+          # package, so the rebase does not invalidate the build.
+          pushed=false
+          for attempt in 1 2 3 4 5; do
+            git fetch --quiet origin main
+            if ! git rebase origin/main; then
+              git rebase --abort
+              echo "::warning::Rebase onto main failed; opening a pull request"
+              exit 1
+            fi
+            if git push --no-verify origin "HEAD:main"; then
+              pushed=true
+              break
+            fi
+            sleep "$((attempt * 10))"
+          done
+          if [ "$pushed" = false ]; then
+            echo "::warning::Push to main was rejected; opening a pull request"
+            exit 1
+          fi
+          # Earlier runs may have left a pull request for this update.
+          # Cleanup is best effort; the update is already on main.
+          pr_numbers="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" \
+            --state open --json number --jq '.[].number' || true)"
+          for pr in $pr_numbers; do
+            gh pr close "$pr" --repo "$GITHUB_REPOSITORY" --delete-branch || true
+          done
+          git push --no-verify origin --delete "$BRANCH" 2>/dev/null || true
+
+      - name: Open or update pull request
+        if: steps.changes.outputs.updated == 'true' && steps.push-main.outcome != 'success'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           BRANCH: auto-update/${{ matrix.name }}
-          TITLE: ${{ matrix.title }}
+          TITLE: ${{ steps.commit.outputs.title }}
           IMPACT_REPORT: ${{ steps.impact.outputs.report }}
           IMPACT_ACTIONS: ${{ steps.impact.outputs.actions }}
           COMPATIBILITY_REPORT: ${{ steps.compatibility.outputs.report }}
           COMPATIBILITY_FAILED: ${{ steps.compatibility.outcome == 'failure' }}
+          VALIDATION_FAILED: ${{ steps.validate.outcome == 'failure' }}
         run: |
           set -euo pipefail
 
-          if [ -n "${{ matrix.attr }}" ]; then
-            old_version="${{ matrix.version }}"
-            new_version="$(nix eval --raw --impure ".#${{ matrix.attr }}.version")"
-            TITLE="${{ matrix.label }}: ${old_version} -> ${new_version}"
-          fi
-
-          if [ -n "$(git status --porcelain --untracked-files=all)" ]; then
-            git add -A
-            git commit -m "$TITLE"
-          else
-            echo "No new update changes; reusing rebased branch"
-          fi
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          # The dev shell installs the pre-push `nix flake check` hook. Runner Nix
-          # lacks the uid-range feature that the container tests require, so the
-          # hook cannot pass here; Package CI validates the branch instead.
+          # Runner Nix cannot run the container checks behind the repository
+          # pre-push hook; Package CI validates the branch instead.
           git push --force --no-verify origin "HEAD:$BRANCH"
 
-          body="Automated update. Package CI runs before auto-merge."
-          if [ "${COMPATIBILITY_FAILED:-false}" = true ]; then
+          auto_merge=false
+          if [ "${VALIDATION_FAILED:-false}" = false ] &&
+            [ "${COMPATIBILITY_FAILED:-false}" = false ] &&
+            [ "${IMPACT_ACTIONS:-false}" = false ]; then
+            auto_merge=true
+            body="Automated update. Validation passed, but pushing to main was rejected; auto-merge is on."
+          elif [ "${VALIDATION_FAILED:-false}" = true ]; then
+            body="Automated update. Auto-merge is off because validation failed."
+          elif [ "${COMPATIBILITY_FAILED:-false}" = true ]; then
             body="Automated update. Auto-merge is off because compatibility checks failed. / 兼容性检查失败，已关闭自动合并。"
-          elif [ "${IMPACT_ACTIONS:-false}" = true ]; then
+          else
             body="Automated update. Auto-merge is off because the impact report lists downstream actions."
           fi
           if [ -n "${COMPATIBILITY_REPORT:-}" ]; then
@@ -286,12 +385,12 @@ jobs:
             pr_number="$(printf '%s\n' "$pr_url" | sed -n 's#.*/pull/\([0-9][0-9]*\).*#\1#p')"
           fi
 
-          if [ "${IMPACT_ACTIONS:-false}" = true ] || [ "${COMPATIBILITY_FAILED:-false}" = true ]; then
-            gh pr merge "$pr_number" --repo "$GITHUB_REPOSITORY" --disable-auto || true
-          else
+          if [ "$auto_merge" = true ]; then
             gh pr merge "$pr_number" \
               --repo "$GITHUB_REPOSITORY" \
               --auto \
               --squash \
               --delete-branch
+          else
+            gh pr merge "$pr_number" --repo "$GITHUB_REPOSITORY" --disable-auto || true
           fi
