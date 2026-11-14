@@ -521,7 +521,7 @@ unfree です。`subagent-claude-code` を選択する利用者は、そのパ�
 
 ```nix
 (pkgs.dsh.dsh.withProfiles { web.bundles = [ pkgs.dsh.bundles.web-app ]; }).withBundles [
-  pkgs.dsh.bundles.notification
+  pkgs.dsh.bundles.better-sidebar
 ]
 
 (pkgs.dsh.dsh.withProfiles { cli = { }; }).withBundles (b: with b; [

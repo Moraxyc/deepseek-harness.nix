@@ -71,6 +71,26 @@ profile 中删除 `@deepseek-ai/dsh-experimental-agent-team-profile`。
 `bundles.web-app` 现在直接包含 Schedule。profile 和 patch 的调整方法见下方
 `0.2.1-alpha.1` 条目的 Schedule 说明。
 
+### 本仓库移除的 bundle
+
+以下 bundle 不再由本仓库维护。请从 `withBundles` 和
+`programs.dsh.profiles.<name>.bundles` 中删除它们。包实现已删除，不再构建或链接。
+
+- `bundles.at-file`：带有针对内部 Web 界面 API 的补丁，每次 workspace 升级都需重做。
+- `bundles.notification`：带有针对内部插件接口约定的补丁，每次升级都要改写上游
+  lockfile 元数据。
+- `bundles.message-edit`、`bundles.modlens`、`bundles.modsearch`：上游已停止接受变更，
+  打包依赖内部客户端 API。
+- `bundles.plugin-check`、`bundles.security-audit`、`bundles.session-health`：只读检查器，
+  其上游仓库已转向其他工作。
+- `bundles.liang-saint-slider`、`bundles.liang-skin`：纯展示类插件。
+- `bundles.graph-memory`、`bundles.memory-evolve`、`bundles.memento`、`bundles.noema`：
+  与仍在维护的 `bundles.mneme`、`bundles.mnemon` 功能重叠的记忆插件。
+- `bundles.opentelemetry`：链路与指标插件，每次上游发布都需重做打包。
+
+跨会话记忆请选择 `bundles.mneme` 或 `bundles.mnemon`。删除 bundle 不会删除这些插件
+写入数据目录的内容；切换前请备份 `$DSH_HOME` 或所配置的数据目录。
+
 ## `0.2.2-rc.2`
 
 升级前请阅读[上游发行说明](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.2)，并备份共享的会话存储。
@@ -240,6 +260,9 @@ bundle 的 `@deepseek-ai/dsh-*` peer 范围或 `engines.dsh` 不包含当前运�
 请从 `withBundles` 和 `programs.dsh.profiles.<name>.bundles` 中删除它们。上游发布
 支持该 dsh 版本的版本后，这些 bundle 会恢复。`bundles.tui` 此前也以同样方式被跳过，
 现已恢复加载。
+
+其中 `bundles.plugin-check`、`bundles.security-audit`、`bundles.session-health` 其后已由
+本仓库移除，参见[已移除的 Bundle](#已移除的-bundle)。
 
 组合后的 `dsh` 包在 profile 会跳过 bundle 或禁用插件行时会构建失败。如果你用
 `buildDshBundle` 自行打包 bundle，并已针对所用的 dsh 版本验证过，可设置

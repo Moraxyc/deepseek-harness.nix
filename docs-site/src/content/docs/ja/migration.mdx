@@ -80,6 +80,30 @@ Oh-DSH ディストリビューションとそのプラグインセットは、
 `bundles.web-app` に Schedule が含まれるようになりました。プロファイルとパッチの変更については、
 以下の `0.2.1-alpha.1` の項目にある Schedule の手順に従ってください。
 
+### このリポジトリで削除されたバンドル
+
+以下のバンドルはこのリポジトリではもう維持されていません。`withBundles` と
+`programs.dsh.profiles.<name>.bundles` から削除してください。パッケージ実装は削除済みで、
+ビルドもリンクも行われません。
+
+- `bundles.at-file`: Web インターフェース内部 API 向けのパッチを抱えており、workspace の
+  更新ごとに作り直しが必要でした。
+- `bundles.notification`: プラグイン内部の契約に対するパッチを抱えており、更新ごとに上流の
+  lockfile メタデータを書き換えていました。
+- `bundles.message-edit`、`bundles.modlens`、`bundles.modsearch`: 上流が変更を受け付けなく
+  なり、パッケージはクライアント内部 API に依存していました。
+- `bundles.plugin-check`、`bundles.security-audit`、`bundles.session-health`: 読み取り専用の
+  チェッカーで、上流のリポジトリは別の作業に移っています。
+- `bundles.liang-saint-slider`、`bundles.liang-skin`: 表示専用のプラグインです。
+- `bundles.graph-memory`、`bundles.memory-evolve`、`bundles.memento`、`bundles.noema`:
+  維持されている `bundles.mneme` と `bundles.mnemon` と機能が重複するメモリープラグインです。
+- `bundles.opentelemetry`: トレースとメトリクスのプラグインで、上流のリリースごとに
+  パッケージングの作り直しが必要でした。
+
+セッションをまたぐメモリーには `bundles.mneme` または `bundles.mnemon` を選択してください。
+これらのバンドルを削除しても、データディレクトリに書き込まれた内容は削除されません。
+切り替える前に `$DSH_HOME` または設定したデータディレクトリをバックアップしてください。
+
 ## `0.2.2-rc.2`
 
 更新前に[上流のリリースノート](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.2)を読み、
@@ -267,6 +291,9 @@ dsh はそれらを読み込んでいませんでした。現在では、これ�
 これらを `withBundles` と `programs.dsh.profiles.<name>.bundles` から削除してください。
 上流がこの dsh バージョンをサポートするリリースを公開すれば、再び利用できるようになります。
 `bundles.tui` も同様にスキップされていましたが、現在は再び読み込まれます。
+
+このうち `bundles.plugin-check`、`bundles.security-audit`、`bundles.session-health` はその後、
+このリポジトリから削除されました。[削除されたバンドル](#削除されたバンドル)を参照してください。
 
 構成済みの `dsh` パッケージは、プロファイルがバンドルをスキップする、またはプラグイン行を
 無効化する場合に、ビルドが失敗するようになりました。`buildDshBundle` で独自のバンドルを

@@ -84,6 +84,31 @@ This attribute was removed in upstream `0.2.1-alpha.1`. Remove it from your
 bundle selections; `bundles.web-app` now includes Schedule. Follow the Schedule
 instructions in the `0.2.1-alpha.1` entry below for profile and patch changes.
 
+### Bundles removed from this repository
+
+The following bundles are no longer maintained here. Remove them from
+`withBundles` and `programs.dsh.profiles.<name>.bundles`. Their package
+implementations are deleted, so nothing of theirs is built or linked.
+
+- `bundles.at-file`: carried patches against internal Web interface APIs that had
+  to be reworked for every workspace update.
+- `bundles.notification`: carried a patch against internal plugin contracts and
+  rewrote upstream lockfile metadata on each update.
+- `bundles.message-edit`, `bundles.modlens`, `bundles.modsearch`: upstream stopped
+  accepting changes and the packages tracked internal client APIs.
+- `bundles.plugin-check`, `bundles.security-audit`, `bundles.session-health`:
+  read-only checkers whose upstream archives moved on to unrelated work.
+- `bundles.liang-saint-slider`, `bundles.liang-skin`: presentation-only plugins.
+- `bundles.graph-memory`, `bundles.memory-evolve`, `bundles.memento`,
+  `bundles.noema`: memory plugins that overlapped with the maintained
+  `bundles.mneme` and `bundles.mnemon`.
+- `bundles.opentelemetry`: tracing and metrics plugin whose packaging needed
+  rework on every upstream release.
+
+For cross-session memory, select `bundles.mneme` or `bundles.mnemon`. Data these
+bundles wrote under the data directory is not deleted by removing them; back up
+`$DSH_HOME` or the configured data directory before switching.
+
 ## `0.2.2-rc.2`
 
 Before upgrading, read the [upstream release notes](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.2)
@@ -291,6 +316,10 @@ that never loads:
 Remove them from `withBundles` and `programs.dsh.profiles.<name>.bundles`.
 They return once upstream publishes a release that supports this dsh version.
 `bundles.tui` was skipped the same way and now loads again.
+
+`bundles.plugin-check`, `bundles.security-audit`, and `bundles.session-health`
+were removed from this repository afterwards; see
+[Removed Bundles](#removed-bundles).
 
 Composed `dsh` packages now fail to build when a profile would skip a bundle or
 disable a plugin row. If you package your own bundle with `buildDshBundle` and

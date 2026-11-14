@@ -38,16 +38,6 @@ strategy = "fod"
 attr = ".#fetchrixPackages.\"bundles.approve-for-me\""
 select = "pnpmDeps"
 
-[packages."bundles.at-file"]
-pname = "dsh-at-file"
-version = { source = "github-tag", repo = "omdsh-dev/dsh-at-file", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
-fetch = { type = "github", repo = "omdsh-dev/dsh-at-file", tag = "v{version}" }
-
-[packages."bundles.at-file".derive.pnpmDepsHash]
-strategy = "fod"
-attr = ".#fetchrixPackages.\"bundles.at-file\""
-select = "pnpmDeps"
-
 [packages."bundles.better-sidebar"]
 pname = "dsh-better-sidebar"
 version = { source = "github-tag", repo = "omdsh-dev/DSH-better-sidebar", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
@@ -98,20 +88,6 @@ strategy = "fod"
 attr = ".#fetchrixPackages.\"bundles.genui\""
 select = "pnpmDeps"
 
-[packages."bundles.graph-memory"]
-pname = "dsh-graph-memory"
-version = { source = "git", url = "https://github.com/adoresever/graph-memory.git", unstable = { stable = { source = "github-tag", repo = "adoresever/graph-memory", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+.*$" } } }
-fetch = { type = "github", repo = "adoresever/graph-memory", rev = "{version}" }
-
-[packages."bundles.graph-memory".prepare]
-steps = [{ type = "hook", run = ["./scripts/fetchrix-prepare.sh", "bundles.graph-memory"] }, { type = "npm-lock" }]
-artifacts."package-lock.json" = { type = "file", path = "package-lock.json" }
-
-[packages."bundles.graph-memory".derive.npmDepsHash]
-strategy = "fod"
-attr = ".#fetchrixPackages.\"bundles.graph-memory\""
-select = "npmDeps"
-
 [packages."bundles.harbor"]
 pname = "dsh-harbor"
 version = { source = "git", url = "https://github.com/ZSeven-W/dsh-harbor.git", unstable = { stable = { source = "github-tag", repo = "ZSeven-W/dsh-harbor", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+.*$" } } }
@@ -121,31 +97,6 @@ fetch = { type = "github", repo = "ZSeven-W/dsh-harbor", rev = "{version}" }
 strategy = "fod"
 attr = ".#fetchrixPackages.\"bundles.harbor\""
 select = "npmDeps"
-
-[packages."bundles.liang-saint-slider"]
-pname = "dsh-plugin-liang-calibrator"
-version = { source = "git", url = "https://github.com/BruzWJ/Liang-Saint-Slider.git", unstable = {  } }
-fetch = { type = "github", repo = "BruzWJ/Liang-Saint-Slider", rev = "{version}" }
-
-[packages."bundles.liang-saint-slider".derive.npmDepsHash]
-strategy = "fod"
-attr = ".#fetchrixPackages.\"bundles.liang-saint-slider\""
-select = "npmDeps"
-
-[packages."bundles.liang-skin"]
-pname = "dsh-client-liang-intensity-skin"
-version = { source = "github-tag", repo = "kingOfSoySauce/dsh-liang-skin", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
-fetch = { type = "github", repo = "kingOfSoySauce/dsh-liang-skin", tag = "v{version}" }
-
-[packages."bundles.liang-skin".derive.npmDepsHash]
-strategy = "fod"
-attr = ".#fetchrixPackages.\"bundles.liang-skin\""
-select = "npmDeps"
-
-[packages."bundles.memento"]
-pname = "dsh-memento"
-version = { source = "github-tag", repo = "PerryLink/dsh-memento", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
-fetch = { type = "github", repo = "PerryLink/dsh-memento", tag = "v{version}" }
 
 [packages."bundles.mneme"]
 pname = "dsh-mneme"
@@ -162,66 +113,6 @@ strategy = "fod"
 attr = ".#fetchrixPackages.\"bundles.mnemon\""
 select = "pnpmDeps"
 
-[packages."bundles.modlens"]
-pname = "dsh-modlens"
-version = { source = "github-tag", repo = "liustack/modlens", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
-fetch = { type = "github", repo = "liustack/modlens", tag = "v{version}" }
-
-[packages."bundles.modlens".derive.pnpmDepsHash]
-strategy = "fod"
-attr = ".#fetchrixPackages.\"bundles.modlens\""
-select = "pnpmDeps"
-
-[packages."bundles.modsearch"]
-pname = "dsh-modsearch"
-version = { source = "github-tag", repo = "liustack/modsearch", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
-fetch = { type = "github", repo = "liustack/modsearch", tag = "v{version}" }
-
-[packages."bundles.modsearch".derive.pnpmDepsHash]
-strategy = "fod"
-attr = ".#fetchrixPackages.\"bundles.modsearch\""
-select = "pnpmDeps"
-
-[packages."bundles.noema"]
-pname = "dsh-noema"
-version = { source = "github-tag", repo = "ZSeven-W/dsh-noema", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+.*$" }
-fetch = { type = "github", repo = "ZSeven-W/dsh-noema", tag = "v{version}" }
-
-[packages."bundles.noema".derive.pnpmDepsHash]
-strategy = "fod"
-attr = ".#fetchrixPackages.\"bundles.noema\""
-select = "pnpmDeps"
-
-[packages."bundles.notification"]
-pname = "dsh-notification"
-version = { source = "github-tag", repo = "omdsh-dev/dsh-notification", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
-fetch = { type = "github", repo = "omdsh-dev/dsh-notification", tag = "v{version}" }
-
-[packages."bundles.notification".prepare]
-steps = [{ type = "hook", run = ["./scripts/fetchrix-prepare.sh", "bundles.notification"] }]
-artifacts."pnpm-lock.json" = { type = "json", path = "pnpm-lock.yaml", format = "yaml" }
-artifacts."pnpm-workspace.json" = { type = "json", path = "pnpm-workspace.yaml", format = "yaml" }
-
-[packages."bundles.opentelemetry"]
-pname = "dsh-opentelemetry"
-version = { source = "github-tag", repo = "loongsuite/dsh-plugin", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
-fetch = { type = "github", repo = "loongsuite/dsh-plugin", tag = "v{version}" }
-
-[packages."bundles.opentelemetry".derive.pnpmDepsHash]
-strategy = "fod"
-attr = ".#fetchrixPackages.\"bundles.opentelemetry\""
-select = "pnpmDeps"
-
-[packages."bundles.plugin-check"]
-pname = "dsh-plugin-check"
-version = { source = "git", url = "https://github.com/omdsh-dev/dsh-plugin-check.git", unstable = {  } }
-fetch = { type = "github", repo = "omdsh-dev/dsh-plugin-check", rev = "{version}" }
-
-[packages."bundles.plugin-check".derive.npmDepsHash]
-strategy = "fod"
-attr = ".#fetchrixPackages.\"bundles.plugin-check\""
-select = "npmDeps"
-
 [packages."bundles.remote"]
 pname = "dsh-remote"
 version = { source = "github-tag", repo = "flymysql/dsh-remote", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
@@ -230,26 +121,6 @@ fetch = { type = "github", repo = "flymysql/dsh-remote", tag = "v{version}" }
 [packages."bundles.remote".derive.npmDepsHash]
 strategy = "fod"
 attr = ".#fetchrixPackages.\"bundles.remote\""
-select = "npmDeps"
-
-[packages."bundles.security-audit"]
-pname = "dsh-security-audit"
-version = { source = "git", url = "https://github.com/omdsh-dev/dsh-security-audit.git", unstable = {  } }
-fetch = { type = "github", repo = "omdsh-dev/dsh-security-audit", rev = "{version}" }
-
-[packages."bundles.security-audit".derive.npmDepsHash]
-strategy = "fod"
-attr = ".#fetchrixPackages.\"bundles.security-audit\""
-select = "npmDeps"
-
-[packages."bundles.session-health"]
-pname = "dsh-session-health"
-version = { source = "git", url = "https://github.com/omdsh-dev/dsh-session-health.git", unstable = {  } }
-fetch = { type = "github", repo = "omdsh-dev/dsh-session-health", rev = "{version}" }
-
-[packages."bundles.session-health".derive.npmDepsHash]
-strategy = "fod"
-attr = ".#fetchrixPackages.\"bundles.session-health\""
 select = "npmDeps"
 
 [packages."bundles.subscriptions"]

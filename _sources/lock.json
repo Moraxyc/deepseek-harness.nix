@@ -76,24 +76,6 @@
       },
       "fingerprint": "sha256-ZA0MZQEcfceZndzrur02fkEs40LnqAEkGeTIdzh9vyg="
     },
-    "bundles.at-file": {
-      "pname": "dsh-at-file",
-      "version": "0.7.0",
-      "rawVersion": "0.7.0",
-      "src": {
-        "fetcher": "github",
-        "owner": "omdsh-dev",
-        "repo": "dsh-at-file",
-        "tag": "v0.7.0",
-        "hash": "sha256-JU8JH9t2+72FW4FyGsOrZebGW0tPC7VzIkZuVfhlLmE="
-      },
-      "derived": {
-        "pnpmDepsHash": {
-          "hash": "sha256-pTHoDj3MwGC4snJ5J8eKW0slfMdcEhvgmLgD+Kqa8eM="
-        }
-      },
-      "fingerprint": "sha256-2FEMFfDdb4B656itDFJ0jaF1y1BueeiKXWt6IUWRCZI="
-    },
     "bundles.better-sidebar": {
       "pname": "dsh-better-sidebar",
       "version": "0.32.1",
@@ -185,28 +167,6 @@
       },
       "fingerprint": "sha256-qrFgY5ttb4KOz7752BzjXAfqoXWJBUtT2SrkoDtUO7g="
     },
-    "bundles.graph-memory": {
-      "pname": "dsh-graph-memory",
-      "version": "2.0.0-unstable-2026-10-01",
-      "rawVersion": "5841b1987c3967998818764c9d4238add5f3aa7c",
-      "date": "2026-10-01",
-      "src": {
-        "fetcher": "github",
-        "owner": "adoresever",
-        "repo": "graph-memory",
-        "rev": "5841b1987c3967998818764c9d4238add5f3aa7c",
-        "hash": "sha256-2l7dSv1T+bSKAYIu2dj+NVnqzsLiTMCNaL8R3yB1bhI="
-      },
-      "derived": {
-        "npmDepsHash": {
-          "hash": "sha256-DuY5Nwn1bz65As06Dqbgr0bameujAwftYDm4rxfzxJc="
-        }
-      },
-      "artifacts": {
-        "package-lock.json": "bundles.graph-memory/package-lock.json"
-      },
-      "fingerprint": "sha256-MJiMzYmhqV1Oo4/mVOwuzqFyNEnICU0yZ/X7bpR3Dfs="
-    },
     "bundles.harbor": {
       "pname": "dsh-harbor",
       "version": "0.1.0-rc.4-unstable-2026-11-13",
@@ -225,56 +185,6 @@
         }
       },
       "fingerprint": "sha256-4foia8OCrwTQiBxblTot+zbmSNDLlNuqGyEVwgKk4UA="
-    },
-    "bundles.liang-saint-slider": {
-      "pname": "dsh-plugin-liang-calibrator",
-      "version": "0-unstable-2026-08-19",
-      "rawVersion": "530fa661245cc82ff9f10458089a3fd3ccec2e4a",
-      "date": "2026-08-19",
-      "src": {
-        "fetcher": "github",
-        "owner": "BruzWJ",
-        "repo": "Liang-Saint-Slider",
-        "rev": "530fa661245cc82ff9f10458089a3fd3ccec2e4a",
-        "hash": "sha256-0TLswr5JtrismW1zhTiWeiz2PsW/ryL1CbACJwJbIHk="
-      },
-      "derived": {
-        "npmDepsHash": {
-          "hash": "sha256-5xQMQFMkF6yXQ2S7p/Xi4b0V/9hVBumsB55xMYiA72g="
-        }
-      },
-      "fingerprint": "sha256-x9He0cpBTYdCdarfjWmhbtvdeCz5tAz5wX5HbDRHrVo="
-    },
-    "bundles.liang-skin": {
-      "pname": "dsh-client-liang-intensity-skin",
-      "version": "0.1.21",
-      "rawVersion": "0.1.21",
-      "src": {
-        "fetcher": "github",
-        "owner": "kingOfSoySauce",
-        "repo": "dsh-liang-skin",
-        "tag": "v0.1.21",
-        "hash": "sha256-mUUW8npQY7XM91hcXpWSBjUY4N29mQwmA4FMnqGvfvM="
-      },
-      "derived": {
-        "npmDepsHash": {
-          "hash": "sha256-anndCuFGSaxC3r42iDH6OnpSA1rrIdAFJi7zxxpJAAA="
-        }
-      },
-      "fingerprint": "sha256-udTLW9CQJ4x5vKZWkZiYqfhLNfRDYVI01noBEIASTJ0="
-    },
-    "bundles.memento": {
-      "pname": "dsh-memento",
-      "version": "0.5.30",
-      "rawVersion": "0.5.30",
-      "src": {
-        "fetcher": "github",
-        "owner": "PerryLink",
-        "repo": "dsh-memento",
-        "tag": "v0.5.30",
-        "hash": "sha256-sb53SempMZ+U3GaDlt2MsQt5AAl7QcMG63yAKeuOE7g="
-      },
-      "fingerprint": "sha256-/wEh+Fid/AM+TEphUBZcsqt+c7W4IpK2sKy8YUlmI1Y="
     },
     "bundles.mneme": {
       "pname": "dsh-mneme",
@@ -307,114 +217,6 @@
       },
       "fingerprint": "sha256-QRaak4m5/QOo6d0Tenllw0OtxP7zWAtU1xWBlj2G9Q8="
     },
-    "bundles.modlens": {
-      "pname": "dsh-modlens",
-      "version": "3.27.3",
-      "rawVersion": "3.27.3",
-      "src": {
-        "fetcher": "github",
-        "owner": "liustack",
-        "repo": "modlens",
-        "tag": "v3.27.3",
-        "hash": "sha256-8G+D3kmOwqPmeGh68JTUqjrGN3VxQpgNuaxkLDiTXiU="
-      },
-      "derived": {
-        "pnpmDepsHash": {
-          "hash": "sha256-SlMlFDdr/Fm8BndcKXCPzwZzmkSsoFp/6yuj5Y2XYDc="
-        }
-      },
-      "fingerprint": "sha256-rh+tByw8lvJLyy4tDU9VCzGrC4T6GXaFyBi17AJOIOU="
-    },
-    "bundles.modsearch": {
-      "pname": "dsh-modsearch",
-      "version": "5.10.12",
-      "rawVersion": "5.10.12",
-      "src": {
-        "fetcher": "github",
-        "owner": "liustack",
-        "repo": "modsearch",
-        "tag": "v5.10.12",
-        "hash": "sha256-FsscpWFlQaR63j4VdmvcH+Qf2mKl5noGj551BHiBmAQ="
-      },
-      "derived": {
-        "pnpmDepsHash": {
-          "hash": "sha256-IrnTqej0JBHhZvkn88rF8QcpR2JcNmx1sxL/u0QIayc="
-        }
-      },
-      "fingerprint": "sha256-jWk1oX2ixeJEcOb6X5YBHs+yJV3b66xWCJDJsdCSw+Q="
-    },
-    "bundles.noema": {
-      "pname": "dsh-noema",
-      "version": "0.1.0-rc.6",
-      "rawVersion": "0.1.0-rc.6",
-      "src": {
-        "fetcher": "github",
-        "owner": "ZSeven-W",
-        "repo": "dsh-noema",
-        "tag": "v0.1.0-rc.6",
-        "hash": "sha256-5y80AfGdjuqXZsIf12plz1NxFEgGP0bl8th7b+2Y5ss="
-      },
-      "derived": {
-        "pnpmDepsHash": {
-          "hash": "sha256-JSHpUa9ftofII5BBkl9WG7pU/vXfCzHCc9iSQr/d1Ng="
-        }
-      },
-      "fingerprint": "sha256-gt3Hmfy/95LOz4HSgJnvtKv0zSaElbOoj70OQRTGz/Y="
-    },
-    "bundles.notification": {
-      "pname": "dsh-notification",
-      "version": "0.1.4",
-      "rawVersion": "0.1.4",
-      "src": {
-        "fetcher": "github",
-        "owner": "omdsh-dev",
-        "repo": "dsh-notification",
-        "tag": "v0.1.4",
-        "hash": "sha256-rs6hWEds6wlH3psDqNPdZLdzhpWcAAqBkrKwJ0hkNXo="
-      },
-      "artifacts": {
-        "pnpm-lock.json": "bundles.notification/pnpm-lock.json",
-        "pnpm-workspace.json": "bundles.notification/pnpm-workspace.json"
-      },
-      "fingerprint": "sha256-69iFYcpimLjxeR48AHeldDXiCeg53hkuiisaYtR7JLI="
-    },
-    "bundles.opentelemetry": {
-      "pname": "dsh-opentelemetry",
-      "version": "0.1.3",
-      "rawVersion": "0.1.3",
-      "src": {
-        "fetcher": "github",
-        "owner": "loongsuite",
-        "repo": "dsh-plugin",
-        "tag": "v0.1.3",
-        "hash": "sha256-wOtGNkXspFPJbJPZi09lXhkQ0VFCy6gFDymqb5V6/OU="
-      },
-      "derived": {
-        "pnpmDepsHash": {
-          "hash": "sha256-c0g6Gl3rdXDYB2wtMcdICYDZgoCEg7s5mD/RfybHqwI="
-        }
-      },
-      "fingerprint": "sha256-dyKKmbgQwvEPnCmd8wa/RgRvSDzWbrp0NhxUasNeGPw="
-    },
-    "bundles.plugin-check": {
-      "pname": "dsh-plugin-check",
-      "version": "0-unstable-2026-09-10",
-      "rawVersion": "5bf7beb29a78d0211e2b3bdccfd1222e6b2bc1cc",
-      "date": "2026-09-10",
-      "src": {
-        "fetcher": "github",
-        "owner": "omdsh-dev",
-        "repo": "dsh-plugin-check",
-        "rev": "5bf7beb29a78d0211e2b3bdccfd1222e6b2bc1cc",
-        "hash": "sha256-pET/66DopMVrW+eocS8zwvueYs62Pvh7Pt0Sb8OTOck="
-      },
-      "derived": {
-        "npmDepsHash": {
-          "hash": "sha256-0GqAFyUxEiGzVLKWI53RZucjbUkgRyuwSkYTqz6oLPk="
-        }
-      },
-      "fingerprint": "sha256-43JzE7VDYisk8TH89a6nmwVKeiBUCEm9JAmCym3PgC8="
-    },
     "bundles.remote": {
       "pname": "dsh-remote",
       "version": "1.0.0",
@@ -432,44 +234,6 @@
         }
       },
       "fingerprint": "sha256-MgDuKq8if6am5/340WDABCrw8PktH0Wul0c05Gf/020="
-    },
-    "bundles.security-audit": {
-      "pname": "dsh-security-audit",
-      "version": "0-unstable-2026-09-10",
-      "rawVersion": "e22bd19af7d27e0f7302061808d0cbd7dc9b0914",
-      "date": "2026-09-10",
-      "src": {
-        "fetcher": "github",
-        "owner": "omdsh-dev",
-        "repo": "dsh-security-audit",
-        "rev": "e22bd19af7d27e0f7302061808d0cbd7dc9b0914",
-        "hash": "sha256-Q6z3BsYavt593OiKxvNxHE5PyDWotoqA5uLsrwxSmPQ="
-      },
-      "derived": {
-        "npmDepsHash": {
-          "hash": "sha256-YSGPKo1Ky+PQ9FyXbJAuEcLoOcHMAqf7P/XMB/SDytM="
-        }
-      },
-      "fingerprint": "sha256-NV4Vy19clhIwSytzqlPd8huHgYw8O/Jryb9pZ6TjwDo="
-    },
-    "bundles.session-health": {
-      "pname": "dsh-session-health",
-      "version": "0-unstable-2026-09-10",
-      "rawVersion": "aedcb3db1279554ff3e6d11d2597553b9f131175",
-      "date": "2026-09-10",
-      "src": {
-        "fetcher": "github",
-        "owner": "omdsh-dev",
-        "repo": "dsh-session-health",
-        "rev": "aedcb3db1279554ff3e6d11d2597553b9f131175",
-        "hash": "sha256-mHzQnWqAKYxlubZ0I8QKem9zH+049IIQ8y318rOhQMA="
-      },
-      "derived": {
-        "npmDepsHash": {
-          "hash": "sha256-J8l4N+zHM7iogI0osS7cLaS1cgMvYIw1wKGBdeuUuds="
-        }
-      },
-      "fingerprint": "sha256-ZFAOSRYH6PXEb+nQCpdAAYa3T0Tkch85rBSuZ5rwPdI="
     },
     "bundles.subscriptions": {
       "pname": "dsh-plugin-subscriptions",

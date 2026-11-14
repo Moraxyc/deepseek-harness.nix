@@ -74,7 +74,7 @@
                   '@deepseek-ai/dsh': {specifier: 'link:/external', version: 'link:/external'}
                   typescript: {specifier: '5.0.0', version: '5.0.0'}
             YAML
-            bash ${hookSource}/scripts/fetchrix-prepare.sh bundles.notification
+            bash ${hookSource}/scripts/fetchrix-prepare.sh bundles.subscriptions
             yq -o json '.importers.".".devDependencies' "$FETCHRIX_SOURCE/pnpm-lock.yaml" \
               | jq -e 'keys == ["typescript"]' >/dev/null
             touch "$out"

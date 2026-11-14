@@ -35,13 +35,6 @@ case "$name" in
     jq -n --arg commit "$commit" '$commit' > .fetchrix/client-commit.json
     bash "$repo_root/scripts/generate-optional-bundles.sh" "$PWD" "$PWD/.fetchrix/optional-bundles.json"
     ;;
-  bundles.notification)
-    yq -i '
-      .importers.".".devDependencies |= with_entries(
-        select(.key | test("^@deepseek-ai/") | not)
-      )
-    ' pnpm-lock.yaml
-    ;;
   bundles.subscriptions)
     yq -i '
       .importers.".".devDependencies |= with_entries(
@@ -51,13 +44,6 @@ case "$name" in
         )
       )
     ' pnpm-lock.yaml
-    ;;
-  bundles.graph-memory)
-    # Reuse the recorded resolution so a version bump only completes the lock.
-    if [ -f "$repo_root/_sources/bundles.graph-memory/package-lock.json" ]; then
-      cp "$repo_root/_sources/bundles.graph-memory/package-lock.json" package-lock.json
-    fi
-    yq -i -o json '.scripts |= del(.prepare, .prepack) | .devDependencies |= del(.vitest)' package.json
     ;;
   dsh-desktop-unofficial)
     mkdir -p .fetchrix

@@ -520,7 +520,7 @@ list of bundle packages or a bundle-scope function for short names:
 
 ```nix
 (pkgs.dsh.dsh.withProfiles { web.bundles = [ pkgs.dsh.bundles.web-app ]; }).withBundles [
-  pkgs.dsh.bundles.notification
+  pkgs.dsh.bundles.better-sidebar
 ]
 
 (pkgs.dsh.dsh.withProfiles { cli = { }; }).withBundles (b: with b; [
