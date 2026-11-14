@@ -40,7 +40,7 @@
     },
     "bundles.annotation": {
       "pname": "dsh-annotation",
-      "version": "1.4.11-unstable-2026-11-03",
+      "version": "1.4.11-preview.1-unstable-2026-11-03",
       "rawVersion": "48eac63badf93641f2276b8b0068f6ebbe22ba9b",
       "date": "2026-11-03",
       "src": {
@@ -52,7 +52,7 @@
       },
       "derived": {
         "npmDepsHash": {
-          "hash": "sha256-67TI83N0jrQmgXi9DibBEuFW6l1nV/mYvb6tr+bOdJE="
+          "hash": "sha256-ZhUsrUI4/iEDyD9lJC0Bp0VD8xCuHnt9mY9xUzmAiXo="
         }
       },
       "fingerprint": "sha256-w95pMcNhOooSffqNAVD9965ncXTp6CurhJ5L0MNTGr8="
