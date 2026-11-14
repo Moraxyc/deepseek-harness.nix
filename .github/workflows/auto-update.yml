@@ -264,7 +264,7 @@ jobs:
           set -euo pipefail
           title="$DEFAULT_TITLE"
           if [ "$PLACEHOLDER" = true ]; then
-            title="chore: repair failed auto-update for $NAME"
+            title="${LABEL:-$NAME}: repair failed auto-update"
           elif [ -n "$ATTR" ]; then
             new_version="$(jq -r --arg label "$LABEL" '.packages[$label].version' _sources/lock.json)"
             title="$LABEL: $OLD_VERSION -> $new_version"
