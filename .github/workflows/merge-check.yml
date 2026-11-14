@@ -17,7 +17,11 @@ concurrency:
 
 jobs:
   update:
-    if: github.event.workflow_run.event == 'pull_request'
+    # The dsh-workspace auto-update pull request skips Package CI, so there is
+    # no PR workflow result to publish.
+    if: >-
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.head_branch != 'auto-update/dsh-workspace'
     name: update
     runs-on: ubuntu-latest
     steps:

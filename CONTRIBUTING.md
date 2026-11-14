@@ -384,17 +384,21 @@ after updating the pin:
 - `scripts/dsh-bump-report.sh NEW_VERSION` compares the pinned and new upstream
   sources: removed packages and exports, bundle rows, official bundle lists,
   build inputs, targets of the local workspace patches, and whether dsh would
-  accept each bundle. The auto-update workflow validates the update and pushes
-  it to main; when this report lists actions it opens a dsh-workspace pull
-  request instead.
-- During workspace auto-updates, `scripts/update-dsh-engines.mjs` tries the new
-  exact workspace version for buildable bundles that already declare
-  `dshEngines`; bundle auto-updates only consider the updated bundle. Each
-  candidate must pass its `bundleCompositions` build and sandboxed startup
-  check without compatibility exemptions. Failed candidates are restored and
-  the update goes to a pull request instead of main. Accepted candidates are
-  checked together again before keeping their grants. Other impact-report
-  actions keep the update off main as well.
+  accept each bundle. It is the work queue for the auto-update pull request.
+- The dsh-workspace auto-update run stops after
+  `nix develop -c fetchrix update dsh-workspace` and opens a pull request. It
+  adds no `dshEngines` grants, runs no impact report and no validation builds,
+  skips Package CI and Merge Check, and leaves auto-merge off. The bump is done
+  only once a reviewer works through this section.
+- Other auto-updates collect validated updates and push them to main once using
+  the GitHub App bot identity. CI is not skipped. Validation failures and
+  aggregation conflicts go to individual pull requests instead.
+- During bundle auto-updates, `scripts/update-dsh-engines.mjs` tries the new
+  exact workspace version for the updated bundle when it declares
+  `dshEngines`. Each candidate must pass its `bundleCompositions` build and
+  sandboxed startup check without compatibility exemptions. Failed candidates
+  are restored and the update goes to a pull request instead of main. Accepted
+  candidates are checked together again before keeping their grants.
   These checks cover startup and loading, not every feature or provider.
 - `scripts/dsh-bundle-probe.sh --all` boots every bundle in its own profile and
   separates bundles that only fail dsh's version check from bundles that fail

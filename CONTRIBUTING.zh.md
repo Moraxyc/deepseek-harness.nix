@@ -350,14 +350,17 @@ in
 
 - `scripts/dsh-bump-report.sh NEW_VERSION` 比较当前与新的上游源码：被移除的包和
   export、bundle 行、官方 bundle 列表、构建输入、本地 workspace 补丁的目标文件，
-  以及 dsh 是否接受每个 bundle。自动更新工作流会先验证更新再推送到 main；报告列出待办
-  时改为开 dsh-workspace PR。
-- workspace 自动更新时，`scripts/update-dsh-engines.mjs` 对可构建且已声明
-  `dshEngines` 的 bundle 尝试新的 workspace 精确版本；bundle 自动更新仅处理
-  本次更新的 bundle。候选版本必须通过 `bundleCompositions` 构建和沙箱启动
-  检查，不使用兼容性豁免。失败候选会还原，更新改为走 PR 而不是 main；通过的
-  候选会在最终工作区中再次一起检查，成功后才保留授权。影响报告中的其他待办
-  同样不会推送到 main。这些检查覆盖启动和加载，不代表所有功能或 provider 均兼容。
+  以及 dsh 是否接受每个 bundle。它是自动更新 PR 的待办清单。
+- dsh-workspace 自动更新执行 `nix develop -c fetchrix update dsh-workspace` 后就开
+  PR：不添加 `dshEngines` 授权，不生成影响报告，不做验证构建，不运行 Package CI
+  和 Merge Check，也不自动合并。审阅者按本节流程处理完才算完成升级。
+- 其他自动更新会收集验证通过的更新，以 GitHub App bot 身份统一推送到 main，不跳过
+  CI。验证失败和汇总冲突的更新改为单独开 PR。
+- bundle 自动更新时，`scripts/update-dsh-engines.mjs` 对已声明 `dshEngines` 的被
+  更新 bundle 尝试新的 workspace 精确版本。候选版本必须通过 `bundleCompositions`
+  构建和沙箱启动检查，不使用兼容性豁免。失败候选会还原，更新改为走 PR 而不是 main；
+  通过的候选会在最终工作区中再次一起检查，成功后才保留授权。这些检查覆盖启动和加载，
+  不代表所有功能或 provider 均兼容。
 - `scripts/dsh-bundle-probe.sh --all` 在独立 profile 中逐个启动 bundle，区分只是
   未通过 dsh 版本检查的 bundle 与运行时失败的 bundle。脚本启动时把工作区复制到 store，
   本次运行始终测试启动时的工作区内容。存在 `broken` 结果时，脚本以状态 1 退出。

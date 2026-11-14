@@ -54,6 +54,9 @@ concurrency:
 
 jobs:
   build:
+    # The dsh-workspace auto-update pull request is reviewed by hand; its bump
+    # needs downstream fixes that these builds cannot detect.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.ref != 'auto-update/dsh-workspace'
     # x86_64-linux runs every check; the other systems build the package set so
     # Cachix also serves aarch64-linux and aarch64-darwin.
     name: Build package set${{ matrix.system != 'x86_64-linux' && format(' ({0})', matrix.system) || '' }}
