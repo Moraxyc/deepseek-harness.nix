@@ -189,15 +189,15 @@
     },
     "bundles.mneme": {
       "pname": "dsh-mneme",
-      "version": "0.15.2",
-      "rawVersion": "0.15.2",
-      "date": "2026-11-14",
+      "version": "0.16.0",
+      "rawVersion": "0.16.0",
+      "date": "2026-11-15",
       "src": {
         "fetcher": "github",
         "owner": "modusensus",
         "repo": "dsh-mneme",
-        "tag": "v0.15.2",
-        "hash": "sha256-SSIKH8T9TDQ+WB79+++Pg3VaSPqCfwxgBOF2yl1thcI="
+        "tag": "v0.16.0",
+        "hash": "sha256-8fMAtgIG+tnbzidElOVTgJe5QZ4ZYgaWdVWviZ43uvU="
       },
       "fingerprint": "sha256-EC9bv92qQKAtFapj/JwIaoSmRIVhnh47JeDvU9aq0qs="
     },
