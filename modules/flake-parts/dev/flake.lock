@@ -1,21 +1,5 @@
 {
   "nodes": {
-    "fetchrix": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1794669121,
-        "narHash": "sha256-aKNd35sNqPfhTuPplVNmn6khkOKtv/7Mo1qhZKClZP8=",
-        "owner": "moraxyc",
-        "repo": "fetchrix",
-        "rev": "ee2d99302446c9b8298a590486f69741aa13c000",
-        "type": "github"
-      },
-      "original": {
-        "owner": "moraxyc",
-        "repo": "fetchrix",
-        "type": "github"
-      }
-    },
     "dev-flake-compat": {
       "locked": {
         "lastModified": 1767039857,
@@ -33,17 +17,33 @@
     },
     "dev-nixpkgs": {
       "locked": {
-        "lastModified": 1794495034,
-        "narHash": "sha256-E0hYoioqUtM2XmPPvYYpJgdADF5AW9oOoPSEiM9dTHQ=",
+        "lastModified": 1794554816,
+        "narHash": "sha256-PqJ89Z/qwQa2fB2C0j/GjiviARAtBzVPDUxnbIY6EPA=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "2074cc672349f14240fb7ea90d509e0b643e9dd4",
+        "rev": "e126e9e73c335158ff8279ac14d5f4afec153716",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
         "ref": "nixpkgs-unstable",
         "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "fetchrix": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794721870,
+        "narHash": "sha256-D0qtwRpr0NR3YCoc7CkGAiRFXS0++kDOzXbQVOHbdYU=",
+        "owner": "moraxyc",
+        "repo": "fetchrix",
+        "rev": "4c103bb155f5735f76cb6c6390f58d49bad874bb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "moraxyc",
+        "repo": "fetchrix",
         "type": "github"
       }
     },
@@ -103,9 +103,9 @@
     },
     "root": {
       "inputs": {
-        "fetchrix": "fetchrix",
         "dev-flake-compat": "dev-flake-compat",
         "dev-nixpkgs": "dev-nixpkgs",
+        "fetchrix": "fetchrix",
         "flake-compat": "flake-compat",
         "git-hooks-nix": "git-hooks-nix",
         "nixpkgs-2605": "nixpkgs-2605",
