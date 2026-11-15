@@ -1,0 +1,20 @@
+--- a/tests/tools.spec.ts
++++ b/tests/tools.spec.ts
+@@ -101,2 +101,4 @@
+ class PreparingSubprocessService extends ProbeSubprocessService {
++  private announceStart: (() => void) | undefined
++  readonly started = new Promise<void>((resolve) => { this.announceStart = resolve })
+   aborted = false
+@@ -111,2 +113,4 @@
+     })
++    this.announceStart?.()
++    this.announceStart = undefined
+     return { ...handle, done }
+@@ -533,3 +537,6 @@
+     })
+-    await new Promise(resolve => setTimeout(resolve, 50))
++    await Promise.race([
++      subprocess.started,
++      pending.then((result) => { throw new Error(`vision_glance settled before preparation: ${JSON.stringify(result)}`) }),
++    ])
+     await fiber.dispose()
