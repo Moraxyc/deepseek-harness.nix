@@ -96,18 +96,19 @@
     },
     "bundles.chat-import": {
       "pname": "dsh-chat-import",
-      "version": "0.26.6",
-      "rawVersion": "0.26.6",
+      "version": "0.26.7",
+      "rawVersion": "0.26.7",
+      "date": "2026-11-15",
       "src": {
         "fetcher": "github",
         "owner": "Nwflower",
         "repo": "dsh-chat-import",
-        "tag": "v0.26.6",
-        "hash": "sha256-QZUI2NceXjUfDhtOhLOYb5JBBccnmC+kzoMrQKjnhvg="
+        "tag": "v0.26.7",
+        "hash": "sha256-8QyIqowU6hEbAE8Yj3jhptp/nI+OaHrORkipvAu2IwU="
       },
       "derived": {
         "npmDepsHash": {
-          "hash": "sha256-oEnRK0sjLnn+OP75DBhe7bLID/GGBbYieslZ5PtYDbg="
+          "hash": "sha256-2SIhsfEXZrNb1MwcG7qGhrmXnbHylnkavOIMezwa9Tk="
         }
       },
       "fingerprint": "sha256-ob4Nyl6+TlePaKGCDGDj2qU2p0AHuRoxalxkfpIeJA4="
