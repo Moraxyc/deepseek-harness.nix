@@ -13,9 +13,7 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "dsh-system";
-  version = (lib.importJSON "${dsh-workspace.src}/native/system/package.json").version;
-
-  inherit (dsh-workspace) src;
+  inherit (dsh-workspace) src version;
 
   sourceRoot = "${finalAttrs.src.name}/native/system";
 
