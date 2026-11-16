@@ -374,19 +374,19 @@
     },
     "dsh-desktop-unofficial": {
       "pname": "dsh-desktop-shell",
-      "version": "2.0.23-next-unstable-2026-11-13",
-      "rawVersion": "b3c0442392e705b9418b4a08dc4ebf9ad2714364",
-      "date": "2026-11-13",
+      "version": "2.0.23-next-unstable-2026-11-16",
+      "rawVersion": "3bee0528fb537722fe48290d03770ae0e81398b4",
+      "date": "2026-11-16",
       "src": {
         "fetcher": "github",
         "owner": "anywhere-labs",
         "repo": "deepseek-harness-desktop",
-        "rev": "b3c0442392e705b9418b4a08dc4ebf9ad2714364",
-        "hash": "sha256-TQAaqjaPGpLV8fLILascjcSRXy37I43GQCd0ApcbGvs="
+        "rev": "3bee0528fb537722fe48290d03770ae0e81398b4",
+        "hash": "sha256-yPTPRgTS+zuhZTiavTt9UdGahapObYQij5hB5hZdfFU="
       },
       "derived": {
         "yarnDepsHash": {
-          "hash": "sha256-j8uIvTFn6WFTTQ0pr/RE3uD7YNp3EdqzCy/78AUvIF8="
+          "hash": "sha256-RYfYzXZnxAL7iAcx4uf7pofAqbHOB2U1b0SMkcJ/v94="
         }
       },
       "artifacts": {
