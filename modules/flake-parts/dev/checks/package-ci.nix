@@ -38,6 +38,17 @@
         )
         + "\n"
       );
+      expectedUnofficialDesktop = pkgs.writeText "dsh-unofficial-desktop-attrs" (
+        packageSet.packages.dsh-desktop-unofficial + "\n"
+      );
+      allAttrsList =
+        lib.attrValues packageSet.packages
+        ++ lib.attrValues packageSet.bundles
+        ++ lib.attrValues packageSet.presets
+        ++ lib.attrValues packageSet.bundleCompositions;
+      expectedAll = pkgs.writeText "all-package-attrs" (
+        lib.concatStringsSep "\n" (lib.sort builtins.lessThan allAttrsList) + "\n"
+      );
     in
     {
       checks.dsh-engines-update =
@@ -87,6 +98,92 @@
 
             bash ${../../../../scripts/select-package-ci-attrs.sh} "$base" > selected-bundle
             cmp ${expectedBundle} selected-bundle
+
+            # A lock.json update only selects the changed package entry.
+            git reset --hard "$base" >/dev/null
+            mkdir -p _sources
+            cat > _sources/lock.json <<'JSON'
+            {
+              "schema": 1,
+              "packages": {
+                "bundles.tui": { "version": "0.1.0" },
+                "dsh-desktop-unofficial": { "version": "1.0.0" },
+                "dsh-workspace": { "version": "0.2.0" }
+              }
+            }
+            JSON
+            printf '[packages."bundles.tui"]\n' > fetchrix.toml
+            git add _sources/lock.json fetchrix.toml
+            git commit -m "Seed lockfile"
+            lock_base=$(git rev-parse HEAD)
+
+            cat > _sources/lock.json <<'JSON'
+            {
+              "schema": 1,
+              "packages": {
+                "bundles.tui": { "version": "0.2.0" },
+                "dsh-desktop-unofficial": { "version": "1.0.0" },
+                "dsh-workspace": { "version": "0.2.0" }
+              }
+            }
+            JSON
+            printf '[packages."bundles.tui"]\npname = "dsh-tui"\n' > fetchrix.toml
+            git add _sources/lock.json fetchrix.toml
+            git commit -m "Update tui in lock.json"
+
+            bash ${../../../../scripts/select-package-ci-attrs.sh} "$lock_base" > selected-lock-bundle
+            cmp ${expectedBundle} selected-lock-bundle
+
+            git reset --hard "$lock_base" >/dev/null
+            cat > _sources/lock.json <<'JSON'
+            {
+              "schema": 1,
+              "packages": {
+                "bundles.tui": { "version": "0.1.0" },
+                "dsh-desktop-unofficial": { "version": "1.1.0" },
+                "dsh-workspace": { "version": "0.2.0" }
+              }
+            }
+            JSON
+            git add _sources/lock.json
+            git commit -m "Update unofficial desktop in lock.json"
+
+            bash ${../../../../scripts/select-package-ci-attrs.sh} "$lock_base" > selected-lock-desktop
+            cmp ${expectedUnofficialDesktop} selected-lock-desktop
+
+            git reset --hard "$lock_base" >/dev/null
+            cat > _sources/lock.json <<'JSON'
+            {
+              "schema": 1,
+              "packages": {
+                "bundles.tui": { "version": "0.1.0" },
+                "dsh-desktop-unofficial": { "version": "1.0.0" },
+                "dsh-workspace": { "version": "0.3.0" }
+              }
+            }
+            JSON
+            git add _sources/lock.json
+            git commit -m "Update workspace in lock.json"
+
+            bash ${../../../../scripts/select-package-ci-attrs.sh} "$lock_base" | sort -u > selected-lock-workspace
+            cmp ${expectedAll} selected-lock-workspace
+
+            git reset --hard "$lock_base" >/dev/null
+            cat > _sources/lock.json <<'JSON'
+            {
+              "schema": 2,
+              "packages": {
+                "bundles.tui": { "version": "0.1.0" },
+                "dsh-desktop-unofficial": { "version": "1.0.0" },
+                "dsh-workspace": { "version": "0.2.0" }
+              }
+            }
+            JSON
+            git add _sources/lock.json
+            git commit -m "Bump lock schema"
+
+            bash ${../../../../scripts/select-package-ci-attrs.sh} "$lock_base" | sort -u > selected-lock-schema
+            cmp ${expectedAll} selected-lock-schema
             touch "$out"
           '';
     };

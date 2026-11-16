@@ -28,17 +28,70 @@ if [ -z "$changed_files" ]; then
 fi
 
 global=0
+lock_changed=0
 changed_bundles=()
 changed_presets=()
 changed_packages=()
 changed_unknown_packages=()
 
+record_source_package() {
+  local name="$1"
+  case "$name" in
+    dsh-workspace | dsh-runtime)
+      global=1
+      ;;
+    bundles.*)
+      local bundle="${name#bundles.}"
+      if [ -n "$bundle" ]; then
+        changed_bundles+=("$bundle")
+      else
+        global=1
+      fi
+      ;;
+    *)
+      if [ -n "$name" ]; then
+        changed_unknown_packages+=("$name")
+      else
+        global=1
+      fi
+      ;;
+  esac
+}
+
+changed_lock_packages() {
+  {
+    git show "${base_ref}:_sources/lock.json" 2>/dev/null \
+      && printf '\n' \
+      && git show "HEAD:_sources/lock.json" 2>/dev/null
+  } | jq -r -s '
+    if length != 2 then error("expected two lockfiles") else . end
+    | .[0] as $old
+    | .[1] as $new
+    | if ($old | type) != "object" or ($new | type) != "object"
+        or ($old.packages | type) != "object" or ($new.packages | type) != "object"
+        or (($old | del(.packages)) != ($new | del(.packages))) then
+        error("lockfile metadata changed")
+      else
+        [($old.packages | keys_unsorted[]), ($new.packages | keys_unsorted[])]
+        | unique[]
+        | . as $k
+        | select(
+            (($old.packages | has($k)) != ($new.packages | has($k)))
+            or ($old.packages[$k] != $new.packages[$k])
+          )
+      end
+  ' 2>/dev/null
+}
+
 while IFS= read -r file; do
   case "$file" in
-    lib/catalog.nix)
+    lib/catalog.nix | fetchrix.toml)
       ;;
-    .github/workflows/package-ci.yml | default.nix | flake.nix | flake.lock | lib/* | modules/* | overlays/* | scripts/select-package-ci-attrs.sh | scripts/fetchrix-prepare.sh | scripts/generate-optional-bundles.sh | fetchrix.toml | _sources/lock.json | _sources/dsh-workspace/* | pkgs/dsh-runtime/* | pkgs/dsh-workspace/* | pkgs/dshBundleCheckHook/* | pkgs/dshWorkspacePatchHook/* | pkgs/importPnpmLock/*)
+    .github/workflows/package-ci.yml | default.nix | flake.nix | flake.lock | lib/* | modules/* | overlays/* | scripts/select-package-ci-attrs.sh | scripts/fetchrix-prepare.sh | scripts/generate-optional-bundles.sh | _sources/dsh-workspace/* | pkgs/dsh-runtime/* | pkgs/dsh-workspace/* | pkgs/dshBundleCheckHook/* | pkgs/dshWorkspacePatchHook/* | pkgs/importPnpmLock/*)
       global=1
+      ;;
+    _sources/lock.json)
+      lock_changed=1
       ;;
     pkgs/dsh/*)
       changed_packages+=("dsh")
@@ -48,15 +101,10 @@ while IFS= read -r file; do
       name="${name%%/*}"
       [ -n "$name" ] && changed_bundles+=("$name")
       ;;
-    _sources/bundles.*/*)
-      name="${file#_sources/bundles.}"
-      name="${name%%/*}"
-      [ -n "$name" ] && changed_bundles+=("$name")
-      ;;
     _sources/*)
       name="${file#_sources/}"
       name="${name%%/*}"
-      [ -n "$name" ] && changed_unknown_packages+=("$name")
+      record_source_package "$name"
       ;;
     pkgs/presets/*)
       name="${file#pkgs/presets/}"
@@ -70,6 +118,18 @@ while IFS= read -r file; do
       ;;
   esac
 done <<< "$changed_files"
+
+if [ "$global" -eq 0 ] && [ "$lock_changed" -eq 1 ]; then
+  if ! lock_keys="$(changed_lock_packages)"; then
+    global=1
+  else
+    while IFS= read -r key; do
+      [ -n "$key" ] || continue
+      record_source_package "$key"
+      [ "$global" -eq 1 ] && break
+    done <<< "$lock_keys"
+  fi
+fi
 
 for name in "${changed_unknown_packages[@]}"; do
   if ! jq -e --arg name "$name" '.packages | has($name)' <<< "$package_set" >/dev/null; then
