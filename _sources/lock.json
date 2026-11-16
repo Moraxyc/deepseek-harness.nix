@@ -335,22 +335,22 @@
     },
     "bundles.visualize": {
       "pname": "dsh-visualize",
-      "version": "0.1.9-unstable-2026-11-13",
-      "rawVersion": "bd7b6f92b2fda248551f4141484cdaf27c7d5f78",
-      "date": "2026-11-13",
+      "version": "0.1.10",
+      "rawVersion": "0.1.10",
+      "date": "2026-11-15",
       "src": {
         "fetcher": "github",
         "owner": "Nagi-ovo",
         "repo": "dsh-visualize",
-        "rev": "bd7b6f92b2fda248551f4141484cdaf27c7d5f78",
-        "hash": "sha256-tjFg5AQMObwuE7A5OjQSew7I9B7qiBnlqqvXGi5PNEg="
+        "tag": "v0.1.10",
+        "hash": "sha256-bu1COfQkcqNZGj6XTpPBTDorN9lbm3VcogTHo4DPnNA="
       },
       "derived": {
         "pnpmDepsHash": {
           "hash": "sha256-EkuOVSh7km8WSjXpS/B0HAsgUChwHDzVsoazHK2u1p8="
         }
       },
-      "fingerprint": "sha256-3HzYD0rfQwp51OrPCBHcTXXUE6FP1IxLExaIfvWyRWs="
+      "fingerprint": "sha256-TNYcyEzXC8GFlU2Ofe3XEzvP4bkPDGIWmJzqHbCrLZU="
     },
     "bundles.web-ui": {
       "pname": "dsh-web-ui",

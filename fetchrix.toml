@@ -176,8 +176,8 @@ select = "pnpmDeps"
 
 [packages."bundles.visualize"]
 pname = "dsh-visualize"
-version = { source = "git", url = "https://github.com/Nagi-ovo/dsh-visualize.git", unstable = { stable = { source = "github-tag", repo = "Nagi-ovo/dsh-visualize", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+.*$" } } }
-fetch = { type = "github", repo = "Nagi-ovo/dsh-visualize", rev = "{version}" }
+version = { source = "github-tag", repo = "Nagi-ovo/dsh-visualize", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+fetch = { type = "github", repo = "Nagi-ovo/dsh-visualize", tag = "v{version}" }
 
 [packages."bundles.visualize".derive.pnpmDepsHash]
 strategy = "fod"
