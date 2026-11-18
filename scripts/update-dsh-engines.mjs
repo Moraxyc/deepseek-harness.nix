@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 
 function capture(command, args, cwd) {
   const result = spawnSync(command, args, {
@@ -120,7 +120,7 @@ export function updateEngines({
 }
 
 function main() {
-  const root = fileURLToPath(new URL("../", import.meta.url));
+  const root = capture("git", ["rev-parse", "--show-toplevel"]).trim();
   const name = process.argv[2];
   if (process.argv.length > 3)
     throw new Error("Expected at most one bundle name");

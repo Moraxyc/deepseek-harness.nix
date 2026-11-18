@@ -246,9 +246,7 @@ jobs:
           set -euo pipefail
           report="$RUNNER_TEMP/dsh-engines-report.md"
           echo "report=$report" >> "$GITHUB_OUTPUT"
-          nix shell --inputs-from . nixpkgs#nodejs-slim nixpkgs#ast-grep \
-            -c node scripts/update-dsh-engines.mjs "$BUNDLE_NAME" \
-            | tee "$report"
+          nix run .#tools.update-dsh-engines -- "$BUNDLE_NAME" | tee "$report"
 
       - name: Commit update
         id: commit
@@ -290,7 +288,7 @@ jobs:
         run: |
           set -euo pipefail
           git fetch --quiet origin main
-          attrs="$(scripts/select-package-ci-attrs.sh origin/main)"
+          attrs="$(nix run .#tools.select-package-ci-attrs -- origin/main)"
           if [ -z "$attrs" ]; then
             echo "No changed package attrs"
             exit 0
@@ -492,6 +490,12 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Install Nix
+        if: steps.collected.outputs.found == 'true'
+        uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Generate GitHub App Token
         id: app-token
         if: steps.collected.outputs.found == 'true'
@@ -513,7 +517,7 @@ jobs:
           git config user.name "$GIT_NAME"
           git config user.email "$GIT_EMAIL"
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-          bash scripts/publish-auto-updates.sh "$RUNNER_TEMP/auto-updates"
+          nix run .#tools.publish-auto-updates -- "$RUNNER_TEMP/auto-updates"
 
       - name: Summarize updates
         id: summary

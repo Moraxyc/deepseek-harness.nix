@@ -4,49 +4,16 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "pkgs/**"
-      - "lib/**"
-      - "overlays/**"
-      - "flake.lock"
-      - "flake.nix"
-      - "default.nix"
-      - "modules/flake-parts/**"
-      - ".github/scripts/merge-check.js"
-      - ".github/scripts/merge-check.test.js"
-      - ".github/workflows/merge-check.yml"
-      - ".github/workflows/package-ci.yml"
-      - "scripts/generate-optional-bundles.sh"
-      - "scripts/select-package-ci-attrs.sh"
-      - "scripts/update-dsh-engines*"
-      - "scripts/publish-auto-updates.sh"
-      - "scripts/default.nix"
-      - "scripts/nix-run"
-      - "fetchrix.toml"
-      - "_sources/**"
-      - ".github/workflows/auto-update.yml"
+    # select-package-ci-attrs decides what a change rebuilds; only skip
+    # changes that cannot affect a package or a CI script.
+    paths-ignore: &docs-only
+      - "**.md"
+      - "docs-site/**"
+      - "LICENSE"
+      - ".github/renovate.json"
+      - ".github/workflows/docs.yml"
   pull_request:
-    paths:
-      - "pkgs/**"
-      - "lib/**"
-      - "overlays/**"
-      - "flake.lock"
-      - "flake.nix"
-      - "default.nix"
-      - "modules/flake-parts/**"
-      - ".github/scripts/merge-check.js"
-      - ".github/scripts/merge-check.test.js"
-      - ".github/workflows/merge-check.yml"
-      - ".github/workflows/package-ci.yml"
-      - "scripts/generate-optional-bundles.sh"
-      - "scripts/select-package-ci-attrs.sh"
-      - "scripts/update-dsh-engines*"
-      - "scripts/publish-auto-updates.sh"
-      - "scripts/default.nix"
-      - "scripts/nix-run"
-      - "fetchrix.toml"
-      - "_sources/**"
-      - ".github/workflows/auto-update.yml"
+    paths-ignore: *docs-only
   workflow_dispatch:
 
 permissions:
@@ -97,6 +64,7 @@ jobs:
           nix build --no-link \
             .#checks.x86_64-linux.merge-check \
             .#checks.x86_64-linux.package-ci-selection \
+            .#checks.x86_64-linux.publish-auto-updates \
             .#checks.x86_64-linux.dsh-engines-update
 
       - name: Check generated optional bundle manifest
@@ -117,9 +85,9 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] ||
              [ -z "$BASE_SHA" ] ||
              [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
-            attrs="$(scripts/select-package-ci-attrs.sh)"
+            attrs="$(nix run .#tools.select-package-ci-attrs)"
           else
-            attrs="$(scripts/select-package-ci-attrs.sh "$BASE_SHA")"
+            attrs="$(nix run .#tools.select-package-ci-attrs -- "$BASE_SHA")"
           fi
           if [ -z "$attrs" ]; then
             echo "No package attrs changed"

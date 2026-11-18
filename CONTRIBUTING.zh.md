@@ -30,7 +30,9 @@ JSON 产物负责 YAML 转换和字段提取。`fetchrixPackages` 将新的
   并配 `node --test` 测试。
 - fetchrix 以仓库文件运行 hook，因此 hook 写作 `scripts/nix-run TOOL`，并把工具的
   源文件列入 `inputs`。
-- 新工具需配一个用 fixture 运行它的 flake check。
+- 新工具需配一个用 fixture 运行它的 flake check。工具通过 `scripts/default.nix`
+  的参数获得 `nix` 和 `gh`，check 可以传入替身。
+- workflow 以 `nix run .#tools.<name>` 调用工具，CI 与本地运行环境一致。
 
 ## 选择 bundle builder
 
@@ -372,7 +374,7 @@ in
   `[skip ci]`、关闭自动合并，等待手动修复。即使更新命令失败，也会原样提交 fetchrix
   已生成的改动。修复提交不带 `[skip ci]` 即可运行 CI。更新结果和兼容性报告统一在
   publish 任务的 Summary 中展示。
-- bundle 自动更新时，`scripts/update-dsh-engines.mjs` 对已声明 `dshEngines` 的被
+- bundle 自动更新时，`tools.update-dsh-engines` 对已声明 `dshEngines` 的被
   更新 bundle 尝试新的 workspace 精确版本。候选版本必须通过 `bundleCompositions`
   构建和沙箱启动检查，不使用兼容性豁免。失败候选会还原，更新改为走 PR 而不是 main；
   通过的候选会在最终工作区中再次一起检查，成功后才保留授权。这些检查覆盖启动和加载，

@@ -30,7 +30,10 @@ JSON 生成物が YAML 変換とフィールド抽出を行います。`fetchrix
   する Node `.mjs` モジュールにし、`node --test` のテストを付けます。
 - fetchrix は hook をリポジトリ内のファイルとして実行するため、hook は
   `scripts/nix-run TOOL` とし、ツールのソースファイルを `inputs` に列挙します。
-- 新しいツールには、fixture で実行する flake check を追加します。
+- 新しいツールには、fixture で実行する flake check を追加します。ツールは
+  `scripts/default.nix` の引数から `nix` と `gh` を受け取るため、check では代替を渡せます。
+- workflow は `nix run .#tools.<name>` でツールを呼び出すため、CI でもローカルと同じ
+  環境で動きます。
 
 ## バンドルビルダーの選択
 
@@ -389,7 +392,7 @@ in
 - その他の自動更新は、検証済みの更新を集約し、GitHub App の bot 名義で main に
   一度だけプッシュします。CI はスキップしません。検証失敗と集約時の競合がある更新は、
   個別の PR にします。
-- バンドルの自動更新では、`scripts/update-dsh-engines.mjs` が `dshEngines` を宣言済みの
+- バンドルの自動更新では、`tools.update-dsh-engines` が `dshEngines` を宣言済みの
   更新対象バンドルについて、新しい workspace の正確なバージョンを試します。候補は
   `bundleCompositions` のビルドとサンドボックス起動チェックを、互換性の例外なしで
   通過する必要があります。失敗した候補は元に戻され、更新は main ではなく PR に

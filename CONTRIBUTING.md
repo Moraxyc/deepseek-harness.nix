@@ -36,7 +36,10 @@ and their declared `inputs`; list any other files a hook reads there. Use
   `node --test` tests.
 - Fetchrix runs hooks as repository files, so a hook is
   `scripts/nix-run TOOL`. List the tool's source files in `inputs`.
-- Add a flake check that runs a new tool against fixtures.
+- Add a flake check that runs a new tool against fixtures. Tools get `nix` and
+  `gh` from the arguments of `scripts/default.nix`, so a check can pass fakes.
+- Workflows call tools with `nix run .#tools.<name>`, so a tool runs the same in
+  CI as locally.
 
 ## Choosing a bundle builder
 
@@ -414,7 +417,7 @@ after updating the pin:
   Generated fetchrix changes are committed unchanged even if the update command
   fails. Push the repair without `[skip ci]` to run CI. Update results and
   compatibility reports appear only in the publish job summary.
-- During bundle auto-updates, `scripts/update-dsh-engines.mjs` tries the new
+- During bundle auto-updates, `tools.update-dsh-engines` tries the new
   exact workspace version for the updated bundle when it declares
   `dshEngines`. Each candidate must pass its `bundleCompositions` build and
   sandboxed startup check without compatibility exemptions. Failed candidates

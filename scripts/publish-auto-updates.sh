@@ -1,5 +1,8 @@
-#!/usr/bin/env bash
-set -euo pipefail
+# shellcheck shell=bash
+# Publishes validated auto-update results to main and opens a pull request for
+# each one that cannot be published: publish-auto-updates UPDATES_DIR
+# Each UPDATES_DIR/*/ holds result.json ({branch, title}) and update.bundle.
+# Needs GITHUB_REPOSITORY, GITHUB_SERVER_URL, PUBLISH_REPORT, and gh auth.
 
 updates_dir="$(realpath "$1")"
 shopt -s nullglob
@@ -9,11 +12,11 @@ if [ "${#results[@]}" -eq 0 ]; then
 fi
 
 open_pr() {
-  local result="$1" reason="$2"
+  local result="$1" reason_en="$2" reason_zh="$3"
   local branch title body pr_number pr_url
   branch="$(jq -r .branch "$result")"
   title="$(jq -r .title "$result")"
-  body="Automated update. $reason CI and auto-merge are off; manual repair required. / 自动更新。$3 不运行 CI，不自动合并，等待手动修复。"
+  body="Automated update. $reason_en CI and auto-merge are off; manual repair required. / 自动更新。$reason_zh 不运行 CI，不自动合并，等待手动修复。"
   git switch "$branch"
   if ! git log -1 --format=%B | grep -Fq '[skip ci]'; then
     git commit --amend --no-verify -m "$(git log -1 --format=%B)" -m '[skip ci]'
@@ -31,7 +34,7 @@ open_pr() {
   gh pr merge "$pr_number" --repo "$GITHUB_REPOSITORY" --disable-auto
   printf -- '- %s: [PR #%s](%s/%s/pull/%s), CI and auto-merge off / 不运行 CI，不自动合并。%s / %s\n' \
     "$branch" "$pr_number" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$pr_number" \
-    "$reason" "$3" >> "$PUBLISH_REPORT"
+    "$reason_en" "$reason_zh" >> "$PUBLISH_REPORT"
 }
 
 cleanup() {
