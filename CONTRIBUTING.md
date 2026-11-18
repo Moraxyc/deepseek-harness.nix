@@ -33,7 +33,9 @@ and their declared `inputs`; list any other files a hook reads there. Use
   tools.
 - Bash runs commands. Transformations of JSON, lockfiles, or dependency graphs
   go into Node `.mjs` modules that export their functions and have
-  `node --test` tests.
+  `node --test` tests. A tool large enough to need types is a TypeScript
+  package under `pkgs/`, such as `pkgs/dsh-bump-report`: `buildNpmPackage`
+  compiles it with `tsc` and runs its tests during the build.
 - Fetchrix runs hooks as repository files, so a hook is
   `scripts/nix-run TOOL`. List the tool's source files in `inputs`.
 - Add a flake check that runs a new tool against fixtures. Tools get `nix` and
@@ -401,7 +403,7 @@ in
 A runtime bump can build cleanly while dsh skips bundles at runtime. Before and
 after updating the pin:
 
-- `scripts/dsh-bump-report.sh NEW_VERSION` compares the pinned and new upstream
+- `nix run .#tools.dsh-bump-report -- NEW_VERSION` compares the pinned and new upstream
   sources: removed packages and exports, bundle rows, official bundle lists,
   build inputs, targets of the local workspace patches, and whether dsh would
   accept each bundle. It is the work queue for the auto-update pull request.

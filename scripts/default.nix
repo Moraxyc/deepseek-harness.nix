@@ -51,6 +51,8 @@ rec {
     text = builtins.readFile ./dsh-bundle-probe.sh;
   };
 
+  inherit (pkgs.dsh) dsh-bump-report;
+
   select-package-ci-attrs = tool {
     name = "select-package-ci-attrs";
     description = "Print the package attrs CI builds for the changes since a base ref";

@@ -31,7 +31,8 @@ changed_lock_sources() {
 classify() {
   local file="$1"
   case "$file" in
-    lib/catalog.nix | fetchrix.toml) ;;
+    # Maintenance tools that Package CI builds as checks.
+    lib/catalog.nix | fetchrix.toml | pkgs/dsh-bump-report/*) ;;
     .github/workflows/package-ci.yml | default.nix | flake.nix | flake.lock | lib/* | modules/* | overlays/* | \
       scripts/select-package-ci-attrs.sh | scripts/default.nix | scripts/nix-run | scripts/generate-optional-bundles.sh | \
       pkgs/dsh-runtime/* | pkgs/dsh-workspace/* | pkgs/dsh-profile-smoke/* | pkgs/importPnpmLock/*)

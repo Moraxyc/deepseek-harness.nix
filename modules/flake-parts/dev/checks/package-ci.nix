@@ -70,6 +70,8 @@
       );
     in
     {
+      checks.dsh-bump-report = config.legacyPackages.tools.dsh-bump-report;
+
       checks.dsh-engines-update =
         pkgs.runCommand "dsh-engines-update"
           {

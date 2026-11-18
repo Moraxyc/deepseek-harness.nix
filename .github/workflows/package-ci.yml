@@ -69,6 +69,7 @@ jobs:
         run: |
           nix build --no-link \
             .#checks.x86_64-linux.merge-check \
+            .#checks.x86_64-linux.dsh-bump-report \
             .#checks.x86_64-linux.package-ci-selection \
             .#checks.x86_64-linux.publish-auto-updates \
             .#checks.x86_64-linux.dsh-engines-update

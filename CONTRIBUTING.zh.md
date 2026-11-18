@@ -27,7 +27,8 @@ JSON 产物负责 YAML 转换和字段提取。`fetchrixPackages` 将新的
 - 只服务于一个包的逻辑放在该包旁边，例如 `pkgs/dsh-workspace/fetchrix-prepare.sh`。
   `scripts/` 只放仓库级工具。
 - Bash 负责调用命令。JSON、lockfile 或依赖图的转换写成 Node `.mjs` 模块，导出函数，
-  并配 `node --test` 测试。
+  并配 `node --test` 测试。需要类型的较大工具写成 `pkgs/` 下的 TypeScript 包，例如
+  `pkgs/dsh-bump-report`：`buildNpmPackage` 在构建时用 `tsc` 编译并运行测试。
 - fetchrix 以仓库文件运行 hook，因此 hook 写作 `scripts/nix-run TOOL`，并把工具的
   源文件列入 `inputs`。
 - 新工具需配一个用 fixture 运行它的 flake check。工具通过 `scripts/default.nix`
@@ -364,7 +365,7 @@ in
 
 运行时升级可能构建成功，但 dsh 在运行时跳过部分 bundle。更新版本前后：
 
-- `scripts/dsh-bump-report.sh NEW_VERSION` 比较当前与新的上游源码：被移除的包和
+- `nix run .#tools.dsh-bump-report -- NEW_VERSION` 比较当前与新的上游源码：被移除的包和
   export、bundle 行、官方 bundle 列表、构建输入、本地 workspace 补丁的目标文件，
   以及 dsh 是否接受每个 bundle。它是自动更新 PR 的待办清单。
 - dsh-workspace 自动更新执行 `nix develop -c fetchrix update dsh-workspace` 后就开

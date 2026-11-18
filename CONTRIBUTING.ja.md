@@ -27,7 +27,9 @@ JSON 生成物が YAML 変換とフィールド抽出を行います。`fetchrix
 - 1 つのパッケージだけに関わる処理は、`pkgs/dsh-workspace/fetchrix-prepare.sh`
   のようにそのパッケージの隣に置きます。`scripts/` にはリポジトリ全体のツールだけを置きます。
 - Bash はコマンドの実行を担います。JSON、lockfile、依存グラフの変換は関数を export
-  する Node `.mjs` モジュールにし、`node --test` のテストを付けます。
+  する Node `.mjs` モジュールにし、`node --test` のテストを付けます。型が必要な大きめの
+  ツールは `pkgs/dsh-bump-report` のように `pkgs/` 配下の TypeScript パッケージにし、
+  `buildNpmPackage` がビルド時に `tsc` でコンパイルしてテストを実行します。
 - fetchrix は hook をリポジトリ内のファイルとして実行するため、hook は
   `scripts/nix-run TOOL` とし、ツールのソースファイルを `inputs` に列挙します。
 - 新しいツールには、fixture で実行する flake check を追加します。ツールは
@@ -381,7 +383,7 @@ in
 ランタイムを更新すると、ビルドは正常に完了しても、dsh が実行時にバンドルをスキップする
 ことがあります。固定バージョンを更新する前後で、次を実行してください。
 
-- `scripts/dsh-bump-report.sh NEW_VERSION` は、固定されたソースと新しい
+- `nix run .#tools.dsh-bump-report -- NEW_VERSION` は、固定されたソースと新しい
   アップストリームソースを比較します。比較対象は、削除されたパッケージとエクスポート、
   バンドル行、公式バンドルリスト、ビルド入力、ローカルワークスペースパッチの適用対象、
   および dsh が各バンドルを受け入れるかどうかです。自動更新 PR の作業リストになります。

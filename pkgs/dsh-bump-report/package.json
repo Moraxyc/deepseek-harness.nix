@@ -1,0 +1,25 @@
+{
+  "name": "dsh-bump-report",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Report what a dsh-workspace bump changes for deepseek-harness.nix",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "dsh-bump-report": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "!dist/*.test.js"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/*.test.js"
+  },
+  "dependencies": {
+    "yaml": "^2.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2"
+  }
+}
