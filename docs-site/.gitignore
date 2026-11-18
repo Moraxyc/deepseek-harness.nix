@@ -148,13 +148,9 @@ vite.config.ts.timestamp-*
 # Astro generated types
 .astro/
 
-# Turbo Repo (https://turborepo.dev/)
-.turbo
+# React Router / Fumadocs MDX
+.react-router/
+.source/
+build/
 
-# Nx (https://nx.dev/)
-.nx/cache
-.nx/workspace-data
-.nx/migrate-runs
-
-.astro/
 src/data/catalog.generated.ts

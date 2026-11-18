@@ -1,0 +1,147 @@
+import { catalog } from "../data/catalog";
+
+interface Props {
+  locale: "en" | "zh-CN" | "ja";
+}
+
+export default function Catalog({ locale }: Props) {
+  const isChinese = locale === "zh-CN";
+  const isJapanese = locale === "ja";
+  const text = isChinese
+    ? {
+        bundles: "Bundles",
+        presets: "预设",
+        flakeOutput: "Flake 输出",
+        package: "包",
+        version: "版本",
+        description: "说明",
+        homepage: "主页",
+        defaultProfile: "默认 profile",
+        bundlesColumn: "Bundles",
+        unavailable: "暂无",
+      }
+    : isJapanese
+      ? {
+          bundles: "バンドル",
+          presets: "プリセット",
+          flakeOutput: "Flake 出力",
+          package: "パッケージ",
+          version: "バージョン",
+          description: "説明",
+          homepage: "ホームページ",
+          defaultProfile: "デフォルトプロファイル",
+          bundlesColumn: "バンドル",
+          unavailable: "なし",
+        }
+      : {
+          bundles: "Bundles",
+          presets: "Presets",
+          flakeOutput: "Flake output",
+          package: "Package",
+          version: "Version",
+          description: "Description",
+          homepage: "Homepage",
+          defaultProfile: "Default profile",
+          bundlesColumn: "Bundles",
+          unavailable: "Not available",
+        };
+
+  const descriptionFor = (item: {
+    description: string | null;
+    descriptionZh: string | null;
+    descriptionJa: string | null;
+  }) =>
+    (isChinese
+      ? item.descriptionZh
+      : isJapanese
+        ? item.descriptionJa
+        : item.description) ?? text.unavailable;
+
+  const valueFor = (value: string | null) => value ?? text.unavailable;
+
+  return (
+    <>
+      <section className="catalog-section" aria-labelledby="bundles-heading">
+        <h2 id="bundles-heading">{text.bundles}</h2>
+        <div className="catalog-table-wrap">
+          <table className="catalog-table">
+            <thead>
+              <tr>
+                <th scope="col">{text.flakeOutput}</th>
+                <th scope="col">{text.package}</th>
+                <th scope="col">{text.version}</th>
+                <th scope="col">{text.description}</th>
+                <th scope="col">{text.homepage}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {catalog.bundles.map((bundle) => (
+                <tr key={bundle.name}>
+                  <td>
+                    <code>bundles.{bundle.name}</code>
+                  </td>
+                  <td>
+                    <code>{bundle.package}</code>
+                  </td>
+                  <td>{valueFor(bundle.version)}</td>
+                  <td>{descriptionFor(bundle)}</td>
+                  <td>
+                    {bundle.homepage ? (
+                      <a href={bundle.homepage}>{text.homepage}</a>
+                    ) : (
+                      text.unavailable
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="catalog-section" aria-labelledby="presets-heading">
+        <h2 id="presets-heading">{text.presets}</h2>
+        <div className="catalog-table-wrap">
+          <table className="catalog-table">
+            <thead>
+              <tr>
+                <th scope="col">{text.flakeOutput}</th>
+                <th scope="col">{text.package}</th>
+                <th scope="col">{text.defaultProfile}</th>
+                <th scope="col">{text.bundlesColumn}</th>
+                <th scope="col">{text.description}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {catalog.presets.map((preset) => (
+                <tr key={preset.name}>
+                  <td>
+                    <code>presets.{preset.name}</code>
+                  </td>
+                  <td>
+                    <code>{preset.package}</code>
+                  </td>
+                  <td>{valueFor(preset.defaultProfile)}</td>
+                  <td>
+                    {preset.bundles.length > 0 ? (
+                      <ul className="catalog-values">
+                        {preset.bundles.map((bundleName) => (
+                          <li key={bundleName}>
+                            <code>{bundleName}</code>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      text.unavailable
+                    )}
+                  </td>
+                  <td>{descriptionFor(preset)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </>
+  );
+}

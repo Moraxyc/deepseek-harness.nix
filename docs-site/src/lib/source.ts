@@ -1,41 +1,40 @@
-import { type CollectionEntry, getCollection } from "astro:content";
-import { defineI18n } from "fumadocs-core/i18n";
-import { structure, type StructuredData } from "fumadocs-core/mdx-plugins";
-import { loader, type StaticSource } from "fumadocs-core/source";
-import * as path from "node:path";
+import type { StructuredData } from "fumadocs-core/mdx-plugins";
+import { structure } from "fumadocs-core/mdx-plugins";
+import { loader } from "fumadocs-core/source";
+import { pageSchema } from "fumadocs-core/source/schema";
+import { defineDocs } from "fumadocs-mdx/macro";
+import { z } from "zod";
 import { catalog } from "@/data/catalog";
+import { i18n, type Locale } from "./i18n";
 
-export type Locale = "en" | "zh" | "ja";
+export { i18n, type Locale };
 
-export const i18n = defineI18n<Locale>({
-  languages: ["en", "zh", "ja"],
-  defaultLanguage: "en",
-  parser: "dir",
-  hideLocale: "default-locale",
-  fallbackLanguage: null,
+export const docs = defineDocs({
+  dir: "src/content/docs",
+  docs: {
+    async: false,
+    schema: pageSchema.extend({
+      tableOfContents: z.boolean().optional(),
+    }),
+  },
 });
 
-const basePath = import.meta.env.BASE_URL.split("/").filter(Boolean);
-
 export const source = loader({
-  source: await createSource(),
-  baseUrl: import.meta.env.BASE_URL.replace(/\/$/, ""),
+  source: docs.toFumadocsSource(),
+  baseUrl: "/",
   i18n,
-  url: (slugs, locale) => {
-    const localePath = locale === i18n.defaultLanguage ? [] : [locale];
-    return `/${[...basePath, ...localePath, ...slugs].join("/")}`;
-  },
 });
 
 const catalogSlug = "catalog";
 
 /** Includes generated catalog entries absent from the page's MDX body. */
 export function getStructuredData(
-  entry: CollectionEntry<"docs">,
-  locale: Locale,
+  page: NonNullable<ReturnType<typeof source.getPage>>,
 ): StructuredData {
-  const body = structure(entry.body ?? "");
-  if (entry.id.split("/").pop() !== catalogSlug) return body;
+  const body = page.data.structuredData;
+  if (page.slugs[page.slugs.length - 1] !== catalogSlug) return body;
+
+  const locale = (page.locale ?? i18n.defaultLanguage) as Locale;
   return {
     headings: body.headings,
     contents: [
@@ -97,40 +96,4 @@ function catalogParagraphs(locale: Locale): string[] {
       ),
     ),
   ];
-}
-
-async function createSource() {
-  const out: StaticSource<{
-    metaData: CollectionEntry<"meta">["data"];
-    pageData: CollectionEntry<"docs">["data"] & {
-      _raw: CollectionEntry<"docs">;
-    };
-  }> = {
-    files: [],
-  };
-
-  for (const page of await getCollection("docs")) {
-    const virtualPath = path.relative("src/content/docs", page.filePath!);
-
-    out.files.push({
-      type: "page",
-      path: virtualPath,
-      data: {
-        ...page.data,
-        _raw: page,
-      },
-    });
-  }
-
-  for (const meta of await getCollection("meta")) {
-    const virtualPath = path.relative("src/content/docs", meta.filePath!);
-
-    out.files.push({
-      type: "meta",
-      path: virtualPath,
-      data: meta.data,
-    });
-  }
-
-  return out;
 }

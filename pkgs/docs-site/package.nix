@@ -24,11 +24,12 @@ buildNpmPackage (finalAttrs: {
   src = lib.fileset.toSource {
     root = ../../docs-site;
     fileset = lib.fileset.unions [
-      ../../docs-site/astro.config.mjs
       ../../docs-site/package-lock.json
       ../../docs-site/package.json
+      ../../docs-site/react-router.config.ts
       ../../docs-site/src
       ../../docs-site/tsconfig.json
+      ../../docs-site/vite.config.ts
     ];
   };
 
@@ -41,7 +42,7 @@ buildNpmPackage (finalAttrs: {
   postPatch = "cp ${catalogSource} src/data/catalog.generated.ts";
 
   installPhase = ''
-    cp -r dist $out
+    cp -r build/client $out
   '';
 
   doInstallCheck = true;
