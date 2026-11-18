@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Runs a tool from scripts/default.nix for callers that need a repository file,
+# such as fetchrix hooks: scripts/nix-run TOOL [ARG...]
+set -euo pipefail
+exec nix run "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/..#tools.${1:?usage: nix-run TOOL [ARG...]}" -- "${@:2}"

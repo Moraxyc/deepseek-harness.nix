@@ -57,14 +57,7 @@ buildDshBundle (finalAttrs: {
     mv package.json.tmp package.json
 
     # The pnpm install reads the source lockfile, so it needs the same peers.
-    yq -i '
-      .importers.".".devDependencies |= with_entries(
-        select(
-          (.key | test("^@deepseek-ai/") | not)
-          or (.key | test("@deepseek-ai/(cordis|dsh-attachment|dsh-home-paths|dsh-llm|dsh-tools|dsh-web|schemastery)"))
-        )
-      )
-    ' pnpm-lock.yaml
+    yq -i --from-file ${./drop-dev-links.yq} pnpm-lock.yaml
 
     # dsh 0.1.6 types agent/created listeners as returning undefined, while
     # this release's inferred callback return is void.

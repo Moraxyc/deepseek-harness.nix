@@ -139,7 +139,7 @@ version = { source = "github-tag", repo = "V1ki/dsh-plugin-subscriptions", strip
 fetch = { type = "github", repo = "V1ki/dsh-plugin-subscriptions", tag = "v{version}" }
 
 [packages."bundles.subscriptions".prepare]
-steps = [{ type = "hook", run = ["./scripts/fetchrix-prepare.sh", "bundles.subscriptions"] }]
+steps = [{ type = "hook", run = ["scripts/nix-run", "fetchrix-prepare-subscriptions"], inputs = ["scripts/default.nix", "pkgs/bundles/subscriptions/drop-dev-links.yq"] }]
 artifacts."pnpm-lock.json" = { type = "json", path = "pnpm-lock.yaml", format = "yaml" }
 artifacts."pnpm-workspace.json" = { type = "json", path = "package.json", fields = ["/pnpm"] }
 
@@ -210,7 +210,7 @@ version = { source = "git", url = "https://github.com/anywhere-labs/deepseek-har
 fetch = { type = "github", repo = "anywhere-labs/deepseek-harness-desktop", rev = "{version}" }
 
 [packages."dsh-desktop-unofficial".prepare]
-steps = [{ type = "hook", run = ["./scripts/fetchrix-prepare.sh", "dsh-desktop-unofficial"] }]
+steps = [{ type = "hook", run = ["scripts/nix-run", "fetchrix-prepare-dsh-desktop-unofficial"], inputs = ["scripts/default.nix", "pkgs/dsh-desktop-unofficial/drop-file-entries.awk"] }]
 artifacts."missing-hashes.json" = { type = "file", path = ".fetchrix/missing-hashes.json" }
 
 [packages."dsh-desktop-unofficial".derive.yarnDepsHash]
@@ -224,7 +224,7 @@ version = { source = "github-tag", repo = "deepseek-ai/deepseek-harness", strip_
 fetch = { type = "github", repo = "deepseek-ai/deepseek-harness", tag = "dsh-v{version}" }
 
 [packages."dsh-workspace".prepare]
-steps = [{ type = "hook", run = ["./scripts/fetchrix-prepare.sh", "dsh-workspace"], inputs = ["scripts/generate-optional-bundles.sh"] }]
+steps = [{ type = "hook", run = ["scripts/nix-run", "fetchrix-prepare-dsh-workspace"], inputs = ["scripts/default.nix", "pkgs/dsh-workspace/fetchrix-prepare.sh", "scripts/generate-optional-bundles.sh"] }]
 artifacts."pnpm-lock.json" = { type = "json", path = "pnpm-lock.yaml", format = "yaml" }
 artifacts."pnpm-workspace.json" = { type = "json", path = "pnpm-workspace.yaml", format = "yaml" }
 artifacts."optional-bundles.json" = { type = "file", path = ".fetchrix/optional-bundles.json" }

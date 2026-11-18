@@ -22,6 +22,22 @@ Commit `_sources/` with the package changes. Fetchrix fingerprints hook programs
 and their declared `inputs`; list any other files a hook reads there. Use
 `fetchrix verify PACKAGE` to check packaging changes without updating versions.
 
+## Maintenance tools
+
+- Tools are defined in `scripts/default.nix` and run with
+  `nix run .#tools.<name>`. Each is a `writeShellApplication` with
+  `inheritPath = false`: it sees only its `runtimeInputs`, and shellcheck runs
+  when it builds.
+- Logic that serves one package lives next to it, such as
+  `pkgs/dsh-workspace/fetchrix-prepare.sh`. `scripts/` holds repository-wide
+  tools.
+- Bash runs commands. Transformations of JSON, lockfiles, or dependency graphs
+  go into Node `.mjs` modules that export their functions and have
+  `node --test` tests.
+- Fetchrix runs hooks as repository files, so a hook is
+  `scripts/nix-run TOOL`. List the tool's source files in `inputs`.
+- Add a flake check that runs a new tool against fixtures.
+
 ## Choosing a bundle builder
 
 Use the builder that matches where the bundle source comes from:

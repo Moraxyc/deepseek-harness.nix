@@ -1,7 +1,12 @@
 { ... }:
 {
   perSystem =
-    { lib, pkgs, ... }:
+    {
+      lib,
+      pkgs,
+      self',
+      ...
+    }:
     let
       config = lib.importTOML ../../../../fetchrix.toml;
       locked = lib.importJSON ../../../../_sources/lock.json;
@@ -26,10 +31,6 @@
       prepared = pkgs.applyPatches {
         src = package.src;
         inherit (package.npmDeps) postPatch nativeBuildInputs;
-      };
-      hookSource = lib.fileset.toSource {
-        root = ../../../..;
-        fileset = lib.fileset.unions [ ../../../../scripts/fetchrix-prepare.sh ];
       };
       artifactsExist = lib.all (
         name:
@@ -61,12 +62,8 @@
             jq -e 'has("scripts") == false and has("devDependencies") == false' \
               ${prepared}/package.json >/dev/null
 
-            export HOME="$TMPDIR/home"
-            export FETCHRIX_SOURCE="$TMPDIR/source"
-            # The hook re-executes itself under `nix shell`; the check provides yq.
-            export FETCHRIX_PREPARE_TOOLS=1
-            mkdir -p "$HOME" "$FETCHRIX_SOURCE"
-            cat > "$FETCHRIX_SOURCE/pnpm-lock.yaml" <<'YAML'
+            mkdir source
+            cat > source/pnpm-lock.yaml <<'YAML'
             lockfileVersion: '9.0'
             importers:
               .:
@@ -74,8 +71,8 @@
                   '@deepseek-ai/dsh': {specifier: 'link:/external', version: 'link:/external'}
                   typescript: {specifier: '5.0.0', version: '5.0.0'}
             YAML
-            bash ${hookSource}/scripts/fetchrix-prepare.sh bundles.subscriptions
-            yq -o json '.importers.".".devDependencies' "$FETCHRIX_SOURCE/pnpm-lock.yaml" \
+            (cd source && ${lib.getExe self'.legacyPackages.tools.fetchrix-prepare-subscriptions})
+            yq -o json '.importers.".".devDependencies' source/pnpm-lock.yaml \
               | jq -e 'keys == ["typescript"]' >/dev/null
             touch "$out"
           '';

@@ -1,12 +1,9 @@
-#!/usr/bin/env nix-shell
-#!nix-shell -i bash -p coreutils diffutils findutils gawk gnugrep gnused jq
 # shellcheck shell=bash
-set -euo pipefail
+# Packaged by scripts/default.nix; run with `nix run .#tools.generate-optional-bundles`.
 
-usage='usage: generate-optional-bundles.sh <upstream-source-root> [output]'
+usage='usage: generate-optional-bundles <upstream-source-root> <output>'
 src=${1?"$usage"}
-repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-dest=${2:-"$repo_root/_sources/dsh-workspace/optional-bundles.json"}
+dest=${2?"$usage"}
 
 fail() {
   printf 'generate-optional-bundles: %s\n' "$1" >&2
@@ -101,9 +98,6 @@ while IFS= read -r package_name; do
 
   pname="${package_name##*/}"
   attr="${pname#dsh-}"
-  if [ -e "$repo_root/pkgs/bundles/$attr" ]; then
-    fail "generated bundle $attr collides with pkgs/bundles/$attr"
-  fi
 
   description="$(jq -r '.meta.description // empty' "$dir/locale/en.json" 2>/dev/null || true)"
   description_zh="$(jq -r '.meta.description // empty' "$dir/locale/zh.json" 2>/dev/null || true)"

@@ -44,11 +44,7 @@ stdenv.mkDerivation (finalAttrs: {
 
           yarnLock=''${yarnLock:=$PWD/yarn.lock}
           filteredLock=$(mktemp)
-          awk '
-            /^".*@file:/ { skip = 1; next }
-            skip && /^$/ { skip = 0; next }
-            !skip { print }
-          ' "$yarnLock" > "$filteredLock"
+          awk -f ${./drop-file-entries.awk} "$yarnLock" > "$filteredLock"
           yarn-berry-fetcher fetch "$filteredLock" "$missingHashes"
           cp "$yarnLock" "$out/yarn.lock"
 

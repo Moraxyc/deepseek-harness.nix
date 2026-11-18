@@ -2,7 +2,7 @@
 
 {
   perSystem =
-    { pkgs, ... }:
+    { pkgs, self', ... }:
     let
       optionalBundlesManifest =
         lib.importJSON
@@ -83,13 +83,6 @@
           await ctx.fiber.dispose()
         }
       '';
-      generatorSource = lib.fileset.toSource {
-        root = ../../../..;
-        fileset = lib.fileset.unions [
-          ../../../../scripts/generate-optional-bundles.sh
-          ../../../../pkgs/bundles
-        ];
-      };
     in
     {
       checks.dsh-worktree-runtime = pkgs.runCommand "dsh-worktree-runtime" { } ''
@@ -109,8 +102,7 @@
       checks.dsh-optional-bundles-generated =
         pkgs.runCommand "dsh-optional-bundles-generated" { nativeBuildInputs = [ pkgs.jq ]; }
           ''
-            bash ${generatorSource}/scripts/generate-optional-bundles.sh \
-              ${pkgs.dsh.dsh-workspace.src} generated.json
+            ${lib.getExe self'.legacyPackages.tools.generate-optional-bundles} ${pkgs.dsh.dsh-workspace.src} generated.json
             jq '.' generated.json > generated.fmt.json
             jq '.' ${
               pkgs.dsh.dshSources.dsh-workspace.artifacts."optional-bundles.json"

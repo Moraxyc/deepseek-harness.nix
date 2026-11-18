@@ -19,6 +19,19 @@ JSON 产物负责 YAML 转换和字段提取。`fetchrixPackages` 将新的
 内容；hook 读取的其他文件应列入 `inputs`。可用 `fetchrix verify PACKAGE`
 在不更新版本的情况下验证打包改动。
 
+## 维护工具
+
+- 工具在 `scripts/default.nix` 中定义，用 `nix run .#tools.<name>` 运行。每个工具都是
+  `inheritPath = false` 的 `writeShellApplication`：只能看到自己的
+  `runtimeInputs`，构建时运行 shellcheck。
+- 只服务于一个包的逻辑放在该包旁边，例如 `pkgs/dsh-workspace/fetchrix-prepare.sh`。
+  `scripts/` 只放仓库级工具。
+- Bash 负责调用命令。JSON、lockfile 或依赖图的转换写成 Node `.mjs` 模块，导出函数，
+  并配 `node --test` 测试。
+- fetchrix 以仓库文件运行 hook，因此 hook 写作 `scripts/nix-run TOOL`，并把工具的
+  源文件列入 `inputs`。
+- 新工具需配一个用 fixture 运行它的 flake check。
+
 ## 选择 bundle builder
 
 按 bundle 来源选择 builder：

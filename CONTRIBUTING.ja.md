@@ -19,6 +19,19 @@ JSON 生成物が YAML 変換とフィールド抽出を行います。`fetchrix
 宣言された `inputs` の内容を追跡します。hook が読む追加ファイルは `inputs` に列挙します。
 `fetchrix verify PACKAGE` はバージョンを更新せずにパッケージ変更を検証できます。
 
+## メンテナンスツール
+
+- ツールは `scripts/default.nix` で定義し、`nix run .#tools.<name>` で実行します。
+  各ツールは `inheritPath = false` の `writeShellApplication` で、自身の
+  `runtimeInputs` だけを参照し、ビルド時に shellcheck が実行されます。
+- 1 つのパッケージだけに関わる処理は、`pkgs/dsh-workspace/fetchrix-prepare.sh`
+  のようにそのパッケージの隣に置きます。`scripts/` にはリポジトリ全体のツールだけを置きます。
+- Bash はコマンドの実行を担います。JSON、lockfile、依存グラフの変換は関数を export
+  する Node `.mjs` モジュールにし、`node --test` のテストを付けます。
+- fetchrix は hook をリポジトリ内のファイルとして実行するため、hook は
+  `scripts/nix-run TOOL` とし、ツールのソースファイルを `inputs` に列挙します。
+- 新しいツールには、fixture で実行する flake check を追加します。
+
 ## バンドルビルダーの選択
 
 バンドルのソースの由来に応じたビルダーを使用してください。

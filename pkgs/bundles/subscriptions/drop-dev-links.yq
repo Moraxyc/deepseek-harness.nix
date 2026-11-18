@@ -1,0 +1,8 @@
+# The release lockfile links @deepseek-ai dev dependencies to the author's
+# checkout. Keep only those that are also peers; the installation supplies them.
+.importers.".".devDependencies |= with_entries(
+  select(
+    (.key | test("^@deepseek-ai/") | not)
+    or (.key | test("@deepseek-ai/(cordis|dsh-attachment|dsh-home-paths|dsh-llm|dsh-tools|dsh-web|schemastery)"))
+  )
+)
