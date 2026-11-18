@@ -242,19 +242,19 @@
     },
     "bundles.remote": {
       "pname": "dsh-remote",
-      "version": "1.2.0",
-      "rawVersion": "1.2.0",
-      "date": "2026-11-15",
+      "version": "1.2.1",
+      "rawVersion": "1.2.1",
+      "date": "2026-11-18",
       "src": {
         "fetcher": "github",
         "owner": "flymysql",
         "repo": "dsh-remote",
-        "tag": "v1.2.0",
-        "hash": "sha256-Qy3zKwSBto/qRMePI9FgcxBuyDyPByt6uI/UD3gJ4go="
+        "tag": "v1.2.1",
+        "hash": "sha256-6KK4h9AGokV/Gbp3MZXKs06iCthUf6l55HfsT7SmJGU="
       },
       "derived": {
         "npmDepsHash": {
-          "hash": "sha256-eeJqJo0QgX7xMl/AMZ7REKvxr6376Ge0dL+SPAijVko="
+          "hash": "sha256-ALzP2QSxxGv3W7ySUewOtDdUQ5tjbtu+CVyW69O31jk="
         }
       },
       "fingerprint": "sha256-MgDuKq8if6am5/340WDABCrw8PktH0Wul0c05Gf/020="
