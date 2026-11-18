@@ -45,11 +45,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Free disk space for Nix
+        uses: wimpysworld/nothing-but-nix@v12
+
       - name: Install Nix
         uses: cachix/install-nix-action@v31
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
-          extra_nix_config: accept-flake-config = true
+          # nothing-but-nix creates /nix/build on Linux only.
+          extra_nix_config: |
+            accept-flake-config = true
+            ${{ runner.os == 'Linux' && 'build-dir = /nix/build' || '' }}
 
       - name: Configure Cachix
         uses: cachix/cachix-action@v17

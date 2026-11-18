@@ -35,12 +35,16 @@ jobs:
     name: Build documentation site
     runs-on: ubuntu-latest
     steps:
+      - name: Free disk space for Nix
+        uses: wimpysworld/nothing-but-nix@v12
+
       - name: Install Nix
         uses: cachix/install-nix-action@v31
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           extra_nix_config: |
             accept-flake-config = true
+            build-dir = /nix/build
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
       - name: Build site with Nix

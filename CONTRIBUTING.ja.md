@@ -33,7 +33,7 @@ JSON 生成物が YAML 変換とフィールド抽出を行います。`fetchrix
 - 新しいツールには、fixture で実行する flake check を追加します。ツールは
   `scripts/default.nix` の引数から `nix` と `gh` を受け取るため、check では代替を渡せます。
 - workflow は `nix run .#tools.<name>` でツールを呼び出すため、CI でもローカルと同じ
-  環境で動きます。
+  環境で動きます。`nothing-but-nix` は Nix store のために runner のディスクを空けます。
 
 ## バンドルビルダーの選択
 

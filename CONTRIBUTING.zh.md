@@ -33,6 +33,7 @@ JSON 产物负责 YAML 转换和字段提取。`fetchrixPackages` 将新的
 - 新工具需配一个用 fixture 运行它的 flake check。工具通过 `scripts/default.nix`
   的参数获得 `nix` 和 `gh`，check 可以传入替身。
 - workflow 以 `nix run .#tools.<name>` 调用工具，CI 与本地运行环境一致。
+  `nothing-but-nix` 为 Nix store 腾出 runner 磁盘空间。
 
 ## 选择 bundle builder
 

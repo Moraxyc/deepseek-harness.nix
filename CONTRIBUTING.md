@@ -39,7 +39,7 @@ and their declared `inputs`; list any other files a hook reads there. Use
 - Add a flake check that runs a new tool against fixtures. Tools get `nix` and
   `gh` from the arguments of `scripts/default.nix`, so a check can pass fakes.
 - Workflows call tools with `nix run .#tools.<name>`, so a tool runs the same in
-  CI as locally.
+  CI as locally. `nothing-but-nix` frees the runner disk for the Nix store.
 
 ## Choosing a bundle builder
 

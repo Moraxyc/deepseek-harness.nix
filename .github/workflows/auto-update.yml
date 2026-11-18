@@ -25,6 +25,9 @@ jobs:
         with:
           ref: main
 
+      - name: Free disk space for Nix
+        uses: wimpysworld/nothing-but-nix@v12
+
       - name: Install Nix
         uses: cachix/install-nix-action@v31
         with:
@@ -33,6 +36,7 @@ jobs:
           # Rust dependencies and output.
           extra_nix_config: |
             accept-flake-config = true
+            build-dir = /nix/build
             extra-substituters = https://nix-cache.qaq.li/fetchrix
             extra-trusted-public-keys = fetchrix:VDPvJo80cjEoWiPDXAKKrNu3RXet40rlcXFZFvbsscM=
 
@@ -134,6 +138,9 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Free disk space for Nix
+        uses: wimpysworld/nothing-but-nix@v12
+
       - name: Install Nix
         uses: cachix/install-nix-action@v31
         with:
@@ -142,6 +149,7 @@ jobs:
           # Rust dependencies and output.
           extra_nix_config: |
             accept-flake-config = true
+            build-dir = /nix/build
             extra-substituters = https://nix-cache.qaq.li/fetchrix
             extra-trusted-public-keys = fetchrix:VDPvJo80cjEoWiPDXAKKrNu3RXet40rlcXFZFvbsscM=
 
@@ -490,11 +498,16 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Free disk space for Nix
+        if: steps.collected.outputs.found == 'true'
+        uses: wimpysworld/nothing-but-nix@v12
+
       - name: Install Nix
         if: steps.collected.outputs.found == 'true'
         uses: cachix/install-nix-action@v31
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          extra_nix_config: build-dir = /nix/build
 
       - name: Generate GitHub App Token
         id: app-token
