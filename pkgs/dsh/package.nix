@@ -221,6 +221,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     writableTmpDirAsHomeHook
   ];
   dshBundleCheckProfiles = lib.concatStringsSep " " bundleCheckProfiles.all;
+  dshBundleCheckAcpProfiles = lib.concatStringsSep " " (bundleCheckProfiles.acp or [ ]);
   dshBundleCheckWebProfiles = lib.concatStringsSep " " bundleCheckProfiles.web;
   dshBundleCheckTtyProfiles = lib.concatStringsSep " " bundleCheckProfiles.tty;
   dshBundleCheckExternalBundles = lib.concatStringsSep " " (bundleCheckProfiles.external or [ ]);

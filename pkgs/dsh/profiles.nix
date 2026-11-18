@@ -174,11 +174,17 @@ let
     || profileNeedsTui profile
     || lib.any (bundle: bundle.passthru.requiresTty or false) (nixBundlesOf profile);
 
+  profileNeedsAcp =
+    profile:
+    (profile.requiresAcp or false)
+    || lib.any (bundle: bundle.passthru.requiresAcp or false) (nixBundlesOf profile);
+
   profileLayers =
     name: profile:
     let
       needsWeb = profileNeedsWeb profile;
       needsTui = profileNeedsTui profile;
+      needsAcp = profileNeedsAcp profile;
     in
     lib.unique (
       lib.optional needsWeb web-app
@@ -186,7 +192,7 @@ let
       # A profile manifest is independent from the runtime defaults. Keep
       # plain CLI profiles non-interactive instead of letting dsh fall back to
       # its interactive entrypoint during headless checks and service use.
-      ++ lib.optional (!needsWeb && !needsTui) headless
+      ++ lib.optional (!needsWeb && !needsTui && !needsAcp) headless
       ++ map (
         bundle:
         if lib.isString bundle then parseExternalBundle "profiles.${name}.bundles" bundle else bundle
@@ -727,6 +733,7 @@ let
           lib.concatMap (spec: map (layer: layer.name) spec.externalBundles) (lib.attrValues profileSpecs)
         );
         all = managedProfileNames;
+        acp = profileNamesWhere profileNeedsAcp;
         tty = profileNamesWhere profileNeedsTty;
         web = profileNamesWhere profileNeedsWeb;
       };

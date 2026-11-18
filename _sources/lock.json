@@ -1,6 +1,25 @@
 {
   "schema": 1,
   "packages": {
+    "bundles.acp-enhanced": {
+      "pname": "dsh-acp-enhanced",
+      "version": "0.11.2",
+      "rawVersion": "0.11.2",
+      "date": "2026-11-04",
+      "src": {
+        "fetcher": "github",
+        "owner": "grunmin",
+        "repo": "dsh-acp-enhanced",
+        "tag": "v0.11.2",
+        "hash": "sha256-okisHsWKtph28A81eu3ZLgPpu//8Y+LuV3jesSA4KYQ="
+      },
+      "derived": {
+        "pnpmDepsHash": {
+          "hash": "sha256-5HLbwdc1xPdeO0Mj0H534qhaay5hsBbx6dbfwzhfStk="
+        }
+      },
+      "fingerprint": "sha256-W+SBr6nsWcLlHIRIrTVjP43yrMICOI6xuj5w/HHAyIA="
+    },
     "bundles.ads": {
       "pname": "dsh-ads",
       "version": "0.1.6-unstable-2026-11-15",

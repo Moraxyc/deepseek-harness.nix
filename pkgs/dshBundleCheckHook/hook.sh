@@ -78,6 +78,11 @@ dshBundleCheckHook() {
     read -r -a webCheckArgs <<< "$dshBundleCheckWebArgs"
   fi
 
+  local -a acpProfiles=()
+  if [[ -n "${dshBundleCheckAcpProfiles-}" ]]; then
+    read -r -a acpProfiles <<< "$dshBundleCheckAcpProfiles"
+  fi
+
   local -a webProfiles=()
   if [[ -n "${dshBundleCheckWebProfiles-}" ]]; then
     read -r -a webProfiles <<< "$dshBundleCheckWebProfiles"
@@ -87,6 +92,14 @@ dshBundleCheckHook() {
   if [[ -n "${dshBundleCheckTtyProfiles-}" ]]; then
     read -r -a ttyProfiles <<< "$dshBundleCheckTtyProfiles"
   fi
+
+  is_acp_profile() {
+    local profile=$1 item
+    for item in "${acpProfiles[@]}"; do
+      [[ "$item" == "$profile" ]] && return 0
+    done
+    return 1
+  }
 
   is_tty_profile() {
     local profile=$1 item
@@ -101,6 +114,51 @@ dshBundleCheckHook() {
     for item in "${webProfiles[@]}"; do
       [[ "$item" == "$profile" ]] && return 0
     done
+    return 1
+  }
+
+  check_acp_profile() {
+    local profile=$1 logFile=$2
+    local fifo="$dshBundleCheckHome/$profile.acp.in"
+    local acpPid ready='' status=0
+    local initReq='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":1,"clientCapabilities":{},"clientInfo":{"name":"dsh-bundle-check","version":"0.1.0"}}}'
+
+    rm -f "$fifo"
+    mkfifo "$fifo"
+    exec 3<>"$fifo"
+    printf '%s\n' "$initReq" >&3
+    : >"$logFile"
+
+    DSH_HOME="$dshBundleCheckHome" DSH_TELEMETRY_DISABLED=1 \
+      timeout --signal=TERM --kill-after=2s "$dshBundleCheckTimeout" \
+      "$cmdProgram" --profile "$profile" <"$fifo" >"$logFile" 2>&1 &
+    acpPid=$!
+
+    while kill -0 "$acpPid" 2>/dev/null; do
+      if grep -Eq '^\{"jsonrpc":"2\.0","id":1,"result":' "$logFile"; then
+        ready=1
+        break
+      fi
+      sleep 0.1
+    done
+
+    exec 3>&-
+    rm -f "$fifo"
+
+    if [[ -n "$ready" ]]; then
+      kill "$acpPid" 2>/dev/null || true
+      wait "$acpPid" 2>/dev/null || true
+      cat "$logFile"
+      return 0
+    fi
+
+    wait "$acpPid" || status=$?
+    cat "$logFile" >&2
+    if [[ "$status" -eq 124 ]]; then
+      echo "dshBundleCheckHook: ACP endpoint for $profile was not ready within $dshBundleCheckTimeout seconds" >&2
+    else
+      echo "dshBundleCheckHook: $profile exited before ACP initialize completed (status $status)" >&2
+    fi
     return 1
   }
 
@@ -155,7 +213,9 @@ dshBundleCheckHook() {
     echo "dshBundleCheckHook: checking dsh profile $profile"
     logFile="$dshBundleCheckHome/$profile.log"
     status=0
-    if is_web_profile "$profile"; then
+    if is_acp_profile "$profile"; then
+      check_acp_profile "$profile" "$logFile" || status=$?
+    elif is_web_profile "$profile"; then
       check_web_profile "$profile" "$logFile" || status=$?
     elif is_tty_profile "$profile"; then
       if [[ "$(uname -s)" == Darwin ]]; then

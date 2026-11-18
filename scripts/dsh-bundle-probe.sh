@@ -72,6 +72,8 @@ let
           "tty"
         else if bundle.passthru.requiresTty or false then
           "tty-task"
+        else if bundle.passthru.requiresAcp or false then
+          "acp"
         else if bundle.passthru.requiresWeb or false then
           "web"
         else
@@ -109,6 +111,36 @@ run_profile() {
       env "${env[@]}" timeout $((DSH_PROBE_TIMEOUT + 15)) script -qefc \
         "timeout --signal=INT --kill-after=2s $DSH_PROBE_TIMEOUT $(printf '%q' "$out/bin/dsh") --profile nix-probe probe" \
         "$logFile" >/dev/null 2>&1 || status=$?
+      ;;
+    acp)
+      local fifo="$home/acp.in"
+      local pid ready=0
+      local initReq='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":1,"clientCapabilities":{},"clientInfo":{"name":"dsh-bundle-probe","version":"0.1.0"}}}'
+      rm -f "$fifo"
+      mkfifo "$fifo"
+      exec 3<>"$fifo"
+      printf '%s\n' "$initReq" >&3
+      : >"$logFile"
+      env "${env[@]}" timeout --signal=TERM --kill-after=2s "$DSH_PROBE_TIMEOUT" \
+        "$out/bin/dsh" --profile nix-probe <"$fifo" >"$logFile" 2>&1 &
+      pid=$!
+      while kill -0 "$pid" 2>/dev/null; do
+        if grep -Eq '^\{"jsonrpc":"2\.0","id":1,"result":' "$logFile"; then
+          ready=1
+          kill "$pid" 2>/dev/null || true
+          break
+        fi
+        sleep 0.2
+      done
+      exec 3>&-
+      rm -f "$fifo"
+      wait "$pid" || status=$?
+      if [ "$ready" -eq 1 ]; then
+        status=0
+      else
+        echo "dsh-bundle-probe: ACP endpoint never became ready" >>"$logFile"
+        [ "$status" -ne 0 ] || status=1
+      fi
       ;;
     web)
       env "${env[@]}" timeout --signal=TERM --kill-after=2s "$DSH_PROBE_TIMEOUT" \

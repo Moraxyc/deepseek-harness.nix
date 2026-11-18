@@ -1,3 +1,13 @@
+[packages."bundles.acp-enhanced"]
+pname = "dsh-acp-enhanced"
+version = { source = "github-tag", repo = "grunmin/dsh-acp-enhanced", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+$" }
+fetch = { type = "github", repo = "grunmin/dsh-acp-enhanced", tag = "v{version}" }
+
+[packages."bundles.acp-enhanced".derive.pnpmDepsHash]
+strategy = "fod"
+attr = ".#fetchrixPackages.\"bundles.acp-enhanced\""
+select = "pnpmDeps"
+
 [packages."bundles.ads"]
 pname = "dsh-ads"
 version = { source = "git", url = "https://github.com/Nagi-ovo/dsh-ads.git", unstable = { stable = { source = "github-tag", repo = "Nagi-ovo/dsh-ads", strip_prefix = "v", filter = "^v?[0-9]+\\.[0-9]+\\.[0-9]+.*$" } } }
