@@ -260,10 +260,8 @@
             }
             ''
               # The bundle check boots only listed profiles, so the runtime must
-              # list every profile with its tty/web class.
-              [ ${lib.escapeShellArg runtime.dshBundleCheckProfiles} = 'nix-tui nix-use' ]
-              [ ${lib.escapeShellArg runtime.dshBundleCheckTtyProfiles} = nix-tui ]
-              [ ${lib.escapeShellArg runtime.dshBundleCheckWebProfiles} = nix-use ]
+              # list every profile with its boot mode.
+              [ ${lib.escapeShellArg (builtins.toJSON runtime.bundleCheckProfiles.modes)} = '{"nix-tui":"tui","nix-use":"web"}' ]
 
               # The installation carries web-app; the profile links only the others.
               profile="${artifacts.profileTemplates}/nix-use"

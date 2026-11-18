@@ -163,11 +163,11 @@ deploy 命令使用上述参数和注入式 workspace 布局，这是受支持�
 `$deployPackagePath`，并保留共享的 `$out/lib/node_modules` 树。
 
 更新 `src.hash` 和 `pnpmDepsHash` 时，以 `nix build` 报告的哈希为准。
-组合后的 `dsh` 在 `installCheckPhase` 通过 `dshBundleCheckHook` 启动每个
+组合后的 `dsh` 在 `installCheckPhase` 通过 `dsh-profile-smoke` 启动每个
 托管 profile，可提前发现重复 loader ID、无效补丁、缺失安装 peer 和包解析
-失败。交互式终端循环 profile 可设置 `requiresTty = true`；hook 会在伪终端下
-运行，并视存活 smoke 窗口为启动成功。dsh 输出 `skipping profile bundle` 或
-`disabling profile plugin` 时 hook 同样失败，例如 bundle 的 `engines.dsh` 或
+失败。交互式终端循环 profile 可设置 `requiresTty = true`；检查会在伪终端下
+运行，并视存活 smoke 窗口为启动成功。dsh 输出 `skipping profile bundle`、
+`disabling profile plugin` 或有插件未激活时，检查同样失败，例如 bundle 的 `engines.dsh` 或
 `@deepseek-ai/dsh-*` peer 范围不包含当前运行时版本。针对该运行时验证
 bundle 后，在其表达式中设置 `dshEngines = "<version>"`；builder 会将其写入
 `engines.dsh`，dsh 随后不再检查 peer 范围。
@@ -377,7 +377,7 @@ in
   构建和沙箱启动检查，不使用兼容性豁免。失败候选会还原，更新改为走 PR 而不是 main；
   通过的候选会在最终工作区中再次一起检查，成功后才保留授权。这些检查覆盖启动和加载，
   不代表所有功能或 provider 均兼容。
-- `scripts/dsh-bundle-probe.sh --all` 在独立 profile 中逐个启动 bundle，区分只是
+- `nix run .#tools.dsh-bundle-probe -- --all` 使用与构建相同的 `dsh-profile-smoke`，在独立 profile 中逐个启动 bundle，区分只是
   未通过 dsh 版本检查的 bundle 与运行时失败的 bundle。脚本启动时把工作区复制到 store，
   本次运行始终测试启动时的工作区内容。存在 `broken` 结果时，脚本以状态 1 退出。
 

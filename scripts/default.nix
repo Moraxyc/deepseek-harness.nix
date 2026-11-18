@@ -31,6 +31,21 @@ rec {
     text = builtins.readFile ./generate-optional-bundles.sh;
   };
 
+  dsh-bundle-probe = tool {
+    name = "dsh-bundle-probe";
+    description = "Boot every bundle in its own profile and classify it as ok, gate-only, or broken";
+    runtimeInputs = with pkgs; [
+      coreutils
+      gitMinimal
+      gnugrep
+      gnused
+      jq
+      nix
+      dsh.dsh-profile-smoke
+    ];
+    text = builtins.readFile ./dsh-bundle-probe.sh;
+  };
+
   fetchrix-prepare-dsh-workspace = tool {
     name = "fetchrix-prepare-dsh-workspace";
     description = "Fetchrix prepare hook for dsh-workspace";

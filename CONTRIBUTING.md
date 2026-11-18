@@ -188,12 +188,13 @@ place.
 
 Update `src.hash` and `pnpmDepsHash` with the hashes reported by `nix build`.
 The composed `dsh` package boots every managed profile during `installCheckPhase`
-through `dshBundleCheckHook`; use that to catch duplicate loader entry IDs,
+through `dsh-profile-smoke`; use that to catch duplicate loader entry IDs,
 invalid patches, missing installation peer imports, and package resolution failures
 before runtime. Profiles that stay in an interactive terminal loop can set
-`requiresTty = true`; the hook runs those under a pseudo-terminal and treats a
-live smoke window as a successful boot. The hook also fails when dsh reports
-`skipping profile bundle` or `disabling profile plugin`, for example when a
+`requiresTty = true`; the check runs those under a pseudo-terminal and treats a
+live smoke window as a successful boot. The check also fails when dsh reports
+`skipping profile bundle`, `disabling profile plugin`, or plugins that did not
+activate, for example when a
 bundle's `engines.dsh` or `@deepseek-ai/dsh-*` peer ranges exclude the pinned
 runtime. After verifying such a bundle against that runtime, set
 `dshEngines = "<version>"` in its expression; the builder writes it to
@@ -420,9 +421,9 @@ after updating the pin:
   are restored and the update goes to a pull request instead of main. Accepted
   candidates are checked together again before keeping their grants.
   These checks cover startup and loading, not every feature or provider.
-- `scripts/dsh-bundle-probe.sh --all` boots every bundle in its own profile and
+- `nix run .#tools.dsh-bundle-probe -- --all` boots every bundle in its own profile and
   separates bundles that only fail dsh's version check from bundles that fail
-  at runtime. The script copies the working tree to the store at startup, so a
+  at runtime. It runs the same `dsh-profile-smoke` as the build. The tool copies the working tree to the store at startup, so a
   run always tests the tree as it was at startup. Any `broken` result exits with
   status 1.
 

@@ -1,191 +1,83 @@
-#!/usr/bin/env nix-shell
-#!nix-shell -i bash -p coreutils curl gnugrep gnused jq nix util-linux
 # shellcheck shell=bash
-set -euo pipefail
+# Packaged by scripts/default.nix; run with `nix run .#tools.dsh-bundle-probe`.
 
 usage() {
   cat >&2 <<'EOF'
-usage: dsh-bundle-probe.sh [--all] [BUNDLE...]
+usage: dsh-bundle-probe [--all] [BUNDLE...]
 
-Boots each bundle in its own managed profile with an isolated HOME. TUI bundles
-open the chat screen, plain bundles run a one-shot task up to the provider
-request, and web bundles serve the web endpoint. Reports:
+Boots each bundle in its own managed profile (legacyPackages.bundleProbes)
+with an isolated HOME. TUI bundles open the chat screen, plain and tty bundles
+run a one-shot task up to the provider request, and web and ACP bundles serve
+their endpoint. Reports:
   ok         dsh mounts it and its rows without diagnostics
   gate-only  dsh rejects it only for unmet dsh requirements, and it boots once
              the profile exempts that exact version
   broken     it fails to boot or reports other diagnostics
 
-The profile check is disabled for these builds; this script performs it.
-TUI profiles run with a synthetic DEEPSEEK_API_KEY and an unreachable base URL.
+Run it from the repository; the working tree is copied to the store once at
+startup. Profiles run with a synthetic DEEPSEEK_API_KEY and an unreachable
+base URL. DSH_PROBE_TIMEOUT sets the boot timeout in seconds (default 20).
 EOF
   exit 2
 }
-
-repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$repo_root"
-system="$(nix eval --raw --impure --expr builtins.currentSystem)"
-# Copy the working tree to the store once; every build below reads that copy.
-flake_root="$(nix flake archive --json --no-write-lock-file "git+file://$repo_root" | jq -er .path)"
-
-attrs=()
-while [ "$#" -gt 0 ]; do
-  case "$1" in
-    --all)
-      mapfile -t -O "${#attrs[@]}" attrs < <(
-        nix eval --json "path:$flake_root#legacyPackages.$system.ciPackageAttrs.bundles" | jq -r 'keys[]'
-      )
-      ;;
-    -h | --help | -*) usage ;;
-    *) attrs+=("$1") ;;
-  esac
-  shift
-done
-[ "${#attrs[@]}" -gt 0 ] || usage
-
-: "${DSH_PROBE_TIMEOUT:=20}"
-results="${XDG_CACHE_HOME:-$HOME/.cache}/dsh-bundle-probe/$(date +%Y%m%d-%H%M%S)"
-mkdir -p "$results"
-work="$(mktemp -d)"
-trap 'rm -rf "$work"' EXIT
 
 log() {
   printf 'dsh-bundle-probe: %s\n' "$*" >&2
 }
 
-cat >"$work/probe.nix" <<EOF
-let
-  flake = builtins.getFlake "path:$flake_root";
-  dsh = flake.packages.$system.dsh;
-  bundles = flake.legacyPackages.$system.bundles;
-  compose =
-    attr:
-    let
-      bundle = bundles.\${attr};
-      composition = (dsh.withProfiles { probe.bundles = [ bundle ]; }).override {
-        defaultProfile = "nix-probe";
-      };
-    in
-    (composition.overrideAttrs { dontDshBundleCheck = true; })
-    // {
-      probeMode =
-        if bundle.passthru.requiresTui or false then
-          "tty"
-        else if bundle.passthru.requiresTty or false then
-          "tty-task"
-        else if bundle.passthru.requiresAcp or false then
-          "acp"
-        else if bundle.passthru.requiresWeb or false then
-          "web"
-        else
-          "plain";
-    };
-in
-builtins.listToAttrs (map (attr: { name = attr; value = compose attr; }) [ $(printf '"%s" ' "${attrs[@]}")])
-EOF
+all=0
+attrs=()
+for arg in "$@"; do
+  case "$arg" in
+    --all) all=1 ;;
+    -*) usage ;;
+    *) attrs+=("$arg") ;;
+  esac
+done
+
+repo_root=$(git rev-parse --show-toplevel)
+system=$(nix eval --raw --impure --expr builtins.currentSystem)
+flake="path:$(nix flake archive --json --no-write-lock-file "git+file://$repo_root" | jq -er .path)"
+probes="$flake#legacyPackages.$system.bundleProbes"
+
+modes=$(nix eval --json "$probes" --apply 'builtins.mapAttrs (_: p: p.passthru.bundleCheckProfiles.modes.nix-test)')
+if [ "$all" -eq 1 ]; then
+  mapfile -t -O "${#attrs[@]}" attrs < <(jq -r 'keys[]' <<<"$modes")
+fi
+[ "${#attrs[@]}" -gt 0 ] || usage
+
+: "${DSH_PROBE_TIMEOUT:=20}"
+results="${XDG_CACHE_HOME:-$HOME/.cache}/dsh-bundle-probe/$(date +%Y%m%d-%H%M%S)"
+mkdir -p "$results"
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
 
 log "building ${#attrs[@]} compositions"
-nix build --impure --no-link --keep-going -L --file "$work/probe.nix" "${attrs[@]}" \
-  >"$results/build.log" 2>&1 || log "some compositions failed to build; see $results/build.log"
+nix build --no-link --keep-going -L "${attrs[@]/#/$probes.}" >"$results/build.log" 2>&1 ||
+  log "some compositions failed to build; see $results/build.log"
 
-run_profile() {
+# Boots the composition at OUT in MODE; writes the dsh output to LOG and the
+# smoke result to LOG.smoke.
+probe() {
   local out=$1 mode=$2 home=$3 logFile=$4
-  local status=0
-  mkdir -p "$home"
-  local -a env=(
-    HOME="$home"
-    DSH_HOME="$home/dsh"
-    DSH_TELEMETRY_DISABLED=1
-    # Synthetic values; no request reaches a provider.
-    DEEPSEEK_API_KEY=sk-dsh-bundle-probe
-    DEEPSEEK_BASE_URL=http://127.0.0.1:9
-  )
+  local -a options=(--log "$logFile" --timeout "$DSH_PROBE_TIMEOUT") args=()
   case "$mode" in
-    tty)
-      # Escape dismisses first-run onboarding so the agent is created.
-      { sleep 8; printf '\033'; sleep "$DSH_PROBE_TIMEOUT"; } |
-        env "${env[@]}" timeout $((DSH_PROBE_TIMEOUT + 15)) script -qefc \
-          "timeout --signal=INT --kill-after=2s $DSH_PROBE_TIMEOUT $(printf '%q' "$out/bin/dsh") --profile nix-probe" \
-          "$logFile" >/dev/null 2>&1 || status=${PIPESTATUS[1]}
+    tui)
+      options+=(--dismiss-onboarding)
+      mode="tty"
       ;;
-    tty-task)
-      env "${env[@]}" timeout $((DSH_PROBE_TIMEOUT + 15)) script -qefc \
-        "timeout --signal=INT --kill-after=2s $DSH_PROBE_TIMEOUT $(printf '%q' "$out/bin/dsh") --profile nix-probe probe" \
-        "$logFile" >/dev/null 2>&1 || status=$?
-      ;;
-    acp)
-      local fifo="$home/acp.in"
-      local pid ready=0
-      local initReq='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":1,"clientCapabilities":{},"clientInfo":{"name":"dsh-bundle-probe","version":"0.1.0"}}}'
-      rm -f "$fifo"
-      mkfifo "$fifo"
-      exec 3<>"$fifo"
-      printf '%s\n' "$initReq" >&3
-      : >"$logFile"
-      env "${env[@]}" timeout --signal=TERM --kill-after=2s "$DSH_PROBE_TIMEOUT" \
-        "$out/bin/dsh" --profile nix-probe <"$fifo" >"$logFile" 2>&1 &
-      pid=$!
-      while kill -0 "$pid" 2>/dev/null; do
-        if grep -Eq '^\{"jsonrpc":"2\.0","id":1,"result":' "$logFile"; then
-          ready=1
-          kill "$pid" 2>/dev/null || true
-          break
-        fi
-        sleep 0.2
-      done
-      exec 3>&-
-      rm -f "$fifo"
-      wait "$pid" || status=$?
-      if [ "$ready" -eq 1 ]; then
-        status=0
-      else
-        echo "dsh-bundle-probe: ACP endpoint never became ready" >>"$logFile"
-        [ "$status" -ne 0 ] || status=1
-      fi
-      ;;
-    web)
-      env "${env[@]}" timeout --signal=TERM --kill-after=2s "$DSH_PROBE_TIMEOUT" \
-        "$out/bin/dsh" --profile nix-probe --no-open --port 0 >"$logFile" 2>&1 &
-      local pid=$! url='' ready=0
-      while kill -0 "$pid" 2>/dev/null; do
-        url="$(sed -n 's/.*dsh web: \([^ ]*\).*/\1/p' "$logFile" | head -n1)"
-        if [ -n "$url" ] && curl -fs -o /dev/null --noproxy '*' --max-time 1 "$url"; then
-          ready=1
-          kill "$pid" 2>/dev/null || true
-          break
-        fi
-        sleep 0.2
-      done
-      wait "$pid" || status=$?
-      if [ "$ready" -eq 1 ]; then
-        status=0
-      else
-        echo "dsh-bundle-probe: web endpoint never became ready" >>"$logFile"
-        [ "$status" -ne 0 ] || status=1
-      fi
-      ;;
-    plain)
+    plain | tty)
       # A one-shot task creates the agent; the request then fails at the
       # unreachable provider, which is the expected end of the boot.
-      env "${env[@]}" timeout "$DSH_PROBE_TIMEOUT" "$out/bin/dsh" --profile nix-probe probe \
-        >"$logFile" 2>&1 || status=$?
+      options+=(--until-provider)
+      args=(-- probe)
       ;;
   esac
-  case "$mode:$status" in
-    plain:1 | plain:124 | tty-task:1 | tty-task:124)
-      # Background exporters can keep a completed transport failure alive.
-      if grep -q 'dsh: TRANSPORT:' "$logFile"; then status=0; fi
-      ;;
-  esac
-  # A live interactive session at the deadline counts as a boot.
-  if [ "$mode" = tty ] && [ "$status" -eq 124 ]; then status=0; fi
-  echo "$status"
-}
-
-diagnostics() {
-  sed 's/\x1b\[[0-9;?<>=]*[a-zA-Z]//g; s/\x1b[()][AB0]//g; s/\x1b\][^\x07]*\x07//g' "$1" |
-    tr '\r' '\n' |
-    grep -E 'skipping profile bundle|disabling profile plugin|failed to import:|entries did not activate|startup failed|never started|web endpoint never' |
-    sort -u || true
+  mkdir -p "$home"
+  HOME="$home" DSH_HOME="$home/dsh" \
+    DEEPSEEK_API_KEY=sk-dsh-bundle-probe DEEPSEEK_BASE_URL=http://127.0.0.1:9 \
+    dsh-profile-smoke "${options[@]}" "$out/bin/dsh" nix-test "$mode" "${args[@]}" \
+    >/dev/null 2>"$logFile.smoke"
 }
 
 # Exact name@version keys dsh rejected for unmet dsh requirements.
@@ -195,42 +87,46 @@ rejected_versions() {
     sort -u || true
 }
 
+# The dropped rows when the smoke check reports them, otherwise its reason.
+detail() {
+  local reason
+  reason=$(tail -n1 "$1")
+  case "$reason" in
+    *'dropped a bundle or plugin row') head -n3 "$1" | cut -c1-160 | paste -sd ' ' - ;;
+    *) printf '%s\n' "${reason#dsh-profile-smoke: nix-test: }" ;;
+  esac | sed 's/|/\\|/g'
+}
+
 printf '| bundle | result | detail |\n| --- | --- | --- |\n' >"$results/summary.md"
 failed=0
 for attr in "${attrs[@]}"; do
-  out="$(nix eval --impure --raw --file "$work/probe.nix" "$attr.outPath" 2>/dev/null || true)"
-  if [ -z "$out" ] || [ ! -x "$out/bin/dsh" ]; then
+  mode=$(jq -r --arg attr "$attr" '.[$attr] // empty' <<<"$modes")
+  out=$(nix eval --raw "$probes.$attr.outPath" 2>/dev/null || true)
+  if [ -z "$mode" ] || [ ! -x "$out/bin/dsh" ]; then
     printf '| %s | broken | composition does not build |\n' "$attr" >>"$results/summary.md"
     failed=1
     continue
   fi
-  mode="$(nix eval --impure --raw --file "$work/probe.nix" "$attr.probeMode")"
   log "probing $attr ($mode)"
   home="$work/$attr"
-  status="$(run_profile "$out" "$mode" "$home" "$results/$attr.log")"
-  found="$(diagnostics "$results/$attr.log")"
-  if [ "$status" -eq 0 ] && [ -z "$found" ]; then
+  if probe "$out" "$mode" "$home" "$results/$attr.log"; then
     printf '| %s | ok | |\n' "$attr" >>"$results/summary.md"
     continue
   fi
 
-  rejected="$(rejected_versions "$results/$attr.log")"
+  rejected=$(rejected_versions "$results/$attr.log")
+  logFile="$results/$attr.log"
   if [ -n "$rejected" ]; then
     printf '%s\n' "$rejected" |
       jq -Rn '[inputs | split("\t") | {key: .[0], value: [.[1]]}] | from_entries' \
-        >"$home/dsh/profiles/nix-probe/compatibility.json"
-    status="$(run_profile "$out" "$mode" "$home" "$results/$attr.exempt.log")"
-    found_exempt="$(diagnostics "$results/$attr.exempt.log")"
-    if [ "$status" -eq 0 ] && [ -z "$found_exempt" ]; then
-      detail="$(printf '%s' "$rejected" | cut -f1 | paste -sd ' ' -)"
-      printf '| %s | gate-only | %s |\n' "$attr" "$detail" >>"$results/summary.md"
+        >"$home/dsh/profiles/nix-test/compatibility.json"
+    if probe "$out" "$mode" "$home" "$results/$attr.exempt.log"; then
+      printf '| %s | gate-only | %s |\n' "$attr" "$(cut -f1 <<<"$rejected" | paste -sd ' ' -)" >>"$results/summary.md"
       continue
     fi
-    found="$found_exempt"
+    logFile="$results/$attr.exempt.log"
   fi
-  detail="$(printf '%s' "$found" | cut -c1-160 | paste -sd ' ' - | sed 's/|/\\|/g')"
-  [ -n "$detail" ] || detail="exit status $status"
-  printf '| %s | broken | %s |\n' "$attr" "$detail" >>"$results/summary.md"
+  printf '| %s | broken | %s |\n' "$attr" "$(detail "$logFile.smoke")" >>"$results/summary.md"
   failed=1
 done
 

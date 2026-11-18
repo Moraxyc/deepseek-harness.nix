@@ -724,18 +724,27 @@ let
         }
       ) profiles;
       managedProfileNames = map (spec: spec.targetName) (lib.attrValues profileSpecs);
-      profileNamesWhere =
-        pred: lib.mapAttrsToList (name: _: profileName name) (lib.filterAttrs (_: pred) profiles);
-      # Profile classes for dshBundleCheckHook. Seeded runtimes carry no static
-      # profiles, so they receive these lists explicitly.
+      # How the install check boots each profile, keyed by profile name. Seeded
+      # runtimes carry no static profiles, so they receive this explicitly.
       bundleCheckProfiles = {
+        modes = lib.mapAttrs' (name: profile: {
+          name = profileName name;
+          value =
+            if profileNeedsAcp profile then
+              "acp"
+            else if profileNeedsWeb profile then
+              "web"
+            else if profileNeedsTui profile then
+              "tui"
+            else if profileNeedsTty profile then
+              "tty"
+            else
+              "plain";
+        }) profiles;
+        # External bundles need the network, so the sandboxed check skips them.
         external = lib.unique (
           lib.concatMap (spec: map (layer: layer.name) spec.externalBundles) (lib.attrValues profileSpecs)
         );
-        all = managedProfileNames;
-        acp = profileNamesWhere profileNeedsAcp;
-        tty = profileNamesWhere profileNeedsTty;
-        web = profileNamesWhere profileNeedsWeb;
       };
       validatedDefaultProfile =
         lib.throwIfNot (defaultProfile == null || lib.elem defaultProfile managedProfileNames)

@@ -24,7 +24,7 @@
         inherit importPnpmLock;
         fetchrixPackages = import ../../lib/fetchrix-packages.nix { inherit lib dsh; };
         tools = import ../../scripts { inherit pkgs; };
-        inherit bundleCompositions;
+        inherit bundleCompositions bundleProbes;
         allBundleCompositions = pkgs.linkFarm "all-compositions" (
           pkgs.lib.mapAttrsToList (name: drv: {
             inherit name;
@@ -65,12 +65,16 @@
         name: !(legacyPackages.bundles.${name}.passthru.dshInstallation or false)
       ) bundleNames;
       bundleCompositionAttrs = lib.genAttrs bundleCompositionNames (name: ".#bundleCompositions.${name}");
-      bundleCompositions = lib.genAttrs bundleCompositionNames (
+      composeBundle =
         name:
         (dsh.dsh.withProfiles {
           test.bundles = b: [ b.${name} ];
         }).override
-          { defaultProfile = "nix-test"; }
+          { defaultProfile = "nix-test"; };
+      bundleCompositions = lib.genAttrs bundleCompositionNames composeBundle;
+      # Every bundle composed without its install check, for tools.dsh-bundle-probe.
+      bundleProbes = lib.genAttrs bundleNames (
+        name: (composeBundle name).overrideAttrs { dontDshBundleCheck = true; }
       );
       usesBundle =
         package: bundleKey:

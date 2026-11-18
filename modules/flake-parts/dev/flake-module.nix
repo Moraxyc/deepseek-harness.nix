@@ -5,6 +5,7 @@
     ./shell.nix
     ./checks/bundle-helper.nix
     ./checks/cohort.nix
+    ./checks/dsh-profile-smoke.nix
     ./checks/dsh-service.nix
     ./checks/external-bundles.nix
     ./checks/fetchrix.nix

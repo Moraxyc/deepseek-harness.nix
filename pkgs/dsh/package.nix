@@ -1,7 +1,6 @@
 {
   lib,
   coreutils,
-  curl,
   diffutils,
   gnugrep,
   jq,
@@ -19,7 +18,7 @@
 
   buildDshBundle,
   dsh,
-  dshBundleCheckHook,
+  dsh-profile-smoke,
   dsh-runtime,
   mkDsh,
   writableTmpDirAsHomeHook,
@@ -95,6 +94,33 @@ let
       lib.throwIf (
         profileBundleCheckProfiles == null
       ) "dsh: profileSeeder requires profileBundleCheckProfiles" profileBundleCheckProfiles;
+  # TUI profiles stay interactive, so they only need to survive a short window.
+  # External bundles need the network, which the sandbox lacks.
+  bundleCheckCommand =
+    profile: mode:
+    lib.escapeShellArgs (
+      [
+        (lib.getExe dsh-profile-smoke)
+        "--log"
+        "${profile}.log"
+        "--timeout"
+        (if mode == "tui" || mode == "tty" then "15" else "60")
+      ]
+      ++ lib.concatMap (name: [
+        "--allow-skip"
+        name
+      ]) bundleCheckProfiles.external
+      ++ [
+        "${placeholder "out"}/bin/dsh"
+        profile
+        (if mode == "tui" then "tty" else mode)
+      ]
+      ++ lib.optionals (mode == "plain" || mode == "tui" || mode == "tty") [
+        "--"
+        "--help"
+      ]
+    )
+    + "\n";
   compositionConfig = {
     package = dsh;
     inherit
@@ -214,25 +240,25 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   __darwinAllowLocalNetworking = true;
   doInstallCheck = true;
-  nativeInstallCheckInputs = [
-    dshBundleCheckHook
-    curl
-    util-linux
-    writableTmpDirAsHomeHook
-  ];
-  dshBundleCheckProfiles = lib.concatStringsSep " " bundleCheckProfiles.all;
-  dshBundleCheckAcpProfiles = lib.concatStringsSep " " (bundleCheckProfiles.acp or [ ]);
-  dshBundleCheckWebProfiles = lib.concatStringsSep " " bundleCheckProfiles.web;
-  dshBundleCheckTtyProfiles = lib.concatStringsSep " " bundleCheckProfiles.tty;
-  dshBundleCheckExternalBundles = lib.concatStringsSep " " (bundleCheckProfiles.external or [ ]);
+  nativeInstallCheckInputs = [ writableTmpDirAsHomeHook ];
+  # Boots every managed profile; set dontDshBundleCheck to skip this for a
+  # flaky profile.
   installCheckPhase = ''
     runHook preInstallCheck
     DSH_HOME="$TMPDIR/dsh" "$out/bin/dsh" --version
+  ''
+  + lib.optionalString (bundleCheckProfiles.modes != { }) ''
+    if [ -z "''${dontDshBundleCheck-}" ]; then
+      export DSH_HOME="$TMPDIR/dsh-bundle-check" DSH_NIX_EXTERNAL_INSTALL=0
+      ${lib.concatStrings (lib.mapAttrsToList bundleCheckCommand bundleCheckProfiles.modes)}
+    fi
+  ''
+  + ''
     runHook postInstallCheck
   '';
 
   passthru = {
-    inherit bundles runtime;
+    inherit bundleCheckProfiles bundles runtime;
     inherit (runtime.passthru) runtimeDeps;
 
     config = builtins.removeAttrs compositionConfig [ "package" ];

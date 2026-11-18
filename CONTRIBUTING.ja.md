@@ -166,14 +166,14 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
 ファイルをそこへ移動します。
 
 `src.hash` と `pnpmDepsHash` は、`nix build` が報告したハッシュで更新してください。
-構成済みの `dsh` パッケージは、`installCheckPhase` の間に `dshBundleCheckHook` を
+構成済みの `dsh` パッケージは、`installCheckPhase` の間に `dsh-profile-smoke` を
 通じて管理対象のすべてのプロファイルを起動します。これを利用して、ローダーエントリー ID の
 重複、無効なパッチ、インストールの peer のインポート不足、パッケージ解決の失敗を、実行前に
 検出してください。対話型ターミナルのループ内にとどまるプロファイルでは、
-`requiresTty = true` を設定できます。フックはこれらを擬似端末の下で実行し、
+`requiresTty = true` を設定できます。チェックはこれらを擬似端末の下で実行し、
 スモークウィンドウが生存していれば起動成功とみなします。dsh が
-`skipping profile bundle` または `disabling profile plugin` を報告した場合も、
-フックは失敗します。たとえば、バンドルの `engines.dsh` や
+`skipping profile bundle`、`disabling profile plugin`、または有効化されなかった
+プラグインを報告した場合も、チェックは失敗します。たとえば、バンドルの `engines.dsh` や
 `@deepseek-ai/dsh-*` の peer 範囲が、固定されたランタイムを対象外としている場合です。
 そのランタイムに対してバンドルを検証した後は、その式に `dshEngines = "<version>"` を
 設定してください。ビルダーがこれを `engines.dsh` に書き込み、dsh は peer 範囲を
@@ -396,7 +396,7 @@ in
   なります。通過した候補は最終ワークスペースで再度まとめて確認され、その後も grant を
   保持します。これらのチェックは起動とロードを対象とし、すべての機能や provider の
   互換性を保証するものではありません。
-- `scripts/dsh-bundle-probe.sh --all` は、各バンドルをそれぞれ専用のプロファイルで
+- `nix run .#tools.dsh-bundle-probe -- --all` は、ビルドと同じ `dsh-profile-smoke` を使い、各バンドルをそれぞれ専用のプロファイルで
   起動し、dsh のバージョンチェックだけで失敗するバンドルと、実行時に失敗するバンドルを
   区別します。
 

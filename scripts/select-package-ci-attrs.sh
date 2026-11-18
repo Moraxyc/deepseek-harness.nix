@@ -10,7 +10,7 @@ system="$(nix eval --raw --impure --expr 'builtins.currentSystem')"
 package_set="$(nix eval --json ".#legacyPackages.${system}.ciPackageAttrs")"
 
 # A bundle build succeeds even when dsh would skip the bundle at runtime; its
-# composition boots it through dshBundleCheckHook.
+# composition boots it through dsh-profile-smoke.
 all_attrs() {
   jq -r '
     (.packages, .bundles, .presets, .bundleCompositions) | .[]
@@ -87,7 +87,7 @@ while IFS= read -r file; do
   case "$file" in
     lib/catalog.nix | fetchrix.toml)
       ;;
-    .github/workflows/package-ci.yml | default.nix | flake.nix | flake.lock | lib/* | modules/* | overlays/* | scripts/select-package-ci-attrs.sh | scripts/default.nix | scripts/nix-run | scripts/generate-optional-bundles.sh | _sources/dsh-workspace/* | pkgs/dsh-runtime/* | pkgs/dsh-workspace/* | pkgs/dshBundleCheckHook/* | pkgs/importPnpmLock/*)
+    .github/workflows/package-ci.yml | default.nix | flake.nix | flake.lock | lib/* | modules/* | overlays/* | scripts/select-package-ci-attrs.sh | scripts/default.nix | scripts/nix-run | scripts/generate-optional-bundles.sh | _sources/dsh-workspace/* | pkgs/dsh-runtime/* | pkgs/dsh-workspace/* | pkgs/dsh-profile-smoke/* | pkgs/importPnpmLock/*)
       global=1
       ;;
     _sources/lock.json)
