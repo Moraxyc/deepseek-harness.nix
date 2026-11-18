@@ -13,6 +13,8 @@ lib.mapAttrs (
   in
   package.override {
     dshSources = dsh.dshSources // {
+      # Locked hashes are replaced too: fetchrix only clears outputHash, while
+      # fetchNpmDeps grants network certificates only to a fake hash.
       ${name} =
         (dsh.dshSources.${name} or { }) // lib.mapAttrs (_: _: lib.fakeHash) spec.derive // source;
     };

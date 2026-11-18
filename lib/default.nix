@@ -33,6 +33,7 @@ in
       dshSources = (import ./fetchrix.nix { inherit lib; }).load {
         inherit pkgs;
         dir = ../_sources;
+        config = ../fetchrix.toml;
       };
       dshCohort = call ./dsh-cohort.nix;
       mkDsh = import ./mk-dsh.nix;
