@@ -602,8 +602,7 @@ Nixpkgs にオーバーレイを追加し、`pkgs.dsh` スコープを使用し�
   `pkgs.dsh.importPnpmLock`: `pnpm-lock.json` をベンダー化するバンドル用のフェッチャー。
   上流が `pnpm-workspace.json` を同梱している場合は、それにも対応します。
 
-`pkgs.dsh.dshWorkspacePatchHook` を含め、スコープ内のその他すべてのヘルパーは、
-内部的なビルド実装の詳細です。
+スコープ内のその他すべてのヘルパーは、内部的なビルド実装の詳細です。
 
 `importPnpmLock` は `lockfileJson` と `workspaceJson` を受け取ります。
 `pnpm-workspace.yaml` を書き込む際に `workspaceJson.packages` から `.` エントリを

@@ -611,7 +611,7 @@ if (
   build.workspaceGlobs.removed.length
 )
   actions.push(
-    `Review pnpm-workspace.yaml changes (${[...build.workspaceKeys, ...build.workspaceGlobs.added, ...build.workspaceGlobs.removed].join(", ")}) against importPnpmLock and dshWorkspacePatchHook.`,
+    `Review pnpm-workspace.yaml changes (${[...build.workspaceKeys, ...build.workspaceGlobs.added, ...build.workspaceGlobs.removed].join(", ")}) against importPnpmLock and pkgs/dsh-workspace/runtime-importer.mjs.`,
   );
 if (
   build.rootScripts.length ||

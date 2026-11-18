@@ -11,5 +11,6 @@
     ./checks/merge-check.nix
     ./checks/package-ci.nix
     ./checks/optional-bundles.nix
+    ./checks/runtime-importer.nix
   ];
 }

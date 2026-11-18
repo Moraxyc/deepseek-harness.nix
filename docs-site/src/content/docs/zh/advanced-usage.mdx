@@ -568,7 +568,7 @@ Darwin 下应用安装为 `Applications/DeepSeek Harness.app`，启动入口是
   `pkgs.dsh.importPnpmLock`：为通过 vendored `pnpm-lock.json`（上游提供时还有
   `pnpm-workspace.json`）取依赖的 Bundle 准备的 fetcher。
 
-scope 里其余 helper，包括 `pkgs.dsh.dshWorkspacePatchHook`，属于构建的内部实现。
+scope 里其余 helper 属于构建的内部实现。
 
 `importPnpmLock` 接收 `lockfileJson` 和 `workspaceJson`。它写
 `pnpm-workspace.yaml` 时会丢掉 `workspaceJson.packages` 里等于 `.` 的条目：

@@ -6,7 +6,6 @@
   fontconfig,
   importPnpmLock,
   jq,
-  dshWorkspacePatchHook,
   nodejs,
   nodejs-slim,
   patch,
@@ -54,9 +53,6 @@ buildNpmPackage (finalAttrs: {
   env = {
     DSH_CLIENT_COMMIT_HASH = lib.importJSON dshSources.dsh-workspace.artifacts."client-commit.json";
     PNPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS = "false";
-    DSH_WORKSPACE_OVERRIDES = "${writers.writeJSON "dsh-workspace-overrides.json" (
-      finalAttrs.pnpmDeps.passthru.workspaceConfig.overrides or { }
-    )}";
   }
   // lib.optionalAttrs cuaIsAvailable {
     # The signed CUA application and its receipt must retain identical bytes.
@@ -93,7 +89,15 @@ buildNpmPackage (finalAttrs: {
   '';
 
   preConfigure = ''
-    patchDshWorkspace runtime
+    yq -o=json pnpm-lock.yaml > "$TMPDIR/pnpm-lock.json"
+    node ${./runtime-importer.mjs} \
+      ${
+        writers.writeJSON "dsh-workspace-overrides.json" (
+          finalAttrs.pnpmDeps.passthru.workspaceConfig.overrides or { }
+        )
+      } \
+      "$TMPDIR/pnpm-lock.json" > "$TMPDIR/runtime-importer.json"
+    yq -i '.importers."apps/nix-runtime" = load(strenv(TMPDIR) + "/runtime-importer.json")' pnpm-lock.yaml
   ''
   + lib.optionalString isLinux ''
     # Match the patched tarball used to populate the offline dependency store.
@@ -137,7 +141,6 @@ buildNpmPackage (finalAttrs: {
     nodejs-slim.npm
     pnpmWorkspaceDeploy
     python3
-    dshWorkspacePatchHook
     yq-go
   ];
 

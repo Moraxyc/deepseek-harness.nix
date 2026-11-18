@@ -87,7 +87,7 @@ while IFS= read -r file; do
   case "$file" in
     lib/catalog.nix | fetchrix.toml)
       ;;
-    .github/workflows/package-ci.yml | default.nix | flake.nix | flake.lock | lib/* | modules/* | overlays/* | scripts/select-package-ci-attrs.sh | scripts/fetchrix-prepare.sh | scripts/generate-optional-bundles.sh | _sources/dsh-workspace/* | pkgs/dsh-runtime/* | pkgs/dsh-workspace/* | pkgs/dshBundleCheckHook/* | pkgs/dshWorkspacePatchHook/* | pkgs/importPnpmLock/*)
+    .github/workflows/package-ci.yml | default.nix | flake.nix | flake.lock | lib/* | modules/* | overlays/* | scripts/select-package-ci-attrs.sh | scripts/fetchrix-prepare.sh | scripts/generate-optional-bundles.sh | _sources/dsh-workspace/* | pkgs/dsh-runtime/* | pkgs/dsh-workspace/* | pkgs/dshBundleCheckHook/* | pkgs/importPnpmLock/*)
       global=1
       ;;
     _sources/lock.json)
