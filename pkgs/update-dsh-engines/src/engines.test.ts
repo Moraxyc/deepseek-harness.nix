@@ -8,25 +8,36 @@ import {
 } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import test from "node:test";
-import { updateEngines } from "./update-dsh-engines.mjs";
+import test, { type TestContext } from "node:test";
+import {
+  type Candidate,
+  type UpdateOptions,
+  updateEngines,
+} from "./engines.ts";
 
 const version = "0.2.2-rc.3";
 const oldVersion = "0.2.2-rc.2";
 
-function fixture(t, sources) {
+function fixture(t: TestContext, sources: Record<string, string>) {
   const root = mkdtempSync(path.join(os.tmpdir(), "dsh-engines-"));
   t.after(() => rmSync(root, { recursive: true, force: true }));
-  const file = (name) => path.join(root, "pkgs/bundles", name, "package.nix");
+  const file = (name: string) =>
+    path.join(root, "pkgs/bundles", name, "package.nix");
   for (const [name, source] of Object.entries(sources)) {
     mkdirSync(path.dirname(file(name)), { recursive: true });
     writeFileSync(file(name), source);
   }
   return {
     root,
-    read: (name) => readFileSync(file(name), "utf8"),
-    run: (options) =>
-      updateEngines({ root, version, report: () => {}, ...options }),
+    read: (name: string) => readFileSync(file(name), "utf8"),
+    run: (options: Partial<UpdateOptions>) =>
+      updateEngines({
+        root,
+        version,
+        bundles: [],
+        report: () => {},
+        ...options,
+      }),
   };
 }
 
@@ -36,11 +47,14 @@ const source = `{
   dshEngines = "${oldVersion}";
   version = "1.0.0";
 }\n`;
-const candidate = (name) => ({ name, dshEngines: oldVersion });
+const candidate = (name: string): Candidate => ({
+  name,
+  dshEngines: oldVersion,
+});
 
 test("writes an exact grant before the boot check and retains it only on success", (t) => {
   const f = fixture(t, { example: source });
-  const calls = [];
+  const calls: string[][] = [];
   assert.equal(
     f.run({
       bundles: [candidate("example")],
@@ -72,7 +86,7 @@ test("skips bundles without a grant and grants already at the workspace version"
 
 test("restores a failed candidate, keeps passing candidates, and reports failure", (t) => {
   const f = fixture(t, { broken: source, working: source });
-  const calls = [];
+  const calls: string[][] = [];
   assert.equal(
     f.run({
       bundles: [candidate("broken"), candidate("working")],

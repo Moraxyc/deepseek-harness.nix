@@ -25,9 +25,9 @@ buildNpmPackage (finalAttrs: {
   npmDeps = importNpmLock { npmRoot = finalAttrs.src; };
   npmConfigHook = importNpmLock.npmConfigHook;
 
-  # From nixpkgs: the npm package carries a native binary for every platform.
   nativeBuildInputs = [
     makeBinaryWrapper
+    # From nixpkgs: the npm package carries a native binary for every platform.
     typescript
   ];
 

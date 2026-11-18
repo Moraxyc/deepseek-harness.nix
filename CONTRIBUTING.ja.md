@@ -21,15 +21,17 @@ JSON 生成物が YAML 変換とフィールド抽出を行います。`fetchrix
 
 ## メンテナンスツール
 
-- ツールは `scripts/default.nix` で定義し、`nix run .#tools.<name>` で実行します。
-  各ツールは `inheritPath = false` の `writeShellApplication` で、自身の
+- ツールは `scripts/default.nix` が公開し、`nix run .#tools.<name>` で実行します。
+  シェルのツールは `inheritPath = false` の `writeShellApplication` で、自身の
   `runtimeInputs` だけを参照し、ビルド時に shellcheck が実行されます。
 - 1 つのパッケージだけに関わる処理は、`pkgs/dsh-workspace/fetchrix-prepare.sh`
   のようにそのパッケージの隣に置きます。`scripts/` にはリポジトリ全体のツールだけを置きます。
-- Bash はコマンドの実行を担います。JSON、lockfile、依存グラフの変換は関数を export
-  する Node `.mjs` モジュールにし、`node --test` のテストを付けます。型が必要な大きめの
-  ツールは `pkgs/dsh-bump-report` のように `pkgs/` 配下の TypeScript パッケージにし、
-  `buildNpmPackage` がビルド時に `tsc` でコンパイルしてテストを実行します。
+- Bash はコマンドの実行を担います。JSON、lockfile、依存グラフを変換するツールは
+  `pkgs/select-package-ci-attrs` のように `pkgs/` 配下の TypeScript パッケージにします。
+  `buildNpmPackage` がビルド時に `tsc` でコンパイルして `node --test` のテストを実行し、
+  `wrapProgram --set PATH` が実行時の依存だけに制限します。パッケージのビルド内での
+  変換は、そのパッケージの隣に置く Node `.mjs` モジュールのままとし、`node --test` の
+  テストを付けます。
 - fetchrix は hook をリポジトリ内のファイルとして実行するため、hook は
   `scripts/nix-run TOOL` とし、ツールのソースファイルを `inputs` に列挙します。
 - 新しいツールには、fixture で実行する flake check を追加します。ツールは

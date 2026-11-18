@@ -12,7 +12,9 @@
           (pkgs.callPackage (inputs.fetchrix + "/nix/package.nix") { })
           yarn-berry_4.yarn-berry-fetcher
           nixfmt
+          nodejs
           pre-commit
+          typescript
           yq-go
         ];
       };

@@ -1,9 +1,33 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
 
-function capture(command, args, cwd) {
+export interface Candidate {
+  name: string;
+  dshEngines: string | null;
+}
+
+export interface UpdateOptions {
+  root: string;
+  version: string;
+  bundles: Candidate[];
+  build?: (names: string[]) => boolean;
+  report?: (line: string) => void;
+}
+
+interface AstGrepMatch {
+  metaVariables: {
+    single: {
+      VALUE?: {
+        text: string;
+        range: { byteOffset: { start: number; end: number } };
+      };
+    };
+  };
+}
+
+// The stdout of a command that must succeed.
+export function capture(command: string, args: string[], cwd?: string): string {
   const result = spawnSync(command, args, {
     cwd,
     encoding: "utf8",
@@ -17,7 +41,7 @@ function capture(command, args, cwd) {
   return result.stdout;
 }
 
-function buildCompositions(root, names) {
+function buildCompositions(root: string, names: string[]): boolean {
   const result = spawnSync(
     "nix",
     [
@@ -40,13 +64,13 @@ export function updateEngines({
   bundles,
   build = (names) => buildCompositions(root, names),
   report = console.log,
-}) {
+}: UpdateOptions): boolean {
   if (!/^\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?$/.test(version))
     throw new Error(`Invalid workspace version: ${version}`);
 
   report(`## dshEngines compatibility / 兼容性 (${version})\n`);
   report("| bundle | result / 结果 |\n| --- | --- |");
-  const accepted = [];
+  const accepted: { name: string; file: string; original: Buffer }[] = [];
   let failed = false;
   for (const { name, dshEngines } of bundles) {
     if (dshEngines == null || dshEngines === version) continue;
@@ -68,9 +92,13 @@ export function updateEngines({
         ],
         root,
       ),
-    );
+    ) as AstGrepMatch[];
     const value = matches[0]?.metaVariables.single.VALUE;
-    if (matches.length !== 1 || value?.text !== JSON.stringify(dshEngines))
+    if (
+      matches.length !== 1 ||
+      value === undefined ||
+      value.text !== JSON.stringify(dshEngines)
+    )
       throw new Error(`${file}: expected one literal dshEngines declaration`);
 
     const original = readFileSync(file);
@@ -117,46 +145,4 @@ export function updateEngines({
     report("| — | no changes / 无需更新 |");
   }
   return !failed;
-}
-
-function main() {
-  const root = capture("git", ["rev-parse", "--show-toplevel"]).trim();
-  const name = process.argv[2];
-  if (process.argv.length > 3)
-    throw new Error("Expected at most one bundle name");
-  const metadata = JSON.parse(
-    capture(
-      "nix",
-      [
-        "eval",
-        "--impure",
-        "--json",
-        "--expr",
-        `let
-          f = import ./default.nix;
-          system = builtins.currentSystem;
-          packages = f.legacyPackages.\${system};
-        in {
-          version = f.packages.\${system}.dsh-workspace.version;
-          bundles = map (name: {
-            inherit name;
-            dshEngines = packages.bundles.\${name}.passthru.dshEngines or null;
-          }) (builtins.attrNames packages.ciPackageAttrs.bundleCompositions);
-        }`,
-      ],
-      root,
-    ),
-  );
-  if (name)
-    metadata.bundles = metadata.bundles.filter(
-      (bundle) => bundle.name === name,
-    );
-  if (!updateEngines({ root, ...metadata })) process.exitCode = 1;
-}
-
-if (
-  process.argv[1] &&
-  import.meta.url === pathToFileURL(process.argv[1]).href
-) {
-  main();
 }

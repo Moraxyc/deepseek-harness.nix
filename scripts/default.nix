@@ -1,5 +1,5 @@
 # Repository maintenance tools, exposed as `nix run .#tools.<name>`. Each tool sees
-# only its runtimeInputs on PATH, so it behaves the same on every machine. Checks
+# only its declared inputs on PATH, so it behaves the same on every machine. Checks
 # pass fakes for the external services nix and gh.
 {
   pkgs,
@@ -21,20 +21,7 @@ let
     };
 in
 rec {
-  generate-optional-bundles = tool {
-    name = "generate-optional-bundles";
-    description = "Generate optional-bundles.json from an upstream DeepSeek Harness source tree";
-    runtimeInputs = with pkgs; [
-      coreutils
-      diffutils
-      findutils
-      gawk
-      gnugrep
-      gnused
-      jq
-    ];
-    text = builtins.readFile ./generate-optional-bundles.sh;
-  };
+  inherit (pkgs.dsh) generate-optional-bundles;
 
   dsh-bundle-probe = tool {
     name = "dsh-bundle-probe";
@@ -51,18 +38,9 @@ rec {
     text = builtins.readFile ./dsh-bundle-probe.sh;
   };
 
-  inherit (pkgs.dsh) dsh-bump-report;
-
-  select-package-ci-attrs = tool {
-    name = "select-package-ci-attrs";
-    description = "Print the package attrs CI builds for the changes since a base ref";
-    runtimeInputs = with pkgs; [
-      gitMinimal
-      jq
-      nix
-    ];
-    text = builtins.readFile ./select-package-ci-attrs.sh;
-  };
+  dsh-bump-report = pkgs.dsh.dsh-bump-report.override { inherit nix; };
+  update-dsh-engines = pkgs.dsh.update-dsh-engines.override { inherit nix; };
+  select-package-ci-attrs = pkgs.dsh.select-package-ci-attrs.override { inherit nix; };
 
   publish-auto-updates = tool {
     name = "publish-auto-updates";
@@ -75,20 +53,6 @@ rec {
       gh
     ];
     text = builtins.readFile ./publish-auto-updates.sh;
-  };
-
-  update-dsh-engines = tool {
-    name = "update-dsh-engines";
-    description = "Raise each bundle's dshEngines grant to the pinned workspace version when its composition still boots";
-    runtimeInputs = with pkgs; [
-      ast-grep
-      gitMinimal
-      nodejs-slim
-      nix
-    ];
-    text = ''
-      exec node ${./update-dsh-engines.mjs} "$@"
-    '';
   };
 
   fetchrix-prepare-dsh-workspace = tool {

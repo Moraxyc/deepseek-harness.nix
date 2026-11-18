@@ -71,19 +71,7 @@
     in
     {
       checks.dsh-bump-report = config.legacyPackages.tools.dsh-bump-report;
-
-      checks.dsh-engines-update =
-        pkgs.runCommand "dsh-engines-update"
-          {
-            nativeBuildInputs = [
-              pkgs.nodejs
-              pkgs.ast-grep
-            ];
-          }
-          ''
-            node --test ${../../../../scripts}/update-dsh-engines.test.mjs
-            touch "$out"
-          '';
+      checks.update-dsh-engines = config.legacyPackages.tools.update-dsh-engines;
 
       checks.package-ci-selection =
         pkgs.runCommand "package-ci-selection"

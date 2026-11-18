@@ -24,18 +24,19 @@ and their declared `inputs`; list any other files a hook reads there. Use
 
 ## Maintenance tools
 
-- Tools are defined in `scripts/default.nix` and run with
-  `nix run .#tools.<name>`. Each is a `writeShellApplication` with
+- Tools are exposed by `scripts/default.nix` and run with
+  `nix run .#tools.<name>`. A shell tool is a `writeShellApplication` with
   `inheritPath = false`: it sees only its `runtimeInputs`, and shellcheck runs
   when it builds.
 - Logic that serves one package lives next to it, such as
   `pkgs/dsh-workspace/fetchrix-prepare.sh`. `scripts/` holds repository-wide
   tools.
-- Bash runs commands. Transformations of JSON, lockfiles, or dependency graphs
-  go into Node `.mjs` modules that export their functions and have
-  `node --test` tests. A tool large enough to need types is a TypeScript
-  package under `pkgs/`, such as `pkgs/dsh-bump-report`: `buildNpmPackage`
-  compiles it with `tsc` and runs its tests during the build.
+- Bash runs commands. A tool that transforms JSON, lockfiles, or dependency
+  graphs is a TypeScript package under `pkgs/`, such as
+  `pkgs/select-package-ci-attrs`: `buildNpmPackage` compiles it with `tsc` and
+  runs its `node --test` tests during the build, and `wrapProgram --set PATH`
+  limits it to its runtime inputs. Such transformations inside a package build
+  stay Node `.mjs` modules next to the package, with `node --test` tests.
 - Fetchrix runs hooks as repository files, so a hook is
   `scripts/nix-run TOOL`. List the tool's source files in `inputs`.
 - Add a flake check that runs a new tool against fixtures. Tools get `nix` and

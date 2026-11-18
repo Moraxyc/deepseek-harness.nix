@@ -21,14 +21,15 @@ JSON 产物负责 YAML 转换和字段提取。`fetchrixPackages` 将新的
 
 ## 维护工具
 
-- 工具在 `scripts/default.nix` 中定义，用 `nix run .#tools.<name>` 运行。每个工具都是
+- 工具由 `scripts/default.nix` 导出，用 `nix run .#tools.<name>` 运行。shell 工具是
   `inheritPath = false` 的 `writeShellApplication`：只能看到自己的
   `runtimeInputs`，构建时运行 shellcheck。
 - 只服务于一个包的逻辑放在该包旁边，例如 `pkgs/dsh-workspace/fetchrix-prepare.sh`。
   `scripts/` 只放仓库级工具。
-- Bash 负责调用命令。JSON、lockfile 或依赖图的转换写成 Node `.mjs` 模块，导出函数，
-  并配 `node --test` 测试。需要类型的较大工具写成 `pkgs/` 下的 TypeScript 包，例如
-  `pkgs/dsh-bump-report`：`buildNpmPackage` 在构建时用 `tsc` 编译并运行测试。
+- Bash 负责调用命令。转换 JSON、lockfile 或依赖图的工具写成 `pkgs/` 下的 TypeScript
+  包，例如 `pkgs/select-package-ci-attrs`：`buildNpmPackage` 在构建时用 `tsc` 编译并运行
+  `node --test` 测试，`wrapProgram --set PATH` 把它限制在自己的运行时依赖内。包构建
+  内部的此类转换仍是该包旁边的 Node `.mjs` 模块，并配 `node --test` 测试。
 - fetchrix 以仓库文件运行 hook，因此 hook 写作 `scripts/nix-run TOOL`，并把工具的
   源文件列入 `inputs`。
 - 新工具需配一个用 fixture 运行它的 flake check。工具通过 `scripts/default.nix`
