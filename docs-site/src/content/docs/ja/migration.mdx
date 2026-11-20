@@ -110,6 +110,16 @@ Oh-DSH ディストリビューションとそのプラグインセットは、
 これらのバンドルを削除しても、データディレクトリに書き込まれた内容は削除されません。
 切り替える前に `$DSH_HOME` または設定したデータディレクトリをバックアップしてください。
 
+## `0.2.2-rc.5`
+
+更新前に[上流のリリースノート](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.5)を読んでください。
+
+### Web 検索のデフォルト動作
+
+共有のベース構成は `web.searchProvider` を `deepseek-search-api` に固定しなくなりました。検索プロバイダーが未設定の場合、`dsh-web` は `deepseek-official` または `deepseek-account` ルート上の会話では `deepseek-official`（従来の Messages 検索、検索ごとの課金なしでモデルトークンとして課金）を、その他のルートでは `deepseek-search-api` を選択します。
+
+Messages 検索のエンドポイントはチャットモデルのベース URL とは独立しており、`web-search-deepseek.baseURL`、`$DEEPSEEK_SEARCH_BASE_URL`、または `https://api.deepseek.com/anthropic/v1` を使用します。DeepSeek モデルプロバイダーがゲートウェイを指している場合は、`deepseek-search-api` を選択するか、そのゲートウェイ向けに `web-search-deepseek.baseURL` を設定してください。
+
 ## `0.2.2-rc.3`
 
 更新前に[上流のリリースノート](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.3)を読んでください。
@@ -316,8 +326,8 @@ dsh はそれらを読み込んでいませんでした。現在では、これ�
 構成済みの `dsh` パッケージは、プロファイルがバンドルをスキップする、またはプラグイン行を
 無効化する場合に、ビルドが失敗するようになりました。`buildDshBundle` で独自のバンドルを
 パッケージ化し、使用する dsh バージョンとの互換性を検証済みの場合は、
-`dshEngines = "<version>"` を設定してください。ビルダーはこれを `engines.dsh` に書き込み、
-dsh はピアバージョン範囲の代わりにこの値を確認します。
+`overrideDshEngineVersion = true` を設定してください。ビルダーは `installation.version`
+を `engines.dsh` に書き込み、dsh はピアバージョン範囲の代わりにこの値を確認します。
 
 ## `0.2.1-alpha.2`
 

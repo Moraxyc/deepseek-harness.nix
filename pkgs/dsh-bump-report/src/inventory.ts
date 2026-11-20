@@ -64,7 +64,7 @@ export interface BundleEntry {
   out: string;
   src: string | null;
   srcDrv: string | null;
-  dshEngines: string | null;
+  overrideDshEngineVersion: boolean;
   workspace: boolean;
 }
 
@@ -338,6 +338,7 @@ export function bundleSource(entry: BundleEntry): BundleSource {
 export function bundleManifests(
   entry: BundleEntry,
   source: BundleSource = bundleSource(entry),
+  overrideVersion?: string,
 ): { dir: string; manifest: Manifest }[] {
   const root =
     source === "built"
@@ -356,9 +357,9 @@ export function bundleManifests(
       continue;
     }
     if (!manifest.dsh?.bundle) continue;
-    // The builder writes dshEngines into the built manifest.
-    if (source === "source" && entry.dshEngines)
-      manifest.engines = { ...manifest.engines, dsh: entry.dshEngines };
+    // The builder writes the target runtime version into engines.dsh when enabled.
+    if (entry.overrideDshEngineVersion && overrideVersion)
+      manifest.engines = { ...manifest.engines, dsh: overrideVersion };
     manifests.push({ dir: path.dirname(file), manifest });
   }
   return manifests;

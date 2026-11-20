@@ -71,7 +71,6 @@
     in
     {
       checks.dsh-bump-report = config.legacyPackages.tools.dsh-bump-report;
-      checks.update-dsh-engines = config.legacyPackages.tools.update-dsh-engines;
 
       checks.package-ci-selection =
         pkgs.runCommand "package-ci-selection"

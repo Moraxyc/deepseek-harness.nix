@@ -20,7 +20,6 @@ const UNTRACKED = [
   "lib/catalog.nix",
   "fetchrix.toml",
   "pkgs/dsh-bump-report/",
-  "pkgs/update-dsh-engines/",
 ];
 const GLOBAL_PATHS = [
   ".github/workflows/package-ci.yml",

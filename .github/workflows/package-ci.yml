@@ -71,8 +71,7 @@ jobs:
             .#checks.x86_64-linux.merge-check \
             .#checks.x86_64-linux.dsh-bump-report \
             .#checks.x86_64-linux.package-ci-selection \
-            .#checks.x86_64-linux.publish-auto-updates \
-            .#checks.x86_64-linux.update-dsh-engines
+            .#checks.x86_64-linux.publish-auto-updates
 
       - name: Check generated optional bundle manifest
         if: matrix.system == 'x86_64-linux'

@@ -35,7 +35,7 @@ const BUNDLES_EXPR = `packages:
       out = bundle.outPath;
       src = if src == null then null else src.outPath;
       srcDrv = if src == null then null else src.drvPath;
-      dshEngines = bundle.passthru.dshEngines or null;
+      overrideDshEngineVersion = bundle.passthru.overrideDshEngineVersion or false;
       workspace = (src.pname or null) == "dsh-workspace";
     }
   ) (builtins.attrNames packages.ciPackageAttrs.bundles)`;

@@ -96,6 +96,16 @@ profile 中删除 `@deepseek-ai/dsh-experimental-agent-team-profile`。
 跨会话记忆请选择 `bundles.mneme` 或 `bundles.mnemon`。删除 bundle 不会删除这些插件
 写入数据目录的内容；切换前请备份 `$DSH_HOME` 或所配置的数据目录。
 
+## `0.2.2-rc.5`
+
+升级前请阅读[上游发行说明](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.5)。
+
+### 网页搜索默认值
+
+共享基础组合不再将 `web.searchProvider` 固定为 `deepseek-search-api`。未显式配置搜索提供方时，`dsh-web` 现按模型路由自动选择：在 `deepseek-official` 与 `deepseek-account` 路由上的会话使用 `deepseek-official`（旧版 Messages 搜索，按模型 token 计费且不按次收费），其余路由仍使用 `deepseek-search-api`。
+
+Messages 搜索的端点独立于对话模型的基础地址，依次读取 `web-search-deepseek.baseURL`、`$DEEPSEEK_SEARCH_BASE_URL` 或默认 `https://api.deepseek.com/anthropic/v1`。若 DeepSeek 模型提供方指向网关，请在设置中选择 `deepseek-search-api`，或为网关单独配置 `web-search-deepseek.baseURL`。
+
 ## `0.2.2-rc.3`
 
 升级前请阅读[上游发行说明](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.3)。
@@ -281,8 +291,8 @@ bundle 的 `@deepseek-ai/dsh-*` peer 范围或 `engines.dsh` 不包含当前运�
 
 组合后的 `dsh` 包在 profile 会跳过 bundle 或禁用插件行时会构建失败。如果你用
 `buildDshBundle` 自行打包 bundle，并已针对所用的 dsh 版本验证过，可设置
-`dshEngines = "<version>"`；builder 会将其写入 `engines.dsh`，dsh 随后以此代替 peer
-范围进行检查。
+`overrideDshEngineVersion = true`；builder 会将 `installation.version` 写入
+`engines.dsh`，dsh 随后以此代替 peer 范围进行检查。
 
 ## `0.2.1-alpha.2`
 

@@ -203,8 +203,8 @@ live smoke window as a successful boot. The check also fails when dsh reports
 activate, for example when a
 bundle's `engines.dsh` or `@deepseek-ai/dsh-*` peer ranges exclude the pinned
 runtime. After verifying such a bundle against that runtime, set
-`dshEngines = "<version>"` in its expression; the builder writes it to
-`engines.dsh`, and dsh then ignores the peer ranges.
+`overrideDshEngineVersion = true` in its expression; the builder writes the
+pinned runtime version to `engines.dsh`, and dsh then ignores the peer ranges.
 The hook also fails on `failed to import:` or `entries did not activate` in the
 log, regardless of the web endpoint's response.
 
@@ -410,7 +410,7 @@ after updating the pin:
   accept each bundle. It is the work queue for the auto-update pull request.
 - The dsh-workspace auto-update run stops after
   `nix develop -c fetchrix update dsh-workspace` and opens a pull request. It
-  adds no `dshEngines` grants, runs no impact report and no validation builds,
+  adds no `overrideDshEngineVersion` grants, runs no impact report and no validation builds,
   uses `[skip ci]` to skip CI, and leaves auto-merge off. The bump is done
   only once a reviewer works through this section.
 - Other auto-updates collect validated updates and push them to main once using
@@ -420,12 +420,9 @@ after updating the pin:
   Generated fetchrix changes are committed unchanged even if the update command
   fails. Push the repair without `[skip ci]` to run CI. Update results and
   compatibility reports appear only in the publish job summary.
-- During bundle auto-updates, `tools.update-dsh-engines` tries the new
-  exact workspace version for the updated bundle when it declares
-  `dshEngines`. Each candidate must pass its `bundleCompositions` build and
-  sandboxed startup check without compatibility exemptions. Failed candidates
-  are restored and the update goes to a pull request instead of main. Accepted
-  candidates are checked together again before keeping their grants.
+- Bundles with `overrideDshEngineVersion = true` automatically track the pinned
+  runtime version and are checked on every bundle and runtime update through
+  their `bundleCompositions` build and sandboxed startup check.
   These checks cover startup and loading, not every feature or provider.
 - `nix run .#tools.dsh-bundle-probe -- --all` boots every bundle in its own profile and
   separates bundles that only fail dsh's version check from bundles that fail
