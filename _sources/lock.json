@@ -375,15 +375,15 @@
     },
     "bundles.web-ui": {
       "pname": "dsh-web-ui",
-      "version": "0.4.19",
-      "rawVersion": "0.4.19",
-      "date": "2026-11-16",
+      "version": "0.4.20",
+      "rawVersion": "0.4.20",
+      "date": "2026-11-20",
       "src": {
         "fetcher": "github",
         "owner": "zhu1090093659",
         "repo": "dsh-web-ui",
-        "tag": "v0.4.19",
-        "hash": "sha256-0wOVRHBoPsidSPKPyEplteC2hhYnEfet7+i5vlUTTwM="
+        "tag": "v0.4.20",
+        "hash": "sha256-1WUvVJZR95mXS+7TyFncc5TFTDnjcr5mLmVREWuDEPo="
       },
       "artifacts": {
         "package.json": "bundles.web-ui/package.json",
