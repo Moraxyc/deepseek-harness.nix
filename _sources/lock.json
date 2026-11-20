@@ -276,7 +276,7 @@
         "pnpm-lock.json": "bundles.subscriptions/pnpm-lock.json",
         "pnpm-workspace.json": "bundles.subscriptions/pnpm-workspace.json"
       },
-      "fingerprint": "sha256-M4RkcSTjoHQO7lDSh0/R81IltnVFtJ3n1fXQP2MTOOc="
+      "fingerprint": "sha256-z1pKyTx1pcqRKZ2RQlnhZkKpPFnZUVvqnxlOw5ZXahg="
     },
     "bundles.tui": {
       "pname": "dsh-tui",
