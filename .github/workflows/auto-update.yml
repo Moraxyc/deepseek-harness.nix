@@ -95,9 +95,10 @@ jobs:
                     attr: "",
                     label: "",
                     version: "",
-                    prOnly: false
+                    prOnly: false,
+                    evalOnly: true
                   }
-                ] + [ $result.updatable[] | { name: .name, title: "", attr: .attr, label: .label, version: .version, command: "", prOnly: .prOnly } ])
+                ] + [ $result.updatable[] | { name: .name, title: "", attr: .attr, label: .label, version: .version, command: "", prOnly: .prOnly, evalOnly: false } ])
               }'
           )"
 
@@ -298,15 +299,30 @@ jobs:
           echo "title=$title" >> "$GITHUB_OUTPUT"
 
       # The container check needs the uid-range feature, which GitHub runners
-      # cannot provide. Build what Package CI would build for the change instead.
+      # cannot provide. Build what Package CI would build for the change instead,
+      # except flake lock updates which only run evaluation here.
       - name: Validate update
         id: validate
         if: >-
           steps.changes.outputs.updated == 'true' && matrix.prOnly != true &&
           steps.package.outcome != 'failure' && steps.locks.outcome != 'failure'
         continue-on-error: true
+        env:
+          EVAL_ONLY: ${{ matrix.evalOnly }}
         run: |
           set -euo pipefail
+          if [ "${EVAL_ONLY:-false}" = true ]; then
+            nix flake check --no-build --all-systems
+            system="$(nix eval --raw --impure --expr builtins.currentSystem)"
+            mapfile -t eval_attrs < <(
+              nix eval --json ".#legacyPackages.${system}.ciPackageAttrs" |
+                jq -r '.packages[], .bundles[], .presets[], .bundleCompositions[]' |
+                sort -u
+            )
+            printf 'Evaluating %d package attrs\n' "${#eval_attrs[@]}"
+            nix path-info --derivation "${eval_attrs[@]}" >/dev/null
+            exit 0
+          fi
           git fetch --quiet origin main
           attrs="$(nix run .#tools.select-package-ci-attrs -- origin/main)"
           if [ -z "$attrs" ]; then
