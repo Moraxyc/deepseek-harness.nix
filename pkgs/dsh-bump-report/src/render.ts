@@ -116,12 +116,12 @@ export function renderMarkdown(report: Report): string {
     out.push(
       "Source rows read the fetched source without this repository's patches; build the bundle for exact results.",
       "",
-      "| bundle | version | source | dshEngines | gate | stale refs | stale rows |",
+      "| bundle | version | source | overrideDshEngineVersion | gate | stale refs | stale rows |",
       "| --- | --- | --- | --- | --- | --- | --- |",
     );
     for (const b of report.bundles)
       out.push(
-        `| ${b.attr} | ${b.version} | ${b.source} | ${b.dshEngines ?? ""} | ${bundleGate(b, report.gateEvaluated)} | ${b.refs.map((r) => r.ref).join("<br>")} | ${b.staleRows.map((r) => r.id).join("<br>")} |`,
+        `| ${b.attr} | ${b.version} | ${b.source} | ${b.overrideDshEngineVersion ? "true" : ""} | ${bundleGate(b, report.gateEvaluated)} | ${b.refs.map((r) => r.ref).join("<br>")} | ${b.staleRows.map((r) => r.id).join("<br>")} |`,
       );
   }
   return `${out.join("\n")}\n`;

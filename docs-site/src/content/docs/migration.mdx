@@ -115,6 +115,24 @@ For cross-session memory, select `bundles.mneme` or `bundles.mnemon`. Data these
 bundles wrote under the data directory is not deleted by removing them; back up
 `$DSH_HOME` or the configured data directory before switching.
 
+## `0.2.2-rc.5`
+
+Before upgrading, read the [upstream release notes](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.5).
+
+### Web search defaults
+
+The shared base composition no longer fixes `web.searchProvider` to
+`deepseek-search-api`. When no search provider is configured, `dsh-web` now
+selects `deepseek-official` (legacy Messages search, billed as model tokens
+without a per-search charge) for conversations on `deepseek-official` or
+`deepseek-account` routes, and `deepseek-search-api` for all other routes.
+
+Messages search uses `web-search-deepseek.baseURL`, `$DEEPSEEK_SEARCH_BASE_URL`,
+or `https://api.deepseek.com/anthropic/v1` independently of the chat model's base
+URL. If your DeepSeek model provider points at a gateway, either select
+`deepseek-search-api` or configure `web-search-deepseek.baseURL` for that
+gateway.
+
 ## `0.2.2-rc.3`
 
 Before upgrading, read the [upstream release notes](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.2-rc.3).
@@ -343,8 +361,8 @@ were removed from this repository afterwards; see
 Composed `dsh` packages now fail to build when a profile would skip a bundle or
 disable a plugin row. If you package your own bundle with `buildDshBundle` and
 have verified it against the dsh version in use, set
-`dshEngines = "<version>"`; the builder writes it to `engines.dsh`, which dsh
-checks instead of the peer ranges.
+`overrideDshEngineVersion = true`; the builder writes `installation.version` to
+`engines.dsh`, which dsh checks instead of the peer ranges.
 
 ## `0.2.1-alpha.2`
 

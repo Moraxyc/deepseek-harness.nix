@@ -62,6 +62,14 @@ const repo = tree({
 const fooSource = tree({
   "package.json": { name: "dsh-foo", version: "1", dsh: { bundle: {} } },
 });
+const barSource = tree({
+  "package.json": {
+    name: "dsh-bar",
+    version: "1",
+    engines: { dsh: "1.0.0" },
+    dsh: { bundle: {} },
+  },
+});
 
 // Accepts only manifests whose engines.dsh names the running version.
 const evaluate: Evaluate = (manifest, _, version) =>
@@ -79,7 +87,16 @@ const report = buildReport({
       out: path.join(repo, "missing-output"),
       src: fooSource,
       srcDrv: null,
-      dshEngines: "1.0.0",
+      overrideDshEngineVersion: false,
+      workspace: false,
+    },
+    {
+      attr: "bar",
+      version: "1",
+      out: path.join(repo, "missing-output"),
+      src: barSource,
+      srcDrv: null,
+      overrideDshEngineVersion: true,
       workspace: false,
     },
     {
@@ -88,7 +105,7 @@ const report = buildReport({
       out: "",
       src: null,
       srcDrv: null,
-      dshEngines: null,
+      overrideDshEngineVersion: false,
       workspace: true,
     },
   ],
@@ -124,18 +141,26 @@ test("repository references are relative to the repository", () => {
   ]);
 });
 
-test("unbuilt bundles are read from their source with dshEngines applied", () => {
-  assert.equal(report.bundles.length, 1);
-  const [foo] = report.bundles;
+test("unbuilt bundles are read from their source with overrideDshEngineVersion applied", () => {
+  assert.equal(report.bundles.length, 2);
+  const [foo, bar] = report.bundles;
   assert.ok(foo);
   assert.equal(foo.source, "source");
   assert.deepEqual(foo.gate, [
     { name: "dsh-foo", version: "1", unmet: ["dsh"] },
   ]);
   assert.deepEqual(foo.staleRows, [{ id: "web.gone", file: "rows.yml" }]);
+  assert.ok(bar);
+  assert.equal(bar.source, "source");
+  assert.deepEqual(bar.gate, []);
   assert.ok(
     report.actions.includes(
       "Source manifests suggest dsh 2.0.0 rejects: foo. Confirm with their bundleCompositions or tools.dsh-bundle-probe.",
+    ),
+  );
+  assert.ok(
+    report.actions.includes(
+      "Bundles with overrideDshEngineVersion enabled (bar): confirm with their bundleCompositions or tools.dsh-bundle-probe.",
     ),
   );
 });
@@ -147,9 +172,10 @@ test("markdown lists actions and the bundle table", () => {
     assert.ok(markdown.includes(`- ${action}\n`));
   assert.ok(
     markdown.includes(
-      "| foo | 1 | source | 1.0.0 | likely rejected (1 unmet) |  | web.gone |",
+      "| foo | 1 | source |  | likely rejected (1 unmet) |  | web.gone |",
     ),
   );
+  assert.ok(markdown.includes("| bar | 1 | source | true | ok |  |  |"));
   assert.ok(
     markdown.includes(
       "unexported: `@deepseek-ai/dsh-app-boot/old` (lib/uses.nix)",

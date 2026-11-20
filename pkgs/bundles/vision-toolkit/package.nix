@@ -14,8 +14,8 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   inherit (dshSources."bundles.vision-toolkit") version src;
   deployPackage = "@anionex/dsh-vision-toolkit";
   patches = [ ./preparation-start-barrier.patch ];
-  # The upstream peer ranges exclude this verified runtime.
-  dshEngines = "0.2.2-rc.3";
+  # The upstream peer ranges exclude the pinned runtime.
+  overrideDshEngineVersion = true;
   installation = dsh-runtime;
 
   pnpmDepsHash = dshSources."bundles.vision-toolkit".pnpmDepsHash;

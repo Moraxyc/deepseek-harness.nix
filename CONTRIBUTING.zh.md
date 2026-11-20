@@ -174,8 +174,8 @@ deploy 命令使用上述参数和注入式 workspace 布局，这是受支持�
 运行，并视存活 smoke 窗口为启动成功。dsh 输出 `skipping profile bundle`、
 `disabling profile plugin` 或有插件未激活时，检查同样失败，例如 bundle 的 `engines.dsh` 或
 `@deepseek-ai/dsh-*` peer 范围不包含当前运行时版本。针对该运行时验证
-bundle 后，在其表达式中设置 `dshEngines = "<version>"`；builder 会将其写入
-`engines.dsh`，dsh 随后不再检查 peer 范围。
+bundle 后，在其表达式中设置 `overrideDshEngineVersion = true`；builder 会将当前固定的
+运行时版本写入 `engines.dsh`，dsh 随后不再检查 peer 范围。
 日志中出现 `failed to import:` 或 `entries did not activate` 时，无论 Web 端点是否响应，hook 都判定失败。
 
 `buildDshBundle.fromPnpmWorkspace` 会把 `nodejs` 和 pnpm 排除在运行时闭包
@@ -370,18 +370,16 @@ in
   export、bundle 行、官方 bundle 列表、构建输入、本地 workspace 补丁的目标文件，
   以及 dsh 是否接受每个 bundle。它是自动更新 PR 的待办清单。
 - dsh-workspace 自动更新执行 `nix develop -c fetchrix update dsh-workspace` 后就开
-  PR：不添加 `dshEngines` 授权，不生成影响报告，不做验证构建，通过 `[skip ci]`
+  PR：不添加 `overrideDshEngineVersion` 授权，不生成影响报告，不做验证构建，通过 `[skip ci]`
   跳过 CI，也不自动合并。审阅者按本节流程处理完才算完成升级。
 - 其他自动更新会收集验证通过的更新，以 GitHub App bot 身份统一推送到 main，main
   不跳过 CI。更新未完成、验证失败、汇总冲突或推送失败时，改为单独开 PR，统一添加
   `[skip ci]`、关闭自动合并，等待手动修复。即使更新命令失败，也会原样提交 fetchrix
   已生成的改动。修复提交不带 `[skip ci]` 即可运行 CI。更新结果和兼容性报告统一在
   publish 任务的 Summary 中展示。
-- bundle 自动更新时，`tools.update-dsh-engines` 对已声明 `dshEngines` 的被
-  更新 bundle 尝试新的 workspace 精确版本。候选版本必须通过 `bundleCompositions`
-  构建和沙箱启动检查，不使用兼容性豁免。失败候选会还原，更新改为走 PR 而不是 main；
-  通过的候选会在最终工作区中再次一起检查，成功后才保留授权。这些检查覆盖启动和加载，
-  不代表所有功能或 provider 均兼容。
+- 已声明 `overrideDshEngineVersion = true` 的 bundle 会自动跟随当前固定的运行时
+  版本，并在每次 bundle 与运行时更新时通过 `bundleCompositions` 构建和沙箱启动检查。
+  这些检查覆盖启动和加载，不代表所有功能或 provider 均兼容。
 - `nix run .#tools.dsh-bundle-probe -- --all` 使用与构建相同的 `dsh-profile-smoke`，在独立 profile 中逐个启动 bundle，区分只是
   未通过 dsh 版本检查的 bundle 与运行时失败的 bundle。脚本启动时把工作区复制到 store，
   本次运行始终测试启动时的工作区内容。存在 `broken` 结果时，脚本以状态 1 退出。

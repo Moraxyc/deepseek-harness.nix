@@ -62,10 +62,10 @@ let
 
   # dsh skips a bundle whose dsh peer ranges exclude the runtime unless the
   # manifest declares engines.dsh, which then decides alone.
-  setDshEnginesScript =
-    range:
-    lib.optionalString (range != null) ''
-      ${lib.getExe dshBundleResolver} set-engines ${lib.escapeShellArg range} "$out/lib/node_modules"
+  overrideDshEngineVersionScript =
+    enabled: installation:
+    lib.optionalString enabled ''
+      ${lib.getExe dshBundleResolver} set-engines ${lib.escapeShellArg installation.version} "$out/lib/node_modules"
     '';
 
   validateInstalledBundle = ''
@@ -181,10 +181,15 @@ let
       meta ? { },
       passthru ? { },
       postInstall ? "",
-      dshEngines ? null,
+      overrideDshEngineVersion ? false,
       installation ? null,
       installationKeep ? [ ],
     }:
+    assert lib.assertMsg (lib.isBool overrideDshEngineVersion)
+      "buildDshBundle: ${finalAttrs.pname}: overrideDshEngineVersion must be a boolean";
+    assert lib.assertMsg (
+      !overrideDshEngineVersion || installation != null
+    ) "buildDshBundle: ${finalAttrs.pname}: overrideDshEngineVersion requires installation";
     let
       validation = validateDshBundle {
         bundle = {
@@ -197,11 +202,11 @@ let
     in
     {
       inherit (validation) meta;
-      passthru = passthru // validation.passthru // { inherit dshEngines; };
+      passthru = passthru // validation.passthru // { inherit overrideDshEngineVersion; };
       postInstall =
         postInstall
         + lib.optionalString (installation != null) (shareInstallationScript installation installationKeep)
-        + setDshEnginesScript dshEngines
+        + overrideDshEngineVersionScript overrideDshEngineVersion installation
         + validateInstalledBundle;
     };
 
@@ -209,7 +214,7 @@ let
     constructDrv = buildNpmPackage;
     excludeDrvArgNames = [
       "disableChildBundlePatches"
-      "dshEngines"
+      "overrideDshEngineVersion"
       "installation"
       "installationKeep"
       "runtimeDeps"
@@ -219,7 +224,7 @@ let
       {
         runtimeDeps ? [ ],
         disableChildBundlePatches ? false,
-        dshEngines ? null,
+        overrideDshEngineVersion ? false,
         installation ? null,
         installationKeep ? [ ],
         nativeBuildInputs ? [ ],
@@ -245,7 +250,7 @@ let
       }
       // mkBundleProtocol finalAttrs {
         inherit
-          dshEngines
+          overrideDshEngineVersion
           installation
           installationKeep
           meta
@@ -261,7 +266,7 @@ let
     excludeDrvArgNames = [
       "deployPackage"
       "disableChildBundlePatches"
-      "dshEngines"
+      "overrideDshEngineVersion"
       "installation"
       "installationKeep"
       "pnpm"
@@ -284,7 +289,7 @@ let
         postNormalizeDeploy ? "",
         stripPrepareScripts ? false,
         disableChildBundlePatches ? false,
-        dshEngines ? null,
+        overrideDshEngineVersion ? false,
         installation ? null,
         installationKeep ? [ ],
         pnpm ? pnpmWorkspaceDeploy,
@@ -372,7 +377,7 @@ let
       }
       // mkBundleProtocol finalAttrs {
         inherit
-          dshEngines
+          overrideDshEngineVersion
           installation
           installationKeep
           meta
@@ -392,7 +397,7 @@ let
       "artifacts"
       "packageName"
       "dsh-workspace"
-      "dshEngines"
+      "overrideDshEngineVersion"
       "installation"
       "installationKeep"
       "runtimeDeps"
@@ -404,7 +409,7 @@ let
         artifacts ? [ ],
         dsh-workspace,
         disallowedReferences ? [ ],
-        dshEngines ? null,
+        overrideDshEngineVersion ? false,
         installation ? null,
         installationKeep ? [ ],
         nativeBuildInputs ? [ ],
@@ -451,7 +456,7 @@ let
       }
       // mkBundleProtocol finalAttrs {
         inherit
-          dshEngines
+          overrideDshEngineVersion
           installation
           installationKeep
           meta

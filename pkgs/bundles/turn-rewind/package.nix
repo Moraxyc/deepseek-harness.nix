@@ -36,8 +36,8 @@ buildDshBundle (finalAttrs: {
   '';
 
   # The peer and web client packages are supplied by the DSH installation.
-  # The upstream peer ranges exclude this verified runtime.
-  dshEngines = "0.2.2-rc.3";
+  # The upstream peer ranges exclude the pinned runtime.
+  overrideDshEngineVersion = true;
   installation = dsh-runtime;
   runtimeDeps = [ git ];
 

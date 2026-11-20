@@ -36,7 +36,7 @@ export interface RegressedRef {
 export interface BundleResult {
   attr: string;
   version: string;
-  dshEngines: string | null;
+  overrideDshEngineVersion: boolean;
   source: BundleSource;
   gate: { name?: string; version?: string; unmet: string[] }[];
   refs: { ref: string; status: string }[];
@@ -323,7 +323,7 @@ export function staleRowTargets(
   return result;
 }
 
-// One bundle from `nix eval` (attr, version, out, src, dshEngines) against the
+// One bundle from `nix eval` (attr, version, out, src, overrideDshEngineVersion) against the
 // new workspace. `evaluate` is dsh-app-boot's evaluatePluginCompatibility.
 export function compareBundle(
   entry: BundleEntry,
@@ -340,7 +340,11 @@ export function compareBundle(
   const source = bundleSource(entry);
   const gate: BundleResult["gate"] = [];
   const files: string[] = [];
-  for (const { dir, manifest } of bundleManifests(entry, source)) {
+  for (const { dir, manifest } of bundleManifests(
+    entry,
+    source,
+    workspace.newVersion,
+  )) {
     if (evaluate && workspace.newVersion) {
       const issue = evaluate(manifest, {}, workspace.newVersion);
       if (issue)
@@ -356,7 +360,7 @@ export function compareBundle(
   return {
     attr: entry.attr,
     version: entry.version,
-    dshEngines: entry.dshEngines ?? null,
+    overrideDshEngineVersion: entry.overrideDshEngineVersion ?? false,
     source,
     gate,
     refs: regressedRefs(
@@ -429,10 +433,17 @@ export function actionsOf(report: Omit<Report, "actions">): string[] {
     actions.push(
       `Source manifests suggest dsh ${versions.new} rejects: ${unverified.join(", ")}. Confirm with their bundleCompositions or tools.dsh-bundle-probe.`,
     );
+  const overridden = report.bundles
+    .filter((bundle) => bundle.overrideDshEngineVersion)
+    .map((bundle) => bundle.attr);
+  if (overridden.length)
+    actions.push(
+      `Bundles with overrideDshEngineVersion enabled (${overridden.join(", ")}): confirm with their bundleCompositions or tools.dsh-bundle-probe.`,
+    );
   for (const bundle of report.bundles) {
     if (bundle.gate.length && bundle.source === "built")
       actions.push(
-        `bundles.${bundle.attr}: dsh ${versions.new} rejects it (${bundle.gate.map((g) => `${g.name}: ${g.unmet.length} unmet`).join("; ")}). Probe it, then set dshEngines, patch it, or mark it broken.`,
+        `bundles.${bundle.attr}: dsh ${versions.new} rejects it (${bundle.gate.map((g) => `${g.name}: ${g.unmet.length} unmet`).join("; ")}). Probe it, then set overrideDshEngineVersion = true, patch it, or mark it broken.`,
       );
     if (bundle.refs.length)
       actions.push(

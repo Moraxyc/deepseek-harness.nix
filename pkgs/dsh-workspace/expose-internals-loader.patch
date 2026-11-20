@@ -60,3 +60,14 @@ diff --git a/packages/boot/app-boot/src/profile-resolution/resolver.ts b/package
    const esm = requireInternal('internal/modules/esm/loader') as {
      getOrInitializeCascadedLoader(): NativeAccess['esmLoader']
    }
+--- a/packages/experimental/inspector/src/host/bridge/controller.ts
++++ b/packages/experimental/inspector/src/host/bridge/controller.ts
+@@ -293,7 +293,7 @@
+   const options: WorkerOptions = {
+     workerData: boot,
+     transferList: [boot.hostSourcePort],
+-    execArgv: [],
++    execArgv: process.execArgv.includes('--expose-internals') ? ['--expose-internals'] : [],
+   }
+   if (!import.meta.url.endsWith('.ts')) {
+     return new Worker(new URL('./worker.js', import.meta.url), options)
