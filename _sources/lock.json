@@ -41,14 +41,15 @@
     },
     "bundles.agent-teams": {
       "pname": "dsh-agent-teams",
-      "version": "0.1.30",
-      "rawVersion": "0.1.30",
+      "version": "0.1.31",
+      "rawVersion": "0.1.31",
+      "date": "2026-11-18",
       "src": {
         "fetcher": "github",
         "owner": "NanmiCoder",
         "repo": "dsh-agent-teams",
-        "tag": "v0.1.30",
-        "hash": "sha256-YvgD9ulSjKpWo4PkqEdc3DuNi7z3YI7rKN0fygBw4Y0="
+        "tag": "v0.1.31",
+        "hash": "sha256-vcIVI91TEjKm+UA+iBgSf968sC93U15I5TY7y6uwHBE="
       },
       "derived": {
         "pnpmDepsHash": {
