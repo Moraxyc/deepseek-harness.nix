@@ -20,7 +20,7 @@ buildDshBundle (finalAttrs: {
     ./btw-side-question-settle.patch
     ./verify-source-files.patch
     ./verify-host-contract-node-shebang.patch
-    ./verify-rewind-edit-serial.patch
+    ./verify-serial-gates.patch
   ];
 
   postPatch = ''
