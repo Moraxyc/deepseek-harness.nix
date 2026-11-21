@@ -300,14 +300,15 @@
     },
     "bundles.turn-rewind": {
       "pname": "dsh-turn-rewind",
-      "version": "0.3.13",
-      "rawVersion": "0.3.13",
+      "version": "0.3.14",
+      "rawVersion": "0.3.14",
+      "date": "2026-11-21",
       "src": {
         "fetcher": "github",
         "owner": "Anionex",
         "repo": "dsh-turn-rewind",
-        "tag": "v0.3.13",
-        "hash": "sha256-rFGgEC99vl+CAd4IRPcnkxP7X2xf24F/fxFJtaGBLz8="
+        "tag": "v0.3.14",
+        "hash": "sha256-wG/7wCWH23zYuf2cIJjUhqcd5WmByczXE7KJBwcxs4Y="
       },
       "derived": {
         "pnpmDepsHash": {
