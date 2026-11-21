@@ -39,7 +39,7 @@ jobs:
         uses: wimpysworld/nothing-but-nix@v12
 
       - name: Install Nix
-        uses: cachix/install-nix-action@v31
+        uses: cachix/install-nix-action@v32
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           extra_nix_config: |

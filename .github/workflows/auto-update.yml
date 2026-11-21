@@ -29,7 +29,7 @@ jobs:
         uses: wimpysworld/nothing-but-nix@v12
 
       - name: Install Nix
-        uses: cachix/install-nix-action@v31
+        uses: cachix/install-nix-action@v32
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           # fetchrix builds itself from source; the public cache carries its
@@ -143,7 +143,7 @@ jobs:
         uses: wimpysworld/nothing-but-nix@v12
 
       - name: Install Nix
-        uses: cachix/install-nix-action@v31
+        uses: cachix/install-nix-action@v32
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           # fetchrix builds itself from source; the public cache carries its
@@ -504,7 +504,7 @@ jobs:
 
       - name: Install Nix
         if: steps.collected.outputs.found == 'true'
-        uses: cachix/install-nix-action@v31
+        uses: cachix/install-nix-action@v32
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           extra_nix_config: build-dir = /nix/build
