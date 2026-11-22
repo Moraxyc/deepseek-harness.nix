@@ -135,19 +135,19 @@
     },
     "bundles.context": {
       "pname": "dsh-context",
-      "version": "0.86.0",
-      "rawVersion": "0.86.0",
-      "date": "2026-11-18",
+      "version": "0.87.0",
+      "rawVersion": "0.87.0",
+      "date": "2026-11-21",
       "src": {
         "fetcher": "github",
         "owner": "bowenliang123",
         "repo": "dsh-context",
-        "tag": "v0.86.0",
-        "hash": "sha256-dLb6JVCo6fvMbZGwTENjqznIHPRwqiuMKdpAZ+/l9Ec="
+        "tag": "v0.87.0",
+        "hash": "sha256-F9F0JO6GubrETHk5tPnp9KJzRmt8/x0O28mzmyk+vPQ="
       },
       "derived": {
         "pnpmDepsHash": {
-          "hash": "sha256-pA6dgtdvDr3mXHk+WwRNUaEyw1sCYZkaTAufhbZ6Z6U="
+          "hash": "sha256-WrjEu+EK/736xAxc890/4/IwM0nJ/fyMhLM1xF2L9Vc="
         }
       },
       "fingerprint": "sha256-8mvs61/pq76BkchiDlI4hdx3m1tbq7XyH7LqILMI39Y="
@@ -191,19 +191,19 @@
     },
     "bundles.harbor": {
       "pname": "dsh-harbor",
-      "version": "0.1.0-rc.4-unstable-2026-11-20",
-      "rawVersion": "274de84882f4cc3085d2d2cb9961578f9ddaf3df",
-      "date": "2026-11-20",
+      "version": "0.1.0-rc.4-unstable-2026-11-21",
+      "rawVersion": "df9b6de21fc398c8de20ae718c58e8ecd2b3c411",
+      "date": "2026-11-21",
       "src": {
         "fetcher": "github",
         "owner": "ZSeven-W",
         "repo": "dsh-harbor",
-        "rev": "274de84882f4cc3085d2d2cb9961578f9ddaf3df",
-        "hash": "sha256-39XeO8gbex4/f3pn8zqejehwkY+tzJY5/X3cok5TYSs="
+        "rev": "df9b6de21fc398c8de20ae718c58e8ecd2b3c411",
+        "hash": "sha256-bC04RJ0RjuuQSE6HaKP4wcw2VMtt0BArzkkd7AUKeJY="
       },
       "derived": {
         "npmDepsHash": {
-          "hash": "sha256-x6KomHecTaH6JwkKYzbnOWAsfN1FxrKA5HZinSHEQwA="
+          "hash": "sha256-2B7+mk3Nb3uY2LiMb5dhIS4xWGZpTMzGMqIgXUL1KV0="
         }
       },
       "fingerprint": "sha256-4foia8OCrwTQiBxblTot+zbmSNDLlNuqGyEVwgKk4UA="
@@ -300,14 +300,15 @@
     },
     "bundles.turn-rewind": {
       "pname": "dsh-turn-rewind",
-      "version": "0.3.13",
-      "rawVersion": "0.3.13",
+      "version": "0.3.14",
+      "rawVersion": "0.3.14",
+      "date": "2026-11-21",
       "src": {
         "fetcher": "github",
         "owner": "Anionex",
         "repo": "dsh-turn-rewind",
-        "tag": "v0.3.13",
-        "hash": "sha256-rFGgEC99vl+CAd4IRPcnkxP7X2xf24F/fxFJtaGBLz8="
+        "tag": "v0.3.14",
+        "hash": "sha256-wG/7wCWH23zYuf2cIJjUhqcd5WmByczXE7KJBwcxs4Y="
       },
       "derived": {
         "pnpmDepsHash": {
@@ -337,15 +338,15 @@
     },
     "bundles.vision-toolkit": {
       "pname": "dsh-vision-toolkit",
-      "version": "0.1.51",
-      "rawVersion": "0.1.51",
-      "date": "2026-11-13",
+      "version": "0.1.53",
+      "rawVersion": "0.1.53",
+      "date": "2026-11-21",
       "src": {
         "fetcher": "github",
         "owner": "Anionex",
         "repo": "dsh-vision-toolkit",
-        "tag": "v0.1.51",
-        "hash": "sha256-k5rCxwR/DTklKUH9MruUtDFacNCa+53/6tawepcpZgo="
+        "tag": "v0.1.53",
+        "hash": "sha256-PtZqDu6lrLlo32NwIvsawZw2FKCD/KF5gyS8HQA2EtE="
       },
       "derived": {
         "pnpmDepsHash": {
