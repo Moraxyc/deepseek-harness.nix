@@ -66,15 +66,6 @@ rec {
     text = builtins.readFile ../pkgs/dsh-workspace/fetchrix-prepare.sh;
   };
 
-  fetchrix-prepare-subscriptions = tool {
-    name = "fetchrix-prepare-subscriptions";
-    description = "Fetchrix prepare hook for bundles.subscriptions";
-    runtimeInputs = [ pkgs.yq-go ];
-    text = ''
-      yq -i --from-file ${../pkgs/bundles/subscriptions/drop-dev-links.yq} pnpm-lock.yaml
-    '';
-  };
-
   fetchrix-prepare-dsh-desktop-unofficial = tool {
     name = "fetchrix-prepare-dsh-desktop-unofficial";
     description = "Fetchrix prepare hook for dsh-desktop-unofficial";
