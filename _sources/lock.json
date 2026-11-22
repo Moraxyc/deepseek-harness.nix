@@ -172,15 +172,15 @@
     },
     "bundles.genui": {
       "pname": "dsh-genui",
-      "version": "0.17.0-preview.1-unstable-2026-11-19",
-      "rawVersion": "048bbb057e643792e18b6c1d859b72ca8003be0f",
-      "date": "2026-11-19",
+      "version": "0.17.0-preview.1-unstable-2026-11-22",
+      "rawVersion": "a5c4232c9ea0caac118c388ed1b519e407bbd71b",
+      "date": "2026-11-22",
       "src": {
         "fetcher": "github",
         "owner": "omdsh-dev",
         "repo": "dsh-genui",
-        "rev": "048bbb057e643792e18b6c1d859b72ca8003be0f",
-        "hash": "sha256-Ebn1iWvff/+JF2vA/CVpIcSsLFQU7nOOLeZ+c/AZgm4="
+        "rev": "a5c4232c9ea0caac118c388ed1b519e407bbd71b",
+        "hash": "sha256-NYCVvuYW/q4/NqQktvY2G19BX7hMGIE1NOiKywklbxw="
       },
       "derived": {
         "pnpmDepsHash": {
