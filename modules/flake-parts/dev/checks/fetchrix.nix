@@ -1,12 +1,7 @@
 { ... }:
 {
   perSystem =
-    {
-      lib,
-      pkgs,
-      self',
-      ...
-    }:
+    { lib, pkgs, ... }:
     let
       config = lib.importTOML ../../../../fetchrix.toml;
       locked = lib.importJSON ../../../../_sources/lock.json;
@@ -49,32 +44,12 @@
         assert !(config.packages."bundles.annotation" ? prepare);
         assert config.packages."bundles.annotation".derive.npmDepsHash.select == "npmDeps";
         assert config.packages."bundles.web-ui".prepare.artifacts."pnpm-lock.json".type == "json";
-        pkgs.runCommand "fetchrix-integration"
-          {
-            nativeBuildInputs = [
-              pkgs.jq
-              pkgs.yq-go
-            ];
-          }
-          ''
-            jq -e '.version == "99.0.0" and .packages[""].version == "99.0.0"' \
-              ${prepared}/package-lock.json >/dev/null
-            jq -e 'has("scripts") == false and has("devDependencies") == false' \
-              ${prepared}/package.json >/dev/null
-
-            mkdir source
-            cat > source/pnpm-lock.yaml <<'YAML'
-            lockfileVersion: '9.0'
-            importers:
-              .:
-                devDependencies:
-                  '@deepseek-ai/dsh': {specifier: 'link:/external', version: 'link:/external'}
-                  typescript: {specifier: '5.0.0', version: '5.0.0'}
-            YAML
-            (cd source && ${lib.getExe self'.legacyPackages.tools.fetchrix-prepare-subscriptions})
-            yq -o json '.importers.".".devDependencies' source/pnpm-lock.yaml \
-              | jq -e 'keys == ["typescript"]' >/dev/null
-            touch "$out"
-          '';
+        pkgs.runCommand "fetchrix-integration" { nativeBuildInputs = [ pkgs.jq ]; } ''
+          jq -e '.version == "99.0.0" and .packages[""].version == "99.0.0"' \
+            ${prepared}/package-lock.json >/dev/null
+          jq -e 'has("scripts") == false and has("devDependencies") == false' \
+            ${prepared}/package.json >/dev/null
+          touch "$out"
+        '';
     };
 }

@@ -262,21 +262,21 @@
     },
     "bundles.subscriptions": {
       "pname": "dsh-plugin-subscriptions",
-      "version": "0.9.13",
-      "rawVersion": "0.9.13",
-      "date": "2026-11-11",
+      "version": "0.9.14",
+      "rawVersion": "0.9.14",
+      "date": "2026-11-20",
       "src": {
         "fetcher": "github",
         "owner": "V1ki",
         "repo": "dsh-plugin-subscriptions",
-        "tag": "v0.9.13",
-        "hash": "sha256-5EaGJryDD0AsBsJ7PLgizhtdX9nLWf+y2R34WQ1TsJg="
+        "tag": "v0.9.14",
+        "hash": "sha256-Yncsl6VNvsv2i5cYxjrEUMoQyhHl7KXTm4jb23kvg0Q="
       },
       "artifacts": {
         "pnpm-lock.json": "bundles.subscriptions/pnpm-lock.json",
         "pnpm-workspace.json": "bundles.subscriptions/pnpm-workspace.json"
       },
-      "fingerprint": "sha256-z1pKyTx1pcqRKZ2RQlnhZkKpPFnZUVvqnxlOw5ZXahg="
+      "fingerprint": "sha256-2HQKy95uZVp1mfhiZr6G7O1r/MT7sdkXL+Icmi7xfcA="
     },
     "bundles.tui": {
       "pname": "dsh-tui",

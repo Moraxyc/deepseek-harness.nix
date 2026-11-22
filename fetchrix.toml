@@ -139,9 +139,8 @@ version = { source = "github-tag", repo = "V1ki/dsh-plugin-subscriptions", strip
 fetch = { type = "github", repo = "V1ki/dsh-plugin-subscriptions", tag = "v{version}" }
 
 [packages."bundles.subscriptions".prepare]
-steps = [{ type = "hook", run = ["scripts/nix-run", "fetchrix-prepare-subscriptions"], inputs = ["scripts/default.nix", "pkgs/bundles/subscriptions/drop-dev-links.yq"] }]
 artifacts."pnpm-lock.json" = { type = "json", path = "pnpm-lock.yaml", format = "yaml" }
-artifacts."pnpm-workspace.json" = { type = "json", path = "package.json", fields = ["/pnpm"] }
+artifacts."pnpm-workspace.json" = { type = "json", path = "pnpm-workspace.yaml", format = "yaml" }
 
 [packages."bundles.tui"]
 pname = "dsh-tui"

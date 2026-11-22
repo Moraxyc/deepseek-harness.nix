@@ -7,10 +7,8 @@
   dshCohort,
   dsh-runtime,
   dsh-workspace,
-  jq,
   pnpmConfigHook,
   pnpm_11,
-  yq-go,
 }:
 let
   clientPackages = dshCohort.select [
@@ -33,47 +31,11 @@ buildDshBundle (finalAttrs: {
   pname = "dsh-plugin-subscriptions";
   inherit (dshSources."bundles.subscriptions") version src;
 
-  # rc.2 restricts error constructors and removes the public anchor hook.
-  patches = [ ./rc2-runtime-contracts.patch ];
-
-  # The release lockfile contains absolute links to the author's DSH checkout.
-  # Replace only those development links; the pinned installation supplies the same
-  # peers for type checking and runtime composition.
-  postPatch = ''
-    yq -o=yaml '.pnpm' ${
-      dshSources."bundles.subscriptions".artifacts."pnpm-workspace.json"
-    } > pnpm-workspace.yaml
-
-    jq '
-      . as $root
-      | if .devDependencies then
-          .devDependencies |= with_entries(select(
-            (.key | startswith("@deepseek-ai/") | not)
-            or ($root.peerDependencies[.key] != null)
-          ))
-        else .
-        end
-    ' package.json > package.json.tmp
-    mv package.json.tmp package.json
-
-    # The pnpm install reads the source lockfile, so it needs the same peers.
-    yq -i --from-file ${./drop-dev-links.yq} pnpm-lock.yaml
-
-    # dsh 0.1.6 types agent/created listeners as returning undefined, while
-    # this release's inferred callback return is void.
-    substituteInPlace src/index.ts \
-      --replace-fail \
-      'if (deny.length) agent.ctx.tools.restrict({ deny })' \
-      'if (deny.length) agent.ctx.tools.restrict({ deny }); return undefined'
-
-  '';
-
   pnpmDeps = importPnpmLock {
     inherit (finalAttrs) pname version;
     pnpm = pnpm_11;
     lockfileJson = dshSources."bundles.subscriptions".artifacts."pnpm-lock.json";
-    workspaceJson =
-      (lib.importJSON dshSources."bundles.subscriptions".artifacts."pnpm-workspace.json").pnpm;
+    workspaceJson = lib.importJSON dshSources."bundles.subscriptions".artifacts."pnpm-workspace.json";
     fetcherVersion = 4;
   };
 
@@ -89,11 +51,7 @@ buildDshBundle (finalAttrs: {
       lib-test/test/models.spec.js lib-test/test/subagent-speed.spec.js
     runHook postCheck
   '';
-  nativeBuildInputs = [
-    jq
-    pnpm_11
-    yq-go
-  ];
+  nativeBuildInputs = [ pnpm_11 ];
   disallowedReferences = [ pnpm_11 ];
   installation = dsh-runtime;
 
