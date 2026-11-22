@@ -418,15 +418,15 @@
     },
     "dsh-workspace": {
       "pname": "dsh-workspace",
-      "version": "0.2.2-rc.5",
-      "rawVersion": "0.2.2-rc.5",
-      "date": "2026-11-18",
+      "version": "0.2.3-alpha.2",
+      "rawVersion": "0.2.3-alpha.2",
+      "date": "2026-11-22",
       "src": {
         "fetcher": "github",
         "owner": "deepseek-ai",
         "repo": "deepseek-harness",
-        "tag": "dsh-v0.2.2-rc.5",
-        "hash": "sha256-ZfFJfeLcPNOV8UPezxJOvDiwxyFAf5QUuZ7LywSiseY="
+        "tag": "dsh-v0.2.3-alpha.2",
+        "hash": "sha256-rahOnpB3BGTEg5hscD6YlRWgCRNmhW00YF0j43AuSTU="
       },
       "artifacts": {
         "client-commit.json": "dsh-workspace/client-commit.json",
