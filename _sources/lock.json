@@ -224,15 +224,15 @@
     },
     "bundles.mnemon": {
       "pname": "dsh-mnemon",
-      "version": "0.5.50",
-      "rawVersion": "0.5.50",
-      "date": "2026-11-20",
+      "version": "0.5.52",
+      "rawVersion": "0.5.52",
+      "date": "2026-11-21",
       "src": {
         "fetcher": "github",
         "owner": "omdsh-dev",
         "repo": "dsh-mnemon",
-        "tag": "v0.5.50",
-        "hash": "sha256-FDrpio9pZjHk9I95vTv0vnRxaJXhlUwjyPePdJSTQjA="
+        "tag": "v0.5.52",
+        "hash": "sha256-5Q5RfWals1WUqYmdjeRagCRWaSv6Kq2+itU1NxCbQJE="
       },
       "derived": {
         "pnpmDepsHash": {
