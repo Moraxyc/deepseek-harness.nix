@@ -297,6 +297,9 @@ jobs:
         run: |
           set -euo pipefail
           if [ "${EVAL_ONLY:-false}" = true ]; then
+            # The flake-parts dev partition copies this path into the store.
+            # Populate it before the read-only flake check on a clean runner.
+            nix-store --add ./modules/flake-parts/dev >/dev/null
             nix flake check --no-build --all-systems
             system="$(nix eval --raw --impure --expr builtins.currentSystem)"
             mapfile -t eval_attrs < <(
