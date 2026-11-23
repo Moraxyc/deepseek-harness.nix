@@ -434,7 +434,7 @@
         "pnpm-lock.json": "dsh-workspace/pnpm-lock.json",
         "pnpm-workspace.json": "dsh-workspace/pnpm-workspace.json"
       },
-      "fingerprint": "sha256-IuIdtyEt4qOiYAsl8HL5aGsqDpRa/jYgHzODddD2hgo="
+      "fingerprint": "sha256-4Xtz+5e8vxatzksCwuR31xbv8mle5gPnRgf0xtd3sz8="
     }
   }
 }
