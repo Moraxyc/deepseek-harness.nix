@@ -98,18 +98,19 @@
     },
     "bundles.better-sidebar": {
       "pname": "dsh-better-sidebar",
-      "version": "0.32.1",
-      "rawVersion": "0.32.1",
+      "version": "0.33.0",
+      "rawVersion": "0.33.0",
+      "date": "2026-11-24",
       "src": {
         "fetcher": "github",
         "owner": "omdsh-dev",
         "repo": "DSH-better-sidebar",
-        "tag": "v0.32.1",
-        "hash": "sha256-PfZAv548WWD8nuGAtkQmMP1nCRC0LK/BV3uYsdLak3I="
+        "tag": "v0.33.0",
+        "hash": "sha256-HlBbL1TgrFgg+pPLGd/c7uuYlH6TsJrEkUdV+CW4WYE="
       },
       "derived": {
         "pnpmDepsHash": {
-          "hash": "sha256-dRT2GD0ephYT+rOYjjroEf5Ju9QdihVLYJGlAfgM66Y="
+          "hash": "sha256-WNsAppK/ezkaMj+6aSyqgY58uE+QRi2k7OoN8nmKwds="
         }
       },
       "fingerprint": "sha256-KLTi1o/HUyZBZdFh7JQgVkLbGy9XJOjGTF427RV3hq0="
