@@ -84,6 +84,18 @@ Upstream removed this package in `0.2.2-rc.2`. Remove it from bundle selections
 and remove `@deepseek-ai/dsh-experimental-agent-team-profile` from mutable
 profiles. Enable Team per session with the built-in switch.
 
+### `bundles.personalized-recommendations`
+
+Upstream retired this optional bundle because `bundles.web-app` now mounts the
+personalized recommendation rows by default. Remove
+`bundles.personalized-recommendations` from your bundle selections and remove
+`@deepseek-ai/dsh-personalized-recommendations` from mutable profiles.
+
+To turn recommendations off in a managed profile, set
+`config.enabled = false` on the `action-cards` row in `profiles.<name>.patch`,
+or toggle **Settings → General → Personalized recommendations** in a mutable
+profile.
+
 ### `bundles.experimental-schedule-bundle`
 
 This attribute was removed in upstream `0.2.1-alpha.1`. Remove it from your
@@ -114,6 +126,32 @@ implementations are deleted, so nothing of theirs is built or linked.
 For cross-session memory, select `bundles.mneme` or `bundles.mnemon`. Data these
 bundles wrote under the data directory is not deleted by removing them; back up
 `$DSH_HOME` or the configured data directory before switching.
+
+## `0.2.3-alpha.2`
+
+Before upgrading, read the [upstream release notes](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.3-alpha.2).
+
+### Optional bundles and standalone `cua-mcp`
+
+- `bundles.personalized-recommendations` is removed; see
+  [`bundles.personalized-recommendations`](#bundlespersonalized-recommendations).
+- `bundles.timeline` is added as an experimental optional bundle (`web`
+  composition) that adds a task tree, live progress bar, and timed reports.
+- `bundles.cua-mcp` is added as a standalone MCP stdio server profile. Because it
+  replaces the `dsh-base` composition root, a Nix profile selecting
+  `bundles.cua-mcp` cannot combine it with other bundles, `agentPreset`, or UI
+  modes (`requiresWeb`, `requiresTui`, `requiresTty`, `requiresAcp`).
+- `bundles.experimental-forge-bundle` now supports GitLab merge requests via
+  `glab` in addition to GitHub pull requests via `gh`. `glab` is included in
+  `dsh`'s runtime `PATH`; sign in with `glab auth login --hostname <host>` to
+  use it.
+
+### Removed rows and package renames
+
+Upstream removed the `cua`, `tool-working-directory`,
+`ui-settings-plugin-inventory`, and `ui-settings-plugins` rows, and renamed
+`@deepseek-ai/dsh-experimental-cua-macos` to `@deepseek-ai/dsh-cua-macos`.
+Custom patches targeting those rows or packages should be updated or removed.
 
 ## `0.2.2-rc.5`
 
