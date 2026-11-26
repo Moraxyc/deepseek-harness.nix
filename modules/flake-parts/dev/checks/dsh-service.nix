@@ -144,7 +144,7 @@
                   ((pkgs.dsh.dsh.override { inherit homePatch; }).withAgentPresets {
                     first = {
                       source = "standard";
-                      enableTools = [ "tool-plugin-manager" ];
+                      enableTools = [ "tool-plugin-market" ];
                     };
                     unused = {
                       source = "missing-unused-preset";
@@ -186,8 +186,8 @@
             test ! -e "$testHome/.agent-presets"
             yq -e '[.[] | .insert[]? | select(.id == "preset-first" and .name == "@deepseek-ai/dsh-agent-preset" and .config.id == "first")] | length == 1' "$testHome/profiles/nix-first/cordis.patch.yml"
             yq -e '[.[] | .insert[]? | select(.id == "preset-second" and .name == "@deepseek-ai/dsh-agent-preset" and .config.id == "second")] | length == 1' "$testHome/profiles/nix-second/cordis.patch.yml"
-            yq -e '[.. | select(type == "!!map") | select(.id == "tool-plugin-manager" and .disabled != true)] | length == 1' "$testHome/profiles/nix-first/cordis.patch.yml"
-            yq -e '[.. | select(type == "!!map") | select(.id == "tool-plugin-manager" and .disabled == true)] | length == 1' "$testHome/profiles/nix-second/cordis.patch.yml"
+            yq -e '[.. | select(type == "!!map") | select(.id == "tool-plugin-market" and .disabled != true)] | length == 1' "$testHome/profiles/nix-first/cordis.patch.yml"
+            yq -e '[.. | select(type == "!!map") | select(.id == "tool-plugin-market" and .disabled == true)] | length == 1' "$testHome/profiles/nix-second/cordis.patch.yml"
             yq -e '[.[] | select(.id == "agent-preset-registry" and .config.default == "first")] | length == 1' "$testHome/profiles/nix-first/cordis.patch.yml"
             yq -e '[.[] | select(.id == "agent-preset-registry" and .config.default == "second")] | length == 1' "$testHome/profiles/nix-second/cordis.patch.yml"
             touch "$out"

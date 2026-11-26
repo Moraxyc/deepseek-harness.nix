@@ -77,7 +77,7 @@
           assert.equal(await readFile(join(created.path, 'tracked.txt'), 'utf8'), 'committed\n')
           assert.equal(await readFile(join(root, 'tracked.txt'), 'utf8'), 'uncommitted\n')
           assert.equal(ctx.workingDirectory.get(session), created.path)
-          assert.deepEqual(ctx.sandboxPolicy.resolve({ session }), policy)
+          assert.deepEqual(ctx.sandboxPolicy.resolve({ session }), { ...policy, workspaceRoot: created.path })
           await assert.rejects(ctx.worktrees.create(agent, { name: 'runtime-check' }), /branch already exists/)
         } finally {
           await ctx.fiber.dispose()
