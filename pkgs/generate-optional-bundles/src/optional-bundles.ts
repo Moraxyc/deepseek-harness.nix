@@ -112,6 +112,20 @@ const needsWebClient = (manifest: Manifest) =>
   manifest.dsh?.client?.platform === "web" ||
   Object.hasOwn(manifest.peerDependencies ?? {}, TERMINAL_CONTROLLER);
 
+const escapeRegExp = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+function bundlePatchSource(dir: string, patch: unknown): string | undefined {
+  const paths = (Array.isArray(patch) ? patch : [patch]).filter(
+    (entry): entry is string => typeof entry === "string" && entry !== "",
+  );
+  const existing = paths
+    .map((entry) => path.join(dir, entry))
+    .filter((file) => fs.existsSync(file) && fs.statSync(file).isFile());
+  if (existing.length === 0) return undefined;
+  return existing.map((file) => fs.readFileSync(file, "utf8")).join("\n");
+}
+
 // A locale file's meta.description, or undefined when it has none.
 function localeDescription(dir: string, locale: string): string | undefined {
   try {
@@ -169,14 +183,24 @@ export function optionalBundles(
     };
     const descriptionZh = translated("zh", "Chinese");
     const descriptionJa = translated("ja", "Japanese");
-    // A workspace dependency that needs the web client brings it in too.
+    // A workspace dependency that needs the web client brings it in when the
+    // bundle's patch actually mounts it.
+    const patchSource = bundlePatchSource(dir, bundle.patch);
     const requiresWeb =
       needsWebClient(manifest) ||
       Object.keys(manifest.dependencies ?? {}).some((dependency) => {
         const dependencyManifest = packages.get(dependency)?.manifest;
-        return (
-          dependencyManifest !== undefined && needsWebClient(dependencyManifest)
-        );
+        if (
+          dependencyManifest === undefined ||
+          !needsWebClient(dependencyManifest)
+        ) {
+          return false;
+        }
+        if (patchSource === undefined) return true;
+        return new RegExp(
+          `(?:^|['"\\s:])${escapeRegExp(dependency)}(?:['"\\s]|$)`,
+          "m",
+        ).test(patchSource);
       });
 
     result[name] = {

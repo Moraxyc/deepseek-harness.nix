@@ -11,6 +11,7 @@ until the profile is up:
   tty    the command runs under script(1) and exits with status 0, or is
          still running when the timeout expires
   acp    the agent answers an ACP initialize request on stdin
+  mcp    the agent answers an MCP initialize request on stdin
   web    the web endpoint printed by dsh answers over HTTP; adds
          --no-open --port 0
 The check then fails if dsh skipped a profile bundle, disabled a plugin row,
@@ -98,6 +99,10 @@ acp_ready() {
   grep -Eq '^\{"jsonrpc":"2\.0","id":1,"result":' "$log"
 }
 
+mcp_ready() {
+  grep -Eq '"id":1,"result":|"result":.*"id":1' "$log"
+}
+
 web_ready() {
   local url
   url=$(sed -n 's/.*dsh web: \([^ ]*\).*/\1/p' "$log" | head -n1)
@@ -135,6 +140,13 @@ case "$mode" in
     exec 3<>"$work/acp.in"
     printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":1,"clientCapabilities":{},"clientInfo":{"name":"dsh-profile-smoke","version":"0.1.0"}}}' >&3
     serve acp_ready "$work/acp.in"
+    exec 3>&-
+    ;;
+  mcp)
+    mkfifo "$work/mcp.in"
+    exec 3<>"$work/mcp.in"
+    printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"dsh-profile-smoke","version":"0.1.0"}}}' >&3
+    serve mcp_ready "$work/mcp.in"
     exec 3>&-
     ;;
   web)
