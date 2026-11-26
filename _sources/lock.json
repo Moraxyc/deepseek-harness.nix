@@ -136,19 +136,19 @@
     },
     "bundles.context": {
       "pname": "dsh-context",
-      "version": "0.87.1",
-      "rawVersion": "0.87.1",
-      "date": "2026-11-22",
+      "version": "0.87.2",
+      "rawVersion": "0.87.2",
+      "date": "2026-11-26",
       "src": {
         "fetcher": "github",
         "owner": "bowenliang123",
         "repo": "dsh-context",
-        "tag": "v0.87.1",
-        "hash": "sha256-of4XY+jhEK+Qpdt78daaP1H8mYjlmgB8qYzJPMk4zw4="
+        "tag": "v0.87.2",
+        "hash": "sha256-7eRpe2N1ctm/QSTffN2v2OKzZljoNLHQG+pY2Yl3rtU="
       },
       "derived": {
         "pnpmDepsHash": {
-          "hash": "sha256-WrjEu+EK/736xAxc890/4/IwM0nJ/fyMhLM1xF2L9Vc="
+          "hash": "sha256-oZmg/QUhqf3JWBjcD4xI+5BP/X05wYClWj9qgR3OXoA="
         }
       },
       "fingerprint": "sha256-8mvs61/pq76BkchiDlI4hdx3m1tbq7XyH7LqILMI39Y="
