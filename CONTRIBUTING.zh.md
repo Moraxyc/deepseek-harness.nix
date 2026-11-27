@@ -139,9 +139,8 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
 3. `fromPnpmWorkspace` 用 DSH package scope 的 `fetchPnpmDeps` 从
    `pnpmDepsHash` 构造 `pnpmDeps`，该 fetcher 默认使用
    `pnpmWorkspaceDeploy`。`pnpm deploy` 的 workspace 注入要求 pnpm 不低于
-   11.22.0，deploy 步骤也用同一个默认值，因此模板只提供哈希，不写 `pnpm`。
-   当 nixpkgs 的 `pnpm_11` 较旧时，`pnpmWorkspaceDeploy` 从 npm tarball 构建
-   11.22.0。只有需要换成其他仍满足版本要求的 pnpm 时才覆盖 `pnpm`。只有当
+   11.22.0，deploy 步骤也用同一个默认值（`pnpm_11`），因此模板只提供哈希，
+   不写 `pnpm`。只有需要换成其他仍满足版本要求的 pnpm 时才覆盖 `pnpm`。只有当
    lockfile 需要自定义 fetcher（例如 `importPnpmLock`）时才改用 `pnpmDeps`。
    这类 bundle 将 `pnpm-lock.json` 和 `pnpm-workspace.json` 声明为 fetchrix
    准备产物，通过 `dshSources` 获取路径，分别传入 `lockfileJson` 和 `workspaceJson`。

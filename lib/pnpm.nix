@@ -8,19 +8,9 @@ let
   # Older versions leave source-workspace links in deployed bundles.
   pnpmWorkspaceDeployMinVersion = "11.22.0";
   pnpmWorkspaceDeploy =
-    let
-      pnpm =
-        if lib.versionAtLeast pnpm_11.version pnpmWorkspaceDeployMinVersion then
-          pnpm_11
-        else
-          pnpm_11.override {
-            version = pnpmWorkspaceDeployMinVersion;
-            hash = "sha256-V6l+byOj+v/AMVOk74x3CgVSYSuGQK6+Ob/dV1TQ69w=";
-          };
-    in
-    assert lib.assertMsg (lib.versionAtLeast pnpm.version pnpmWorkspaceDeployMinVersion)
-      "dsh: pnpmWorkspaceDeploy resolved to ${pnpm.version}, older than ${pnpmWorkspaceDeployMinVersion}";
-    pnpm;
+    assert lib.assertMsg (lib.versionAtLeast pnpm_11.version pnpmWorkspaceDeployMinVersion)
+      "dsh: pnpm_11 resolved to ${pnpm_11.version}, older than ${pnpmWorkspaceDeployMinVersion}";
+    pnpm_11;
   # Upstream release lockfiles must bypass pnpm's release-age policy and
   # package-manager downloads.
   wrapFetchPnpmDeps =

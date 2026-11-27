@@ -140,9 +140,8 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
    `pnpmDepsHash` から `pnpmDeps` を構築します。この `fetchPnpmDeps` は、デフォルトで
    `pnpmWorkspaceDeploy` を使用します。ワークスペース注入を伴う `pnpm deploy` には
    pnpm 11.22.0 以降が必要で、デプロイ手順でも同じデフォルトが使われるため、
-   テンプレートではハッシュだけを指定し、`pnpm` は省略しています。nixpkgs が提供する
-   `pnpm_11` が古い場合、`pnpmWorkspaceDeploy` は npm tarball から 11.22.0 を
-   ビルドします。`pnpm` を上書きするのは、互換性のある別バージョンを使う場合だけに
+   テンプレートではハッシュだけを指定し、`pnpm` は省略しています（`pnpm_11`）。
+   `pnpm` を上書きするのは、互換性のある別バージョンを使う場合だけに
    してください。`pnpmDepsHash` の代わりに `pnpmDeps` を渡すのは、ロックファイルに
    `importPnpmLock` などのカスタムフェッチャーが必要な場合だけです。このような
    バンドルでは、`pnpm-lock.json` と `pnpm-workspace.json` を fetchrix の準備生成物として
