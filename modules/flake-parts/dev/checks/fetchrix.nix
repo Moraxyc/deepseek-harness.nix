@@ -43,7 +43,7 @@
         assert pkgs.dsh.bundles.annotation.version != package.version;
         assert !(config.packages."bundles.annotation" ? prepare);
         assert config.packages."bundles.annotation".derive.npmDepsHash.select == "npmDeps";
-        assert config.packages."bundles.web-ui".prepare.artifacts."pnpm-lock.json".type == "json";
+        assert config.packages."dsh-workspace".derive.pnpmDepsHash.select == "pnpmDeps";
         pkgs.runCommand "fetchrix-integration" { nativeBuildInputs = [ pkgs.jq ]; } ''
           jq -e '.version == "99.0.0" and .packages[""].version == "99.0.0"' \
             ${prepared}/package-lock.json >/dev/null

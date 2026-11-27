@@ -1,7 +1,7 @@
 {
   lib,
   dshSources,
-  importPnpmLock,
+  fetchPnpmDeps,
   buildDshBundle,
   copyTree,
   dshCohort,
@@ -34,12 +34,11 @@ buildDshBundle (finalAttrs: {
   # dsh-attachment 0.2.3-alpha.2 requires maxImageBytes and imageTargetBytes on ImageRequestTarget.
   patches = [ ./alpha2-image-request-target.patch ];
 
-  pnpmDeps = importPnpmLock {
-    inherit (finalAttrs) pname version;
+  pnpmDeps = fetchPnpmDeps {
+    inherit (finalAttrs) pname version src;
     pnpm = pnpm_11;
-    lockfileJson = dshSources."bundles.subscriptions".artifacts."pnpm-lock.json";
-    workspaceJson = lib.importJSON dshSources."bundles.subscriptions".artifacts."pnpm-workspace.json";
     fetcherVersion = 4;
+    hash = dshSources."bundles.subscriptions".pnpmDepsHash;
   };
 
   npmDeps = null;

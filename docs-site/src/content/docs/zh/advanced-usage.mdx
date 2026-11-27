@@ -560,19 +560,11 @@ Darwin 下应用安装为 `Applications/DeepSeek Harness.app`，启动入口是
 
 ### Helper 范围
 
-本 flake 之外可以使用的 helper 有两类：
-
-- `pkgs.dsh.helpers.buildBundle`，含 `fromPnpmWorkspace`、`fromWorkspace`、
-  `fromInstallation` 和 `validateDshBundle`：下文用到的 Bundle 构建器。
-- `legacyPackages.<system>.importPnpmLock`，overlay 下为
-  `pkgs.dsh.importPnpmLock`：为通过 vendored `pnpm-lock.json`（上游提供时还有
-  `pnpm-workspace.json`）取依赖的 Bundle 准备的 fetcher。
+本 flake 之外公开的 helper 为 `pkgs.dsh.helpers.buildBundle`（含
+`fromPnpmWorkspace`、`fromWorkspace`、`fromInstallation` 和
+`validateDshBundle`）：即下文用到的 Bundle 构建器。
 
 scope 里其余 helper 属于构建的内部实现。
-
-`importPnpmLock` 接收 `lockfileJson` 和 `workspaceJson`。它写
-`pnpm-workspace.yaml` 时会丢掉 `workspaceJson.packages` 里等于 `.` 的条目：
-生成的 `%YAML 1.1` 头下，pnpm 会把单独的 `.` 读回成空 package。
 
 ### 打包外部 Bundle
 

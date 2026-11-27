@@ -3,17 +3,15 @@
   claudeCodePackage ? null,
   lib,
   buildDshBundle,
+  dshSources,
   dsh-runtime,
   dsh-workspace,
   stdenv,
 }:
 
 let
-  pnpmLock = dsh-workspace.pnpmDeps.lockfile;
-  claudeVersion =
-    pnpmLock.importers."packages/subagent/subagent-claude-code".dependencies."@anthropic-ai/claude-agent-sdk".version;
   lockedPlatformPackages =
-    pnpmLock.snapshots."@anthropic-ai/claude-agent-sdk@${claudeVersion}".optionalDependencies;
+    (lib.importJSON dshSources.dsh-workspace.artifacts."subagent-platforms.json")."claude-agent-sdk";
   platformPackageFor =
     system:
     let
@@ -29,7 +27,7 @@ let
     let
       packageName = platformPackageFor system;
     in
-    packageName != null && builtins.hasAttr packageName lockedPlatformPackages;
+    packageName != null && lib.elem packageName lockedPlatformPackages;
   platformPackage =
     let
       system = stdenv.hostPlatform.system;

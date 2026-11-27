@@ -274,11 +274,12 @@
         "tag": "v0.9.15",
         "hash": "sha256-UQ+W53nxWhwRHLdVTUpPsYN3dkL+LIZ0um14dMCU96Q="
       },
-      "artifacts": {
-        "pnpm-lock.json": "bundles.subscriptions/pnpm-lock.json",
-        "pnpm-workspace.json": "bundles.subscriptions/pnpm-workspace.json"
+      "derived": {
+        "pnpmDepsHash": {
+          "hash": "sha256-Xk+U+AB/IEPHRPKn4Q//JQ+JrUJHIB3R4Z/iAhn7Qr8="
+        }
       },
-      "fingerprint": "sha256-2HQKy95uZVp1mfhiZr6G7O1r/MT7sdkXL+Icmi7xfcA="
+      "fingerprint": "sha256-xKYLQqqdPlsgOLjIM70OWP5pnqCmvNS4T3JEg6DowTw="
     },
     "bundles.tui": {
       "pname": "dsh-tui",
@@ -388,12 +389,12 @@
         "tag": "v0.4.22",
         "hash": "sha256-VZTzQev9ltvK1jGVa2eUQBCUltkdNdPrRM1uOfbCvf0="
       },
-      "artifacts": {
-        "package.json": "bundles.web-ui/package.json",
-        "pnpm-lock.json": "bundles.web-ui/pnpm-lock.json",
-        "pnpm-workspace.json": "bundles.web-ui/pnpm-workspace.json"
+      "derived": {
+        "pnpmDepsHash": {
+          "hash": "sha256-gxRcTtvlpIVN+vnrQe4c5NIu08z1DGknwXISA0GBi/0="
+        }
       },
-      "fingerprint": "sha256-Qakx285U4mv75gJLNeVmeCE6DJAZh2Fw5H+yFrTluFg="
+      "fingerprint": "sha256-Lleu6UQVGI2CrixI/89j3oRfLLEQODPMppEYzFUyKzw="
     },
     "dsh-desktop-unofficial": {
       "pname": "dsh-desktop-shell",
@@ -429,13 +430,17 @@
         "tag": "dsh-v0.2.3-alpha.2",
         "hash": "sha256-rahOnpB3BGTEg5hscD6YlRWgCRNmhW00YF0j43AuSTU="
       },
+      "derived": {
+        "pnpmDepsHash": {
+          "hash": "sha256-5eUkgQcMw6d6+yTzJMZgIYYeC/8RtfgIXnkEn+1a8HY="
+        }
+      },
       "artifacts": {
         "client-commit.json": "dsh-workspace/client-commit.json",
         "optional-bundles.json": "dsh-workspace/optional-bundles.json",
-        "pnpm-lock.json": "dsh-workspace/pnpm-lock.json",
-        "pnpm-workspace.json": "dsh-workspace/pnpm-workspace.json"
+        "subagent-platforms.json": "dsh-workspace/subagent-platforms.json"
       },
-      "fingerprint": "sha256-4Xtz+5e8vxatzksCwuR31xbv8mle5gPnRgf0xtd3sz8="
+      "fingerprint": "sha256-6KAT38l9IHc/japt1cMGeiudLDoDa1OgHVhgpUgT3rY="
     }
   }
 }

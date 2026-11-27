@@ -594,20 +594,11 @@ Nixpkgs にオーバーレイを追加し、`pkgs.dsh` スコープを使用し�
 
 ### 公開ヘルパー
 
-この Flake の外部の利用者には、2 種類のヘルパーが提供されます。
-
-- `fromPnpmWorkspace`、`fromWorkspace`、`fromInstallation`、`validateDshBundle` を含む
-  `pkgs.dsh.helpers.buildBundle`: 後述するバンドルビルダー。
-- `legacyPackages.<system>.importPnpmLock`、またはオーバーレイの
-  `pkgs.dsh.importPnpmLock`: `pnpm-lock.json` をベンダー化するバンドル用のフェッチャー。
-  上流が `pnpm-workspace.json` を同梱している場合は、それにも対応します。
+この Flake の外部の利用者には、`fromPnpmWorkspace`、`fromWorkspace`、
+`fromInstallation`、`validateDshBundle` を含む
+`pkgs.dsh.helpers.buildBundle`（後述するバンドルビルダー）が公開されています。
 
 スコープ内のその他すべてのヘルパーは、内部的なビルド実装の詳細です。
-
-`importPnpmLock` は `lockfileJson` と `workspaceJson` を受け取ります。
-`pnpm-workspace.yaml` を書き込む際に `workspaceJson.packages` から `.` エントリを
-削除します。これは、pnpm が出力された `%YAML 1.1` ヘッダーの下で裸の `.` を
-空のパッケージとして読み戻すためです。
 
 ### 外部バンドルのパッケージ化
 

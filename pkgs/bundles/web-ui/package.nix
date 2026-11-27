@@ -1,15 +1,13 @@
 {
   lib,
-  stdenv,
   dshSources,
   buildDshBundle,
   dsh-runtime,
-  importPnpmLock,
   pnpmConfigHook,
 }:
-buildDshBundle.fromPnpmWorkspace (finalAttrs: {
+buildDshBundle.fromPnpmWorkspace (_finalAttrs: {
   pname = "dsh-web-ui";
-  inherit (dshSources."bundles.web-ui") version src;
+  inherit (dshSources."bundles.web-ui") version src pnpmDepsHash;
   deployPackage = "@linxin666/dsh-web-all";
   stripPrepareScripts = true;
   disableChildBundlePatches = true;
@@ -21,17 +19,6 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
       'node-linker=hoisted' \
       >> .npmrc
   '';
-
-  pnpmDeps = importPnpmLock {
-    inherit (finalAttrs) pname version;
-    package = lib.importJSON dshSources."bundles.web-ui".artifacts."package.json";
-    lockfileJson = dshSources."bundles.web-ui".artifacts."pnpm-lock.json";
-    workspaceJson = lib.importJSON dshSources."bundles.web-ui".artifacts."pnpm-workspace.json";
-    workspaceRoot = finalAttrs.src;
-    fetcherVersion = 4;
-    targetPlatform =
-      if stdenv.buildPlatform == stdenv.hostPlatform then stdenv.targetPlatform else null;
-  };
 
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;

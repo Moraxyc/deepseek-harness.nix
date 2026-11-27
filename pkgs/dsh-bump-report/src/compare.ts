@@ -393,7 +393,7 @@ export function actionsOf(report: Omit<Report, "actions">): string[] {
   ];
   if (workspaceChanges.length)
     actions.push(
-      `Review pnpm-workspace.yaml changes (${workspaceChanges.join(", ")}) against importPnpmLock and pkgs/dsh-workspace/runtime-importer.mjs.`,
+      `Review pnpm-workspace.yaml changes (${workspaceChanges.join(", ")}) against pkgs/dsh-workspace/runtime-importer.mjs.`,
     );
   if (
     build.rootScripts.length ||

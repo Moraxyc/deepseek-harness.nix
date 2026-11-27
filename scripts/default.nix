@@ -61,6 +61,7 @@ rec {
       coreutils
       gitMinimal
       jq
+      yq-go
       generate-optional-bundles
     ];
     text = builtins.readFile ../pkgs/dsh-workspace/fetchrix-prepare.sh;

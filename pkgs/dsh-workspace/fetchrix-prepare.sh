@@ -11,3 +11,13 @@ if [[ ! "$commit" =~ ^[0-9a-f]{40}$ ]]; then
 fi
 jq -n --arg commit "$commit" '$commit' > .fetchrix/client-commit.json
 generate-optional-bundles "$PWD" "$PWD/.fetchrix/optional-bundles.json"
+yq -o=json pnpm-lock.yaml | jq '{
+  "claude-agent-sdk": (
+    .importers."packages/subagent/subagent-claude-code".dependencies."@anthropic-ai/claude-agent-sdk".version as $v |
+    .snapshots["@anthropic-ai/claude-agent-sdk@\($v)"].optionalDependencies // {} | keys
+  ),
+  "codex": (
+    .importers."packages/subagent/subagent-codex".dependencies."@openai/codex".version as $v |
+    .snapshots["@openai/codex@\($v)"].optionalDependencies // {} | keys
+  )
+}' > .fetchrix/subagent-platforms.json

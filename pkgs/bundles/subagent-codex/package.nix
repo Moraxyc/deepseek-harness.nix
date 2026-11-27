@@ -2,6 +2,7 @@
   codexPackage ? null,
   lib,
   buildDshBundle,
+  dshSources,
   dsh-runtime,
   dsh-workspace,
   nodejs-slim,
@@ -9,10 +10,8 @@
 }:
 
 let
-  pnpmLock = dsh-workspace.pnpmDeps.lockfile;
-  codexVersion =
-    pnpmLock.importers."packages/subagent/subagent-codex".dependencies."@openai/codex".version;
-  lockedPlatformPackages = pnpmLock.snapshots."@openai/codex@${codexVersion}".optionalDependencies;
+  lockedPlatformPackages =
+    (lib.importJSON dshSources.dsh-workspace.artifacts."subagent-platforms.json").codex;
   platformPackageFor =
     system:
     let
@@ -27,7 +26,7 @@ let
     let
       packageName = platformPackageFor system;
     in
-    packageName != null && builtins.hasAttr packageName lockedPlatformPackages;
+    packageName != null && lib.elem packageName lockedPlatformPackages;
   platformPackage =
     let
       system = stdenv.hostPlatform.system;

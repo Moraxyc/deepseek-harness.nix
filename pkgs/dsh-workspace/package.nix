@@ -3,8 +3,8 @@
   bashInteractive,
   buildNpmPackage,
   dshSources,
+  fetchPnpmDeps,
   fontconfig,
-  importPnpmLock,
   jq,
   nodejs,
   nodejs-slim,
@@ -12,11 +12,9 @@
   pnpmConfigHook,
   pnpmWorkspaceDeploy,
   python3,
-  runCommand,
   stdenv,
   dsh-system,
   dsh-cua-native,
-  writers,
   yq-go,
 }:
 
@@ -89,51 +87,19 @@ buildNpmPackage (finalAttrs: {
   '';
 
   preConfigure = ''
+    yq -o=json '.overrides // {}' pnpm-workspace.yaml > "$TMPDIR/overrides.json"
     yq -o=json pnpm-lock.yaml > "$TMPDIR/pnpm-lock.json"
     node ${./runtime-importer.mjs} \
-      ${
-        writers.writeJSON "dsh-workspace-overrides.json" (
-          finalAttrs.pnpmDeps.passthru.workspaceConfig.overrides or { }
-        )
-      } \
+      "$TMPDIR/overrides.json" \
       "$TMPDIR/pnpm-lock.json" > "$TMPDIR/runtime-importer.json"
     yq -i '.importers."apps/nix-runtime" = load(strenv(TMPDIR) + "/runtime-importer.json")' pnpm-lock.yaml
-  ''
-  + lib.optionalString isLinux ''
-    # Match the patched tarball used to populate the offline dependency store.
-    yq -i '
-      .packages."@deepseek-ai/libreoffice-kit@0.2.3".resolution = load("${
-        writers.writeJSON "libreoffice-kit-resolution.json"
-          finalAttrs.pnpmDeps.passthru.rewrittenLockfileData.packages."@deepseek-ai/libreoffice-kit@0.2.3".resolution
-      }")
-    ' pnpm-lock.yaml
   '';
 
-  pnpmDeps = importPnpmLock {
-    inherit (finalAttrs) pname version;
+  pnpmDeps = fetchPnpmDeps {
+    inherit (finalAttrs) pname version src;
     pnpm = pnpmWorkspaceDeploy;
-    lockfileJson = dshSources."dsh-workspace".artifacts."pnpm-lock.json";
-    workspaceJson = lib.importJSON dshSources."dsh-workspace".artifacts."pnpm-workspace.json";
-    workspaceRoot = finalAttrs.src;
-    packageSourceOverrides = lib.optionalAttrs isLinux {
-      "@deepseek-ai/libreoffice-kit@0.2.3" =
-        { previousSource, ... }:
-        runCommand "libreoffice-kit-0.2.3-fontconfig.tgz"
-          {
-            src = previousSource;
-            nativeBuildInputs = [ patch ];
-          }
-          ''
-            tar -xzf "$src"
-            patch -d package -p1 < ${./libreoffice-kit-fontconfig.patch}
-            substituteInPlace package/lib/index.js package/lib/cli.js \
-              --replace-fail '@fc-list@' '${lib.getExe' fontconfig "fc-list"}'
-            tar --sort=name --mtime=@1 --owner=0 --group=0 --numeric-owner \
-              -czf "$out" package
-          '';
-    };
-    targetPlatform =
-      if stdenv.buildPlatform == stdenv.hostPlatform then stdenv.targetPlatform else null;
+    fetcherVersion = 4;
+    hash = dshSources.dsh-workspace.pnpmDepsHash;
   };
 
   nativeBuildInputs = [
@@ -142,11 +108,11 @@ buildNpmPackage (finalAttrs: {
     pnpmWorkspaceDeploy
     python3
     yq-go
-  ];
+  ]
+  ++ lib.optionals isLinux [ patch ];
 
   npmDeps = null;
   dontNpmInstall = true;
-  npmInstallFlags = finalAttrs.pnpmDeps.passthru.pnpmInstallFlags;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build:official";
 
@@ -271,10 +237,19 @@ buildNpmPackage (finalAttrs: {
     runHook postInstall
   '';
 
-  passthru = {
-    fetchPnpmDeps = finalAttrs.pnpmDeps.passthru.fetchPnpmDeps;
-
-  };
+  postInstall = lib.optionalString isLinux ''
+    patched=0
+    while IFS= read -r -d "" dir; do
+      patch --no-backup-if-mismatch -d "$dir" -p1 < ${./libreoffice-kit-fontconfig.patch}
+      substituteInPlace "$dir/lib/index.js" "$dir/lib/cli.js" \
+        --replace-fail '@fc-list@' '${lib.getExe' fontconfig "fc-list"}'
+      patched=$((patched + 1))
+    done < <(find "$out" "$runtime" "$desktop" -type d -path '*/@deepseek-ai/libreoffice-kit' -print0)
+    [ "$patched" -gt 0 ] || {
+      printf 'dsh-workspace: @deepseek-ai/libreoffice-kit not found in outputs\n' >&2
+      exit 1
+    }
+  '';
 
   meta = {
     description = "Built DeepSeek Harness workspace artifacts";

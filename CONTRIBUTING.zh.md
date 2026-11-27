@@ -73,7 +73,6 @@ runtime fixup 期间，已签名的 generation 暂存在输出目录之外，封
 
 ## 平台说明
 
-- Darwin：`importPnpmLock` 分批聚合 tarball，使沙箱 profile 保持在大小限制以内。
 - workspace runtime 先部署到 `$TMPDIR`，再移动到输出路径，因为 pnpm 会创建同级临时目录。
 - aarch64 Linux：聚合构建检查串行运行，以限制峰值内存。
 - 需要监听或解析 localhost 的测试设置 `__darwinAllowLocalNetworking = true`，
@@ -141,9 +140,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
    `pnpmWorkspaceDeploy`。`pnpm deploy` 的 workspace 注入要求 pnpm 不低于
    11.22.0，deploy 步骤也用同一个默认值（`pnpm_11`），因此模板只提供哈希，
    不写 `pnpm`。只有需要换成其他仍满足版本要求的 pnpm 时才覆盖 `pnpm`。只有当
-   lockfile 需要自定义 fetcher（例如 `importPnpmLock`）时才改用 `pnpmDeps`。
-   这类 bundle 将 `pnpm-lock.json` 和 `pnpm-workspace.json` 声明为 fetchrix
-   准备产物，通过 `dshSources` 获取路径，分别传入 `lockfileJson` 和 `workspaceJson`。
+   lockfile 需要自定义 fetcher 时才改用 `pnpmDeps`。
 4. 运行：
 
    ```sh

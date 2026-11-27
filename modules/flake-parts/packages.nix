@@ -5,7 +5,6 @@
     let
       dsh = pkgs.dsh;
       docs-site = pkgs.callPackage ../../pkgs/docs-site/package.nix { };
-      importPnpmLock = dsh.importPnpmLock;
       packages = {
         default = dsh.dsh;
         inherit (dsh)
@@ -21,7 +20,6 @@
 
       legacyPackages = {
         inherit (dsh) bundles presets;
-        inherit importPnpmLock;
         fetchrixPackages = import ../../lib/fetchrix-packages.nix { inherit lib dsh; };
         tools = import ../../scripts { inherit pkgs; };
         inherit bundleCompositions bundleProbes;

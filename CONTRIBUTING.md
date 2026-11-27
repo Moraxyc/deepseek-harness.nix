@@ -88,8 +88,6 @@ matches the signed content.
 
 ## Platform notes
 
-- Darwin: `importPnpmLock` aggregates tarballs in bounded batches to stay below
-  the sandbox profile size limit.
 - The workspace runtime deploys under `$TMPDIR` and then moves to its output,
   because pnpm creates sibling temporary directories.
 - aarch64 Linux: aggregate build checks run serially to limit peak memory.
@@ -162,10 +160,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
    deploy step uses the same default (`pnpm_11`), so the template only supplies
    a hash and omits `pnpm`. Override `pnpm` only for a different,
    still-compatible version. Pass `pnpmDeps` instead of `pnpmDepsHash` only
-   when the lockfile needs a custom fetcher, such as `importPnpmLock`. Such a
-   bundle declares `pnpm-lock.json` and `pnpm-workspace.json` as fetchrix
-   preparation artifacts and passes their `dshSources` paths as `lockfileJson`
-   and `workspaceJson`.
+   when the lockfile needs a custom fetcher.
 4. Run:
 
    ```sh

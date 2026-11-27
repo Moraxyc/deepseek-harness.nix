@@ -143,9 +143,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
    テンプレートではハッシュだけを指定し、`pnpm` は省略しています（`pnpm_11`）。
    `pnpm` を上書きするのは、互換性のある別バージョンを使う場合だけに
    してください。`pnpmDepsHash` の代わりに `pnpmDeps` を渡すのは、ロックファイルに
-   `importPnpmLock` などのカスタムフェッチャーが必要な場合だけです。このような
-   バンドルでは、`pnpm-lock.json` と `pnpm-workspace.json` を fetchrix の準備生成物として
-   宣言し、`dshSources` のパスを `lockfileJson` と `workspaceJson` に渡します。
+   カスタムフェッチャーが必要な場合だけです。
 4. 次を実行します。
 
    ```sh
