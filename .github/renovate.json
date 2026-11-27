@@ -1,17 +1,36 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
-  "enabledManagers": ["github-actions", "npm"],
+  "enabledManagers": ["github-actions", "npm", "nix"],
+  "nix": {
+    "enabled": true
+  },
   "includePaths": [
     ".github/workflows/**",
     "docs-site/**",
-    "modules/flake-parts/dev/checks/fixtures/bundle-helper-npm/**"
+    "modules/flake-parts/dev/checks/fixtures/bundle-helper-npm/**",
+    "flake.nix",
+    "modules/flake-parts/dev/flake.nix"
   ],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 4am on monday"],
+    "automerge": true,
+    "automergeType": "pr"
+  },
   "packageRules": [
     {
       "description": "Automerge non-major dependency updates after Merge Check",
       "matchManagers": ["github-actions", "npm"],
       "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Group and automerge weekly flake lock updates after Merge Check",
+      "matchManagers": ["nix"],
+      "groupName": "flake locks",
+      "schedule": ["before 4am on monday"],
       "automerge": true,
       "automergeType": "pr"
     }

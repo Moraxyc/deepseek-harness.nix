@@ -392,7 +392,7 @@ in
   および dsh が各バンドルを受け入れるかどうかです。自動更新 PR の作業リストになります。
 - dsh-workspace の自動更新は `nix develop -c fetchrix update dsh-workspace` の直後に
   PR を作成して終了します。`overrideDshEngineVersion` の grant 追加、影響レポート、検証ビルドは
-  行わず、Package CI と Merge Check をスキップし、自動マージも有効にしません。
+  行わず、`[skip ci]` で CI をスキップし、自動マージも有効にしません。
   レビュー担当者がこの節の手順を完了して初めて更新は完了します。
 - その他の自動更新は、検証済みの更新を集約し、GitHub App の bot 名義で main に
   一度だけプッシュします。CI はスキップしません。検証失敗と集約時の競合がある更新は、

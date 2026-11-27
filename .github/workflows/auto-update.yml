@@ -37,8 +37,9 @@ jobs:
           extra_nix_config: |
             accept-flake-config = true
             build-dir = /nix/build
-            extra-substituters = https://nix-cache.qaq.li/fetchrix
-            extra-trusted-public-keys = fetchrix:VDPvJo80cjEoWiPDXAKKrNu3RXet40rlcXFZFvbsscM=
+            extra-trusted-substituters = https://nix-cache.qaq.li/fetchrix https://nix-cache.qaq.li/moraxyc
+            extra-substituters = https://nix-cache.qaq.li/fetchrix https://nix-cache.qaq.li/moraxyc
+            extra-trusted-public-keys = fetchrix:VDPvJo80cjEoWiPDXAKKrNu3RXet40rlcXFZFvbsscM= moraxyc:fLUN1qkE59zF7jNqc2paA06LcxLzcoBMyGfWLOKU2NY=
 
       - name: Build update matrix
         id: discover
@@ -83,31 +84,11 @@ jobs:
           printf '%s\n' "$result" |
             jq -r '.skipped[] | "::warning::Skipping broken \(.) in the auto-update matrix"'
 
-          include_flake_locks=false
-          # Flake lock updates rebuild the full package set across all systems;
-          # run them weekly on Mondays and on manual dispatch.
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] ||
-             [ "$(date -u +%u)" = "1" ]; then
-            include_flake_locks=true
-          fi
-
           matrix="$(
             jq -cn \
               --argjson result "$result" \
-              --argjson include_flake_locks "$include_flake_locks" \
               '{
-                include: ((if $include_flake_locks then [
-                  {
-                    name: "flake-locks",
-                    title: "chore: update flake locks",
-                    command: "nix flake update\nnix flake update --flake ./modules/flake-parts/dev",
-                    attr: "",
-                    label: "",
-                    version: "",
-                    prOnly: false,
-                    evalOnly: true
-                  }
-                ] else [] end) + [ $result.updatable[] | { name: .name, title: "", attr: .attr, label: .label, version: .version, command: "", prOnly: .prOnly, evalOnly: false } ])
+                include: [ $result.updatable[] | { name: .name, label: .label, version: .version, prOnly: .prOnly } ]
               }'
           )"
 
@@ -160,8 +141,9 @@ jobs:
           extra_nix_config: |
             accept-flake-config = true
             build-dir = /nix/build
-            extra-substituters = https://nix-cache.qaq.li/fetchrix
-            extra-trusted-public-keys = fetchrix:VDPvJo80cjEoWiPDXAKKrNu3RXet40rlcXFZFvbsscM=
+            extra-trusted-substituters = https://nix-cache.qaq.li/fetchrix https://nix-cache.qaq.li/moraxyc
+            extra-substituters = https://nix-cache.qaq.li/fetchrix https://nix-cache.qaq.li/moraxyc
+            extra-trusted-public-keys = fetchrix:VDPvJo80cjEoWiPDXAKKrNu3RXet40rlcXFZFvbsscM= moraxyc:fLUN1qkE59zF7jNqc2paA06LcxLzcoBMyGfWLOKU2NY=
 
       # The final main-branch run reuses these validation builds.
       - name: Configure Cachix
@@ -172,14 +154,14 @@ jobs:
 
       # `cachix use` writes `substituters = ...` to the user config when missing,
       # overriding `/etc/nix/nix.conf`'s `extra-substituters`. Re-append it here.
-      - name: Configure fetchrix cache
+      - name: Configure extra caches
         run: |
           set -euo pipefail
           nix_conf="${XDG_CONFIG_HOME:-$HOME/.config}/nix/nix.conf"
           mkdir -p "$(dirname "$nix_conf")"
           cat >> "$nix_conf" <<'EOF'
-          extra-substituters = https://nix-cache.qaq.li/fetchrix
-          extra-trusted-public-keys = fetchrix:VDPvJo80cjEoWiPDXAKKrNu3RXet40rlcXFZFvbsscM=
+          extra-substituters = https://nix-cache.qaq.li/fetchrix https://nix-cache.qaq.li/moraxyc
+          extra-trusted-public-keys = fetchrix:VDPvJo80cjEoWiPDXAKKrNu3RXet40rlcXFZFvbsscM= moraxyc:fLUN1qkE59zF7jNqc2paA06LcxLzcoBMyGfWLOKU2NY=
           EOF
 
       - name: Configure git
@@ -213,19 +195,8 @@ jobs:
           fi
           git remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git"
 
-      - name: Update flake locks
-        id: locks
-        if: matrix.command != ''
-        continue-on-error: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          ${{ matrix.command }}
-
       - name: Update package
         id: package
-        if: matrix.attr != ''
         continue-on-error: true
         env:
           LABEL: ${{ matrix.label }}
@@ -238,7 +209,7 @@ jobs:
         id: changes
         env:
           NAME: ${{ matrix.name }}
-          UPDATE_FAILED: ${{ steps.package.outcome == 'failure' || steps.locks.outcome == 'failure' }}
+          UPDATE_FAILED: ${{ steps.package.outcome == 'failure' }}
         run: |
           set -euo pipefail
           placeholder=".github/auto-update-failures/$NAME.md"
@@ -268,17 +239,14 @@ jobs:
         if: steps.changes.outputs.updated == 'true'
         env:
           LABEL: ${{ matrix.label }}
-          ATTR: ${{ matrix.attr }}
           OLD_VERSION: ${{ matrix.version }}
-          DEFAULT_TITLE: ${{ matrix.title }}
           NAME: ${{ matrix.name }}
           PLACEHOLDER: ${{ steps.changes.outputs.placeholder }}
         run: |
           set -euo pipefail
-          title="$DEFAULT_TITLE"
           if [ "$PLACEHOLDER" = true ]; then
             title="${LABEL:-$NAME}: repair failed auto-update"
-          elif [ -n "$ATTR" ]; then
+          else
             new_version="$(jq -r --arg label "$LABEL" '.packages[$label].version' _sources/lock.json)"
             title="$LABEL: $OLD_VERSION -> $new_version"
           fi
@@ -293,43 +261,16 @@ jobs:
           echo "title=$title" >> "$GITHUB_OUTPUT"
 
       # The container check needs the uid-range feature, which GitHub runners
-      # cannot provide. Build what Package CI would build for the change instead,
-      # except flake lock updates which only run evaluation here.
+      # cannot provide. Build affected CI targets instead.
       - name: Validate update
         id: validate
         if: >-
           steps.changes.outputs.updated == 'true' && matrix.prOnly != true &&
-          steps.package.outcome != 'failure' && steps.locks.outcome != 'failure'
+          steps.package.outcome != 'failure'
         continue-on-error: true
-        env:
-          EVAL_ONLY: ${{ matrix.evalOnly }}
         run: |
           set -euo pipefail
           system="$(nix eval --raw --impure --expr builtins.currentSystem)"
-          if [ "${EVAL_ONLY:-false}" = true ]; then
-            # The flake-parts dev partition copies this path into the store.
-            # Populate it before the read-only flake check on a clean runner.
-            nix-store --add ./modules/flake-parts/dev >/dev/null
-            nix flake check --no-build --all-systems
-            count="$(
-              nix run --inputs-from . nixpkgs#nix-eval-jobs -- \
-                --force-recurse \
-                --max-memory-size 2048 \
-                --flake ".#legacyPackages.${system}.ciTargets" |
-                jq -s '
-                  (map(select(.error != null))) as $errs |
-                  if ($errs | length) > 0 then
-                    ($errs[0].error | halt_error(1))
-                  elif length == 0 then
-                    ("no derivations evaluated" | halt_error(1))
-                  else
-                    length
-                  end
-                '
-            )"
-            printf 'Evaluated %s CI targets\n' "$count"
-            exit 0
-          fi
           nix run --inputs-from . nixpkgs#nix-fast-build -- \
             --flake ".#legacyPackages.${system}.ciTargets" \
             --max-jobs 2 \
@@ -342,7 +283,7 @@ jobs:
         if: >-
           steps.changes.outputs.updated == 'true' &&
           matrix.prOnly != true &&
-          steps.package.outcome != 'failure' && steps.locks.outcome != 'failure' &&
+          steps.package.outcome != 'failure' &&
           steps.validate.outcome == 'success'
         env:
           NAME: ${{ matrix.name }}
@@ -385,7 +326,7 @@ jobs:
           TITLE: ${{ steps.commit.outputs.title }}
           PR_ONLY: ${{ matrix.prOnly }}
           PLACEHOLDER: ${{ steps.changes.outputs.placeholder }}
-          UPDATE_FAILED: ${{ steps.package.outcome == 'failure' || steps.locks.outcome == 'failure' }}
+          UPDATE_FAILED: ${{ steps.package.outcome == 'failure' }}
           VALIDATION_FAILED: ${{ steps.validate.outcome == 'failure' }}
         run: |
           set -euo pipefail
@@ -525,7 +466,11 @@ jobs:
         uses: cachix/install-nix-action@v32
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
-          extra_nix_config: build-dir = /nix/build
+          extra_nix_config: |
+            build-dir = /nix/build
+            extra-trusted-substituters = https://nix-cache.qaq.li/moraxyc
+            extra-substituters = https://nix-cache.qaq.li/moraxyc
+            extra-trusted-public-keys = moraxyc:fLUN1qkE59zF7jNqc2paA06LcxLzcoBMyGfWLOKU2NY=
 
       - name: Generate GitHub App Token
         id: app-token

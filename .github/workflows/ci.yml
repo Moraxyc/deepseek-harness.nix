@@ -1,0 +1,242 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      packages: ${{ steps.filter.outputs.packages }}
+      docs: ${{ steps.filter.outputs.docs }}
+    steps:
+      - name: Checkout repository
+        if: github.event_name == 'push'
+        uses: actions/checkout@v7
+
+      - name: Filter changed paths
+        if: github.event_name != 'workflow_dispatch'
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            packages:
+              - "**"
+              - "!**/*.md"
+              - "!docs-site/**"
+              - "!LICENSE"
+              - "!.github/renovate.json"
+            docs:
+              - "docs-site/**"
+              - "lib/**"
+              - "pkgs/**"
+              - "flake.lock"
+              - "flake.nix"
+              - "default.nix"
+              - ".github/workflows/ci.yml"
+
+  build:
+    # x86_64-linux runs every check; the other systems build the package set so
+    # Cachix also serves aarch64-linux and aarch64-darwin.
+    name: Build package set${{ matrix.system != 'x86_64-linux' && format(' ({0})', matrix.system) || '' }}
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.packages == 'true'
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - system: x86_64-linux
+            runner: ubuntu-latest
+          - system: aarch64-linux
+            runner: ubuntu-24.04-arm
+          - system: aarch64-darwin
+            runner: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Free disk space for Nix
+        uses: wimpysworld/nothing-but-nix@v12
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v32
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          # nothing-but-nix creates /nix/build on Linux only.
+          extra_nix_config: |
+            accept-flake-config = true
+            ${{ runner.os == 'Linux' && 'build-dir = /nix/build' || '' }}
+            extra-trusted-substituters = https://nix-cache.qaq.li/moraxyc
+            extra-substituters = https://nix-cache.qaq.li/moraxyc
+            extra-trusted-public-keys = moraxyc:fLUN1qkE59zF7jNqc2paA06LcxLzcoBMyGfWLOKU2NY=
+
+      - name: Configure Cachix
+        uses: cachix/cachix-action@v17
+        with:
+          name: ${{ vars.CACHIX_CACHE_NAME || 'deepseek-harness-nix' }}
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+          skipPush: ${{ github.event_name == 'pull_request' }}
+
+      # `cachix use` writes `substituters = ...` to the user config when missing,
+      # overriding `/etc/nix/nix.conf`'s `extra-substituters`. Re-append it here.
+      - name: Configure extra caches
+        run: |
+          set -euo pipefail
+          nix_conf="${XDG_CONFIG_HOME:-$HOME/.config}/nix/nix.conf"
+          mkdir -p "$(dirname "$nix_conf")"
+          cat >> "$nix_conf" <<'EOF'
+          extra-substituters = https://nix-cache.qaq.li/moraxyc
+          extra-trusted-public-keys = moraxyc:fLUN1qkE59zF7jNqc2paA06LcxLzcoBMyGfWLOKU2NY=
+          EOF
+
+      - name: Check CI scripts
+        if: matrix.system == 'x86_64-linux'
+        run: |
+          nix build --no-link \
+            .#checks.x86_64-linux.dsh-bump-report \
+            .#checks.x86_64-linux.publish-auto-updates
+
+      - name: Check generated optional bundle manifest
+        if: matrix.system == 'x86_64-linux'
+        run: |
+          nix build --no-link --print-build-logs \
+            .#checks.x86_64-linux.dsh-optional-bundles-generated
+
+      - name: Build package set
+        run: |
+          set -euo pipefail
+          target="ciPackages"
+          # Bundle loading smoke checks are architecture-independent; run them
+          # on x86_64-linux only and keep packages, bundles, and presets everywhere.
+          if [ "${{ matrix.system }}" = "x86_64-linux" ]; then
+            target="ciTargets"
+          fi
+          nix run --inputs-from . nixpkgs#nix-fast-build -- \
+            --flake ".#legacyPackages.${{ matrix.system }}.${target}" \
+            --max-jobs 2 \
+            --skip-cached \
+            --no-nom \
+            --eval-max-memory-size 2048
+
+      - name: Check optional bundle composition and worktree runtime
+        if: matrix.system == 'x86_64-linux'
+        run: |
+          nix build --no-link --print-build-logs \
+            .#checks.x86_64-linux.dsh-optional-bundles \
+            .#checks.x86_64-linux.dsh-worktree-runtime
+
+      - name: Check bundle helper with nixpkgs 26.05
+        if: matrix.system == 'x86_64-linux'
+        run: |
+          nix build --no-link --print-build-logs \
+            --inputs-from ./modules/flake-parts/dev \
+            --override-input nixpkgs nixpkgs-2605 \
+            .#checks.x86_64-linux.dsh-bundle-helper
+
+  docs-build:
+    name: Build documentation site
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.docs == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Free disk space for Nix
+        uses: wimpysworld/nothing-but-nix@v12
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v32
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+          extra_nix_config: |
+            accept-flake-config = true
+            build-dir = /nix/build
+            extra-trusted-substituters = https://nix-cache.qaq.li/moraxyc
+            extra-substituters = https://nix-cache.qaq.li/moraxyc
+            extra-trusted-public-keys = moraxyc:fLUN1qkE59zF7jNqc2paA06LcxLzcoBMyGfWLOKU2NY=
+
+      - name: Configure Cachix
+        uses: cachix/cachix-action@v17
+        with:
+          name: ${{ vars.CACHIX_CACHE_NAME || 'deepseek-harness-nix' }}
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+          skipPush: ${{ github.event_name == 'pull_request' }}
+
+      - name: Configure extra caches
+        run: |
+          set -euo pipefail
+          nix_conf="${XDG_CONFIG_HOME:-$HOME/.config}/nix/nix.conf"
+          mkdir -p "$(dirname "$nix_conf")"
+          cat >> "$nix_conf" <<'EOF'
+          extra-substituters = https://nix-cache.qaq.li/moraxyc
+          extra-trusted-public-keys = moraxyc:fLUN1qkE59zF7jNqc2paA06LcxLzcoBMyGfWLOKU2NY=
+          EOF
+
+      - name: Build site with Nix
+        run: |
+          set -euo pipefail
+          site_path="$(
+            nix build .#docs-site \
+              --no-link \
+              --print-build-logs \
+              --print-out-paths
+          )"
+          cp -R "$site_path"/. "$RUNNER_TEMP/docs-site"
+
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: ${{ runner.temp }}/docs-site
+
+  docs-deploy:
+    name: Deploy documentation site
+    if: github.event_name != 'pull_request' && needs.docs-build.result == 'success'
+    needs: docs-build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
+
+  merge-check:
+    name: Merge Check
+    if: always()
+    needs: [changes, build, docs-build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify required checks
+        run: |
+          set -euo pipefail
+          for result in \
+            "${{ needs.changes.result }}" \
+            "${{ needs.build.result }}" \
+            "${{ needs.docs-build.result }}"; do
+            case "$result" in
+              success|skipped) ;;
+              *) exit 1 ;;
+            esac
+          done
