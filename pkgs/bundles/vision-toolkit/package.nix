@@ -23,7 +23,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   npmDeps = null;
   npmConfigHook = pnpmConfigHook;
   npmBuildScript = "build";
-  disallowedReferences = [ dsh-workspace ];
+  linkDisallowedReferences = [ dsh-workspace ];
 
   nativeBuildInputs = [ jq ];
   buildInputs = [ python3 ];
@@ -35,7 +35,7 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
     runHook postCheck
   '';
 
-  postNormalizeDeploy = ''
+  postLink = ''
     webRuntime="${dsh-workspace}/lib/dsh-workspace/runtime-bundles/@deepseek-ai/dsh-web-app/node_modules"
     for clientPackage in \
       dsh-api-remotes \
@@ -57,7 +57,9 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
         label = "dsh-vision-toolkit: workspace runtime package is missing";
       }}
     done
+  '';
 
+  postNormalizeDeploy = ''
     while IFS= read -r -d $'\0' script; do
       patchShebangs "$script"
     done < <(find "$deployPackagePath/vendor/agent-vision-toolkit" \

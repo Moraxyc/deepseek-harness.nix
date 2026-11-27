@@ -69,7 +69,11 @@ which keeps one runtime instance per package. Use `installationKeep` for
 packages the bundle must keep locally. Bundles the installation already
 carries use `buildDshBundle.fromInstallation` and are selected by name.
 When pnpm deploy removes peer metadata, the helper exposes only the
-installation's SDK libraries in that namespace.
+installation's SDK libraries in that namespace. For `buildDshBundle` and
+`buildDshBundle.fromPnpmWorkspace`, installation linking runs in a separate
+wrapper derivation so runtime updates reuse the compiled bundle output; put
+extra runtime- or cohort-dependent link steps in `postLink` instead of
+`installPhase` or `postNormalizeDeploy`.
 
 ## CUA helper
 

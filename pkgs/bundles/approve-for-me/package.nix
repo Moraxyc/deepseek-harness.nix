@@ -27,9 +27,9 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
 
   # The upstream plugin declares this as a peer but imports it from its host
   # module. The installation does not ship these browser client peers.
-  postNormalizeDeploy = ''
+  postLink = ''
     ${dshCohort.installPackages {
-      dest = "$deployPackagePath/node_modules";
+      dest = "$out/lib/node_modules/dsh-approve-for-me/node_modules";
       names = [ "dsh-client-connection" ];
     }}
   '';

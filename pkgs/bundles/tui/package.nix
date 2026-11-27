@@ -99,13 +99,16 @@ buildDshBundle (finalAttrs: {
       dest = "$appDir/node_modules/@dsh-tui-vendor";
     }}
 
-    # Without a web-app row, dsh-tui registers this dependency's official presets.
-    # Keep them aligned with the installation.
-    rm "$appDir/node_modules/@deepseek-ai/dsh-web-app"
+    runHook postInstall
+  '';
+
+  # Without a web-app row, dsh-tui registers this dependency's official presets.
+  # Keep them aligned with the installation.
+  postLink = ''
+    appDir="$out/lib/node_modules/@deepseek-harness-tui/dsh-tui"
+    rm -rf "$appDir/node_modules/@deepseek-ai/dsh-web-app"
     ln -s ${dsh-runtime}/node_modules/@deepseek-ai/dsh-web-app \
       "$appDir/node_modules/@deepseek-ai/dsh-web-app"
-
-    runHook postInstall
   '';
 
   doInstallCheck = true;

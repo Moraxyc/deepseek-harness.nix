@@ -140,6 +140,54 @@
               ${workspaceBundle}/nix-support/dsh-bundles.json >/dev/null
             touch "$out"
           '';
+
+      mkFakeInstallation =
+        version:
+        pkgs.runCommand "fake-dsh-installation-${version}" { } ''
+          mkdir -p "$out/node_modules/@deepseek-ai/dsh-sdk"
+          printf '{"name":"@deepseek-ai/dsh-sdk","version":"%s"}\n' ${pkgs.lib.escapeShellArg version} \
+            > "$out/node_modules/@deepseek-ai/dsh-sdk/package.json"
+        '';
+      fakeInstallationA = (mkFakeInstallation "1.0.0") // {
+        version = "1.0.0";
+      };
+      fakeInstallationB = (mkFakeInstallation "2.0.0") // {
+        version = "2.0.0";
+      };
+      mkLinkedBundle =
+        installation:
+        pkgs.dsh.helpers.buildBundle (_finalAttrs: {
+          pname = "${bundleName}-linked";
+          version = "1.0.0";
+
+          src = bundleSource;
+          npmDeps = pkgs.importNpmLock { npmRoot = bundleSource; };
+          npmConfigHook = pkgs.importNpmLock.npmConfigHook;
+          dontBuild = true;
+          inherit installation;
+          overrideDshEngineVersion = true;
+
+          meta.description = "Linked bundle helper decoupling check";
+        });
+      linkedBundleA = mkLinkedBundle fakeInstallationA;
+      linkedBundleB = mkLinkedBundle fakeInstallationB;
+      linkedBundleDecouplingCheck =
+        assert linkedBundleA.passthru.unwrapped.drvPath == linkedBundleB.passthru.unwrapped.drvPath;
+        assert linkedBundleA.src == linkedBundleA.passthru.unwrapped.src;
+        assert linkedBundleA.npmDeps == linkedBundleA.passthru.unwrapped.npmDeps;
+        pkgs.runCommand "${bundleName}-linked-decoupling-check"
+          {
+            nativeBuildInputs = [ pkgs.jq ];
+          }
+          ''
+            sdkLinkA=$(readlink "${linkedBundleA}/lib/node_modules/@deepseek-ai/dsh-sdk")
+            sdkLinkB=$(readlink "${linkedBundleB}/lib/node_modules/@deepseek-ai/dsh-sdk")
+            [ "$sdkLinkA" = "${fakeInstallationA}/node_modules/@deepseek-ai/dsh-sdk" ]
+            [ "$sdkLinkB" = "${fakeInstallationB}/node_modules/@deepseek-ai/dsh-sdk" ]
+            jq -e '.engines.dsh == "1.0.0"' "${linkedBundleA}/lib/node_modules/${bundleName}/package.json" >/dev/null
+            jq -e '.engines.dsh == "2.0.0"' "${linkedBundleB}/lib/node_modules/${bundleName}/package.json" >/dev/null
+            touch "$out"
+          '';
     in
     {
       checks.dsh-bundle-helper = pkgs.linkFarm "dsh-bundle-helper-checks" [
@@ -154,6 +202,10 @@
         {
           name = "pnpm-workspace-manifest";
           path = workspaceManifestCheck;
+        }
+        {
+          name = "linked-decoupling";
+          path = linkedBundleDecouplingCheck;
         }
       ];
     };

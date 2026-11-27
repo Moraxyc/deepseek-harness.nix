@@ -174,6 +174,9 @@ let
 
   # Every builder exposes the same protocol surface: validated passthru,
   # installation package sharing, engines rewrite, and the bundle manifest.
+  # When `splitLink` is true and `installation != null`, linking against the
+  # installation moves into a separate derivation so runtime updates do not
+  # recompile the bundle.
   mkBundleProtocol =
     finalAttrs:
     {
@@ -181,15 +184,27 @@ let
       meta ? { },
       passthru ? { },
       postInstall ? "",
+      postLink ? "",
+      linkDisallowedReferences ? [ ],
+      linkNativeBuildInputs ? [ ],
       overrideDshEngineVersion ? false,
       installation ? null,
       installationKeep ? [ ],
+      splitLink ? false,
+      __darwinAllowLocalNetworking ? false,
+      doInstallCheck ? false,
+      installCheckPhase ? "",
+      installCheckInputs ? [ ],
+      nativeInstallCheckInputs ? [ ],
     }:
     assert lib.assertMsg (lib.isBool overrideDshEngineVersion)
       "buildDshBundle: ${finalAttrs.pname}: overrideDshEngineVersion must be a boolean";
     assert lib.assertMsg (
       !overrideDshEngineVersion || installation != null
     ) "buildDshBundle: ${finalAttrs.pname}: overrideDshEngineVersion requires installation";
+    assert lib.assertMsg (
+      postLink == "" || installation != null
+    ) "buildDshBundle: ${finalAttrs.pname}: postLink requires installation";
     let
       validation = validateDshBundle {
         bundle = {
@@ -199,24 +214,130 @@ let
         };
         context = "buildDshBundle";
       };
+      deferredLink = splitLink && installation != null;
     in
     {
       inherit (validation) meta;
-      passthru = passthru // validation.passthru // { inherit overrideDshEngineVersion; };
+      passthru =
+        passthru
+        // validation.passthru
+        // {
+          inherit overrideDshEngineVersion;
+        }
+        // lib.optionalAttrs deferredLink {
+          __dshBundleLink = {
+            inherit
+              __darwinAllowLocalNetworking
+              doInstallCheck
+              installCheckInputs
+              installCheckPhase
+              installation
+              installationKeep
+              linkDisallowedReferences
+              linkNativeBuildInputs
+              nativeInstallCheckInputs
+              overrideDshEngineVersion
+              postLink
+              ;
+          };
+        };
       postInstall =
         postInstall
-        + lib.optionalString (installation != null) (shareInstallationScript installation installationKeep)
-        + overrideDshEngineVersionScript overrideDshEngineVersion installation
-        + validateInstalledBundle;
+        + (
+          if deferredLink then
+            ''
+              if [ -d "$out/lib/node_modules" ]; then
+                find "$out/lib/node_modules" -xtype l -delete
+              fi
+            ''
+          else
+            lib.optionalString (installation != null) (
+              postLink + shareInstallationScript installation installationKeep
+            )
+            + overrideDshEngineVersionScript overrideDshEngineVersion installation
+            + validateInstalledBundle
+        );
+    }
+    // lib.optionalAttrs deferredLink {
+      doInstallCheck = false;
+      installCheckPhase = "";
+      installCheckInputs = [ ];
+      nativeInstallCheckInputs = [ ];
     };
 
-  buildDshBundle = lib.extendMkDerivation {
+  wrapLinkedBundle =
+    built:
+    let
+      link = built.passthru.__dshBundleLink or null;
+    in
+    if link == null then
+      built
+    else
+      stdenvNoCC.mkDerivation (
+        {
+          inherit (built) pname version;
+
+          dontUnpack = true;
+          dontConfigure = true;
+          dontBuild = true;
+
+          nativeBuildInputs = [ nodejs-slim ] ++ link.linkNativeBuildInputs;
+          disallowedReferences = lib.unique (link.linkDisallowedReferences ++ [ nodejs ]);
+
+          installPhase = ''
+            runHook preInstall
+
+            ${copyTree.keepLinks {
+              src = "${built}";
+              dest = "$out";
+            }}
+            ${link.postLink}
+            ${shareInstallationScript link.installation link.installationKeep}
+            ${overrideDshEngineVersionScript link.overrideDshEngineVersion link.installation}
+            ${validateInstalledBundle}
+
+            runHook postInstall
+          '';
+
+          inherit (link)
+            doInstallCheck
+            installCheckInputs
+            nativeInstallCheckInputs
+            ;
+
+          passthru =
+            (builtins.removeAttrs (built.passthru or { }) [ "__dshBundleLink" ])
+            // {
+              unwrapped = built;
+            }
+            // lib.optionalAttrs (built ? src) { inherit (built) src; }
+            // lib.optionalAttrs (built ? npmDeps) { inherit (built) npmDeps; }
+            // lib.optionalAttrs (built ? pnpmDeps) { inherit (built) pnpmDeps; };
+
+          inherit (built) meta;
+        }
+        // lib.optionalAttrs link.__darwinAllowLocalNetworking {
+          __darwinAllowLocalNetworking = true;
+        }
+        // lib.optionalAttrs (link.installCheckPhase != "") {
+          inherit (link) installCheckPhase;
+        }
+      );
+
+  withInstallationLink = builder: {
+    __functor = _self: drvArgs: wrapLinkedBundle (builder drvArgs);
+  };
+
+  rawBuildDshBundle = lib.extendMkDerivation {
     constructDrv = buildNpmPackage;
     excludeDrvArgNames = [
       "disableChildBundlePatches"
       "overrideDshEngineVersion"
       "installation"
       "installationKeep"
+      "linkDisallowedReferences"
+      "linkNativeBuildInputs"
+      "postLink"
       "runtimeDeps"
     ];
     extendDrvArgs =
@@ -227,6 +348,14 @@ let
         overrideDshEngineVersion ? false,
         installation ? null,
         installationKeep ? [ ],
+        linkDisallowedReferences ? [ ],
+        linkNativeBuildInputs ? [ ],
+        postLink ? "",
+        __darwinAllowLocalNetworking ? false,
+        doInstallCheck ? false,
+        installCheckPhase ? "",
+        installCheckInputs ? [ ],
+        nativeInstallCheckInputs ? [ ],
         nativeBuildInputs ? [ ],
         disallowedReferences ? [ ],
         env ? { },
@@ -234,7 +363,7 @@ let
         passthru ? { },
         postInstall ? "",
         ...
-      }:
+      }@args:
       {
         nodejs = nodejs-slim;
         env = env // {
@@ -248,20 +377,34 @@ let
         ++ lib.optional disableChildBundlePatches jq
         ++ nativeBuildInputs;
       }
+      // lib.optionalAttrs (installation != null && !(args ? name)) {
+        name = "${finalAttrs.pname}-unwrapped-${finalAttrs.version}";
+      }
       // mkBundleProtocol finalAttrs {
         inherit
-          overrideDshEngineVersion
+          __darwinAllowLocalNetworking
+          doInstallCheck
+          installCheckInputs
+          installCheckPhase
           installation
           installationKeep
+          linkDisallowedReferences
+          linkNativeBuildInputs
           meta
+          nativeInstallCheckInputs
+          overrideDshEngineVersion
           passthru
+          postLink
           runtimeDeps
           ;
+        splitLink = true;
         postInstall = postInstall + lib.optionalString disableChildBundlePatches suppressChildBundlePatches;
       };
   };
 
-  fromPnpmWorkspace = lib.extendMkDerivation {
+  buildDshBundle = withInstallationLink rawBuildDshBundle;
+
+  rawFromPnpmWorkspace = lib.extendMkDerivation {
     constructDrv = buildNpmPackage;
     excludeDrvArgNames = [
       "deployPackage"
@@ -269,9 +412,12 @@ let
       "overrideDshEngineVersion"
       "installation"
       "installationKeep"
+      "linkDisallowedReferences"
+      "linkNativeBuildInputs"
       "pnpm"
       "pnpmDepsHash"
       "postDeploy"
+      "postLink"
       "postNormalizeDeploy"
       "preDeploy"
       "runtimeDeps"
@@ -286,12 +432,20 @@ let
         runtimeDeps ? [ ],
         preDeploy ? "",
         postDeploy ? "",
+        postLink ? "",
         postNormalizeDeploy ? "",
         stripPrepareScripts ? false,
         disableChildBundlePatches ? false,
         overrideDshEngineVersion ? false,
         installation ? null,
         installationKeep ? [ ],
+        linkDisallowedReferences ? [ ],
+        linkNativeBuildInputs ? [ ],
+        __darwinAllowLocalNetworking ? false,
+        doInstallCheck ? false,
+        installCheckPhase ? "",
+        installCheckInputs ? [ ],
+        nativeInstallCheckInputs ? [ ],
         pnpm ? pnpmWorkspaceDeploy,
         nativeBuildInputs ? [ ],
         disallowedReferences ? [ ],
@@ -300,7 +454,7 @@ let
         passthru ? { },
         postInstall ? "",
         ...
-      }:
+      }@args:
       let
         resolvedPnpmDeps =
           if pnpmDeps != null then
@@ -375,21 +529,35 @@ let
         ++ nativeBuildInputs;
         installPhase = defaultInstallPhase;
       }
+      // lib.optionalAttrs (installation != null && !(args ? name)) {
+        name = "${finalAttrs.pname}-unwrapped-${finalAttrs.version}";
+      }
       // mkBundleProtocol finalAttrs {
         inherit
-          overrideDshEngineVersion
+          __darwinAllowLocalNetworking
+          doInstallCheck
+          installCheckInputs
+          installCheckPhase
           installation
           installationKeep
+          linkDisallowedReferences
+          linkNativeBuildInputs
           meta
+          nativeInstallCheckInputs
+          overrideDshEngineVersion
           passthru
+          postLink
           runtimeDeps
           ;
+        splitLink = true;
         inherit postInstall;
       }
       // lib.optionalAttrs (resolvedPnpmDeps != null) {
         pnpmDeps = resolvedPnpmDeps;
       };
   };
+
+  fromPnpmWorkspace = withInstallationLink rawFromPnpmWorkspace;
 
   fromWorkspace = lib.extendMkDerivation {
     constructDrv = stdenvNoCC.mkDerivation;

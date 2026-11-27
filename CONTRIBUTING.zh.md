@@ -58,6 +58,9 @@ bundle 链接进 profile，从 `dsh-runtime` 安装解析 peer。设置
 保证每个包只有一个运行时实例。必须保留在 bundle 内的包写入 `installationKeep`。
 安装中已有的 bundle 使用 `buildDshBundle.fromInstallation`，按名称选用。
 pnpm deploy 移除 peer 元数据时，helper 在该命名空间中只提供安装中的 SDK 库。
+`buildDshBundle` 与 `buildDshBundle.fromPnpmWorkspace` 会把安装链接拆到单独的
+轻量推导中，使运行时更新可以复用已编译的 bundle 产物；额外依赖运行时或 cohort 的
+链接/拷贝步骤请写入 `postLink`，而不是 `installPhase` 或 `postNormalizeDeploy`。
 
 ## CUA 原生辅助程序
 

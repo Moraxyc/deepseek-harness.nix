@@ -62,6 +62,10 @@ JSON 生成物が YAML 変換とフィールド抽出を行います。`fetchrix
 1 つに保ちます。バンドル内にローカルで保持する必要があるパッケージには
 `installationKeep` を使用してください。インストールに既に含まれるバンドルは
 `buildDshBundle.fromInstallation` を使用し、名前で選択されます。
+`buildDshBundle` と `buildDshBundle.fromPnpmWorkspace` はインストールへのリンク処理を
+別の軽量 derivation に分離するため、ランタイム更新時もビルド済み成果物を再利用できます。
+ランタイムや cohort に依存する追加のリンク・コピー処理は `installPhase` や
+`postNormalizeDeploy` ではなく `postLink` に記述してください。
 
 ## CUA ヘルパー
 

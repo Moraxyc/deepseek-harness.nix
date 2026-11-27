@@ -48,14 +48,16 @@ buildDshBundle (finalAttrs: {
     mkdir -p "$appDir"
     cp -r package.json cordis.patch.yml src lib "$appDir/"
 
-    # The client manifest injects the client-only ui-slots package, which no
-    # other bundle in this closure carries.
+    runHook postInstall
+  '';
+
+  # The client manifest injects the client-only ui-slots package, which no
+  # other bundle in this closure carries.
+  postLink = ''
     ${dshCohort.installPackages {
-      dest = "$appDir/node_modules";
+      dest = "$out/lib/node_modules/@zseven-w/dsh-harbor/node_modules";
       names = clientPackages;
     }}
-
-    runHook postInstall
   '';
 
   passthru = {
