@@ -10,9 +10,6 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   inherit (dshSources."bundles.acp-enhanced") version src;
   deployPackage = "dsh-acp-enhanced";
 
-  # dsh 0.2.2-alpha.2 dropped the @deepseek-ai/dsh-tool-subagent-control/list-agents export.
-  patches = [ ./0.2.2-remove-list-agents.patch ];
-
   pnpmDepsHash = dshSources."bundles.acp-enhanced".pnpmDepsHash;
 
   npmDeps = null;
@@ -21,6 +18,9 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
   installation = dsh-runtime;
 
   doCheck = true;
+  preCheck = ''
+    substituteInPlace scripts/acp-launcher-test.mjs --replace-fail '#!/bin/bash' "#!$(command -v bash)"
+  '';
   checkPhase = ''
     runHook preCheck
     for testScript in \
@@ -28,6 +28,9 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
       scripts/boot-classify-test.mjs \
       scripts/support-claim-test.mjs \
       scripts/docs-claim-test.mjs \
+      scripts/acp-launcher-test.mjs \
+      scripts/preset-gate-test.mjs \
+      scripts/service-order-test.mjs \
       scripts/replay-order-test.mjs \
       scripts/codec-image-test.mjs \
       scripts/terminal-codec-test.mjs \
@@ -35,7 +38,10 @@ buildDshBundle.fromPnpmWorkspace (finalAttrs: {
       scripts/context-window-test.mjs \
       scripts/tool-result-test.mjs \
       scripts/cancel-cause-test.mjs \
-      scripts/stored-titles-test.mjs; do
+      scripts/stored-titles-test.mjs \
+      scripts/quiet-test.mjs \
+      scripts/quiet-memory-test.mjs \
+      scripts/status-text-test.mjs; do
       node "$testScript"
     done
     runHook postCheck
