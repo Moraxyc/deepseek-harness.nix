@@ -56,6 +56,8 @@ buildDshBundle (finalAttrs: {
 
   nativeBuildInputs = [ pnpm_11 ];
   disallowedReferences = [ pnpm_11 ];
+  # The upstream peer ranges exclude the pinned runtime.
+  overrideDshEngineVersion = true;
   installation = dsh-runtime;
   __darwinAllowLocalNetworking = true;
   installationKeep = [

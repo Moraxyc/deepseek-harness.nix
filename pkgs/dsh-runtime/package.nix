@@ -11,6 +11,7 @@
   dsh-workspace,
   gh,
   gitMinimal,
+  glab,
   nodeModulesPrune,
   nodejs,
   nodejs-slim,
@@ -90,7 +91,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   ''
   + lib.optionalString isDarwin ''
     # Keep the signed CUA generation outside all mutating fixup hooks.
-    cuaBin="$out/node_modules/@deepseek-ai/dsh-experimental-cua-macos/native/bin"
+    cuaBin="$out/node_modules/@deepseek-ai/dsh-cua-macos/native/bin"
     mv "$cuaBin" "$TMPDIR/cua-bin"
     restoreCuaApplication() {
       mv "$TMPDIR/cua-bin" "$cuaBin"
@@ -126,8 +127,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   ''
   + lib.optionalString isDarwin ''
     diff -r \
-      ${dsh-workspace.runtime}/node_modules/@deepseek-ai/dsh-experimental-cua-macos/native/bin \
-      "$out/node_modules/@deepseek-ai/dsh-experimental-cua-macos/native/bin"
+      ${dsh-workspace.runtime}/node_modules/@deepseek-ai/dsh-cua-macos/native/bin \
+      "$out/node_modules/@deepseek-ai/dsh-cua-macos/native/bin"
   ''
   + ''
     runHook postInstallCheck
@@ -140,6 +141,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       bashInteractive
       gh
       gitMinimal
+      glab
       nodejs-slim
       pnpm
       ripgrep

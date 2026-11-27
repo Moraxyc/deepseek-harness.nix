@@ -20,6 +20,7 @@ in
   notification = "dsh: bundles.notification is no longer maintained in this repository. Remove it from your bundle list. See ${migrationGuide}";
   oh-dsh = "dsh: bundles.oh-dsh is no longer maintained in this repository. Remove it from your bundle list. Use presets.web for the repository-maintained Web interface, or obtain Oh-DSH from https://github.com/hust-open-atom-club/oh-dsh. See ${migrationGuide}";
   opentelemetry = "dsh: bundles.opentelemetry is no longer maintained in this repository. Remove it from your bundle list. See ${migrationGuide}";
+  personalized-recommendations = "dsh: bundles.personalized-recommendations was removed in 0.2.3-alpha.2 because bundles.web-app now mounts personalized recommendations by default. Remove it from your bundle list and configure it in Settings -> General -> Personalized recommendations. See ${migrationGuide}";
   plugin-check = "dsh: bundles.plugin-check is no longer maintained in this repository. Remove it from your bundle list. See ${migrationGuide}";
   security-audit = "dsh: bundles.security-audit is no longer maintained in this repository. Remove it from your bundle list. See ${migrationGuide}";
   session-health = "dsh: bundles.session-health is no longer maintained in this repository. Remove it from your bundle list. See ${migrationGuide}";

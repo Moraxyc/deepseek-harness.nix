@@ -155,18 +155,19 @@
     },
     "bundles.cpa": {
       "pname": "dsh-cpa",
-      "version": "0.1.13",
-      "rawVersion": "0.1.13",
+      "version": "0.1.15",
+      "rawVersion": "0.1.15",
+      "date": "2026-11-26",
       "src": {
         "fetcher": "github",
         "owner": "Moraxyc",
         "repo": "dsh-cpa",
-        "tag": "v0.1.13",
-        "hash": "sha256-5aY1Re3V4nGvzrV4jOoRFqJ/Sl4Cd5Ar+exPzax6j7U="
+        "tag": "v0.1.15",
+        "hash": "sha256-fTnrcgeSn9LAPlAGRRSfqhxGAKbFfUIvw2DK5lZCjPQ="
       },
       "derived": {
         "npmDepsHash": {
-          "hash": "sha256-6OxgwIYjrKN8L9wI15CUi4EYE7nw/BVhWyzbTWz6fJk="
+          "hash": "sha256-Ove/jBJjCLvsfJvQ4ao5fnrT9jGk7fQfZl8+ujKgH6I="
         }
       },
       "fingerprint": "sha256-WdmuojLkvUws8c/BAnCU3UvFvlZ5L6/5+ILWB0N5UnQ="
@@ -418,15 +419,15 @@
     },
     "dsh-workspace": {
       "pname": "dsh-workspace",
-      "version": "0.2.2-rc.5",
-      "rawVersion": "0.2.2-rc.5",
-      "date": "2026-11-18",
+      "version": "0.2.3-alpha.2",
+      "rawVersion": "0.2.3-alpha.2",
+      "date": "2026-11-22",
       "src": {
         "fetcher": "github",
         "owner": "deepseek-ai",
         "repo": "deepseek-harness",
-        "tag": "dsh-v0.2.2-rc.5",
-        "hash": "sha256-ZfFJfeLcPNOV8UPezxJOvDiwxyFAf5QUuZ7LywSiseY="
+        "tag": "dsh-v0.2.3-alpha.2",
+        "hash": "sha256-rahOnpB3BGTEg5hscD6YlRWgCRNmhW00YF0j43AuSTU="
       },
       "artifacts": {
         "client-commit.json": "dsh-workspace/client-commit.json",
@@ -434,7 +435,7 @@
         "pnpm-lock.json": "dsh-workspace/pnpm-lock.json",
         "pnpm-workspace.json": "dsh-workspace/pnpm-workspace.json"
       },
-      "fingerprint": "sha256-GDqga72KFpwj7aEnEVTefyXXnotBp9jg+SjLbZtXbsM="
+      "fingerprint": "sha256-4Xtz+5e8vxatzksCwuR31xbv8mle5gPnRgf0xtd3sz8="
     }
   }
 }

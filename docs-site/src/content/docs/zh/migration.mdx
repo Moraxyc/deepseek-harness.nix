@@ -70,6 +70,16 @@ NixOS 和 Home Manager 模块的默认值不变。
 profile 中删除 `@deepseek-ai/dsh-experimental-agent-team-profile`。
 在内置界面中使用会话级 Team 开关启用 Team。
 
+### `bundles.personalized-recommendations`
+
+上游已退役该可选 bundle，`bundles.web-app` 现默认挂载个性化推荐组件。请从
+bundle 选择中删除 `bundles.personalized-recommendations`，并从 mutable profile
+中删除 `@deepseek-ai/dsh-personalized-recommendations`。
+
+如需在 managed profile 中关闭推荐，可在 `profiles.<name>.patch` 中为
+`action-cards` 行设置 `config.enabled = false`，或在 mutable profile 中通过
+**设置 → 通用 → 个性化推荐** 开关控制。
+
 ### `bundles.experimental-schedule-bundle`
 
 该属性已在上游 `0.2.1-alpha.1` 中移除。请从 bundle 选择中删除它；
@@ -95,6 +105,29 @@ profile 中删除 `@deepseek-ai/dsh-experimental-agent-team-profile`。
 
 跨会话记忆请选择 `bundles.mneme` 或 `bundles.mnemon`。删除 bundle 不会删除这些插件
 写入数据目录的内容；切换前请备份 `$DSH_HOME` 或所配置的数据目录。
+
+## `0.2.3-alpha.2`
+
+升级前请阅读[上游发行说明](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.3-alpha.2)。
+
+### 可选 bundle 与独立 `cua-mcp`
+
+- `bundles.personalized-recommendations` 已移除，详见
+  [`bundles.personalized-recommendations`](#bundlespersonalized-recommendations)。
+- 新增实验性可选 bundle `bundles.timeline`（需 Web 组合），提供任务树、实时进度条和定时报告。
+- 新增独立 MCP stdio 服务 profile `bundles.cua-mcp`。因其自带独立根组合而不基于
+  `dsh-base`，选择 `bundles.cua-mcp` 的 Nix profile 不能与其他 bundle、
+  `agentPreset` 或 UI 模式（`requiresWeb`、`requiresTui`、`requiresTty`、
+  `requiresAcp`）混用。
+- `bundles.experimental-forge-bundle` 现同时支持通过 `glab` 接入 GitLab
+  合并请求。`glab` 已加入 `dsh` 运行时 `PATH`，使用前需执行
+  `glab auth login --hostname <host>` 登录。
+
+### 已移除的行与包重命名
+
+上游移除了 `cua`、`tool-working-directory`、`ui-settings-plugin-inventory` 和
+`ui-settings-plugins` 行，并将 `@deepseek-ai/dsh-experimental-cua-macos` 重命名为
+`@deepseek-ai/dsh-cua-macos`。针对上述行或包名的自定义补丁应相应更新或移除。
 
 ## `0.2.2-rc.5`
 

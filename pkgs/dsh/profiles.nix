@@ -179,25 +179,48 @@ let
     (profile.requiresAcp or false)
     || lib.any (bundle: bundle.passthru.requiresAcp or false) (nixBundlesOf profile);
 
+  profileNeedsMcp =
+    profile:
+    (profile.requiresMcp or false)
+    || lib.any (bundle: bundle.passthru.requiresMcp or false) (nixBundlesOf profile);
+
+  standaloneBundlesOf =
+    profile: lib.filter (bundle: bundle.passthru.standalone or false) (nixBundlesOf profile);
+
   profileLayers =
     name: profile:
     let
+      standalone = standaloneBundlesOf profile;
       needsWeb = profileNeedsWeb profile;
       needsTui = profileNeedsTui profile;
       needsAcp = profileNeedsAcp profile;
+      needsMcp = profileNeedsMcp profile;
     in
-    lib.unique (
-      lib.optional needsWeb web-app
-      ++ lib.optional needsTui tui
-      # A profile manifest is independent from the runtime defaults. Keep
-      # plain CLI profiles non-interactive instead of letting dsh fall back to
-      # its interactive entrypoint during headless checks and service use.
-      ++ lib.optional (!needsWeb && !needsTui && !needsAcp) headless
-      ++ map (
-        bundle:
-        if lib.isString bundle then parseExternalBundle "profiles.${name}.bundles" bundle else bundle
-      ) (profile.bundles or [ ])
-    );
+    if standalone != [ ] then
+      lib.throwIf
+        (
+          builtins.length (profile.bundles or [ ]) > 1
+          || (profile.requiresWeb or false)
+          || (profile.requiresTui or false)
+          || (profile.requiresTty or false)
+          || (profile.requiresAcp or false)
+          || (profile.agentPreset or null) != null
+        )
+        "dsh profile: profiles.${name} uses standalone bundle ${(builtins.head standalone).pname} and cannot be combined with other bundles, agentPreset, or UI modes"
+        standalone
+    else
+      lib.unique (
+        lib.optional needsWeb web-app
+        ++ lib.optional needsTui tui
+        # A profile manifest is independent from the runtime defaults. Keep
+        # plain CLI profiles non-interactive instead of letting dsh fall back to
+        # its interactive entrypoint during headless checks and service use.
+        ++ lib.optional (!needsWeb && !needsTui && !needsAcp && !needsMcp) headless
+        ++ map (
+          bundle:
+          if lib.isString bundle then parseExternalBundle "profiles.${name}.bundles" bundle else bundle
+        ) (profile.bundles or [ ])
+      );
 
   isExternalLayer = layer: !lib.isDerivation layer && layer ? spec;
 
@@ -273,7 +296,8 @@ let
         else
           null;
       # The argument order is the Cordis patch order. Keep the base
-      # layer first, then apply profile bundles in their declared order.
+      # layer first unless the profile selects a standalone bundle root.
+      rootLayers = if standaloneBundlesOf profile != [ ] then layers else [ base ] ++ layers;
       layerArguments = lib.concatMap (
         layer:
         if isExternalLayer layer then
@@ -284,7 +308,7 @@ let
           ]
         else
           [ "${layer}/nix-support/dsh-bundles.json" ]
-      ) ([ base ] ++ layers);
+      ) rootLayers;
       rawPatch = warnPatchMigrations "profiles.${name}.patch" (profile.patch or [ ]);
       agentPresetPatchFile =
         if agentPreset == null then null else makeAgentPresetPatch agentPreset.id agentPreset.definition;
@@ -732,6 +756,8 @@ let
           value =
             if profileNeedsAcp profile then
               "acp"
+            else if profileNeedsMcp profile then
+              "mcp"
             else if profileNeedsWeb profile then
               "web"
             else if profileNeedsTui profile then

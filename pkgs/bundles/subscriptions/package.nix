@@ -31,6 +31,9 @@ buildDshBundle (finalAttrs: {
   pname = "dsh-plugin-subscriptions";
   inherit (dshSources."bundles.subscriptions") version src;
 
+  # dsh-attachment 0.2.3-alpha.2 requires maxImageBytes and imageTargetBytes on ImageRequestTarget.
+  patches = [ ./alpha2-image-request-target.patch ];
+
   pnpmDeps = importPnpmLock {
     inherit (finalAttrs) pname version;
     pnpm = pnpm_11;

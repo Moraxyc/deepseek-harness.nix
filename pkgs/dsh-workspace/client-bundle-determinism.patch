@@ -1,45 +1,70 @@
 diff --git a/packages/client/tsdown.client.ts b/packages/client/tsdown.client.ts
---- a/packages/client/tsdown.client.ts
-+++ b/packages/client/tsdown.client.ts
-@@ -857,11 +857,11 @@
+--- a/packages/client/tsdown.client.ts	2026-11-26 23:40:12.656694458 +0800
++++ b/packages/client/tsdown.client.ts	2026-11-26 23:40:12.699834196 +0800
+@@ -422,13 +422,13 @@
+         // A third-party stylesheet stays a bare import, so the shell's Vite build applies its own processing.
+         if (!file.endsWith('.css') || isBareSpecifier(file)) return null
+         const resolved = sourceAssetPath(file, importer)
+-        return (source.endsWith(INLINE_CSS_QUERY) ? INLINE_CSS_VIRTUAL_PREFIX : CSS_VIRTUAL_PREFIX) + resolved + CSS_VIRTUAL_SUFFIX
++        return (source.endsWith(INLINE_CSS_QUERY) ? INLINE_CSS_VIRTUAL_PREFIX : CSS_VIRTUAL_PREFIX) + relative(REPOSITORY_ROOT, resolved) + CSS_VIRTUAL_SUFFIX
+       },
+     },
+     async load(virtualId) {
+       const inline = virtualId.startsWith(INLINE_CSS_VIRTUAL_PREFIX)
+       if (!inline && !virtualId.startsWith(CSS_VIRTUAL_PREFIX)) return null
+-      const file = virtualId.slice((inline ? INLINE_CSS_VIRTUAL_PREFIX : CSS_VIRTUAL_PREFIX).length, -CSS_VIRTUAL_SUFFIX.length)
++      const file = resolvePath(REPOSITORY_ROOT, virtualId.slice((inline ? INLINE_CSS_VIRTUAL_PREFIX : CSS_VIRTUAL_PREFIX).length, -CSS_VIRTUAL_SUFFIX.length))
+       this.addWatchFile(file)
+       const references = new Map<string, string>()
+       const nonce = randomBytes(8).toString('hex')
+@@ -1066,11 +1066,11 @@
        resolveId(source: string, importer: string | undefined) {
          if (!source.endsWith('.module.css')) return null
-         const abs = importer !== undefined ? sourceAssetPath(source, importer) : source
+         const abs = resolveStylesheet(source, importer)
 -        return CSS_VIRTUAL_PREFIX + abs + CSS_VIRTUAL_SUFFIX
-+        return CSS_VIRTUAL_PREFIX + relative(process.cwd(), abs) + CSS_VIRTUAL_SUFFIX
++        return CSS_VIRTUAL_PREFIX + relative(REPOSITORY_ROOT, abs) + CSS_VIRTUAL_SUFFIX
        },
        async load(virtualId: string) {
          if (!virtualId.startsWith(CSS_VIRTUAL_PREFIX)) return null
 -        const fileId = virtualId.slice(CSS_VIRTUAL_PREFIX.length, -CSS_VIRTUAL_SUFFIX.length)
-+        const fileId = resolvePath(process.cwd(), virtualId.slice(CSS_VIRTUAL_PREFIX.length, -CSS_VIRTUAL_SUFFIX.length))
++        const fileId = resolvePath(REPOSITORY_ROOT, virtualId.slice(CSS_VIRTUAL_PREFIX.length, -CSS_VIRTUAL_SUFFIX.length))
          // The virtual id otherwise hides the physical stylesheet from Rolldown's watch graph.
          this.addWatchFile(fileId)
          const source = await readFile(fileId)
-@@ -885,11 +885,11 @@
+@@ -1096,11 +1096,11 @@
          if (!source.endsWith(`.css${INLINE_CSS_QUERY}`)) return null
          const stylesheet = source.slice(0, -INLINE_CSS_QUERY.length)
-         const abs = importer !== undefined ? sourceAssetPath(stylesheet, importer) : stylesheet
+         const abs = resolveStylesheet(stylesheet, importer)
 -        return INLINE_CSS_VIRTUAL_PREFIX + abs + CSS_VIRTUAL_SUFFIX
-+        return INLINE_CSS_VIRTUAL_PREFIX + relative(process.cwd(), abs) + CSS_VIRTUAL_SUFFIX
++        return INLINE_CSS_VIRTUAL_PREFIX + relative(REPOSITORY_ROOT, abs) + CSS_VIRTUAL_SUFFIX
        },
        async load(virtualId: string) {
          if (!virtualId.startsWith(INLINE_CSS_VIRTUAL_PREFIX)) return null
 -        const fileId = virtualId.slice(INLINE_CSS_VIRTUAL_PREFIX.length, -CSS_VIRTUAL_SUFFIX.length)
-+        const fileId = resolvePath(process.cwd(), virtualId.slice(INLINE_CSS_VIRTUAL_PREFIX.length, -CSS_VIRTUAL_SUFFIX.length))
++        const fileId = resolvePath(REPOSITORY_ROOT, virtualId.slice(INLINE_CSS_VIRTUAL_PREFIX.length, -CSS_VIRTUAL_SUFFIX.length))
          this.addWatchFile(fileId)
          const source = await readFile(fileId)
          const stylesheetAssets = assets.urlRewrite(this, fileId)
-@@ -901,11 +901,11 @@
+@@ -1117,11 +1117,11 @@
        resolveId(source: string, importer: string | undefined) {
          if (!source.endsWith('.css') || source.endsWith('.module.css')) return null
-         const abs = importer !== undefined ? sourceAssetPath(source, importer) : source
+         const abs = resolveStylesheet(source, importer)
 -        return GLOBAL_CSS_VIRTUAL_PREFIX + abs + CSS_VIRTUAL_SUFFIX
-+        return GLOBAL_CSS_VIRTUAL_PREFIX + relative(process.cwd(), abs) + CSS_VIRTUAL_SUFFIX
++        return GLOBAL_CSS_VIRTUAL_PREFIX + relative(REPOSITORY_ROOT, abs) + CSS_VIRTUAL_SUFFIX
        },
        async load(virtualId: string) {
          if (!virtualId.startsWith(GLOBAL_CSS_VIRTUAL_PREFIX)) return null
 -        const fileId = virtualId.slice(GLOBAL_CSS_VIRTUAL_PREFIX.length, -CSS_VIRTUAL_SUFFIX.length)
-+        const fileId = resolvePath(process.cwd(), virtualId.slice(GLOBAL_CSS_VIRTUAL_PREFIX.length, -CSS_VIRTUAL_SUFFIX.length))
++        const fileId = resolvePath(REPOSITORY_ROOT, virtualId.slice(GLOBAL_CSS_VIRTUAL_PREFIX.length, -CSS_VIRTUAL_SUFFIX.length))
          this.addWatchFile(fileId)
          const source = await readFile(fileId)
          const stylesheetAssets = assets.urlRewrite(this, fileId)
+@@ -1207,7 +1207,7 @@
+ function clientInputFile(id: string): string {
+   const prefix = [CSS_VIRTUAL_PREFIX, GLOBAL_CSS_VIRTUAL_PREFIX, INLINE_CSS_VIRTUAL_PREFIX]
+     .find(prefix => id.startsWith(prefix))
+-  return prefix === undefined ? id : id.slice(prefix.length, -CSS_VIRTUAL_SUFFIX.length)
++  return prefix === undefined ? id : resolvePath(REPOSITORY_ROOT, id.slice(prefix.length, -CSS_VIRTUAL_SUFFIX.length))
+ }
+ 
+ /** Chain tsc's emitted maps into any Client bundle that consumes `lib/types`. */

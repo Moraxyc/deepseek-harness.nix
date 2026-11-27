@@ -4,7 +4,6 @@
   stdenv,
   stdenvNoCC,
   darwin,
-  electron,
   makeWrapper,
   wrapGAppsHook3,
   writeShellScriptBin,
@@ -108,7 +107,7 @@ stdenvNoCC.mkDerivation (
           ]
         } \
         ${runtimePathArgs}\
-        --set CHROME_DEVEL_SANDBOX "${electron.unwrapped}/libexec/electron/chrome-sandbox" \
+        --set CHROME_DEVEL_SANDBOX "$appDir/chrome-sandbox" \
         --inherit-argv0
 
       for size in 16 22 24 32 48 64 128 256 512; do

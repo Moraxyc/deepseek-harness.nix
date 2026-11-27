@@ -80,6 +80,17 @@ Oh-DSH ディストリビューションとそのプラグインセットは、
 プロファイルから `@deepseek-ai/dsh-experimental-agent-team-profile` も削除してください。
 組み込みのセッション単位の Team スイッチで有効にします。
 
+### `bundles.personalized-recommendations`
+
+上流でこのオプションバンドルは廃止され、`bundles.web-app` がデフォルトで
+パーソナライズドレコメンデーションの行をマウントするようになりました。バンドル選択から
+`bundles.personalized-recommendations` を削除し、mutable プロファイルから
+`@deepseek-ai/dsh-personalized-recommendations` も削除してください。
+
+managed プロファイルで無効にするには、`profiles.<name>.patch` の
+`action-cards` 行で `config.enabled = false` を設定するか、mutable プロファイルの
+**Settings → General → Personalized recommendations** を切り替えてください。
+
 ### `bundles.experimental-schedule-bundle`
 
 この属性は上流の `0.2.1-alpha.1` で削除されました。バンドル選択から削除してください。
@@ -109,6 +120,31 @@ Oh-DSH ディストリビューションとそのプラグインセットは、
 セッションをまたぐメモリーには `bundles.mneme` または `bundles.mnemon` を選択してください。
 これらのバンドルを削除しても、データディレクトリに書き込まれた内容は削除されません。
 切り替える前に `$DSH_HOME` または設定したデータディレクトリをバックアップしてください。
+
+## `0.2.3-alpha.2`
+
+更新前に[上流のリリースノート](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.2.3-alpha.2)を読んでください。
+
+### オプションバンドルとスタンドアロン `cua-mcp`
+
+- `bundles.personalized-recommendations` は削除されました。詳細は
+  [`bundles.personalized-recommendations`](#bundlespersonalized-recommendations) を参照してください。
+- タスクツリー、ライブ進捗バー、定期レポートを提供する実験的オプションバンドル
+  `bundles.timeline`（Web 構成が必要）が追加されました。
+- スタンドアロンの MCP stdio サーバープロファイル `bundles.cua-mcp` が追加されました。
+  `dsh-base` とは独立したプロファイルルートを構築するため、`bundles.cua-mcp` を
+  選択する Nix プロファイルでは他のバンドル、`agentPreset`、UI モード
+  （`requiresWeb`、`requiresTui`、`requiresTty`、`requiresAcp`）と併用できません。
+- `bundles.experimental-forge-bundle` が `gh` による GitHub PR に加え、`glab` を用いた
+  GitLab マージリクエストにも対応しました。`glab` は `dsh` のランタイム `PATH` に
+  含まれており、利用前に `glab auth login --hostname <host>` でサインインが必要です。
+
+### 削除された行とパッケージ名の変更
+
+上流で `cua`、`tool-working-directory`、`ui-settings-plugin-inventory`、
+`ui-settings-plugins` 行が削除され、`@deepseek-ai/dsh-experimental-cua-macos` は
+`@deepseek-ai/dsh-cua-macos` に名称変更されました。これらを対象とするカスタムパッチは
+更新または削除してください。
 
 ## `0.2.2-rc.5`
 

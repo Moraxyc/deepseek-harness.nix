@@ -17,8 +17,6 @@ buildDshBundle (finalAttrs: {
     runHook postCheck
   '';
 
-  # The upstream peer ranges exclude the pinned runtime.
-  overrideDshEngineVersion = true;
   installation = dsh-runtime;
 
   passthru.requiresWeb = true;

@@ -52,11 +52,16 @@ const upstream = (overrides: Record<string, string | object> = {}) => ({
     dependencies: { "@deepseek-ai/dsh-panel": "workspace:*", left: "1" },
     dsh: { bundle: { patch: "./patch.yml", platforms: ["linux"] } },
   },
+  "packages/bundle/alpha/patch.yml":
+    "- insert:\n    - id: panel\n      name: '@deepseek-ai/dsh-panel'\n",
   "packages/bundle/alpha/locale/zh.json": { meta: { description: "阿尔法" } },
   "packages/bundle/zeta/package.json": {
     name: "@deepseek-ai/dsh-zeta",
+    dependencies: { "@deepseek-ai/dsh-panel": "workspace:*" },
     dsh: { bundle: { patch: ["./a.yml"] } },
   },
+  "packages/bundle/zeta/a.yml":
+    "- insert:\n    - id: panel-extra\n      name: '@deepseek-ai/dsh-panel-extra'\n",
   "packages/bundle/zeta/locale/en.json": { meta: { description: "Zeta" } },
   "packages/bundle/zeta/locale/zh.json": { meta: { description: "泽塔" } },
   "packages/bundle/zeta/locale/ja.json": "not json",

@@ -15,9 +15,14 @@ let
       inherit (entry) pname;
       installation = dsh-runtime;
 
-      passthru = lib.optionalAttrs entry.requiresWeb {
-        requiresWeb = true;
-      };
+      passthru =
+        lib.optionalAttrs entry.requiresWeb {
+          requiresWeb = true;
+        }
+        // lib.optionalAttrs (packageName == "@deepseek-ai/dsh-cua-mcp") {
+          standalone = true;
+          requiresMcp = true;
+        };
 
       meta = {
         inherit (entry) description;
