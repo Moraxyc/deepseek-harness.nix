@@ -6,6 +6,9 @@ import { defineConfig } from "vite";
 export default defineConfig({
   base: "/deepseek-harness.nix/",
   plugins: [fumadocsMdx(), tailwindcss(), reactRouter()],
+  preview: {
+    host: "127.0.0.1",
+  },
   resolve: {
     tsconfigPaths: true,
   },
