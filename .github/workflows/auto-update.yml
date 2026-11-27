@@ -83,11 +83,20 @@ jobs:
           printf '%s\n' "$result" |
             jq -r '.skipped[] | "::warning::Skipping broken \(.) in the auto-update matrix"'
 
+          include_flake_locks=false
+          # Flake lock updates rebuild the full package set across all systems;
+          # run them weekly on Mondays and on manual dispatch.
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] ||
+             [ "$(date -u +%u)" = "1" ]; then
+            include_flake_locks=true
+          fi
+
           matrix="$(
             jq -cn \
               --argjson result "$result" \
+              --argjson include_flake_locks "$include_flake_locks" \
               '{
-                include: ([
+                include: ((if $include_flake_locks then [
                   {
                     name: "flake-locks",
                     title: "chore: update flake locks",
@@ -98,7 +107,7 @@ jobs:
                     prOnly: false,
                     evalOnly: true
                   }
-                ] + [ $result.updatable[] | { name: .name, title: "", attr: .attr, label: .label, version: .version, command: "", prOnly: .prOnly, evalOnly: false } ])
+                ] else [] end) + [ $result.updatable[] | { name: .name, title: "", attr: .attr, label: .label, version: .version, command: "", prOnly: .prOnly, evalOnly: false } ])
               }'
           )"
 
@@ -296,31 +305,37 @@ jobs:
           EVAL_ONLY: ${{ matrix.evalOnly }}
         run: |
           set -euo pipefail
+          system="$(nix eval --raw --impure --expr builtins.currentSystem)"
           if [ "${EVAL_ONLY:-false}" = true ]; then
             # The flake-parts dev partition copies this path into the store.
             # Populate it before the read-only flake check on a clean runner.
             nix-store --add ./modules/flake-parts/dev >/dev/null
             nix flake check --no-build --all-systems
-            system="$(nix eval --raw --impure --expr builtins.currentSystem)"
-            mapfile -t eval_attrs < <(
-              nix eval --json ".#legacyPackages.${system}.ciPackageAttrs" |
-                jq -r '.packages[], .bundles[], .presets[], .bundleCompositions[]' |
-                sort -u
-            )
-            printf 'Evaluating %d package attrs\n' "${#eval_attrs[@]}"
-            nix path-info --derivation "${eval_attrs[@]}" >/dev/null
+            count="$(
+              nix run --inputs-from . nixpkgs#nix-eval-jobs -- \
+                --force-recurse \
+                --max-memory-size 2048 \
+                --flake ".#legacyPackages.${system}.ciTargets" |
+                jq -s '
+                  (map(select(.error != null))) as $errs |
+                  if ($errs | length) > 0 then
+                    ($errs[0].error | halt_error(1))
+                  elif length == 0 then
+                    ("no derivations evaluated" | halt_error(1))
+                  else
+                    length
+                  end
+                '
+            )"
+            printf 'Evaluated %s CI targets\n' "$count"
             exit 0
           fi
-          git fetch --quiet origin main
-          attrs="$(nix run .#tools.select-package-ci-attrs -- origin/main)"
-          if [ -z "$attrs" ]; then
-            echo "No changed package attrs"
-            exit 0
-          fi
-          mapfile -t build_attrs <<< "$attrs"
-          printf 'Building %d package attrs\n' "${#build_attrs[@]}"
-          printf '%s\n' "${build_attrs[@]}"
-          nix build --no-link --print-build-logs "${build_attrs[@]}"
+          nix run --inputs-from . nixpkgs#nix-fast-build -- \
+            --flake ".#legacyPackages.${system}.ciTargets" \
+            --max-jobs 2 \
+            --skip-cached \
+            --no-nom \
+            --eval-max-memory-size 2048
 
       - name: Collect validated update
         id: collect

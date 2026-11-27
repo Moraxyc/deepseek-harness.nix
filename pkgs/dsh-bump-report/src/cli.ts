@@ -38,7 +38,7 @@ const BUNDLES_EXPR = `packages:
       overrideDshEngineVersion = bundle.passthru.overrideDshEngineVersion or false;
       workspace = (src.pname or null) == "dsh-workspace";
     }
-  ) (builtins.attrNames packages.ciPackageAttrs.bundles)`;
+  ) (builtins.attrNames packages.ciPackages.bundles)`;
 
 function log(message: string): void {
   process.stderr.write(`dsh-bump-report: ${message}\n`);

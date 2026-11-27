@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - main
-    # select-package-ci-attrs decides what a change rebuilds; only skip
-    # changes that cannot affect a package or a CI script.
+    # nix-fast-build --skip-cached skips derivations already in Cachix; only
+    # skip changes that cannot affect a package or a CI script.
     paths-ignore: &docs-only
       - "**.md"
       - "docs-site/**"
@@ -42,8 +42,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
 
       - name: Free disk space for Nix
         uses: wimpysworld/nothing-but-nix@v12
@@ -70,7 +68,6 @@ jobs:
           nix build --no-link \
             .#checks.x86_64-linux.merge-check \
             .#checks.x86_64-linux.dsh-bump-report \
-            .#checks.x86_64-linux.package-ci-selection \
             .#checks.x86_64-linux.publish-auto-updates
 
       - name: Check generated optional bundle manifest
@@ -80,30 +77,20 @@ jobs:
             .#checks.x86_64-linux.dsh-optional-bundles-generated
 
       - name: Build package set
-        # macOS runners ship bash 3.2, which lacks mapfile and treats empty
-        # arrays as unset under `set -u`.
-        shell: nix shell --inputs-from . nixpkgs#bash --command bash -e {0}
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
         run: |
           set -euo pipefail
-
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] ||
-             [ -z "$BASE_SHA" ] ||
-             [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
-            attrs="$(nix run .#tools.select-package-ci-attrs)"
-          else
-            attrs="$(nix run .#tools.select-package-ci-attrs -- "$BASE_SHA")"
+          target="ciPackages"
+          # Bundle loading smoke checks are architecture-independent; run them
+          # on x86_64-linux only and keep packages, bundles, and presets everywhere.
+          if [ "${{ matrix.system }}" = "x86_64-linux" ]; then
+            target="ciTargets"
           fi
-          if [ -z "$attrs" ]; then
-            echo "No package attrs changed"
-            exit 0
-          fi
-
-          mapfile -t build_attrs <<< "$attrs"
-          printf 'Building %d package attrs\n' "${#build_attrs[@]}"
-          printf '%s\n' "${build_attrs[@]}"
-          nix build --no-link --print-build-logs "${build_attrs[@]}"
+          nix run --inputs-from . nixpkgs#nix-fast-build -- \
+            --flake ".#legacyPackages.${{ matrix.system }}.${target}" \
+            --max-jobs 2 \
+            --skip-cached \
+            --no-nom \
+            --eval-max-memory-size 2048
 
       - name: Check optional bundle composition and worktree runtime
         if: matrix.system == 'x86_64-linux'

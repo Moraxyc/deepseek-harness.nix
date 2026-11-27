@@ -27,7 +27,7 @@ JSON 生成物が YAML 変換とフィールド抽出を行います。`fetchrix
 - 1 つのパッケージだけに関わる処理は、`pkgs/dsh-workspace/fetchrix-prepare.sh`
   のようにそのパッケージの隣に置きます。`scripts/` にはリポジトリ全体のツールだけを置きます。
 - Bash はコマンドの実行を担います。JSON、lockfile、依存グラフを変換するツールは
-  `pkgs/select-package-ci-attrs` のように `pkgs/` 配下の TypeScript パッケージにします。
+  `pkgs/generate-optional-bundles` のように `pkgs/` 配下の TypeScript パッケージにします。
   `buildNpmPackage` がビルド時に `tsc` でコンパイルして `node --test` のテストを実行し、
   `wrapProgram --set PATH` が実行時の依存だけに制限します。パッケージのビルド内での
   変換は、そのパッケージの隣に置く Node `.mjs` モジュールのままとし、`node --test` の

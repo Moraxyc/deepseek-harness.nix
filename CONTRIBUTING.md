@@ -33,7 +33,7 @@ and their declared `inputs`; list any other files a hook reads there. Use
   tools.
 - Bash runs commands. A tool that transforms JSON, lockfiles, or dependency
   graphs is a TypeScript package under `pkgs/`, such as
-  `pkgs/select-package-ci-attrs`: `buildNpmPackage` compiles it with `tsc` and
+  `pkgs/generate-optional-bundles`: `buildNpmPackage` compiles it with `tsc` and
   runs its `node --test` tests during the build, and `wrapProgram --set PATH`
   limits it to its runtime inputs. Such transformations inside a package build
   stay Node `.mjs` modules next to the package, with `node --test` tests.

@@ -39,7 +39,6 @@ rec {
   };
 
   dsh-bump-report = pkgs.dsh.dsh-bump-report.override { inherit nix; };
-  select-package-ci-attrs = pkgs.dsh.select-package-ci-attrs.override { inherit nix; };
 
   publish-auto-updates = tool {
     name = "publish-auto-updates";

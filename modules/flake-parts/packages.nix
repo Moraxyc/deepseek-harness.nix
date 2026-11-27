@@ -29,13 +29,7 @@
             path = drv;
           }) bundleCompositions
         );
-        ciPackageAttrs = {
-          packages = packageAttrs;
-          bundles = bundleAttrs;
-          presets = presetAttrs;
-          bundleCompositions = bundleCompositionAttrs;
-          inherit bundleDependents;
-        };
+        inherit ciPackages ciTargets;
       };
       isBuildable =
         package:
@@ -43,26 +37,18 @@
         && !((package.meta or { }).broken or false)
         && lib.meta.availableOn pkgs.stdenv.hostPlatform package;
 
-      packageNames = lib.attrNames (
-        lib.filterAttrs (name: package: name != "default" && isBuildable package) packages
+      buildablePackages = lib.filterAttrs (
+        name: package: name != "default" && isBuildable package
+      ) packages;
+      buildableBundles = lib.filterAttrs (_: package: isBuildable package) (
+        builtins.removeAttrs legacyPackages.bundles (builtins.attrNames dsh.removedBundles)
       );
-      bundleNames = lib.attrNames (
-        lib.filterAttrs (_: package: isBuildable package) (
-          builtins.removeAttrs legacyPackages.bundles (builtins.attrNames dsh.removedBundles)
-        )
-      );
-      presetNames = lib.attrNames (
-        lib.filterAttrs (_: package: isBuildable package) legacyPackages.presets
-      );
-      packageAttrs = lib.genAttrs packageNames (name: ".#${name}");
-      bundleAttrs = lib.genAttrs bundleNames (name: ".#bundles.${name}");
-      presetAttrs = lib.genAttrs presetNames (name: ".#presets.${name}");
-      bundleKeyOf = bundle: bundle.pname or bundle.name or null;
+      buildablePresets = lib.filterAttrs (_: package: isBuildable package) legacyPackages.presets;
+      bundleNames = lib.attrNames buildableBundles;
       # Bundles the installation carries need no composition of their own.
       bundleCompositionNames = lib.filter (
-        name: !(legacyPackages.bundles.${name}.passthru.dshInstallation or false)
+        name: !(buildableBundles.${name}.passthru.dshInstallation or false)
       ) bundleNames;
-      bundleCompositionAttrs = lib.genAttrs bundleCompositionNames (name: ".#bundleCompositions.${name}");
       composeBundle =
         name:
         (dsh.dsh.withProfiles {
@@ -74,21 +60,14 @@
       bundleProbes = lib.genAttrs bundleNames (
         name: (composeBundle name).overrideAttrs { dontDshBundleCheck = true; }
       );
-      usesBundle =
-        package: bundleKey:
-        lib.any (bundle: bundleKeyOf bundle == bundleKey) ((package.passthru or { }).profileBundles or [ ]);
-      bundleDependents = lib.genAttrs bundleNames (
-        bundleName:
-        let
-          bundleKey = bundleKeyOf legacyPackages.bundles.${bundleName};
-          affectedPackages = lib.filter (name: usesBundle packages.${name} bundleKey) packageNames;
-          affectedPresets = lib.filter (
-            name: usesBundle legacyPackages.presets.${name} bundleKey
-          ) presetNames;
-        in
-        (map (name: packageAttrs.${name}) affectedPackages)
-        ++ map (name: presetAttrs.${name}) affectedPresets
-      );
+      ciPackages = {
+        packages = buildablePackages;
+        bundles = buildableBundles;
+        presets = buildablePresets;
+      };
+      ciTargets = ciPackages // {
+        inherit bundleCompositions;
+      };
     in
     {
       inherit packages legacyPackages;
