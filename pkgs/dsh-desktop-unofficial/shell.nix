@@ -73,6 +73,15 @@ stdenv.mkDerivation (finalAttrs: {
     mv package.json.tmp package.json
   '';
 
+  postConfigure = ''
+    # yarnBerryConfigHook only patches top-level node_modules; workspace bins keep /usr/bin/env.
+    for dir in dsh-community-market/node_modules dsh-plugin-desktop/node_modules; do
+      if [ -d "$dir" ]; then
+        patchShebangs "$dir"
+      fi
+    done
+  '';
+
   buildPhase = ''
     runHook preBuild
 
