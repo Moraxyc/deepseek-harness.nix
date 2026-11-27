@@ -39,6 +39,8 @@ buildNpmPackage (finalAttrs: {
 
   npmConfigHook = importNpmLock.npmConfigHook;
   npmBuildScript = "build";
+  # React Router prerender binds a local Vite preview server during build.
+  __darwinAllowLocalNetworking = true;
   postPatch = "cp ${catalogSource} src/data/catalog.generated.ts";
 
   installPhase = ''
