@@ -40,6 +40,8 @@ stdenv.mkDerivation (finalAttrs: {
     swiftPackages.swiftpmHook
   ];
   swiftpmFlags = [
+    "--build-system"
+    "native"
     "--product"
     "dsh-cua-native"
   ];
