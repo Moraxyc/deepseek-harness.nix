@@ -38,7 +38,7 @@
         && lib.meta.availableOn pkgs.stdenv.hostPlatform package;
 
       buildablePackages = lib.filterAttrs (
-        name: package: name != "default" && isBuildable package
+        name: package: name != "default" && name != "docs-site" && isBuildable package
       ) packages;
       buildableBundles = lib.filterAttrs (_: package: isBuildable package) (
         builtins.removeAttrs legacyPackages.bundles (builtins.attrNames dsh.removedBundles)
