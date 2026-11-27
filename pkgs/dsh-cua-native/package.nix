@@ -44,6 +44,13 @@ stdenv.mkDerivation (finalAttrs: {
     "dsh-cua-native"
   ];
 
+  preBuild = ''
+    export HOME="$TMPDIR/home"
+    export CLANG_MODULE_CACHE_PATH="$TMPDIR/clang-module-cache"
+    export SWIFTPM_MODULECACHE_OVERRIDE="$TMPDIR/swiftpm-module-cache"
+    mkdir -p "$HOME" "$CLANG_MODULE_CACHE_PATH" "$SWIFTPM_MODULECACHE_OVERRIDE"
+  '';
+
   postBuild = ''
     ${lib.getExe removeReferencesTo} -t ${stdenv.cc} -t ${apple-sdk} \
       "$(swiftpmBinPath)/dsh-cua-native"
