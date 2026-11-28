@@ -398,15 +398,15 @@
     },
     "dsh-desktop-unofficial": {
       "pname": "dsh-desktop-shell",
-      "version": "2.0.24-next-unstable-2026-11-27",
-      "rawVersion": "737373896069590dfa531d68b32901730c3a5e34",
-      "date": "2026-11-27",
+      "version": "2.0.24-next-unstable-2026-11-28",
+      "rawVersion": "52519017a0a202aa16c9f618d8d6839b3c2c5653",
+      "date": "2026-11-28",
       "src": {
         "fetcher": "github",
         "owner": "anywhere-labs",
         "repo": "deepseek-harness-desktop",
-        "rev": "737373896069590dfa531d68b32901730c3a5e34",
-        "hash": "sha256-fCeutAJ1vOT5qnvKCaUbNnBtyvUAUUMrw/ouhrJfpfk="
+        "rev": "52519017a0a202aa16c9f618d8d6839b3c2c5653",
+        "hash": "sha256-ACqZDzwS8rRusNNQXzG/OEqWLRlMvHIzC0Z2S9DyLJM="
       },
       "derived": {
         "yarnDepsHash": {
@@ -416,7 +416,7 @@
       "artifacts": {
         "missing-hashes.json": "dsh-desktop-unofficial/missing-hashes.json"
       },
-      "fingerprint": "sha256-zuq35Yx2UK16Zk6ucMywWlU/JEhTwsiZI7Cxsutd9CU="
+      "fingerprint": "sha256-jjxNmWe1HFQz2i7wgM5w41DQK88U3j3Qfg23tGW2jEA="
     },
     "dsh-workspace": {
       "pname": "dsh-workspace",
